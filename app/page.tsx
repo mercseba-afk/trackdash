@@ -1,13 +1,10 @@
-import { AppShell } from "@/components/app-shell"
-import { AuthGate } from "@/components/auth-gate"
+import { AppPage } from "@/components/app-page"
 import { DashboardScreen } from "@/components/screens/dashboard-screen"
 
 export default function Page() {
   return (
-    <AuthGate>
-      <AppShell>
-        <DashboardScreen />
-      </AppShell>
-    </AuthGate>
+    <AppPage>
+      <DashboardScreen />
+    </AppPage>
   )
 }

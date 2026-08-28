@@ -175,3 +175,16 @@ export interface User {
 }
 
 export type CollectorLevel = "Starter" | "Collector" | "Enthusiast" | "Expert"
+
+// -----------------------------------------------------------------------------
+// Runtime constant arrays (kept in sync with the union types above so UI can
+// iterate over them for filters, selects and toggle groups).
+// -----------------------------------------------------------------------------
+
+export const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Incomplete"]
+
+export const RARITIES: Rarity[] = ["Common", "Uncommon", "Rare", "Very Rare", "Grail"]
+
+export const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
+
+export const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
