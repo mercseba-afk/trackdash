@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { StoreProvider } from "@/lib/store"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { AppShell } from "@/components/app-shell"
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
@@ -43,7 +44,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <StoreProvider>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              <AppShell>{children}</AppShell>
+            </TooltipProvider>
             <Toaster position="top-center" />
           </StoreProvider>
         </ThemeProvider>
