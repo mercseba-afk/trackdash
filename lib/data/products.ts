@@ -611,6 +611,21 @@ export function findByCode(query: string): Product | undefined {
   )
 }
 
+export function getRelatedProducts(product: Product, limit = 4): Product[] {
+  const scored = PRODUCTS.filter((p) => p.id !== product.id).map((p) => {
+    let score = 0
+    if (p.series === product.series) score += 3
+    if (p.chassis === product.chassis) score += 2
+    if (p.rarity === product.rarity) score += 1
+    if (Math.abs(p.releaseYear - product.releaseYear) <= 3) score += 1
+    return { p, score }
+  })
+  return scored
+    .sort((a, b) => b.score - a.score || b.p.releaseYear - a.p.releaseYear)
+    .slice(0, limit)
+    .map((s) => s.p)
+}
+
 export const CHASSIS_OPTIONS = Array.from(new Set(PRODUCTS.map((p) => p.chassis)))
 export const SERIES_OPTIONS = Array.from(new Set(PRODUCTS.map((p) => p.series)))
 export const YEAR_OPTIONS = Array.from(new Set(PRODUCTS.map((p) => p.releaseYear))).sort(
