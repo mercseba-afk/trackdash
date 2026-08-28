@@ -15,14 +15,6 @@ export const metadata: Metadata = {
   description:
     "The collector's database for Tamiya Mini 4WD. Catalog your models, track market value with honest data, and manage your wishlist.",
   generator: "v0.app",
-  icons: {
-    icon: [
-      { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)" },
-      { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: "/apple-icon.png",
-  },
 }
 
 export const viewport: Viewport = {
