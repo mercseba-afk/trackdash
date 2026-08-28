@@ -29,7 +29,11 @@ export function ScannerScreen() {
   const [result, setResult] = React.useState<Product | null>(null)
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  React.useEffect(() => () => timer.current && clearTimeout(timer.current), [])
+  React.useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current)
+    }
+  }, [])
 
   function runScan(target?: Product | null) {
     setPhase("scanning")

@@ -224,7 +224,7 @@ function EditDialog({
   onClose: () => void
   onSave: (id: string, patch: Partial<CollectionItem>) => void
 }) {
-  const [condition, setCondition] = React.useState<Condition>("Mint")
+  const [condition, setCondition] = React.useState<Condition>("Sealed")
   const [price, setPrice] = React.useState("")
   const [notes, setNotes] = React.useState("")
 

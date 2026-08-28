@@ -1,6 +1,15 @@
 import { cn } from "@/lib/utils"
 
-export function BrandMark({ className, showText = true }: { className?: string; showText?: boolean }) {
+export function BrandMark({
+  className,
+  showText = true,
+  tone = "default",
+}: {
+  className?: string
+  showText?: boolean
+  tone?: "default" | "invert"
+}) {
+  const invert = tone === "invert"
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <span
@@ -13,7 +22,12 @@ export function BrandMark({ className, showText = true }: { className?: string; 
       {showText && (
         <span className="flex flex-col leading-none">
           <span className="font-mono text-sm font-bold tracking-tight">MINI 4WD</span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <span
+            className={cn(
+              "text-[10px] font-medium uppercase tracking-[0.2em]",
+              invert ? "text-background/60" : "text-muted-foreground",
+            )}
+          >
             Collector
           </span>
         </span>

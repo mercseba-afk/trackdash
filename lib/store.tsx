@@ -52,6 +52,7 @@ interface Store extends PersistedState {
   login: (email: string) => void
   signup: (input: { email: string; username: string; country: string }) => void
   logout: () => void
+  updateUser: (patch: Partial<User>) => void
   addToCollection: (input: AddCollectionInput) => void
   updateCollectionItem: (id: string, patch: Partial<CollectionItem>) => void
   removeFromCollection: (id: string) => void
@@ -133,6 +134,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     const logout: Store["logout"] = () => {
       setState((s) => ({ ...s, user: null }))
+    }
+
+    const updateUser: Store["updateUser"] = (patch) => {
+      setState((s) => (s.user ? { ...s, user: { ...s.user, ...patch } } : s))
     }
 
     const addToCollection: Store["addToCollection"] = (input) => {
@@ -219,6 +224,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       login,
       signup,
       logout,
+      updateUser,
       addToCollection,
       updateCollectionItem,
       removeFromCollection,

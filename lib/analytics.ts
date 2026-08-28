@@ -11,7 +11,7 @@ export interface EnrichedCollectionItem {
 
 export function enrichCollection(collection: CollectionItem[]): EnrichedCollectionItem[] {
   return collection
-    .map((item) => {
+    .map((item): EnrichedCollectionItem | null => {
       const product = getProductById(item.productId)
       if (!product) return null
       const estimate = getMarketEstimate(product)
@@ -94,7 +94,7 @@ export interface EnrichedWishlistItem {
 
 export function enrichWishlist(wishlist: WishlistItem[]): EnrichedWishlistItem[] {
   return wishlist
-    .map((item) => {
+    .map((item): EnrichedWishlistItem | null => {
       const product = getProductById(item.productId)
       if (!product) return null
       const estimate = getMarketEstimate(product)
