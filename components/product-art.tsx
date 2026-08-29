@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/types"
+import type { Product, ProductRelease } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 // Data-driven "box art" tile. The production catalog will carry real product
@@ -20,16 +20,20 @@ const SERIES_HUE: Record<Product["series"], number> = {
 
 export function ProductArt({
   product,
+  release,
   className,
   size = "md",
 }: {
   product: Product
+  release?: ProductRelease
   className?: string
   size?: "sm" | "md" | "lg"
 }) {
   const hue = SERIES_HUE[product.series] ?? 8
   const bg = `oklch(0.62 0.14 ${hue})`
   const bgDeep = `oklch(0.42 0.12 ${hue})`
+  const chassis = release?.chassis ?? product.chassis
+  const itemNumber = release?.itemNumber ?? product.itemNumber
 
   return (
     <div
@@ -64,7 +68,7 @@ export function ProductArt({
             size === "sm" ? "text-[9px]" : "text-[10px]",
           )}
         >
-          {product.chassis}
+          {chassis}
         </span>
         <span
           className={cn(
@@ -72,7 +76,7 @@ export function ProductArt({
             size === "sm" ? "text-[9px]" : "text-[10px]",
           )}
         >
-          #{product.tamiyaItemNumber}
+          #{itemNumber}
         </span>
       </div>
       <div className="relative">

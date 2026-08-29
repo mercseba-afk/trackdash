@@ -3,17 +3,17 @@
 import * as React from "react"
 import Link from "next/link"
 import { Camera, Loader2, ScanLine, Sparkles, X } from "lucide-react"
-import { PRODUCTS, findByCode } from "@/lib/data/products"
-import { getMarketEstimate } from "@/lib/data/market"
+import { PRODUCTS, findByCode, resolveRelease } from "@/lib/data/products"
+import { getReleaseEstimate } from "@/lib/data/market"
 import { formatMoney } from "@/lib/format"
-import type { Product } from "@/lib/types"
+import type { Product, ProductRelease } from "@/lib/types"
 import { ProductArt } from "@/components/product-art"
 import { RarityBadge, TrendIndicator, ConfidenceBadge } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   InputGroup,
   InputGroupAddon,
@@ -23,10 +23,15 @@ import {
 
 type Phase = "idle" | "scanning" | "result" | "not-found"
 
+interface Match {
+  product: Product
+  releaseId?: string
+}
+
 export function ScannerScreen() {
   const [phase, setPhase] = React.useState<Phase>("idle")
   const [manual, setManual] = React.useState("")
-  const [result, setResult] = React.useState<Product | null>(null)
+  const [result, setResult] = React.useState<Match | null>(null)
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   React.useEffect(() => {
@@ -35,12 +40,13 @@ export function ScannerScreen() {
     }
   }, [])
 
-  function runScan(target?: Product | null) {
+  function runScan(target?: Match | null) {
     setPhase("scanning")
     setResult(null)
     timer.current = setTimeout(() => {
-      const found = target ?? PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)]
-      if (found) {
+      const found =
+        target ?? { product: PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)] }
+      if (found.product) {
         setResult(found)
         setPhase("result")
       } else {
@@ -54,8 +60,12 @@ export function ScannerScreen() {
     const q = manual.trim()
     if (!q) return
     const byCode = findByCode(q)
+    if (byCode) {
+      runScan({ product: byCode.product, releaseId: byCode.release?.id })
+      return
+    }
     const byName = PRODUCTS.find((p) => p.name.toLowerCase().includes(q.toLowerCase()))
-    runScan(byCode ?? byName ?? null)
+    runScan(byName ? { product: byName } : null)
   }
 
   return (
@@ -63,7 +73,7 @@ export function ScannerScreen() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Scanner</h1>
         <p className="text-sm text-muted-foreground">
-          Point at a box or barcode to identify a model. Demo scanner resolves to a catalog match.
+          Point at a box or barcode to identify a model. The demo scanner resolves to a specific catalog release.
         </p>
       </div>
 
@@ -112,7 +122,7 @@ export function ScannerScreen() {
         <form onSubmit={submitManual}>
           <InputGroup>
             <InputGroupInput
-              placeholder="Or enter item number (e.g. 18075) or name"
+              placeholder="Or enter item number (e.g. 18025) or name"
               value={manual}
               onChange={(e) => setManual(e.target.value)}
             />
@@ -144,31 +154,44 @@ export function ScannerScreen() {
         </Card>
       )}
 
-      {phase === "result" && result && <ScanResult product={result} onScanAgain={() => runScan()} />}
+      {phase === "result" && result && (
+        <ScanResult product={result.product} matchedReleaseId={result.releaseId} onScanAgain={() => runScan()} />
+      )}
     </div>
   )
 }
 
-function ScanResult({ product, onScanAgain }: { product: Product; onScanAgain: () => void }) {
-  const estimate = getMarketEstimate(product)
+function ScanResult({
+  product,
+  matchedReleaseId,
+  onScanAgain,
+}: {
+  product: Product
+  matchedReleaseId?: string
+  onScanAgain: () => void
+}) {
+  const [releaseId, setReleaseId] = React.useState(resolveRelease(product, matchedReleaseId).id)
+  const release: ProductRelease = resolveRelease(product, releaseId)
+  const estimate = getReleaseEstimate(product, release)
+
   return (
     <Card className="border-brand/40">
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-brand">
           <Sparkles className="size-4" />
-          <span className="text-sm font-medium">Identified</span>
+          <span className="text-sm font-medium">Found product</span>
         </div>
         <div className="flex gap-4">
-          <ProductArt product={product} className="h-24 w-36 shrink-0" />
+          <ProductArt product={product} release={release} className="h-24 w-36 shrink-0" />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <Link href={`/catalog/${product.id}`} className="font-semibold leading-tight hover:text-brand">
               {product.name}
             </Link>
             <p className="text-xs text-muted-foreground">
-              {product.chassis} · #{product.tamiyaItemNumber} · {product.releaseYear}
+              #{release.itemNumber} · {release.chassis} · original release {product.originalReleaseYear}
             </p>
             <div className="flex flex-wrap items-center gap-1.5">
-              <RarityBadge rarity={product.rarity} />
+              <RarityBadge rarity={release.rarity ?? product.rarity} />
               <Badge variant="outline">{product.series}</Badge>
             </div>
             <div className="mt-1 flex items-center gap-2">
@@ -178,11 +201,34 @@ function ScanResult({ product, onScanAgain }: { product: Product; onScanAgain: (
             </div>
           </div>
         </div>
+
+        {/* Release chooser — the collector can always correct the detected release */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Release / edition</span>
+          <Select value={releaseId} onValueChange={setReleaseId}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {product.releases.map((r) => (
+                <SelectItem key={r.id} value={r.id}>
+                  {r.releaseYear} · {r.releaseType} · #{r.itemNumber}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {product.hasMultipleReleases ? (
+            <p className="text-[11px] text-muted-foreground">
+              Multiple releases exist for this model. Confirm the one you scanned before adding.
+            </p>
+          ) : null}
+        </div>
+
         <div className="flex flex-wrap gap-2">
-          <AddToCollectionDialog product={product}>
+          <AddToCollectionDialog product={product} defaultReleaseId={releaseId}>
             <Button className="flex-1">Add to collection</Button>
           </AddToCollectionDialog>
-          <AddToWishlistDialog product={product}>
+          <AddToWishlistDialog product={product} defaultReleaseId={releaseId}>
             <Button variant="outline" className="flex-1">
               Add to wishlist
             </Button>

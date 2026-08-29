@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import type { Condition, Currency, Product, WishlistPriority } from "@/lib/types"
+import type { Condition, Currency, Product, ProductRelease, WishlistPriority } from "@/lib/types"
 import { useStore } from "@/lib/store"
-import { getMarketEstimate } from "@/lib/data/market"
+import { getReleaseEstimate, getProductEstimate } from "@/lib/data/market"
+import { primaryRelease, resolveRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,27 +34,34 @@ const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Inc
 const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
 
-function VariantSelect({
+function releaseOptionLabel(r: ProductRelease): string {
+  return `${r.releaseYear} · ${r.releaseType}${r.color ? ` (${r.color})` : ""} · #${r.itemNumber}`
+}
+
+function ReleaseSelect({
   product,
   value,
   onChange,
+  allowAny = false,
 }: {
   product: Product
   value: string
   onChange: (v: string) => void
+  allowAny?: boolean
 }) {
-  if (product.variants.length <= 1) return null
+  if (product.releases.length <= 1 && !allowAny) return null
   return (
     <Field>
-      <FieldLabel htmlFor="variant">Variant</FieldLabel>
+      <FieldLabel htmlFor="release">Release / edition</FieldLabel>
       <Select value={value} onValueChange={(v) => onChange(v as string)}>
-        <SelectTrigger id="variant" className="w-full">
-          <SelectValue placeholder="Select variant" />
+        <SelectTrigger id="release" className="w-full">
+          <SelectValue placeholder="Select release" />
         </SelectTrigger>
         <SelectContent>
-          {product.variants.map((v) => (
-            <SelectItem key={v.id} value={v.id}>
-              {v.variantName} · {v.variantType}
+          {allowAny ? <SelectItem value="any">Any edition</SelectItem> : null}
+          {product.releases.map((r) => (
+            <SelectItem key={r.id} value={r.id}>
+              {releaseOptionLabel(r)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -64,34 +72,65 @@ function VariantSelect({
 
 export function AddToCollectionDialog({
   product,
+  defaultReleaseId,
   children,
 }: {
   product: Product
+  defaultReleaseId?: string
   children: React.ReactNode
 }) {
   const { addToCollection } = useStore()
   const [open, setOpen] = React.useState(false)
-  const estimate = getMarketEstimate(product)
 
-  const [variantId, setVariantId] = React.useState(product.variants[0]?.id ?? "")
+  const initialRelease = resolveRelease(product, defaultReleaseId)
+  const [releaseId, setReleaseId] = React.useState(initialRelease.id)
   const [condition, setCondition] = React.useState<Condition>("New / Opened")
   const [date, setDate] = React.useState(new Date().toISOString().slice(0, 10))
-  const [price, setPrice] = React.useState(String(estimate.value))
+  const [year, setYear] = React.useState(String(initialRelease.releaseYear))
   const [currency, setCurrency] = React.useState<Currency>("EUR")
   const [notes, setNotes] = React.useState("")
 
+  const selectedRelease = resolveRelease(product, releaseId)
+  const estimate = getReleaseEstimate(product, selectedRelease, condition)
+  const [price, setPrice] = React.useState(String(estimate.value))
+
+  // When the dialog opens, reset to a clean default keyed to the chosen release.
+  React.useEffect(() => {
+    if (!open) return
+    const r = resolveRelease(product, defaultReleaseId)
+    setReleaseId(r.id)
+    setYear(String(r.releaseYear))
+    setCondition("New / Opened")
+    setPrice(String(getReleaseEstimate(product, r, "New / Opened").value))
+    setNotes("")
+    setDate(new Date().toISOString().slice(0, 10))
+  }, [open, product, defaultReleaseId])
+
+  // Keep the year field in sync when the collector switches release.
+  function handleReleaseChange(id: string) {
+    setReleaseId(id)
+    const r = resolveRelease(product, id)
+    setYear(String(r.releaseYear))
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault()
+    const parsedYear = Number(year)
+    const releaseYearOverride =
+      Number.isFinite(parsedYear) && parsedYear !== selectedRelease.releaseYear ? parsedYear : undefined
     addToCollection({
       productId: product.id,
-      variantId: variantId || undefined,
+      releaseId: selectedRelease.id,
       condition,
       acquisitionDate: new Date(date).toISOString(),
       acquisitionPrice: Number(price) || 0,
       acquisitionCurrency: currency,
+      releaseYearOverride,
       notes: notes.trim() || undefined,
     })
-    toast.success("Added to collection", { description: product.name })
+    toast.success("Added to collection", {
+      description: `${selectedRelease.editionName} · ${year} ${selectedRelease.releaseType}`,
+    })
     setOpen(false)
   }
 
@@ -101,35 +140,52 @@ export function AddToCollectionDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add to collection</DialogTitle>
-          <DialogDescription>Log an item you own with its condition and what you paid.</DialogDescription>
+          <DialogDescription>Log the exact release you own, its condition and what you paid.</DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
-          <ProductArt product={product} size="sm" className="h-14 w-20" />
+          <ProductArt product={product} release={selectedRelease} size="sm" className="h-14 w-20" />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
-              #{product.tamiyaItemNumber} · {product.chassis}
+              #{selectedRelease.itemNumber} · {selectedRelease.chassis} · original {product.originalReleaseYear}
             </p>
           </div>
         </div>
         <form onSubmit={submit}>
           <FieldGroup>
-            <VariantSelect product={product} value={variantId} onChange={setVariantId} />
-            <Field>
-              <FieldLabel htmlFor="condition">Condition</FieldLabel>
-              <Select value={condition} onValueChange={(v) => setCondition(v as Condition)}>
-                <SelectTrigger id="condition" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITIONS.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+            <ReleaseSelect product={product} value={releaseId} onChange={handleReleaseChange} />
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel htmlFor="condition">Condition</FieldLabel>
+                <Select value={condition} onValueChange={(v) => setCondition(v as Condition)}>
+                  <SelectTrigger id="condition" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONDITIONS.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="year">Release year</FieldLabel>
+                <Input
+                  id="year"
+                  type="number"
+                  inputMode="numeric"
+                  min={1980}
+                  max={2100}
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                />
+              </Field>
+            </div>
+            <p className="-mt-1 text-[11px] text-muted-foreground">
+              Original model release: {product.originalReleaseYear}. Adjust the year above to match your exact kit.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel htmlFor="date">Acquired</FieldLabel>
@@ -161,6 +217,9 @@ export function AddToCollectionDialog({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
               />
+              <p className="text-[11px] text-muted-foreground">
+                Demo estimate for this release &amp; condition: {formatMoney(estimate.value)}
+              </p>
             </Field>
             <Field>
               <FieldLabel htmlFor="notes">Notes</FieldLabel>
@@ -185,25 +244,32 @@ export function AddToCollectionDialog({
 
 export function AddToWishlistDialog({
   product,
+  defaultReleaseId,
   children,
 }: {
   product: Product
+  defaultReleaseId?: string
   children: React.ReactNode
 }) {
   const { addToWishlist } = useStore()
   const [open, setOpen] = React.useState(false)
-  const estimate = getMarketEstimate(product)
+  const estimate = getProductEstimate(product)
 
-  const [variantId, setVariantId] = React.useState(product.variants[0]?.id ?? "")
+  const [releaseId, setReleaseId] = React.useState(defaultReleaseId ?? "any")
   const [priority, setPriority] = React.useState<WishlistPriority>("Medium")
   const [target, setTarget] = React.useState(String(Math.round(estimate.value * 0.9)))
   const [notes, setNotes] = React.useState("")
+
+  const selectedRelease =
+    releaseId && releaseId !== "any" ? resolveRelease(product, releaseId) : primaryRelease(product)
+  const displayEstimate =
+    releaseId && releaseId !== "any" ? getReleaseEstimate(product, selectedRelease) : estimate
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
     addToWishlist({
       productId: product.id,
-      variantId: variantId || undefined,
+      releaseId: releaseId && releaseId !== "any" ? releaseId : undefined,
       priority,
       targetPrice: target ? Number(target) : undefined,
       notes: notes.trim() || undefined,
@@ -227,13 +293,13 @@ export function AddToWishlistDialog({
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
-              Est. {formatMoney(estimate.value)} · demo
+              Est. {formatMoney(displayEstimate.value)} · demo
             </p>
           </div>
         </div>
         <form onSubmit={submit}>
           <FieldGroup>
-            <VariantSelect product={product} value={variantId} onChange={setVariantId} />
+            <ReleaseSelect product={product} value={releaseId} onChange={setReleaseId} allowAny />
             <Field>
               <FieldLabel htmlFor="priority">Priority</FieldLabel>
               <Select value={priority} onValueChange={(v) => setPriority(v as WishlistPriority)}>

@@ -1,6 +1,19 @@
-// Core domain model for Mini 4WD Collector.
-// Kept intentionally lean for the MVP but shaped so it maps cleanly onto a
-// relational backend (PostgreSQL / Supabase) later without rewriting the UI.
+// Core domain model for the collector app.
+//
+// The model is intentionally split into a conceptual MODEL (Product) and its
+// concrete commercial RELEASES/EDITIONS (ProductRelease). This is the crucial
+// distinction for serious collectors: the historical "original release year" of
+// a model is NOT the same as the year of the specific kit a collector owns
+// (e.g. a 2026 reissue of a 1990 original). Collection items therefore reference
+// a specific release, and every price/valuation is derived from the most precise
+// identity available (model -> release -> condition).
+//
+// The entity names (Product / ProductRelease / CollectionItem / PricePoint) are
+// deliberately category-agnostic so the same backend can later support other
+// collectible categories (e.g. trading cards) without a rewrite. Category-specific
+// vocabulary (chassis, series) lives in optional, Mini 4WD-flavoured fields.
+
+export type ProductCategory = "mini4wd"
 
 export type Chassis =
   | "Type 1"
@@ -30,25 +43,23 @@ export type Series =
   | "Super Mini 4WD"
   | "Classic"
 
-export type LimitedEditionType =
-  | "Japan Cup"
-  | "Anniversary"
-  | "Special Color"
-  | "Clear Body"
-  | "Premium"
-  | "Store Exclusive"
-
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Very Rare" | "Grail"
 
-export type VariantType =
+// Controlled vocabulary for the type of a specific release/edition. Kept as an
+// open-ended union + runtime array so the catalog can grow new edition types
+// without breaking existing data.
+export type ReleaseType =
   | "Original"
   | "Reissue"
-  | "Premium Reissue"
-  | "Special Color"
-  | "Clear Body"
+  | "Special Edition"
   | "Limited Edition"
   | "Anniversary Edition"
   | "Japan Cup Edition"
+  | "Color Special"
+  | "Clear Body"
+  | "Premium"
+  | "Chassis Variant"
+  | "Other"
 
 export type Condition =
   | "Sealed"
@@ -69,48 +80,70 @@ export type PriceConfidence = "High" | "Medium" | "Low" | "Insufficient"
 
 export type TrendDirection = "rising" | "stable" | "falling"
 
-export interface ProductVariant {
+// -----------------------------------------------------------------------------
+// PRODUCT_RELEASE / EDITION
+// A specific commercial release of a model. This is the identity a collection
+// item points at, and the identity the price engine values.
+// -----------------------------------------------------------------------------
+export interface ProductRelease {
   id: string
   productId: string
-  variantType: VariantType
-  variantName: string
-  releaseYear?: number
+  itemNumber: string // ITEM number for THIS release (may match the model or differ)
+  releaseType: ReleaseType
+  editionName: string // display name for this release, e.g. "Dash-1 Emperor (2026 Reissue)"
+  releaseYear: number // the year THIS release hit the market
+  releaseDate?: string // ISO date if a precise date is known
+  chassis: Chassis
   barcodeJAN?: string
-  isOriginal: boolean
+  color?: string
+  countryMarket?: string
+  msrpJPY?: number
+  msrpEUR?: number
+  images?: string[]
   notes?: string
+  discontinued: boolean
+  isOriginal: boolean // true for the model's original historical release
+  rarity?: Rarity // release-specific rarity; falls back to the model rarity
 }
 
+// -----------------------------------------------------------------------------
+// PRODUCT / MODEL
+// The conceptual identity. Its original_release_year is stored separately and is
+// NEVER treated as the year of a specific owned kit.
+// -----------------------------------------------------------------------------
 export interface Product {
   id: string
-  tamiyaItemNumber: string // e.g. "18626"
-  tamiyaProductCode?: string // internal short code used for manual scanner entry
-  name: string
+  category: ProductCategory
+  itemNumber: string // canonical/representative ITEM number for the model
+  productCode?: string // short code used for manual scanner entry
+  name: string // canonical model name
   japaneseName?: string
   series: Series
-  chassis: Chassis
-  releaseYear: number
-  discontinued: boolean
-  isReissue: boolean
-  isLimitedEdition: boolean
-  limitedEditionType?: LimitedEditionType
-  barcodeJAN: string
-  msrpJPY: number
-  msrpEUR: number
+  chassis: Chassis // primary/representative chassis (releases may differ)
+  originalReleaseYear: number // the model's FIRST-EVER release year
   rarity: Rarity
   description: string
   images: string[]
-  variants: ProductVariant[]
+  releases: ProductRelease[]
+  // derived convenience (computed at build time)
+  hasMultipleReleases: boolean
+  msrpJPY: number // MSRP of the primary release, for headline display
+  msrpEUR: number
 }
 
 export interface CollectionItem {
   id: string
   userId: string
   productId: string
-  variantId?: string
+  releaseId: string // the specific release/edition owned
   condition: Condition
   acquisitionDate: string // ISO date
   acquisitionPrice: number
   acquisitionCurrency: Currency
+  // Optional collector override of the release year for THIS physical item.
+  // Lets a collector correct the exact kit year without mutating the shared
+  // release/original-release data.
+  releaseYearOverride?: number
   notes?: string
   photos: string[]
   createdAt: string
@@ -122,7 +155,7 @@ export interface WishlistItem {
   id: string
   userId: string
   productId: string
-  variantId?: string
+  releaseId?: string // optional target release; undefined = any release of the model
   priority: WishlistPriority
   targetPrice?: number
   currency: Currency
@@ -130,25 +163,28 @@ export interface WishlistItem {
   createdAt: string
 }
 
-// A single observed market data point. In production this table is populated
-// by the price engine from real sold/active listings.
+// A single observed market data point, always tied to a specific release +
+// condition so that (for example) a 1990 original is never blended with a 2026
+// reissue. In production this table is populated by the price engine.
 export interface PricePoint {
   id: string
-  productId: string
-  variantId?: string
+  releaseId: string
+  condition: Condition
   source: PriceSource
   price: number
   currency: Currency
-  condition: Condition
   saleDate?: string
   listingDate?: string
   isSold: boolean
+  listingUrl?: string
 }
 
-// Computed market estimate exposed to the UI. Always carries provenance so the
-// interface can be honest about uncertainty.
+// Computed market estimate exposed to the UI. Always carries provenance and the
+// exact release/condition it was computed for, so the interface can be honest.
 export interface MarketEstimate {
   productId: string
+  releaseId: string
+  condition?: Condition
   value: number
   currency: Currency
   confidence: PriceConfidence
@@ -188,3 +224,17 @@ export const RARITIES: Rarity[] = ["Common", "Uncommon", "Rare", "Very Rare", "G
 export const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 
 export const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
+
+export const RELEASE_TYPES: ReleaseType[] = [
+  "Original",
+  "Reissue",
+  "Special Edition",
+  "Limited Edition",
+  "Anniversary Edition",
+  "Japan Cup Edition",
+  "Color Special",
+  "Clear Body",
+  "Premium",
+  "Chassis Variant",
+  "Other",
+]

@@ -10,6 +10,7 @@ import type {
   WishlistPriority,
 } from "@/lib/types"
 import { DEMO_COLLECTION, DEMO_USER, DEMO_WISHLIST } from "@/lib/data/demo"
+import { getProductById, primaryRelease } from "@/lib/data/products"
 
 // -----------------------------------------------------------------------------
 // APP STORE
@@ -20,7 +21,9 @@ import { DEMO_COLLECTION, DEMO_USER, DEMO_WISHLIST } from "@/lib/data/demo"
 // real API + database without touching the UI components.
 // -----------------------------------------------------------------------------
 
-const STORAGE_KEY = "m4wd-state-v1"
+// v2: collection/wishlist items now reference a specific release (releaseId)
+// instead of a variantId, and support a per-item releaseYearOverride.
+const STORAGE_KEY = "m4wd-state-v2"
 
 interface PersistedState {
   user: User | null
@@ -30,17 +33,18 @@ interface PersistedState {
 
 interface AddCollectionInput {
   productId: string
-  variantId?: string
+  releaseId: string
   condition: Condition
   acquisitionDate: string
   acquisitionPrice: number
   acquisitionCurrency: Currency
+  releaseYearOverride?: number
   notes?: string
 }
 
 interface AddWishlistInput {
   productId: string
-  variantId?: string
+  releaseId?: string
   priority: WishlistPriority
   targetPrice?: number
   notes?: string
@@ -59,7 +63,7 @@ interface Store extends PersistedState {
   addToWishlist: (input: AddWishlistInput) => void
   updateWishlistItem: (id: string, patch: Partial<WishlistItem>) => void
   removeFromWishlist: (id: string) => void
-  moveWishlistToCollection: (wishlistId: string, input: Omit<AddCollectionInput, "productId" | "variantId">) => void
+  moveWishlistToCollection: (wishlistId: string, input: Omit<AddCollectionInput, "productId" | "releaseId">) => void
   isInCollection: (productId: string) => boolean
   isInWishlist: (productId: string) => boolean
 }
@@ -198,6 +202,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setState((s) => {
         const w = s.wishlist.find((x) => x.id === wishlistId)
         if (!w) return s
+        const product = getProductById(w.productId)
+        const releaseId = w.releaseId ?? (product ? primaryRelease(product).id : `${w.productId}-r1`)
         return {
           ...s,
           wishlist: s.wishlist.filter((x) => x.id !== wishlistId),
@@ -206,7 +212,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               id: uid("c"),
               userId: s.user?.id ?? DEMO_USER.id,
               productId: w.productId,
-              variantId: w.variantId,
+              releaseId,
               photos: [],
               createdAt: new Date().toISOString(),
               ...input,

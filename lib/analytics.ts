@@ -1,12 +1,26 @@
-import type { CollectionItem, MarketEstimate, Product, WishlistItem } from "@/lib/types"
-import { getMarketEstimate } from "@/lib/data/market"
-import { getProductById } from "@/lib/data/products"
+import type {
+  CollectionItem,
+  MarketEstimate,
+  Product,
+  ProductRelease,
+  WishlistItem,
+} from "@/lib/types"
+import { getProductEstimate, getReleaseEstimate } from "@/lib/data/market"
+import { getProductById, resolveRelease } from "@/lib/data/products"
+
+// Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
+// Respects a per-item release-year override without mutating shared data.
+export function releaseLabel(release: ProductRelease, displayYear?: number): string {
+  return `${displayYear ?? release.releaseYear} ${release.releaseType}`
+}
 
 export interface EnrichedCollectionItem {
   item: CollectionItem
   product: Product
+  release: ProductRelease
   estimate: MarketEstimate
-  variantName?: string
+  displayYear: number // release-year override if set, else the release year
+  label: string // e.g. "2026 Reissue"
 }
 
 export function enrichCollection(collection: CollectionItem[]): EnrichedCollectionItem[] {
@@ -14,9 +28,10 @@ export function enrichCollection(collection: CollectionItem[]): EnrichedCollecti
     .map((item): EnrichedCollectionItem | null => {
       const product = getProductById(item.productId)
       if (!product) return null
-      const estimate = getMarketEstimate(product)
-      const variantName = product.variants.find((v) => v.id === item.variantId)?.variantName
-      return { item, product, estimate, variantName }
+      const release = resolveRelease(product, item.releaseId)
+      const estimate = getReleaseEstimate(product, release, item.condition)
+      const displayYear = item.releaseYearOverride ?? release.releaseYear
+      return { item, product, release, estimate, displayYear, label: releaseLabel(release, displayYear) }
     })
     .filter((x): x is EnrichedCollectionItem => x !== null)
 }
@@ -24,6 +39,7 @@ export function enrichCollection(collection: CollectionItem[]): EnrichedCollecti
 export interface PortfolioSummary {
   count: number
   uniqueProducts: number
+  uniqueReleases: number
   marketValue: number
   acquisitionCost: number
   gain: number
@@ -37,6 +53,7 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
   const acquisitionCost = enriched.reduce((sum, e) => sum + e.item.acquisitionPrice, 0)
   const gain = marketValue - acquisitionCost
   const uniqueProducts = new Set(enriched.map((e) => e.product.id)).size
+  const uniqueReleases = new Set(enriched.map((e) => e.release.id)).size
   const avgTrend90d =
     enriched.length > 0
       ? Math.round(enriched.reduce((s, e) => s + e.estimate.trend90d, 0) / enriched.length)
@@ -44,6 +61,7 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
   return {
     count: enriched.length,
     uniqueProducts,
+    uniqueReleases,
     marketValue,
     acquisitionCost,
     gain,
@@ -84,11 +102,27 @@ export function recentAdditions(enriched: EnrichedCollectionItem[], n = 6): Enri
     .slice(0, n)
 }
 
+// Count how many physical copies of a given release the collector owns — used to
+// surface "×2" aggregation while still tracking each copy as its own item.
+export function releaseOwnedCount(enriched: EnrichedCollectionItem[], releaseId: string): number {
+  return enriched.filter((e) => e.release.id === releaseId).length
+}
+
+// All collection items belonging to one model (across every release), for the
+// "Your collection" section on the product page.
+export function itemsForProduct(
+  enriched: EnrichedCollectionItem[],
+  productId: string,
+): EnrichedCollectionItem[] {
+  return enriched.filter((e) => e.product.id === productId)
+}
+
 export interface EnrichedWishlistItem {
   item: WishlistItem
   product: Product
+  release?: ProductRelease
   estimate: MarketEstimate
-  variantName?: string
+  label?: string
   belowTarget: boolean
 }
 
@@ -97,10 +131,20 @@ export function enrichWishlist(wishlist: WishlistItem[]): EnrichedWishlistItem[]
     .map((item): EnrichedWishlistItem | null => {
       const product = getProductById(item.productId)
       if (!product) return null
-      const estimate = getMarketEstimate(product)
-      const variantName = product.variants.find((v) => v.id === item.variantId)?.variantName
+      // If a specific release is targeted, value that; otherwise the whole model.
+      const release = item.releaseId ? resolveRelease(product, item.releaseId) : undefined
+      const estimate = release
+        ? getReleaseEstimate(product, release)
+        : getProductEstimate(product)
       const belowTarget = item.targetPrice ? estimate.value <= item.targetPrice : false
-      return { item, product, estimate, variantName, belowTarget }
+      return {
+        item,
+        product,
+        release,
+        estimate,
+        label: release ? releaseLabel(release) : undefined,
+        belowTarget,
+      }
     })
     .filter((x): x is EnrichedWishlistItem => x !== null)
 }
