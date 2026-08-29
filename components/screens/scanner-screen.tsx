@@ -205,9 +205,14 @@ function ScanResult({
         {/* Release chooser — the collector can always correct the detected release */}
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-muted-foreground">Release / edition</span>
-          <Select value={releaseId} onValueChange={setReleaseId}>
+          <Select value={releaseId} onValueChange={(v) => v && setReleaseId(v as string)}>
             <SelectTrigger className="w-full">
-              <SelectValue />
+              <SelectValue>
+                {(v: string) => {
+                  const r = product.releases.find((x) => x.id === v)
+                  return r ? `${r.releaseYear} · ${r.releaseType} · #${r.itemNumber}` : "Select release"
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {product.releases.map((r) => (

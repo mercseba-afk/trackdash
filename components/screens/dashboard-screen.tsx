@@ -146,11 +146,11 @@ export function DashboardScreen() {
                 className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent"
               >
                 <span className="w-4 text-center font-mono text-xs text-muted-foreground">{i + 1}</span>
-                <ProductArt product={e.product} size="sm" className="h-9 w-14 shrink-0" />
+                <ProductArt product={e.product} release={e.release} size="sm" className="h-9 w-14 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{e.product.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {e.variantName ?? e.product.chassis} · {e.item.condition}
+                    {e.label} · {e.item.condition}
                   </p>
                 </div>
                 <div className="text-right">

@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Check, ChevronRight, Boxes } from "lucide-react"
 import { useStore } from "@/lib/store"
-import { PRODUCTS } from "@/lib/data/products"
+import { PRODUCTS, primaryRelease } from "@/lib/data/products"
 import { BrandMark } from "@/components/brand-mark"
 import { ProductArt } from "@/components/product-art"
 import { Button } from "@/components/ui/button"
@@ -48,10 +48,10 @@ export function OnboardingScreen() {
     for (const productId of picks) {
       const product = PRODUCTS.find((p) => p.id === productId)
       if (!product) continue
-      const variant = product.variants[0]
+      const release = primaryRelease(product)
       addToCollection({
         productId,
-        variantId: variant?.id,
+        releaseId: release.id,
         condition: "New / Opened",
         acquisitionDate: new Date().toISOString(),
         acquisitionPrice: product.msrpEUR,

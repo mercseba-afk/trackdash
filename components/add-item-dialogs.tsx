@@ -55,7 +55,13 @@ function ReleaseSelect({
       <FieldLabel htmlFor="release">Release / edition</FieldLabel>
       <Select value={value} onValueChange={(v) => onChange(v as string)}>
         <SelectTrigger id="release" className="w-full">
-          <SelectValue placeholder="Select release" />
+          <SelectValue placeholder="Select release">
+            {(v: string) => {
+              if (v === "any") return "Any edition"
+              const r = product.releases.find((x) => x.id === v)
+              return r ? releaseOptionLabel(r) : "Select release"
+            }}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {allowAny ? <SelectItem value="any">Any edition</SelectItem> : null}

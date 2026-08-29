@@ -4,8 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { Search, LayoutGrid, List, SlidersHorizontal, X, Check, Heart } from "lucide-react"
 import type { Product } from "@/lib/types"
-import { PRODUCTS, CHASSIS_OPTIONS, SERIES_OPTIONS } from "@/lib/data/products"
-import { getMarketEstimate } from "@/lib/data/market"
+import { PRODUCTS, CHASSIS_OPTIONS, SERIES_OPTIONS, primaryRelease } from "@/lib/data/products"
+import { getProductEstimate } from "@/lib/data/market"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
 import { ProductCard } from "@/components/product-card"
@@ -55,7 +55,8 @@ export function CatalogScreen() {
       if (rarity !== "all" && p.rarity !== rarity) return false
       if (ownedOnly && !isInCollection(p.id)) return false
       if (q) {
-        const hay = `${p.name} ${p.japaneseName ?? ""} ${p.chassis} ${p.series} ${p.tamiyaItemNumber}`.toLowerCase()
+        const itemNumbers = p.releases.map((r) => r.itemNumber).join(" ")
+        const hay = `${p.name} ${p.japaneseName ?? ""} ${p.chassis} ${p.series} ${p.itemNumber} ${itemNumbers}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true
@@ -65,13 +66,13 @@ export function CatalogScreen() {
         case "name":
           return a.name.localeCompare(b.name)
         case "year-desc":
-          return b.releaseYear - a.releaseYear
+          return b.originalReleaseYear - a.originalReleaseYear
         case "year-asc":
-          return a.releaseYear - b.releaseYear
+          return a.originalReleaseYear - b.originalReleaseYear
         case "value-desc":
-          return getMarketEstimate(b).value - getMarketEstimate(a).value
+          return getProductEstimate(b).value - getProductEstimate(a).value
         case "value-asc":
-          return getMarketEstimate(a).value - getMarketEstimate(b).value
+          return getProductEstimate(a).value - getProductEstimate(b).value
         case "rarity":
           return RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity]
       }
@@ -194,21 +195,27 @@ export function CatalogScreen() {
       ) : (
         <div className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border">
           {results.map((p) => {
-            const est = getMarketEstimate(p)
+            const est = getProductEstimate(p)
             const owned = isInCollection(p.id)
             const wished = isInWishlist(p.id)
+            const primary = primaryRelease(p)
             return (
               <div key={p.id} className="flex items-center gap-3 bg-card p-2.5">
                 <Link href={`/catalog/${p.id}`}>
-                  <ProductArt product={p} size="sm" className="h-12 w-16 shrink-0" />
+                  <ProductArt product={p} release={primary} size="sm" className="h-12 w-16 shrink-0" />
                 </Link>
                 <Link href={`/catalog/${p.id}`} className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate text-sm font-medium hover:text-brand">{p.name}</p>
                     {owned && <Check className="size-3.5 text-success" />}
+                    {p.hasMultipleReleases && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {p.releases.length} releases
+                      </Badge>
+                    )}
                   </div>
                   <p className="truncate text-xs text-muted-foreground">
-                    #{p.tamiyaItemNumber} · {p.chassis} · {p.releaseYear}
+                    #{primary.itemNumber} · {p.chassis} · orig. {p.originalReleaseYear}
                   </p>
                 </Link>
                 <div className="hidden sm:block">

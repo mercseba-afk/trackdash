@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { ArrowDownRight, ArrowUpRight, Crown, Info, TrendingUp } from "lucide-react"
 import { PRODUCTS } from "@/lib/data/products"
-import { getMarketEstimate } from "@/lib/data/market"
+import { getProductEstimate } from "@/lib/data/market"
 import { formatMoney } from "@/lib/format"
 import type { MarketEstimate, Product } from "@/lib/types"
 import { ProductArt } from "@/components/product-art"
@@ -21,7 +21,7 @@ interface Row {
 
 export function MarketScreen() {
   const rows = React.useMemo<Row[]>(
-    () => PRODUCTS.map((product) => ({ product, estimate: getMarketEstimate(product) })),
+    () => PRODUCTS.map((product) => ({ product, estimate: getProductEstimate(product) })),
     [],
   )
 
@@ -104,7 +104,7 @@ export function MarketScreen() {
                   <div className="mt-1 flex items-center gap-1.5">
                     <RarityBadge rarity={r.product.rarity} />
                     <Badge variant="outline" className="text-xs">
-                      {r.product.releaseYear}
+                      orig. {r.product.originalReleaseYear}
                     </Badge>
                   </div>
                 </div>

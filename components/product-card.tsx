@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Check, Heart, Plus } from "lucide-react"
+import { Check, Heart, Plus, RefreshCw } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { useStore } from "@/lib/store"
-import { getMarketEstimate } from "@/lib/data/market"
+import { getProductEstimate } from "@/lib/data/market"
+import { primaryRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { ProductArt } from "@/components/product-art"
@@ -14,17 +15,23 @@ import { cn } from "@/lib/utils"
 
 export function ProductCard({ product }: { product: Product }) {
   const { isInCollection, isInWishlist } = useStore()
-  const estimate = getMarketEstimate(product)
+  const estimate = getProductEstimate(product)
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
+  const release = primaryRelease(product)
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
       <Link href={`/catalog/${product.id}`} className="relative block">
-        <ProductArt product={product} className="aspect-[4/3] w-full" />
+        <ProductArt product={product} release={release} className="aspect-[4/3] w-full" />
         {owned && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded bg-success px-1.5 py-0.5 text-[10px] font-semibold text-white">
             <Check className="size-3" /> Owned
+          </span>
+        )}
+        {product.hasMultipleReleases && (
+          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
+            <RefreshCw className="size-3" /> {product.releases.length} releases
           </span>
         )}
       </Link>
@@ -33,7 +40,7 @@ export function ProductCard({ product }: { product: Product }) {
           <Link href={`/catalog/${product.id}`} className="min-w-0">
             <p className="truncate text-sm font-semibold leading-tight hover:text-brand">{product.name}</p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {product.chassis} · {product.releaseYear}
+              {product.chassis} · orig. {product.originalReleaseYear}
             </p>
           </Link>
           <RarityBadge rarity={product.rarity} />

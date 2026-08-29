@@ -131,7 +131,7 @@ export function CollectionScreen() {
           <Card key={e.item.id} className="overflow-hidden py-0">
             <div className="flex items-stretch gap-3 p-3 sm:gap-4">
               <Link href={`/catalog/${e.product.id}`} className="shrink-0">
-                <ProductArt product={e.product} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
+                <ProductArt product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="flex items-start justify-between gap-2">
@@ -140,11 +140,13 @@ export function CollectionScreen() {
                       {e.product.name}
                     </Link>
                     <p className="truncate text-xs text-muted-foreground">
-                      {e.variantName ? `${e.variantName} · ` : ""}
-                      {e.product.chassis} · #{e.product.tamiyaItemNumber}
+                      {e.label} · {e.release.chassis} · #{e.release.itemNumber}
+                    </p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      Model originally released {e.product.originalReleaseYear}
                     </p>
                   </div>
-                  <RarityBadge rarity={e.product.rarity} />
+                  <RarityBadge rarity={e.release.rarity ?? e.product.rarity} />
                 </div>
                 <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   <span>
@@ -226,12 +228,14 @@ function EditDialog({
 }) {
   const [condition, setCondition] = React.useState<Condition>("Sealed")
   const [price, setPrice] = React.useState("")
+  const [year, setYear] = React.useState("")
   const [notes, setNotes] = React.useState("")
 
   React.useEffect(() => {
     if (entry) {
       setCondition(entry.item.condition)
       setPrice(String(entry.item.acquisitionPrice))
+      setYear(String(entry.displayYear))
       setNotes(entry.item.notes ?? "")
     }
   }, [entry])
@@ -241,7 +245,10 @@ function EditDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit item</DialogTitle>
-          <DialogDescription>{entry?.product.name}</DialogDescription>
+          <DialogDescription>
+            {entry?.product.name}
+            {entry ? ` · ${entry.release.releaseType} · #${entry.release.itemNumber}` : ""}
+          </DialogDescription>
         </DialogHeader>
         <FieldGroup>
           <Field>
@@ -258,16 +265,30 @@ function EditDialog({
               ))}
             </ToggleGroup>
           </Field>
-          <Field>
-            <FieldLabel htmlFor="edit-price">Acquisition price</FieldLabel>
-            <Input
-              id="edit-price"
-              type="number"
-              min="0"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field>
+              <FieldLabel htmlFor="edit-price">Acquisition price</FieldLabel>
+              <Input
+                id="edit-price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-year">Release year</FieldLabel>
+              <Input
+                id="edit-year"
+                type="number"
+                inputMode="numeric"
+                min={1980}
+                max={2100}
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+            </Field>
+          </div>
           <Field>
             <FieldLabel htmlFor="edit-notes">Notes</FieldLabel>
             <Input id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -277,14 +298,18 @@ function EditDialog({
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
           <Button
-            onClick={() =>
-              entry &&
+            onClick={() => {
+              if (!entry) return
+              const parsedYear = Number(year)
+              const releaseYearOverride =
+                Number.isFinite(parsedYear) && parsedYear !== entry.release.releaseYear ? parsedYear : undefined
               onSave(entry.item.id, {
                 condition,
                 acquisitionPrice: Number(price) || 0,
+                releaseYearOverride,
                 notes: notes.trim() || undefined,
               })
-            }
+            }}
           >
             Save changes
           </Button>
