@@ -10,6 +10,8 @@
 // NEXT_PUBLIC_SUPABASE_URL used by lib/supabase/*. That one talks to the
 // Supabase API; this one is a raw Postgres connection for Drizzle.
 
+import "server-only"
+
 import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
 import * as schema from "./schema"

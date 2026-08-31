@@ -11,7 +11,9 @@
 // deliberate exception is the wishlist, where "any release of this model"
 // is a valid thing to want (see wishlist.ts).
 
-import { boolean, date, index, integer, jsonb, numeric, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+import { boolean, date, index, integer, jsonb, numeric, pgPolicy, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core"
+import { anonRole, authenticatedRole } from "drizzle-orm/supabase"
 import { brands, categories } from "./taxonomy"
 
 export const products = pgTable(
@@ -46,18 +48,33 @@ export const products = pgTable(
     index("idx_products_category").on(table.categoryId),
     index("idx_products_brand").on(table.brandId),
     index("idx_products_item_number").on(table.canonicalItemNumber),
+    pgPolicy("products_public_read", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
   ],
-)
+).enableRLS()
 
-export const productImages = pgTable("product_images", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  productId: uuid("product_id")
-    .notNull()
-    .references(() => products.id, { onDelete: "cascade" }),
-  url: text("url").notNull(),
-  position: integer("position").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-})
+export const productImages = pgTable(
+  "product_images",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  () => [
+    pgPolicy("product_images_public_read", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
+  ],
+).enableRLS()
 
 export const productReleases = pgTable(
   "product_releases",
@@ -90,14 +107,29 @@ export const productReleases = pgTable(
     index("idx_releases_item_number").on(table.itemNumber),
     index("idx_releases_barcode").on(table.barcodeJan),
     unique("product_releases_identity_unique").on(table.productId, table.itemNumber, table.releaseYear, table.color),
+    pgPolicy("product_releases_public_read", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
   ],
-)
+).enableRLS()
 
-export const releaseImages = pgTable("release_images", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  releaseId: uuid("release_id")
-    .notNull()
-    .references(() => productReleases.id, { onDelete: "cascade" }),
-  url: text("url").notNull(),
-  position: integer("position").notNull().default(0),
-})
+export const releaseImages = pgTable(
+  "release_images",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    releaseId: uuid("release_id")
+      .notNull()
+      .references(() => productReleases.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    position: integer("position").notNull().default(0),
+  },
+  () => [
+    pgPolicy("release_images_public_read", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
+  ],
+).enableRLS()

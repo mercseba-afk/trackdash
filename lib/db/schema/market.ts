@@ -15,20 +15,44 @@
 //     have to re-run statistics on every page load; a future periodic job
 //     is what will populate it.
 
-import { relations } from "drizzle-orm"
-import { boolean, date, index, integer, jsonb, numeric, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core"
+import { relations, sql } from "drizzle-orm"
+import { boolean, date, index, integer, jsonb, numeric, pgPolicy, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core"
+import { anonRole, authenticatedRole } from "drizzle-orm/supabase"
 import { productReleases } from "./catalog"
 import { profiles } from "./profiles"
 
-export const priceSources = pgTable("price_sources", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  slug: text("slug").notNull().unique(), // 'ebay_sold' | 'ebay_listing' | 'mercari' | 'yahoo_auctions_jp' | 'user' | 'msrp'
-  name: text("name").notNull(),
-  sourceType: text("source_type").notNull(), // 'sold' | 'listing' | 'user' | 'msrp' — drives the trust hierarchy
-  baseTrustScore: numeric("base_trust_score", { precision: 3, scale: 2 }).notNull().default("1.0"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-})
+// RLS notes for this file (kept intentionally simple, per Step 3 scope):
+//   - price_sources and market_estimates are treated like the catalog:
+//     public, read-only reference/display data. Nothing sensitive in them.
+//   - price_points is read-only to AUTHENTICATED users only (not anon),
+//     unlike the other two — it carries submitted_by_user_id, which could
+//     identify who submitted a manually-entered price once that feature
+//     exists. Restricting raw price_points to signed-in users now avoids
+//     having to tighten this later once real data (and real privacy
+//     stakes) show up.
+//   - No insert/update/delete policy is granted to anon/authenticated on
+//     any of the three: all writes go through the service role (future
+//     ingestion jobs), which bypasses RLS entirely and needs no policy.
+
+export const priceSources = pgTable(
+  "price_sources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(), // 'ebay_sold' | 'ebay_listing' | 'mercari' | 'yahoo_auctions_jp' | 'user' | 'msrp'
+    name: text("name").notNull(),
+    sourceType: text("source_type").notNull(), // 'sold' | 'listing' | 'user' | 'msrp' — drives the trust hierarchy
+    baseTrustScore: numeric("base_trust_score", { precision: 3, scale: 2 }).notNull().default("1.0"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  () => [
+    pgPolicy("price_sources_public_read", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
+  ],
+).enableRLS()
 
 export const pricePoints = pgTable(
   "price_points",
@@ -63,8 +87,13 @@ export const pricePoints = pgTable(
     index("idx_price_points_release_condition").on(table.releaseId, table.condition),
     index("idx_price_points_sale_date").on(table.releaseId, table.saleDate),
     unique("price_points_source_external_id_unique").on(table.sourceId, table.externalListingId),
+    pgPolicy("price_points_authenticated_read", {
+      for: "select",
+      to: authenticatedRole,
+      using: sql`true`,
+    }),
   ],
-)
+).enableRLS()
 
 // Cached aggregate per (release, condition). `condition = NULL` means a
 // release-level estimate not broken down by condition. Always safe to
@@ -95,8 +124,13 @@ export const marketEstimates = pgTable(
   (table) => [
     index("idx_market_estimates_release").on(table.releaseId),
     unique("market_estimates_release_condition_unique").on(table.releaseId, table.condition),
+    pgPolicy("market_estimates_public_read", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
   ],
-)
+).enableRLS()
 
 export const priceSourcesRelations = relations(priceSources, ({ many }) => ({
   pricePoints: many(pricePoints),

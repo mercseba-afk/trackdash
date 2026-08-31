@@ -9,8 +9,9 @@
 // application layer enforces later, not something the schema itself can
 // force — the column just needs to exist and default sensibly to 1.
 
-import { relations } from "drizzle-orm"
-import { date, index, integer, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { relations, sql } from "drizzle-orm"
+import { date, index, integer, numeric, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { authenticatedRole, authUid } from "drizzle-orm/supabase"
 import { products, productReleases } from "./catalog"
 import { profiles } from "./profiles"
 
@@ -44,18 +45,52 @@ export const collectionItems = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("idx_collection_user").on(table.userId), index("idx_collection_release").on(table.releaseId)],
-)
+  (table) => [
+    index("idx_collection_user").on(table.userId),
+    index("idx_collection_release").on(table.releaseId),
+    // One user owns and fully controls their own collection rows; no one
+    // else can see or touch them. A single "all" policy covers
+    // select/insert/update/delete since the ownership check is identical
+    // for all four.
+    pgPolicy("collection_items_owner_all", {
+      for: "all",
+      to: authenticatedRole,
+      using: sql`${table.userId} = ${authUid}`,
+      withCheck: sql`${table.userId} = ${authUid}`,
+    }),
+  ],
+).enableRLS()
 
-export const collectionItemPhotos = pgTable("collection_item_photos", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  collectionItemId: uuid("collection_item_id")
-    .notNull()
-    .references(() => collectionItems.id, { onDelete: "cascade" }),
-  url: text("url").notNull(),
-  position: integer("position").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-})
+export const collectionItemPhotos = pgTable(
+  "collection_item_photos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    collectionItemId: uuid("collection_item_id")
+      .notNull()
+      .references(() => collectionItems.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // This table has no user_id of its own — ownership is checked through
+    // the parent collection_items row.
+    pgPolicy("collection_item_photos_owner_all", {
+      for: "all",
+      to: authenticatedRole,
+      using: sql`exists (
+        select 1 from ${collectionItems}
+        where ${collectionItems.id} = ${table.collectionItemId}
+        and ${collectionItems.userId} = ${authUid}
+      )`,
+      withCheck: sql`exists (
+        select 1 from ${collectionItems}
+        where ${collectionItems.id} = ${table.collectionItemId}
+        and ${collectionItems.userId} = ${authUid}
+      )`,
+    }),
+  ],
+).enableRLS()
 
 // Historical snapshots of a single owned item's estimated value, populated
 // by a periodic job (later step) so the UI can chart "how has the value of
@@ -72,8 +107,23 @@ export const collectionItemValueHistory = pgTable(
     confidence: text("confidence").notNull(), // 'High' | 'Medium' | 'Low' | 'Insufficient'
     recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("idx_value_history_item_date").on(table.collectionItemId, table.recordedAt)],
-)
+  (table) => [
+    index("idx_value_history_item_date").on(table.collectionItemId, table.recordedAt),
+    // Same pattern as collection_item_photos: ownership via the parent row.
+    // Read-only from the app's point of view (the periodic valuation job
+    // that will eventually write here runs as service role, bypassing RLS
+    // entirely) — so only a select policy is granted to authenticated users.
+    pgPolicy("collection_item_value_history_owner_read", {
+      for: "select",
+      to: authenticatedRole,
+      using: sql`exists (
+        select 1 from ${collectionItems}
+        where ${collectionItems.id} = ${table.collectionItemId}
+        and ${collectionItems.userId} = ${authUid}
+      )`,
+    }),
+  ],
+).enableRLS()
 
 export const collectionItemsRelations = relations(collectionItems, ({ one, many }) => ({
   owner: one(profiles, { fields: [collectionItems.userId], references: [profiles.id] }),

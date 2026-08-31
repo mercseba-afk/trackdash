@@ -3,8 +3,9 @@
 // is a valid thing to want, since a collector may not care yet which
 // specific edition they end up finding.
 
-import { relations } from "drizzle-orm"
-import { index, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { relations, sql } from "drizzle-orm"
+import { index, numeric, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { authenticatedRole, authUid } from "drizzle-orm/supabase"
 import { products, productReleases } from "./catalog"
 import { profiles } from "./profiles"
 
@@ -25,8 +26,16 @@ export const wishlistItems = pgTable(
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("idx_wishlist_user").on(table.userId)],
-)
+  (table) => [
+    index("idx_wishlist_user").on(table.userId),
+    pgPolicy("wishlist_items_owner_all", {
+      for: "all",
+      to: authenticatedRole,
+      using: sql`${table.userId} = ${authUid}`,
+      withCheck: sql`${table.userId} = ${authUid}`,
+    }),
+  ],
+).enableRLS()
 
 export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
   owner: one(profiles, { fields: [wishlistItems.userId], references: [profiles.id] }),
