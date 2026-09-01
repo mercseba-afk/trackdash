@@ -87,6 +87,7 @@ export function AddToCollectionDialog({
 }) {
   const { addToCollection } = useStore()
   const [open, setOpen] = React.useState(false)
+  const [pending, setPending] = React.useState(false)
 
   const initialRelease = resolveRelease(product, defaultReleaseId)
   const [releaseId, setReleaseId] = React.useState(initialRelease.id)
@@ -119,25 +120,32 @@ export function AddToCollectionDialog({
     setYear(String(r.releaseYear))
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     const parsedYear = Number(year)
     const releaseYearOverride =
       Number.isFinite(parsedYear) && parsedYear !== selectedRelease.releaseYear ? parsedYear : undefined
-    addToCollection({
-      productId: product.id,
-      releaseId: selectedRelease.id,
-      condition,
-      acquisitionDate: new Date(date).toISOString(),
-      acquisitionPrice: Number(price) || 0,
-      acquisitionCurrency: currency,
-      releaseYearOverride,
-      notes: notes.trim() || undefined,
-    })
-    toast.success("Added to collection", {
-      description: `${selectedRelease.editionName} · ${year} ${selectedRelease.releaseType}`,
-    })
-    setOpen(false)
+    setPending(true)
+    try {
+      await addToCollection({
+        productId: product.id,
+        releaseId: selectedRelease.id,
+        condition,
+        acquisitionDate: new Date(date).toISOString(),
+        acquisitionPrice: Number(price) || 0,
+        acquisitionCurrency: currency,
+        releaseYearOverride,
+        notes: notes.trim() || undefined,
+      })
+      toast.success("Added to collection", {
+        description: `${selectedRelease.editionName} · ${year} ${selectedRelease.releaseType}`,
+      })
+      setOpen(false)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't add this item")
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -240,7 +248,9 @@ export function AddToCollectionDialog({
           </FieldGroup>
           <DialogFooter className="mt-4">
             <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-            <Button type="submit">Add item</Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Adding…" : "Add item"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -259,6 +269,7 @@ export function AddToWishlistDialog({
 }) {
   const { addToWishlist } = useStore()
   const [open, setOpen] = React.useState(false)
+  const [pending, setPending] = React.useState(false)
   const estimate = getProductEstimate(product)
 
   const [releaseId, setReleaseId] = React.useState(defaultReleaseId ?? "any")
@@ -271,17 +282,24 @@ export function AddToWishlistDialog({
   const displayEstimate =
     releaseId && releaseId !== "any" ? getReleaseEstimate(product, selectedRelease) : estimate
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    addToWishlist({
-      productId: product.id,
-      releaseId: releaseId && releaseId !== "any" ? releaseId : undefined,
-      priority,
-      targetPrice: target ? Number(target) : undefined,
-      notes: notes.trim() || undefined,
-    })
-    toast.success("Added to wishlist", { description: product.name })
-    setOpen(false)
+    setPending(true)
+    try {
+      await addToWishlist({
+        productId: product.id,
+        releaseId: releaseId && releaseId !== "any" ? releaseId : undefined,
+        priority,
+        targetPrice: target ? Number(target) : undefined,
+        notes: notes.trim() || undefined,
+      })
+      toast.success("Added to wishlist", { description: product.name })
+      setOpen(false)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't add this item")
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -345,7 +363,9 @@ export function AddToWishlistDialog({
           </FieldGroup>
           <DialogFooter className="mt-4">
             <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-            <Button type="submit">Add to wishlist</Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Adding…" : "Add to wishlist"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

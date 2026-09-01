@@ -24,6 +24,19 @@ export async function addWishlistItem(userId: string, data: Omit<NewWishlistItem
   return item
 }
 
+export async function updateWishlistItem(
+  userId: string,
+  id: string,
+  data: Partial<Omit<NewWishlistItem, "id" | "userId" | "createdAt">>,
+) {
+  const [item] = await db
+    .update(wishlistItems)
+    .set(data)
+    .where(and(eq(wishlistItems.id, id), eq(wishlistItems.userId, userId)))
+    .returning()
+  return item
+}
+
 export async function removeWishlistItem(userId: string, id: string) {
   const [item] = await db
     .delete(wishlistItems)

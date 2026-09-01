@@ -1,4 +1,5 @@
 import type { Chassis, Product, ProductRelease, Rarity, ReleaseType, Series } from "@/lib/types"
+import { stableUuid } from "./stable-id"
 
 // -----------------------------------------------------------------------------
 // DEMO CATALOG
@@ -8,7 +9,24 @@ import type { Chassis, Product, ProductRelease, Rarity, ReleaseType, Series } fr
 // details reflect real releases as closely as possible for a prototype seed;
 // this is NOT a complete database. Market values shown in the app are clearly
 // labelled demo data.
+//
+// Step 4B: this is now TrackDash's first real catalog dataset, not a
+// throwaway mock — every product/release id below is a stable UUID
+// (see lib/data/stable-id.ts), derived deterministically from each item's
+// natural key (item number, release index). The exact same ids are used
+// in the matching database seed (supabase/migrations/0003_seed_initial_catalog.sql),
+// generated from this same file — so a collection/wishlist item added
+// against a product here refers to a real, matching row in the database.
+// Adding a new model later is just adding a new SEEDS entry: its ids are
+// derived automatically and will never collide with or reuse an existing
+// one.
 // -----------------------------------------------------------------------------
+
+// Single brand/category for the current MVP scope — exported so the seed
+// migration and any future catalog-admin tooling reference the exact same
+// ids without hand-copying UUID strings.
+export const TAMIYA_BRAND_ID = stableUuid("brand:tamiya")
+export const MINI4WD_CATEGORY_ID = stableUuid("category:mini4wd")
 
 const JAN_PREFIX = "4950344"
 
@@ -592,7 +610,10 @@ function buildReleases(productId: string, seed: Seed, janBase: number): ProductR
   return seeds.map((r, i) => {
     const msrpJPY = r.msrpJPY ?? seed.msrpJPY
     return {
-      id: `${productId}-r${i + 1}`,
+      // Stable key is the SEED's own item number + release index — not the
+      // (now-opaque) product UUID — so release ids don't depend on
+      // whatever the product's id happens to be.
+      id: stableUuid(`release:${seed.item}:${i + 1}`),
       productId,
       itemNumber: r.item ?? seed.item,
       releaseType: r.type,
@@ -614,7 +635,7 @@ function buildReleases(productId: string, seed: Seed, janBase: number): ProductR
 }
 
 export const PRODUCTS: Product[] = SEEDS.map((s, i) => {
-  const id = `p-${s.item}`
+  const id = stableUuid(`product:${s.item}`)
   const releases = buildReleases(id, s, 1000 + i)
   const primary = releases.find((r) => r.isOriginal) ?? releases[0]
   return {
@@ -688,8 +709,8 @@ export function findByCode(query: string): { product: Product; release?: Product
   return undefined
 }
 
-export function getRelatedProducts(product: Product, limit = 4): Product[] {
-  const scored = PRODUCTS.filter((p) => p.id !== product.id).map((p) => {
+export function getRelatedProducts(product: Product, limit = 4, catalog: Product[] = PRODUCTS): Product[] {
+  const scored = catalog.filter((p) => p.id !== product.id).map((p) => {
     let score = 0
     if (p.series === product.series) score += 3
     if (p.chassis === product.chassis) score += 2

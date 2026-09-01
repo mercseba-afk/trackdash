@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Search, LayoutGrid, List, SlidersHorizontal, X, Check, Heart } from "lucide-react"
 import type { Product } from "@/lib/types"
-import { PRODUCTS, CHASSIS_OPTIONS, SERIES_OPTIONS, primaryRelease } from "@/lib/data/products"
+import { primaryRelease } from "@/lib/data/products"
 import { getProductEstimate } from "@/lib/data/market"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
@@ -37,7 +37,7 @@ const RARITY_RANK: Record<Product["rarity"], number> = {
   Common: 1,
 }
 
-export function CatalogScreen() {
+export function CatalogScreen({ products }: { products: Product[] }) {
   const { isInCollection, isInWishlist } = useStore()
   const [query, setQuery] = React.useState("")
   const [chassis, setChassis] = React.useState<string>("all")
@@ -47,9 +47,15 @@ export function CatalogScreen() {
   const [view, setView] = React.useState<View>("grid")
   const [ownedOnly, setOwnedOnly] = React.useState(false)
 
+  // Derived from whatever the server actually fetched, rather than a
+  // static module constant, so these stay accurate if the catalog ever
+  // grows beyond exactly what lib/data/products.ts seeds today.
+  const chassisOptions = React.useMemo(() => Array.from(new Set(products.map((p) => p.chassis))), [products])
+  const seriesOptions = React.useMemo(() => Array.from(new Set(products.map((p) => p.series))), [products])
+
   const results = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    let items = PRODUCTS.filter((p) => {
+    let items = products.filter((p) => {
       if (chassis !== "all" && p.chassis !== chassis) return false
       if (series !== "all" && p.series !== series) return false
       if (rarity !== "all" && p.rarity !== rarity) return false
@@ -78,7 +84,7 @@ export function CatalogScreen() {
       }
     })
     return items
-  }, [query, chassis, series, rarity, sort, ownedOnly, isInCollection])
+  }, [products, query, chassis, series, rarity, sort, ownedOnly, isInCollection])
 
   const hasFilters = chassis !== "all" || series !== "all" || rarity !== "all" || ownedOnly || query.trim()
 
@@ -95,7 +101,7 @@ export function CatalogScreen() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Catalog</h1>
         <p className="text-sm text-muted-foreground">
-          {PRODUCTS.length} models in the demo database. Search, filter and add to your collection.
+          {products.length} models in the database. Search, filter and add to your collection.
         </p>
       </div>
 
@@ -114,8 +120,8 @@ export function CatalogScreen() {
 
         <div className="flex flex-wrap items-center gap-2">
           <SlidersHorizontal className="size-4 text-muted-foreground" />
-          <FilterSelect value={chassis} onChange={setChassis} placeholder="Chassis" options={CHASSIS_OPTIONS} />
-          <FilterSelect value={series} onChange={setSeries} placeholder="Series" options={SERIES_OPTIONS} />
+          <FilterSelect value={chassis} onChange={setChassis} placeholder="Chassis" options={chassisOptions} />
+          <FilterSelect value={series} onChange={setSeries} placeholder="Series" options={seriesOptions} />
           <FilterSelect
             value={rarity}
             onChange={setRarity}
@@ -177,8 +183,19 @@ export function CatalogScreen() {
             <EmptyMedia variant="icon">
               <Search />
             </EmptyMedia>
-            <EmptyTitle>No models match</EmptyTitle>
-            <EmptyDescription>Try removing a filter or searching for something else.</EmptyDescription>
+            {products.length === 0 ? (
+              <>
+                <EmptyTitle>Catalog unavailable</EmptyTitle>
+                <EmptyDescription>
+                  Couldn't load the catalog right now. Check your connection and try again.
+                </EmptyDescription>
+              </>
+            ) : (
+              <>
+                <EmptyTitle>No models match</EmptyTitle>
+                <EmptyDescription>Try removing a filter or searching for something else.</EmptyDescription>
+              </>
+            )}
           </EmptyHeader>
           {hasFilters && (
             <Button variant="outline" onClick={reset}>

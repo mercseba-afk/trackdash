@@ -92,18 +92,26 @@ export function WishlistScreen() {
           <WishlistRow
             key={e.item.id}
             entry={e}
-            onRemove={() => {
-              removeFromWishlist(e.item.id)
-              toast.success(`Removed ${e.product.name} from wishlist`)
+            onRemove={async () => {
+              try {
+                await removeFromWishlist(e.item.id)
+                toast.success(`Removed ${e.product.name} from wishlist`)
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
+              }
             }}
-            onAcquire={() => {
-              moveWishlistToCollection(e.item.id, {
-                condition: "New / Opened",
-                acquisitionDate: new Date().toISOString(),
-                acquisitionPrice: e.item.targetPrice ?? e.estimate.value,
-                acquisitionCurrency: "EUR",
-              })
-              toast.success("Moved to collection", { description: e.product.name })
+            onAcquire={async () => {
+              try {
+                await moveWishlistToCollection(e.item.id, {
+                  condition: "New / Opened",
+                  acquisitionDate: new Date().toISOString(),
+                  acquisitionPrice: e.item.targetPrice ?? e.estimate.value,
+                  acquisitionCurrency: "EUR",
+                })
+                toast.success("Moved to collection", { description: e.product.name })
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Couldn't move this item to your collection")
+              }
             }}
           />
         ))}

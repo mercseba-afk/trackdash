@@ -181,9 +181,13 @@ export function CollectionScreen() {
                     size="icon"
                     className="size-8 text-muted-foreground hover:text-destructive"
                     aria-label="Remove"
-                    onClick={() => {
-                      removeFromCollection(e.item.id)
-                      toast.success(`Removed ${e.product.name}`)
+                    onClick={async () => {
+                      try {
+                        await removeFromCollection(e.item.id)
+                        toast.success(`Removed ${e.product.name}`)
+                      } catch (error) {
+                        toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
+                      }
                     }}
                   >
                     <Trash2 />
@@ -198,10 +202,14 @@ export function CollectionScreen() {
       <EditDialog
         entry={editing}
         onClose={() => setEditing(null)}
-        onSave={(id, patch) => {
-          updateCollectionItem(id, patch)
-          setEditing(null)
-          toast.success("Collection updated")
+        onSave={async (id, patch) => {
+          try {
+            await updateCollectionItem(id, patch)
+            setEditing(null)
+            toast.success("Collection updated")
+          } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Couldn't save changes")
+          }
         }}
       />
     </div>

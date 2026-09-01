@@ -2,8 +2,7 @@
 
 import Link from "next/link"
 import { ArrowLeft, Check, Heart, Info, Plus, RefreshCw } from "lucide-react"
-import { notFound } from "next/navigation"
-import { getProductById, getRelatedProducts, primaryRelease } from "@/lib/data/products"
+import { primaryRelease } from "@/lib/data/products"
 import { getReleaseEstimate } from "@/lib/data/market"
 import { useStore } from "@/lib/store"
 import { enrichCollection, itemsForProduct, releaseLabel } from "@/lib/analytics"
@@ -18,17 +17,13 @@ import { MarketEstimateCard, RarityBadge, TrendIndicator, ConfidenceBadge } from
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
-export function ProductDetailScreen({ productId }: { productId: string }) {
-  const product = getProductById(productId)
+export function ProductDetailScreen({ product, related }: { product: Product; related: Product[] }) {
   const { collection, isInWishlist } = useStore()
-
-  if (!product) return notFound()
 
   const primary = primaryRelease(product)
   const owned = enrichCollection(collection)
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
-  const related = getRelatedProducts(product)
 
   return (
     <div className="flex flex-col gap-6">

@@ -22,6 +22,13 @@
       "when": 1788200540448,
       "tag": "0002_profile_auto_provision_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788260729130,
+      "tag": "0003_seed_initial_catalog",
+      "breakpoints": true
     }
   ]
 }

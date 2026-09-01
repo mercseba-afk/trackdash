@@ -1,50 +1,41 @@
 "use client"
 
 import * as React from "react"
-import type {
-  CollectionItem,
-  Condition,
-  Currency,
-  User,
-  WishlistItem,
-  WishlistPriority,
-} from "@/lib/types"
-import { DEMO_COLLECTION, DEMO_WISHLIST } from "@/lib/data/demo"
+import type { CollectionItem, Condition, Currency, User, WishlistItem, WishlistPriority } from "@/lib/types"
 import { getProductById, primaryRelease } from "@/lib/data/products"
 import { createClient } from "@/lib/supabase/client"
 import { getMyProfileAction } from "@/lib/actions/profile"
+import {
+  addCollectionItemAction,
+  getMyCollectionAction,
+  removeCollectionItemAction,
+  updateCollectionItemAction,
+} from "@/lib/actions/collection"
+import {
+  addWishlistItemAction,
+  getMyWishlistAction,
+  moveWishlistItemToCollectionAction,
+  removeWishlistItemAction,
+  updateWishlistItemAction,
+} from "@/lib/actions/wishlist"
 
 // -----------------------------------------------------------------------------
 // APP STORE
-// Client-side source of truth for the MVP UI.
+// Client-side cache over real, per-user server data. Nothing here is the
+// source of truth anymore -- Supabase Auth owns identity/session, and
+// Postgres (via the Server Actions in lib/actions/*) owns collection and
+// wishlist. This store's job is just to hold what was last fetched/written
+// so screens can keep reading it synchronously via useStore(), same as
+// before.
 //
-// Step 4: the `user` slice is now real — backed by an actual Supabase Auth
-// session (lib/supabase/client.ts) plus the matching `profiles` row
-// (fetched via the getMyProfileAction server action, since Drizzle/the
-// database are server-only). login()/signup() as store methods are gone;
-// components/screens/auth-screen.tsx now calls Supabase directly, and this
-// store reacts to the resulting session via onAuthStateChange below —
-// there's no other way for the store to "cause" a login/signup itself
-// anymore, which is intentional: Supabase Auth is the only place that
-// decision gets made.
-//
-// `collection` and `wishlist` are UNCHANGED from Step 3: still local state
-// seeded from lib/data/demo.ts and persisted to localStorage. Wiring them
-// to real per-user persistence surfaced a genuine blocker (collection/
-// wishlist rows have a NOT NULL foreign key into the catalog tables, which
-// are empty — the demo catalog's ids aren't even valid uuids), which needs
-// a decision before touching this half of the store. See the Step 4 report
-// for the two options that were identified.
+// Step 4B: collection/wishlist are no longer localStorage-backed -- that
+// was Step 4A's deliberate scope cut, made possible now by the stable
+// catalog ids from lib/data/stable-id.ts (see products.ts) matching the
+// real seeded database rows. Fetched fresh on sign-in and kept in sync by
+// re-fetching from the server after each mutation, rather than optimistic
+// local patching -- simpler and correct by construction, at the cost of
+// one extra round trip per action, an acceptable trade for an MVP.
 // -----------------------------------------------------------------------------
-
-// v2: collection/wishlist items now reference a specific release (releaseId)
-// instead of a variantId, and support a per-item releaseYearOverride.
-const STORAGE_KEY = "m4wd-state-v2"
-
-interface PersistedState {
-  collection: CollectionItem[]
-  wishlist: WishlistItem[]
-}
 
 interface AddCollectionInput {
   productId: string
@@ -65,42 +56,39 @@ interface AddWishlistInput {
   notes?: string
 }
 
-interface Store extends PersistedState {
+interface Store {
   hydrated: boolean
   isAuthed: boolean
   user: User | null
+  collection: CollectionItem[]
+  wishlist: WishlistItem[]
   logout: () => Promise<void>
   updateUser: (patch: Partial<User>) => void
-  addToCollection: (input: AddCollectionInput) => void
-  updateCollectionItem: (id: string, patch: Partial<CollectionItem>) => void
-  removeFromCollection: (id: string) => void
-  addToWishlist: (input: AddWishlistInput) => void
-  updateWishlistItem: (id: string, patch: Partial<WishlistItem>) => void
-  removeFromWishlist: (id: string) => void
-  moveWishlistToCollection: (wishlistId: string, input: Omit<AddCollectionInput, "productId" | "releaseId">) => void
+  addToCollection: (input: AddCollectionInput) => Promise<void>
+  updateCollectionItem: (id: string, patch: Partial<CollectionItem>) => Promise<void>
+  removeFromCollection: (id: string) => Promise<void>
+  addToWishlist: (input: AddWishlistInput) => Promise<void>
+  updateWishlistItem: (id: string, patch: Partial<WishlistItem>) => Promise<void>
+  removeFromWishlist: (id: string) => Promise<void>
+  moveWishlistToCollection: (
+    wishlistId: string,
+    input: Omit<AddCollectionInput, "productId" | "releaseId">,
+  ) => Promise<void>
   isInCollection: (productId: string) => boolean
   isInWishlist: (productId: string) => boolean
 }
 
 const StoreContext = React.createContext<Store | null>(null)
 
-function seedState(): PersistedState {
-  return {
-    collection: DEMO_COLLECTION,
-    wishlist: DEMO_WISHLIST,
-  }
-}
-
-function uid(prefix: string): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`
-}
-
-// Combines the Supabase Auth identity (id, email, created_at — always
+// Combines the Supabase Auth identity (id, email, created_at -- always
 // present once there's a session) with our own `profiles` row (username,
-// country, ... — may briefly be null right after sign-up if the
+// country, ... -- may briefly be null right after sign-up if the
 // auto-provisioning trigger hasn't committed yet; falls back to an
 // email-derived placeholder rather than showing "undefined").
-function toAppUser(authUser: { id: string; email?: string; created_at: string }, profile: Awaited<ReturnType<typeof getMyProfileAction>>): User {
+function toAppUser(
+  authUser: { id: string; email?: string; created_at: string },
+  profile: Awaited<ReturnType<typeof getMyProfileAction>>,
+): User {
   return {
     id: authUser.id,
     email: authUser.email ?? "",
@@ -112,50 +100,46 @@ function toAppUser(authUser: { id: string; email?: string; created_at: string },
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = React.useState<PersistedState>(seedState)
-  const [collectionWishlistHydrated, setCollectionWishlistHydrated] = React.useState(false)
   const [user, setUser] = React.useState<User | null>(null)
   const [authChecked, setAuthChecked] = React.useState(false)
+  const [collection, setCollection] = React.useState<CollectionItem[]>([])
+  const [wishlist, setWishlist] = React.useState<WishlistItem[]>([])
+  const [dataLoaded, setDataLoaded] = React.useState(false)
 
-  // hydrate collection/wishlist from localStorage after mount to avoid SSR
-  // mismatch — unchanged from Step 3.
-  React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw) as PersistedState
-        setState(parsed)
-      }
-    } catch {
-      // ignore malformed storage; fall back to seed
-    }
-    setCollectionWishlistHydrated(true)
-  }, [])
-
-  React.useEffect(() => {
-    if (!collectionWishlistHydrated) return
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    } catch {
-      // storage may be unavailable; state still lives in memory
-    }
-  }, [state, collectionWishlistHydrated])
+  async function refetchCollectionAndWishlist() {
+    const [c, w] = await Promise.all([getMyCollectionAction(), getMyWishlistAction()])
+    setCollection(c)
+    setWishlist(w)
+  }
 
   // Real auth: resolve the current Supabase session on mount, then stay in
-  // sync via onAuthStateChange (fires on sign-in, sign-out, token refresh —
+  // sync via onAuthStateChange (fires on sign-in, sign-out, token refresh --
   // including sign-ins that happen client-side in auth-screen.tsx, which
-  // this store doesn't call directly).
+  // this store doesn't call directly). Once a session resolves, also loads
+  // that user's real collection/wishlist; on sign-out, clears them rather
+  // than leaving the previous user's data on screen.
   React.useEffect(() => {
     const supabase = createClient()
     let cancelled = false
 
     async function syncUser(authUser: { id: string; email?: string; created_at: string } | null) {
       if (!authUser) {
-        if (!cancelled) setUser(null)
+        if (!cancelled) {
+          setUser(null)
+          setCollection([])
+          setWishlist([])
+          setDataLoaded(true)
+        }
         return
       }
       const profile = await getMyProfileAction()
-      if (!cancelled) setUser(toAppUser(authUser, profile))
+      if (cancelled) return
+      setUser(toAppUser(authUser, profile))
+      try {
+        await refetchCollectionAndWishlist()
+      } finally {
+        if (!cancelled) setDataLoaded(true)
+      }
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -167,6 +151,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      setDataLoaded(false)
       syncUser(session?.user ?? null)
     })
 
@@ -180,101 +165,79 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const logout: Store["logout"] = async () => {
       const supabase = createClient()
       await supabase.auth.signOut()
-      // onAuthStateChange above will clear `user`; nothing else to do here.
+      // onAuthStateChange above will clear user/collection/wishlist.
     }
 
     const updateUser: Store["updateUser"] = (patch) => {
-      // Local-only for now — no server action persists profile edits yet.
+      // Local-only for now -- no server action persists profile edits yet.
       // Kept so the existing profile/settings screens have something to
       // call without crashing; wiring it to a real update is future work,
       // not part of this step.
       setUser((u) => (u ? { ...u, ...patch } : u))
     }
 
-    const addToCollection: Store["addToCollection"] = (input) => {
-      setState((s) => ({
-        ...s,
-        collection: [
-          {
-            id: uid("c"),
-            userId: user?.id ?? "local",
-            photos: [],
-            createdAt: new Date().toISOString(),
-            ...input,
-          },
-          ...s.collection,
-        ],
-      }))
+    const addToCollection: Store["addToCollection"] = async (input) => {
+      await addCollectionItemAction(input)
+      await refetchCollectionAndWishlist()
     }
 
-    const updateCollectionItem: Store["updateCollectionItem"] = (id, patch) => {
-      setState((s) => ({
-        ...s,
-        collection: s.collection.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-      }))
+    const updateCollectionItem: Store["updateCollectionItem"] = async (id, patch) => {
+      await updateCollectionItemAction(id, patch)
+      await refetchCollectionAndWishlist()
     }
 
-    const removeFromCollection: Store["removeFromCollection"] = (id) => {
-      setState((s) => ({ ...s, collection: s.collection.filter((c) => c.id !== id) }))
+    const removeFromCollection: Store["removeFromCollection"] = async (id) => {
+      await removeCollectionItemAction(id)
+      setCollection((c) => c.filter((item) => item.id !== id))
     }
 
-    const addToWishlist: Store["addToWishlist"] = (input) => {
-      setState((s) => ({
-        ...s,
-        wishlist: [
-          {
-            id: uid("w"),
-            userId: user?.id ?? "local",
-            currency: "EUR" as Currency,
-            createdAt: new Date().toISOString(),
-            ...input,
-          },
-          ...s.wishlist,
-        ],
-      }))
+    const addToWishlist: Store["addToWishlist"] = async (input) => {
+      await addWishlistItemAction(input)
+      await refetchCollectionAndWishlist()
     }
 
-    const updateWishlistItem: Store["updateWishlistItem"] = (id, patch) => {
-      setState((s) => ({
-        ...s,
-        wishlist: s.wishlist.map((w) => (w.id === id ? { ...w, ...patch } : w)),
-      }))
+    const updateWishlistItem: Store["updateWishlistItem"] = async (id, patch) => {
+      await updateWishlistItemAction(id, patch)
+      await refetchCollectionAndWishlist()
     }
 
-    const removeFromWishlist: Store["removeFromWishlist"] = (id) => {
-      setState((s) => ({ ...s, wishlist: s.wishlist.filter((w) => w.id !== id) }))
+    const removeFromWishlist: Store["removeFromWishlist"] = async (id) => {
+      await removeWishlistItemAction(id)
+      setWishlist((w) => w.filter((item) => item.id !== id))
     }
 
-    const moveWishlistToCollection: Store["moveWishlistToCollection"] = (wishlistId, input) => {
-      setState((s) => {
-        const w = s.wishlist.find((x) => x.id === wishlistId)
-        if (!w) return s
-        const product = getProductById(w.productId)
-        const releaseId = w.releaseId ?? (product ? primaryRelease(product).id : `${w.productId}-r1`)
-        return {
-          ...s,
-          wishlist: s.wishlist.filter((x) => x.id !== wishlistId),
-          collection: [
-            {
-              id: uid("c"),
-              userId: user?.id ?? "local",
-              productId: w.productId,
-              releaseId,
-              photos: [],
-              createdAt: new Date().toISOString(),
-              ...input,
-            },
-            ...s.collection,
-          ],
-        }
+    const moveWishlistToCollection: Store["moveWishlistToCollection"] = async (wishlistId, input) => {
+      const wishlistItem = wishlist.find((w) => w.id === wishlistId)
+      // The wishlist item may already pin a specific release; if it was
+      // added as "any edition", fall back to the model's primary release --
+      // resolved synchronously from the (now id-matching) local catalog
+      // data, same as Step 4A did, since there's no concrete release
+      // selection step in the wishlist "I got it" flow's UI.
+      let releaseId = wishlistItem?.releaseId
+      if (!releaseId && wishlistItem) {
+        const product = getProductById(wishlistItem.productId)
+        releaseId = product ? primaryRelease(product).id : undefined
+      }
+      if (!releaseId) throw new Error("Could not resolve a release for this wishlist item")
+
+      await moveWishlistItemToCollectionAction(wishlistId, {
+        releaseId,
+        condition: input.condition,
+        acquisitionDate: input.acquisitionDate,
+        acquisitionPrice: input.acquisitionPrice,
+        acquisitionCurrency: input.acquisitionCurrency,
+        releaseYearOverride: input.releaseYearOverride,
+        notes: input.notes,
       })
+      await refetchCollectionAndWishlist()
     }
 
     return {
-      ...state,
-      hydrated: collectionWishlistHydrated && authChecked,
+      hydrated: authChecked && dataLoaded,
       isAuthed: Boolean(user),
       user,
+      collection,
+      wishlist,
       logout,
       updateUser,
       addToCollection,
@@ -284,10 +247,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       updateWishlistItem,
       removeFromWishlist,
       moveWishlistToCollection,
-      isInCollection: (productId) => state.collection.some((c) => c.productId === productId),
-      isInWishlist: (productId) => state.wishlist.some((w) => w.productId === productId),
+      isInCollection: (productId) => collection.some((c) => c.productId === productId),
+      isInWishlist: (productId) => wishlist.some((w) => w.productId === productId),
     }
-  }, [state, collectionWishlistHydrated, user, authChecked])
+  }, [user, collection, wishlist, authChecked, dataLoaded])
 
   return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>
 }

@@ -33,6 +33,7 @@ export function OnboardingScreen() {
   const [step, setStep] = React.useState(0)
   const [focus, setFocus] = React.useState<string[]>([])
   const [picks, setPicks] = React.useState<string[]>([])
+  const [finishing, setFinishing] = React.useState(false)
 
   const steps = ["Welcome", "Your focus", "Starter kits"]
   const progress = ((step + 1) / steps.length) * 100
@@ -44,23 +45,33 @@ export function OnboardingScreen() {
     setPicks((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
   }
 
-  function finish() {
-    for (const productId of picks) {
-      const product = PRODUCTS.find((p) => p.id === productId)
-      if (!product) continue
-      const release = primaryRelease(product)
-      addToCollection({
-        productId,
-        releaseId: release.id,
-        condition: "New / Opened",
-        acquisitionDate: new Date().toISOString(),
-        acquisitionPrice: product.msrpEUR,
-        acquisitionCurrency: "EUR",
-        notes: "",
-      })
+  async function finish() {
+    setFinishing(true)
+    try {
+      await Promise.all(
+        picks.map((productId) => {
+          const product = PRODUCTS.find((p) => p.id === productId)
+          if (!product) return Promise.resolve()
+          const release = primaryRelease(product)
+          return addToCollection({
+            productId,
+            releaseId: release.id,
+            condition: "New / Opened",
+            acquisitionDate: new Date().toISOString(),
+            acquisitionPrice: product.msrpEUR,
+            acquisitionCurrency: "EUR",
+            notes: "",
+          })
+        }),
+      )
+      toast.success(
+        picks.length ? `Added ${picks.length} kit${picks.length > 1 ? "s" : ""} to your garage` : "You're all set",
+      )
+      router.push("/")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't save your starter kits")
+      setFinishing(false)
     }
-    toast.success(picks.length ? `Added ${picks.length} kit${picks.length > 1 ? "s" : ""} to your garage` : "You're all set")
-    router.push("/")
   }
 
   return (
@@ -185,7 +196,9 @@ export function OnboardingScreen() {
             <ChevronRight data-icon="inline-end" />
           </Button>
         ) : (
-          <Button onClick={finish}>{picks.length ? `Add ${picks.length} & finish` : "Finish"}</Button>
+          <Button onClick={finish} disabled={finishing}>
+            {finishing ? "Saving…" : picks.length ? `Add ${picks.length} & finish` : "Finish"}
+          </Button>
         )}
       </div>
     </div>
