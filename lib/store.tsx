@@ -9,16 +9,32 @@ import type {
   WishlistItem,
   WishlistPriority,
 } from "@/lib/types"
-import { DEMO_COLLECTION, DEMO_USER, DEMO_WISHLIST } from "@/lib/data/demo"
+import { DEMO_COLLECTION, DEMO_WISHLIST } from "@/lib/data/demo"
 import { getProductById, primaryRelease } from "@/lib/data/products"
+import { createClient } from "@/lib/supabase/client"
+import { getMyProfileAction } from "@/lib/actions/profile"
 
 // -----------------------------------------------------------------------------
 // APP STORE
-// Single client-side source of truth for the MVP. Mock auth + collection +
-// wishlist. State is seeded with the demo collector so the app is populated on
-// first open, and persisted to localStorage so actions survive a reload within
-// the session. This layer is deliberately isolated so it can be swapped for a
-// real API + database without touching the UI components.
+// Client-side source of truth for the MVP UI.
+//
+// Step 4: the `user` slice is now real — backed by an actual Supabase Auth
+// session (lib/supabase/client.ts) plus the matching `profiles` row
+// (fetched via the getMyProfileAction server action, since Drizzle/the
+// database are server-only). login()/signup() as store methods are gone;
+// components/screens/auth-screen.tsx now calls Supabase directly, and this
+// store reacts to the resulting session via onAuthStateChange below —
+// there's no other way for the store to "cause" a login/signup itself
+// anymore, which is intentional: Supabase Auth is the only place that
+// decision gets made.
+//
+// `collection` and `wishlist` are UNCHANGED from Step 3: still local state
+// seeded from lib/data/demo.ts and persisted to localStorage. Wiring them
+// to real per-user persistence surfaced a genuine blocker (collection/
+// wishlist rows have a NOT NULL foreign key into the catalog tables, which
+// are empty — the demo catalog's ids aren't even valid uuids), which needs
+// a decision before touching this half of the store. See the Step 4 report
+// for the two options that were identified.
 // -----------------------------------------------------------------------------
 
 // v2: collection/wishlist items now reference a specific release (releaseId)
@@ -26,7 +42,6 @@ import { getProductById, primaryRelease } from "@/lib/data/products"
 const STORAGE_KEY = "m4wd-state-v2"
 
 interface PersistedState {
-  user: User | null
   collection: CollectionItem[]
   wishlist: WishlistItem[]
 }
@@ -53,9 +68,8 @@ interface AddWishlistInput {
 interface Store extends PersistedState {
   hydrated: boolean
   isAuthed: boolean
-  login: (email: string) => void
-  signup: (input: { email: string; username: string; country: string }) => void
-  logout: () => void
+  user: User | null
+  logout: () => Promise<void>
   updateUser: (patch: Partial<User>) => void
   addToCollection: (input: AddCollectionInput) => void
   updateCollectionItem: (id: string, patch: Partial<CollectionItem>) => void
@@ -72,7 +86,6 @@ const StoreContext = React.createContext<Store | null>(null)
 
 function seedState(): PersistedState {
   return {
-    user: DEMO_USER,
     collection: DEMO_COLLECTION,
     wishlist: DEMO_WISHLIST,
   }
@@ -82,11 +95,30 @@ function uid(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`
 }
 
+// Combines the Supabase Auth identity (id, email, created_at — always
+// present once there's a session) with our own `profiles` row (username,
+// country, ... — may briefly be null right after sign-up if the
+// auto-provisioning trigger hasn't committed yet; falls back to an
+// email-derived placeholder rather than showing "undefined").
+function toAppUser(authUser: { id: string; email?: string; created_at: string }, profile: Awaited<ReturnType<typeof getMyProfileAction>>): User {
+  return {
+    id: authUser.id,
+    email: authUser.email ?? "",
+    username: profile?.username ?? authUser.email?.split("@")[0] ?? "collector",
+    country: profile?.country ?? "",
+    createdAt: authUser.created_at,
+    avatarUrl: profile?.avatarUrl ?? undefined,
+  }
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<PersistedState>(seedState)
-  const [hydrated, setHydrated] = React.useState(false)
+  const [collectionWishlistHydrated, setCollectionWishlistHydrated] = React.useState(false)
+  const [user, setUser] = React.useState<User | null>(null)
+  const [authChecked, setAuthChecked] = React.useState(false)
 
-  // hydrate from localStorage after mount to avoid SSR mismatch
+  // hydrate collection/wishlist from localStorage after mount to avoid SSR
+  // mismatch — unchanged from Step 3.
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
@@ -97,51 +129,66 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore malformed storage; fall back to seed
     }
-    setHydrated(true)
+    setCollectionWishlistHydrated(true)
   }, [])
 
   React.useEffect(() => {
-    if (!hydrated) return
+    if (!collectionWishlistHydrated) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {
       // storage may be unavailable; state still lives in memory
     }
-  }, [state, hydrated])
+  }, [state, collectionWishlistHydrated])
+
+  // Real auth: resolve the current Supabase session on mount, then stay in
+  // sync via onAuthStateChange (fires on sign-in, sign-out, token refresh —
+  // including sign-ins that happen client-side in auth-screen.tsx, which
+  // this store doesn't call directly).
+  React.useEffect(() => {
+    const supabase = createClient()
+    let cancelled = false
+
+    async function syncUser(authUser: { id: string; email?: string; created_at: string } | null) {
+      if (!authUser) {
+        if (!cancelled) setUser(null)
+        return
+      }
+      const profile = await getMyProfileAction()
+      if (!cancelled) setUser(toAppUser(authUser, profile))
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      syncUser(session?.user ?? null).finally(() => {
+        if (!cancelled) setAuthChecked(true)
+      })
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncUser(session?.user ?? null)
+    })
+
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
+  }, [])
 
   const api = React.useMemo<Store>(() => {
-    const login: Store["login"] = (email) => {
-      setState((s) => ({
-        ...s,
-        user: {
-          ...DEMO_USER,
-          email,
-          username: email.split("@")[0] || DEMO_USER.username,
-        },
-      }))
-    }
-
-    const signup: Store["signup"] = ({ email, username, country }) => {
-      // fresh account starts empty — this is the "new collector" experience
-      setState({
-        user: {
-          id: uid("u"),
-          email,
-          username,
-          country,
-          createdAt: new Date().toISOString(),
-        },
-        collection: [],
-        wishlist: [],
-      })
-    }
-
-    const logout: Store["logout"] = () => {
-      setState((s) => ({ ...s, user: null }))
+    const logout: Store["logout"] = async () => {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      // onAuthStateChange above will clear `user`; nothing else to do here.
     }
 
     const updateUser: Store["updateUser"] = (patch) => {
-      setState((s) => (s.user ? { ...s, user: { ...s.user, ...patch } } : s))
+      // Local-only for now — no server action persists profile edits yet.
+      // Kept so the existing profile/settings screens have something to
+      // call without crashing; wiring it to a real update is future work,
+      // not part of this step.
+      setUser((u) => (u ? { ...u, ...patch } : u))
     }
 
     const addToCollection: Store["addToCollection"] = (input) => {
@@ -150,7 +197,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         collection: [
           {
             id: uid("c"),
-            userId: s.user?.id ?? DEMO_USER.id,
+            userId: user?.id ?? "local",
             photos: [],
             createdAt: new Date().toISOString(),
             ...input,
@@ -177,7 +224,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         wishlist: [
           {
             id: uid("w"),
-            userId: s.user?.id ?? DEMO_USER.id,
+            userId: user?.id ?? "local",
             currency: "EUR" as Currency,
             createdAt: new Date().toISOString(),
             ...input,
@@ -210,7 +257,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           collection: [
             {
               id: uid("c"),
-              userId: s.user?.id ?? DEMO_USER.id,
+              userId: user?.id ?? "local",
               productId: w.productId,
               releaseId,
               photos: [],
@@ -225,10 +272,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     return {
       ...state,
-      hydrated,
-      isAuthed: Boolean(state.user),
-      login,
-      signup,
+      hydrated: collectionWishlistHydrated && authChecked,
+      isAuthed: Boolean(user),
+      user,
       logout,
       updateUser,
       addToCollection,
@@ -241,7 +287,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       isInCollection: (productId) => state.collection.some((c) => c.productId === productId),
       isInWishlist: (productId) => state.wishlist.some((w) => w.productId === productId),
     }
-  }, [state, hydrated])
+  }, [state, collectionWishlistHydrated, user, authChecked])
 
   return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>
 }

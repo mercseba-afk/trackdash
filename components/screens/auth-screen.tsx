@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Boxes, Heart, ScanLine, TrendingUp } from "lucide-react"
-import { useStore } from "@/lib/store"
+import { createClient } from "@/lib/supabase/client"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,29 +71,35 @@ export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
 }
 
 function LoginForm() {
-  const { login } = useStore()
   const router = useRouter()
-  const [email, setEmail] = React.useState("collector@mini4wd.app")
-  const [password, setPassword] = React.useState("demo1234")
+  const [email, setEmail] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [pending, setPending] = React.useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.includes("@")) {
       toast.error("Enter a valid email")
       return
     }
-    login(email)
+    setPending(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setPending(false)
+    if (error) {
+      toast.error(error.message)
+      return
+    }
     toast.success("Welcome back")
     router.push("/")
+    router.refresh()
   }
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5">
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-        <p className="text-sm text-muted-foreground">
-          Continue to your garage. Demo credentials are prefilled.
-        </p>
+        <p className="text-sm text-muted-foreground">Continue to your garage.</p>
       </div>
       <FieldGroup>
         <Field>
@@ -115,11 +121,10 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <FieldDescription>This demo does not verify passwords.</FieldDescription>
         </Field>
       </FieldGroup>
-      <Button type="submit" size="lg">
-        Sign in
+      <Button type="submit" size="lg" disabled={pending}>
+        {pending ? "Signing in…" : "Sign in"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         New here?{" "}
@@ -132,21 +137,65 @@ function LoginForm() {
 }
 
 function SignupForm() {
-  const { signup } = useStore()
   const router = useRouter()
   const [email, setEmail] = React.useState("")
   const [username, setUsername] = React.useState("")
   const [country, setCountry] = React.useState("Japan")
   const [password, setPassword] = React.useState("")
+  const [pending, setPending] = React.useState(false)
+  const [confirmationSent, setConfirmationSent] = React.useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.includes("@")) return toast.error("Enter a valid email")
     if (username.trim().length < 2) return toast.error("Choose a username")
     if (password.length < 6) return toast.error("Password must be at least 6 characters")
-    signup({ email, username: username.trim(), country })
-    toast.success("Account created")
-    router.push("/onboarding")
+
+    setPending(true)
+    const supabase = createClient()
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username: username.trim(), country } },
+    })
+    setPending(false)
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
+    if (data.session) {
+      // Auto-confirmed (e.g. email confirmation disabled on this project) —
+      // already signed in, proceed straight to onboarding as before.
+      toast.success("Account created")
+      router.push("/onboarding")
+      router.refresh()
+      return
+    }
+
+    // Email confirmation is required: there's no session yet, so there's
+    // nothing to redirect into — /onboarding is a protected route. Show a
+    // persistent message instead of a toast, since this matters more than
+    // a toast's few seconds on screen.
+    setConfirmationSent(true)
+  }
+
+  if (confirmationSent) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+          <p className="text-sm text-muted-foreground text-pretty">
+            We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Follow it to
+            finish creating your account, then sign in.
+          </p>
+        </div>
+        <Button variant="outline" render={<Link href="/login" />}>
+          Back to sign in
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -204,8 +253,8 @@ function SignupForm() {
           <FieldDescription>At least 6 characters.</FieldDescription>
         </Field>
       </FieldGroup>
-      <Button type="submit" size="lg">
-        Create account
+      <Button type="submit" size="lg" disabled={pending}>
+        {pending ? "Creating account…" : "Create account"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}

@@ -52,8 +52,8 @@ export function ProfileScreen() {
     toast.success("Profile updated")
   }
 
-  function handleLogout() {
-    logout()
+  async function handleLogout() {
+    await logout()
     router.push("/login")
   }
 

@@ -12,9 +12,12 @@
 // See node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md
 // for the official migration notes.
 //
-// NOTE (Step 1 — infrastructure only): this refreshes a session if one
-// exists, but nothing in the app creates a session yet (no sign-in call is
-// wired up). Safe to run on every request in the meantime.
+// Step 4: also returns the resolved user, so the root proxy.ts can decide
+// route access server-side (redirect signed-out visitors away from
+// protected pages, and signed-in ones away from /login and /signup) —
+// this is a defense-in-depth complement to the existing client-side
+// AuthGate (components/auth-gate.tsx), not a replacement for it: AuthGate
+// still owns the loading-state UI while the client-side session settles.
 
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
@@ -43,10 +46,10 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  // Touches the session so expired tokens get refreshed. The returned user
-  // is intentionally unused here — this step only wires up the plumbing;
-  // route protection based on the session is a later step.
-  await supabase.auth.getUser()
+  // Also refreshes expired tokens as a side effect of being called.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  return response
+  return { response, user }
 }

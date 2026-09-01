@@ -106,8 +106,8 @@ function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => {
-            logout()
+          onClick={async () => {
+            await logout()
             router.push("/login")
           }}
         >
