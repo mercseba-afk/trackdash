@@ -6,17 +6,27 @@
 // is understood as a reference to an existing table, without drizzle-kit
 // ever trying to generate a CREATE TABLE for auth.users.
 //
-// entities.roles.provider: "supabase" (Step 3) tells drizzle-kit that
+// entities.roles.provider: "supabase" tells drizzle-kit that
 // anon/authenticated/service_role (used by the RLS policies across
 // lib/db/schema/*.ts) are Supabase-managed roles that already exist —
 // without this, drizzle-kit would try to generate CREATE ROLE statements
 // for them, which would fail against a real Supabase project.
 //
-// Migrations are generated (not pushed) in this step — `drizzle-kit
+// dbCredentials: uses MIGRATION_DATABASE_URL, NOT DATABASE_URL (Step 5).
+// Running migrations is DDL (CREATE TABLE, CREATE ROLE, GRANT, ...), which
+// needs a privileged connection — the same one used to be DATABASE_URL
+// before Step 5. As of migration 0004, DATABASE_URL is meant to be the
+// restricted `trackdash_app` role instead (see that migration and
+// docs/SUPABASE_SETUP.md), which deliberately cannot run this kind of
+// DDL. Falls back to DATABASE_URL if MIGRATION_DATABASE_URL isn't set, so
+// a fresh project (before the restricted role exists) can still bootstrap
+// with a single connection string.
+//
+// Migrations are generated (not pushed) day to day — `drizzle-kit
 // generate` only diffs the TypeScript schema against the last migration
 // snapshot, it does not need a live database connection. Applying them
-// (`drizzle-kit migrate` / `push`) against a real Supabase project happens
-// in a later step, once a project actually exists.
+// (`drizzle-kit migrate` / `push`) against a real Supabase project needs
+// MIGRATION_DATABASE_URL to be set.
 
 import { defineConfig } from "drizzle-kit"
 
@@ -31,6 +41,6 @@ export default defineConfig({
     },
   },
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: (process.env.MIGRATION_DATABASE_URL || process.env.DATABASE_URL)!,
   },
 })

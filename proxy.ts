@@ -14,7 +14,14 @@
 // Doing the redirect here too means a signed-out visitor never even
 // receives the protected page's HTML, rather than briefly receiving it and
 // being bounced client-side.
+//
+// /api/dev/health (Step 5) is excluded from both rules: it's a diagnostic
+// endpoint whose whole purpose is to work regardless of auth state
+// (including "is Supabase Auth itself reachable" — which the redirect
+// rule below would prevent it from ever reporting on if it were treated
+// as a protected route). It has its own NODE_ENV guard for prod safety.
 const PUBLIC_PATHS = ["/login", "/signup"]
+const UNGATED_PREFIXES = ["/api/dev"]
 
 import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/proxy"
@@ -24,6 +31,9 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isPublicPath = PUBLIC_PATHS.includes(pathname)
+  const isUngated = UNGATED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+
+  if (isUngated) return response
 
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()

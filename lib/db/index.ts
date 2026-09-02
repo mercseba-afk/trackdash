@@ -1,14 +1,13 @@
 // Typed Drizzle client, built on the `postgres` (postgres.js) driver.
 //
-// NOTE (Step 2 — schema/migrations only): nothing in the app imports this
-// yet. It's prepared here so future server actions/route handlers have a
-// single, correctly-typed `db` to import once the UI is wired up to real
-// persistence in a later step.
-//
-// Requires DATABASE_URL — the direct/session Postgres connection string
-// from Supabase (Project Settings > Database), NOT the same value as
-// NEXT_PUBLIC_SUPABASE_URL used by lib/supabase/*. That one talks to the
-// Supabase API; this one is a raw Postgres connection for Drizzle.
+// This is the APPLICATION RUNTIME connection — every Server Action in
+// lib/actions/*.ts and every query in lib/db/queries/*.ts goes through
+// this. As of Step 5, DATABASE_URL should point at the restricted
+// `trackdash_app` role (migration 0004_app_runtime_role.sql), not
+// Supabase's privileged default `postgres` role — see lib/db/rls.ts and
+// docs/SUPABASE_SETUP.md for why that split exists and how to set it up.
+// Migrations use a separate, privileged connection (MIGRATION_DATABASE_URL,
+// drizzle.config.ts only) — this file is never imported by drizzle-kit.
 
 import "server-only"
 
