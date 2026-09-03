@@ -63,7 +63,7 @@ This applies, in order, everything under `supabase/migrations/`:
 | 0002 | `profile_auto_provision_trigger` | The `handle_new_user()` trigger on `auth.users` that creates a matching `profiles` row on sign-up |
 | 0003 | `seed_initial_catalog` | The 36-model Tamiya Mini 4WD catalog (1 brand, 1 category, 36 products, 60 releases) |
 | 0004 | `app_runtime_role` | The restricted `trackdash_app` Postgres role (see step 5) |
-| 0005 | `step5b_runtime_grants_hardening` | Table-level GRANTs for `trackdash_app`/`anon`/`authenticated` (narrower than 0004's blanket CRUD — see that migration's own comments) and EXECUTE hardening on `handle_new_user`/`rls_auto_enable`. Written after production testing surfaced a real `permission denied for table profiles (42501)` — RLS policies are not a substitute for the underlying GRANT; see `lib/db/rls.ts`'s header comment for the full story. |
+| 0005 | `step5b_runtime_grants_hardening` | Table-level GRANTs for `trackdash_app`/`anon`/`authenticated` (narrower than 0004's blanket CRUD, and with Supabase's own broader project-bootstrap defaults — including TRUNCATE — explicitly revoked first, not just left in place under new GRANTs on top), EXECUTE hardening on `handle_new_user`/`rls_auto_enable`, and the `ensure_rls` event trigger that auto-enables RLS on every new `public` table. Written after production testing surfaced first a `permission denied for table profiles (42501)` (RLS policies are not a substitute for the underlying GRANT), then separately confirmed live that `authenticated`/`anon` still held TRUNCATE despite the GRANT fix (RLS does not protect TRUNCATE at all). See `lib/db/rls.ts`'s header comment and this migration's own comments for the full story. |
 
 All of them are safe to re-run (every statement is `ON CONFLICT ... DO NOTHING`,
 `CREATE ... IF NOT EXISTS`, or `CREATE OR REPLACE`) — re-running
@@ -124,6 +124,60 @@ privileges to `trackdash_app` — the first real request that went through
 table profiles (42501)` as a direct result. Migration 0005 fixes this by
 giving `authenticated` (and `anon`, for public reads) their own explicit,
 table-by-table grants.
+
+### RLS does not protect TRUNCATE — and why 0005 revokes before it grants
+
+A second, separate issue surfaced during production verification, after
+the GRANT fix above: `authenticated` could still run `TRUNCATE` on
+`public.profiles`, and `anon` could `TRUNCATE` on `public.products`. This
+is not a bug in this project's RLS policies — **PostgreSQL's Row-Level
+Security simply does not apply to `TRUNCATE`** (or `REFERENCES` or
+`TRIGGER`, or `MAINTAIN` on newer Postgres). Those are separate
+privileges, checked purely by the ordinary GRANT system, with no policy
+evaluation involved at all. A role holding `TRUNCATE` on a table can
+empty it completely no matter how restrictive that table's RLS policies
+are.
+
+The reason `authenticated`/`anon` held it in the first place: every new
+Supabase project sets up its own default-privilege rules (for the
+`postgres` role) that automatically hand those roles broad privileges —
+historically including `TRUNCATE`/`REFERENCES`/`TRIGGER` — on anything
+`postgres` creates, which is exactly the role this project's migrations
+run as. Simply adding new, narrower `GRANT`s on top (as migration 0005's
+first draft did) doesn't remove what was already there. Migration 0005
+now `REVOKE ALL` from `anon`/`authenticated` (tables and sequences,
+including the default-privilege rule for future tables) *before*
+granting back only the specific SELECT/INSERT/UPDATE/DELETE privileges
+each one actually needs. `trackdash_app` inherits nothing dangerous as a
+side effect: it's a member of both roles, so once they no longer hold
+`TRUNCATE`, there's nothing left for it to inherit either.
+
+**The result is fail-closed on two independent levels, not one:** a
+brand-new table created by some future migration starts with (a) no
+`anon`/`authenticated` privileges at all — see `ensure_rls` below for the
+other half — and (b) RLS enabled with no policies, which denies all
+access outright. Whichever migration introduces that table has to
+explicitly `GRANT` the privileges it needs *and* define its own RLS
+policies; neither happens automatically, on purpose.
+
+### `ensure_rls` — RLS is enabled automatically on every new `public` table
+
+Migration 0005 also versions an event trigger, `ensure_rls` (backed by
+`public.rls_auto_enable()`), that fires on `ddl_command_end` and runs
+`ALTER TABLE ... ENABLE ROW LEVEL SECURITY` on any table just created in
+the `public` schema (`CREATE TABLE`, `CREATE TABLE AS`, or `SELECT
+INTO` — nothing outside `public` is ever touched). This was originally
+applied directly against production and is now captured as a proper,
+re-creatable migration.
+
+**Important: this does not create a policy.** A table with RLS enabled
+and zero policies denies every row to every role except its owner and
+roles with `BYPASSRLS` (`trackdash_app` is neither — see migration 0004).
+So a new table is safe-by-default the moment it's created, but genuinely
+usable by the app only once a later migration adds both RLS policies and
+the explicit `anon`/`authenticated` grants described above — this trigger
+guarantees nobody can accidentally ship a `public` table with RLS left
+off; it doesn't do the rest of that work for you.
 
 ## 6. Verify the seed and the connection
 
