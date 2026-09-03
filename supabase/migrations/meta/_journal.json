@@ -47,8 +47,15 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1788449770296,
-      "tag": "0006_seed_catalog_images",
+      "when": 1788455283745,
+      "tag": "0006_catalog_integrity_corrections",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788455284754,
+      "tag": "0007_seed_catalog_images",
       "breakpoints": true
     }
   ]

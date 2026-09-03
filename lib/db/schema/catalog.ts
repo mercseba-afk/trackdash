@@ -83,7 +83,13 @@ export const productReleases = pgTable(
     productId: uuid("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
-    itemNumber: text("item_number").notNull(), // item number of THIS release specifically
+    // Nullable as of the catalog integrity pass (migration
+    // 0006_catalog_integrity_corrections.sql): a release whose official
+    // Tamiya item number cannot be confidently verified stores NULL here,
+    // never a placeholder/sentinel string like "UNVERIFIED" -- that would
+    // itself be fabricated catalog data, exactly what this field exists
+    // to avoid. See docs/CATALOG_AUDIT.md.
+    itemNumber: text("item_number"), // item number of THIS release specifically, when verified
     releaseType: text("release_type").notNull(), // 'Original' | 'Reissue' | 'Special Edition' | ... (open vocabulary, validated at the app layer)
     editionName: text("edition_name").notNull(), // e.g. "Dash-1 Emperor (40th Anniversary)"
     releaseYear: integer("release_year").notNull(),

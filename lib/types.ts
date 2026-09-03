@@ -88,7 +88,7 @@ export type TrendDirection = "rising" | "stable" | "falling"
 export interface ProductRelease {
   id: string
   productId: string
-  itemNumber: string // ITEM number for THIS release (may match the model or differ)
+  itemNumber?: string // ITEM number for THIS release (may match the model or differ) -- undefined when genuinely unverified, never a placeholder string
   releaseType: ReleaseType
   editionName: string // display name for this release, e.g. "Dash-1 Emperor (2026 Reissue)"
   releaseYear: number // the year THIS release hit the market
@@ -114,7 +114,14 @@ export interface ProductRelease {
 export interface Product {
   id: string
   category: ProductCategory
-  itemNumber: string // canonical/representative ITEM number for the model
+  itemNumber?: string // canonical/representative ITEM number for the model -- undefined when genuinely unverified
+  /**
+   * Internal stable identity anchor (see lib/data/stable-id.ts and
+   * lib/data/products.ts's file header) — NOT for display. Exists so
+   * scripts/generate-catalog-seed.mjs can derive a slug that doesn't
+   * depend on the correctable `itemNumber` above.
+   */
+  seedKey?: string
   productCode?: string // short code used for manual scanner entry
   name: string // canonical model name
   japaneseName?: string

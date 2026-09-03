@@ -1,11 +1,13 @@
 import type { Product, ProductRelease } from "@/lib/types"
 
-// Single place that knows the release > product > placeholder priority
-// (see docs/IMAGES_MVP.md) for resolving which image URL to show for a
-// catalog object. Nothing else in the app should re-implement this
-// fallback chain — components/catalog/product-image.tsx is the only
-// consumer, and it doesn't know or care whether a URL came from a
-// release row, a product row, or a sibling release's row.
+// Single place that knows the image-resolution priority (see
+// docs/IMAGES_MVP.md) for a catalog object — two DIFFERENT chains
+// depending on whether a specific release is in view or not, see each
+// function below for why they differ. Nothing else in the app should
+// re-implement either chain — components/catalog/product-image.tsx is the
+// only consumer, and it doesn't know or care whether a resolved URL came
+// from a release row, a product row, or (product view only) a sibling
+// release's row.
 //
 // Both functions return `null` (never an empty string) when there is
 // genuinely no image anywhere in the chain — the UI component treats
@@ -19,8 +21,16 @@ function firstImage(images: string[] | undefined): string | null {
  * Resolves the image for a specific RELEASE. Priority:
  *   1. This release's own image (release_images)
  *   2. The parent product's generic image (product_images)
- *   3. Any other release of the same product that has an image
- *   4. null — caller should show the placeholder
+ *   3. null — caller should show the placeholder
+ *
+ * Deliberately does NOT fall back to a sibling release's image (see
+ * resolveProductImageUrl for where that fallback belongs instead) — doing
+ * so here would show a different edition's photo as though it were the
+ * specifically selected release, which is misleading precisely because
+ * releases of the same product can look genuinely different (see
+ * docs/CATALOG_AUDIT.md's note on the Dash-1 Emperor 2026 reissue: its
+ * current product page's photo is not evidence of what the original 1990
+ * release looked like).
  */
 export function resolveReleaseImageUrl(release: ProductRelease | null | undefined, product: Product | null | undefined): string | null {
   const releaseImage = firstImage(release?.images)
@@ -28,9 +38,6 @@ export function resolveReleaseImageUrl(release: ProductRelease | null | undefine
 
   const productImage = firstImage(product?.images)
   if (productImage) return productImage
-
-  const siblingImage = product?.releases?.map((r) => firstImage(r.images)).find((url): url is string => Boolean(url))
-  if (siblingImage) return siblingImage
 
   return null
 }
@@ -41,6 +48,11 @@ export function resolveReleaseImageUrl(release: ProductRelease | null | undefine
  *   1. The product's own image (product_images)
  *   2. Any release of the product that has an image
  *   3. null — caller should show the placeholder
+ *
+ * The sibling-release fallback (step 2) is intentionally only here, not
+ * in resolveReleaseImageUrl — showing *some* representative photo for the
+ * model in general is reasonable; showing it in place of a specifically
+ * selected, different edition is not.
  */
 export function resolveProductImageUrl(product: Product | null | undefined): string | null {
   const productImage = firstImage(product?.images)

@@ -77,7 +77,7 @@ export function mapWishlistRow(row: WishlistRow): WishlistItem {
 type ReleaseRow = {
   id: string
   productId: string
-  itemNumber: string
+  itemNumber: string | null
   releaseType: string
   editionName: string
   releaseYear: number
@@ -99,7 +99,7 @@ export function mapReleaseRow(row: ReleaseRow): ProductRelease {
   return {
     id: row.id,
     productId: row.productId,
-    itemNumber: row.itemNumber,
+    itemNumber: row.itemNumber ?? undefined,
     releaseType: row.releaseType as ReleaseType,
     editionName: row.editionName,
     releaseYear: row.releaseYear,
@@ -139,7 +139,7 @@ export function mapProductRow(row: ProductRow): Product {
   return {
     id: row.id,
     category: "mini4wd",
-    itemNumber: row.canonicalItemNumber ?? row.releases?.[0]?.itemNumber ?? "",
+    itemNumber: row.canonicalItemNumber ?? row.releases?.[0]?.itemNumber ?? undefined,
     name: row.name,
     japaneseName: row.japaneseName ?? undefined,
     series: (row.series as Series) ?? "Racing Mini 4WD",

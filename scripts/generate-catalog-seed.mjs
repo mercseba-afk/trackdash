@@ -36,14 +36,21 @@ function sqlBool(value) {
   return value ? "true" : "false"
 }
 
-function slugify(name, itemNumber) {
+function slugify(name, seedKey) {
   const base = name
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-  return `${base}-${itemNumber}`
+  // Uses seedKey (a frozen, internal identity anchor -- see
+  // lib/data/products.ts's file header), not itemNumber, specifically so
+  // correcting a wrong item number during a future audit never changes
+  // an already-deployed product's slug. slug isn't used for id
+  // generation (already safe) or for any current route/lookup
+  // (getProductBySlug exists but nothing calls it yet) -- this is a
+  // forward-looking correctness fix, not a response to an active bug.
+  return `${base}-${seedKey}`
 }
 
 const lines = []
@@ -82,7 +89,7 @@ lines.push(
   "insert into products (id, category_id, brand_id, slug, canonical_item_number, name, japanese_name, series, chassis, original_release_year, rarity, description) values",
 )
 const productRows = PRODUCTS.map((p) => {
-  const slug = slugify(p.name, p.itemNumber)
+  const slug = slugify(p.name, p.seedKey)
   return `  (${sqlStr(p.id)}, ${sqlStr(MINI4WD_CATEGORY_ID)}, ${sqlStr(TAMIYA_BRAND_ID)}, ${sqlStr(slug)}, ${sqlStr(p.itemNumber)}, ${sqlStr(p.name)}, ${sqlStr(p.japaneseName)}, ${sqlStr(p.series)}, ${sqlStr(p.chassis)}, ${sqlNum(p.originalReleaseYear)}, ${sqlStr(p.rarity)}, ${sqlStr(p.description)})`
 })
 lines.push(productRows.join(",\n"))
