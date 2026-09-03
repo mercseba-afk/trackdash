@@ -103,7 +103,7 @@ const releaseRows = []
 for (const p of PRODUCTS) {
   for (const r of p.releases) {
     releaseRows.push(
-      `  (${sqlStr(r.id)}, ${sqlStr(p.id)}, ${sqlStr(r.itemNumber)}, ${sqlStr(r.releaseType)}, ${sqlStr(r.editionName)}, ${sqlNum(r.releaseYear)}, NULL, ${sqlStr(r.chassis)}, ${sqlStr(r.barcodeJAN)}, ${sqlStr(r.color)}, ${sqlStr(r.countryMarket)}, ${sqlNum(r.msrpJPY)}, ${sqlNum(r.msrpEUR)}, ${sqlStr(r.notes)}, ${sqlBool(r.discontinued)}, ${sqlBool(r.isOriginal)}, ${sqlStr(r.rarity)}, 'manual')`,
+      `  (${sqlStr(r.id)}, ${sqlStr(p.id)}, ${sqlStr(r.itemNumber)}, ${sqlStr(r.releaseType)}, ${sqlStr(r.editionName)}, ${sqlNum(r.releaseYear)}, ${sqlStr(r.releaseDate)}, ${sqlStr(r.chassis)}, ${sqlStr(r.barcodeJAN)}, ${sqlStr(r.color)}, ${sqlStr(r.countryMarket)}, ${sqlNum(r.msrpJPY)}, ${sqlNum(r.msrpEUR)}, ${sqlStr(r.notes)}, ${sqlBool(r.discontinued)}, ${sqlBool(r.isOriginal)}, ${sqlStr(r.rarity)}, 'manual')`,
     )
   }
 }

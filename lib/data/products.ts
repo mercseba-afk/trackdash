@@ -71,6 +71,8 @@ interface ReleaseSeed {
   type: ReleaseType
   name?: string // edition name; defaults to the model name
   year: number
+  /** Precise ISO release date, when officially verified. Most releases only have a year -- leave unset rather than guess a date. */
+  releaseDate?: string
   item?: string // ITEM number for this release; defaults to the model item
   chassis?: Chassis // defaults to the model chassis
   color?: string
@@ -383,27 +385,28 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18710", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    // CONFIRMED WRONG, NOT CORRECTED (catalog integrity pass, see
-    // docs/CATALOG_AUDIT.md): item 18710 could not be confirmed as
-    // belonging to this vintage 1990 "Avante Mk.II" (Zero chassis,
-    // discontinued). A real Tamiya item 18614 titled "Avante Mk.II"
-    // exists (https://www.tamiya.com/english/products/18614/index.html)
-    // but describes a clearly modern product (MA/MS chassis, page dated
-    // current as of Sept 2019) -- attaching that number here would
-    // misrepresent a different-era release, the same kind of mistake
-    // this pass exists to fix. Left genuinely undefined instead.
-    item: undefined,
+    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
+    // officially verified against Tamiya: item 18614, "Avante Mk.II",
+    // Mini 4WD PRO Series No.14, MS chassis, released 2006-06-24. There
+    // is no official vintage 1990/Zero-chassis "Avante Mk.II" -- that
+    // entry (item 18710, "vintage grail", discontinued) appears to have
+    // been a seed-data error, most likely confused with the real
+    // "Avante Jr." (item 18014, Type 2 chassis, 1988), which is a
+    // genuinely distinct historical product not currently represented in
+    // this catalog at all. If Avante Jr. is wanted here later, it must
+    // be added as its own separate product entry (its own seedKey/item
+    // 18014), never as a release under this one.
+    item: "18614",
     code: "95110",
     name: "Avante Mk.II",
     jp: "アバンテ Mk.II",
     series: "Avante",
-    chassis: "Zero",
-    originalYear: 1990,
-    discontinued: true,
-    rarity: "Very Rare",
+    chassis: "MS",
+    originalYear: 2006,
+    rarity: "Uncommon", // not independently verified -- a reasonable non-extreme default now that this is confirmed to be a mainstream 2006 release, not a vintage grail. Corrects the previous "Very Rare" framing, which was based on the wrong (vintage) identity.
     estimatedMsrpJPY: 700,
-    desc: "The Zero-chassis evolution of the Avante. A vintage grail for serious collectors.",
-    releases: [{ type: "Original", year: 1990, original: true, discontinued: true }],
+    desc: "The MS-chassis Avante Mk.II, Mini 4WD PRO Series No.14 -- a modern take on the Avante line, not the vintage original.",
+    releases: [{ type: "Original", year: 2006, releaseDate: "2006-06-24", chassis: "MS", original: true }],
   },
   {
     seedKey: "18716", // frozen identity anchor -- see file header. NEVER change this once assigned.
@@ -780,6 +783,7 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       releaseType: r.type,
       editionName: r.name ?? seed.name,
       releaseYear: r.year,
+      releaseDate: r.releaseDate,
       chassis: r.chassis ?? seed.chassis,
       // Never invented (file header, point 2) -- undefined unless a real
       // Tamiya-confirmed barcode was found.

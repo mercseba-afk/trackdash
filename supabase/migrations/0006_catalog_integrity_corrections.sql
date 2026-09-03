@@ -61,13 +61,13 @@ update products set canonical_item_number = '18640', chassis = 'MA' where id = '
 update products set canonical_item_number = '18646' where id = 'd341ec22-c1f9-5a03-906d-444f8eee5401';
 
 -- Geo Glider
-update products set canonical_item_number = '18716' where id = '68acb096-f01b-55b2-949b-a959279a2fa5';
+update products set canonical_item_number = '18716', original_release_year = 2018 where id = '68acb096-f01b-55b2-949b-a959279a2fa5';
 
 -- Shadow Shark
 update products set canonical_item_number = '18704', chassis = 'AR', description = 'Sharp predatory silhouette debuting on the aerodynamic, responsive AR chassis.' where id = '6f41e40f-a48e-509f-8602-dfd303e25795';
 
 -- Avante Mk.II
-update products set canonical_item_number = NULL where id = '6dcb6511-5277-561f-a880-95ef828ce44f';
+update products set canonical_item_number = '18614', chassis = 'MS', description = 'The MS-chassis Avante Mk.II, Mini 4WD PRO Series No.14 -- a modern take on the Avante line, not the vintage original.', original_release_year = 2006, rarity = 'Uncommon' where id = '6dcb6511-5277-561f-a880-95ef828ce44f';
 
 -- Super Avante
 update products set canonical_item_number = '18101' where id = 'dcd372ac-5ad2-5a70-ae48-f1c4a6d6de4a';
@@ -103,7 +103,7 @@ update product_releases set item_number = '18640', chassis = 'MA' where id = '5a
 update product_releases set item_number = '18646' where id = 'd32c3468-4ce4-5968-ba4e-d1e47e30eb01';
 
 -- Geo Glider
-update product_releases set item_number = '18716' where id = 'a9a18e0d-7aa2-5481-94b6-ebc670daaa55';
+update product_releases set item_number = '18716', release_year = 2018 where id = 'a9a18e0d-7aa2-5481-94b6-ebc670daaa55';
 
 -- Shadow Shark
 update product_releases set item_number = '18704', chassis = 'AR' where id = 'b57fbc18-d57c-5b3c-9def-ffb4e70c9e27';
@@ -112,7 +112,7 @@ update product_releases set item_number = '18704', chassis = 'AR' where id = 'b5
 update product_releases set item_number = '19431', chassis = 'Super II' where id = '0fdbfd56-f257-5b84-b541-e08a7450cc34';
 
 -- Avante Mk.II
-update product_releases set item_number = NULL where id = '5a123617-c84c-5012-ab20-1a9d493259e0';
+update product_releases set item_number = '18614', chassis = 'MS', release_year = 2006, release_date = '2006-06-24', discontinued = false where id = '5a123617-c84c-5012-ab20-1a9d493259e0';
 
 -- Super Avante
 update product_releases set item_number = '18101' where id = '5e5251c2-a130-5fb0-93a7-2bd73c63736d';

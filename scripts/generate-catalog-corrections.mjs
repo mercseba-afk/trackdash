@@ -41,6 +41,8 @@ for (const p of AFTER) {
   if (b.itemNumber !== p.itemNumber) sets.push(`canonical_item_number = ${sqlStr(p.itemNumber)}`)
   if (b.chassis !== p.chassis) sets.push(`chassis = ${sqlStr(p.chassis)}`)
   if (b.description !== p.description) sets.push(`description = ${sqlStr(p.description)}`)
+  if (b.originalReleaseYear !== p.originalReleaseYear) sets.push(`original_release_year = ${p.originalReleaseYear}`)
+  if (b.rarity !== p.rarity) sets.push(`rarity = ${sqlStr(p.rarity)}`)
   if (sets.length > 0) {
     productUpdates.push({ id: p.id, name: p.name, sets })
   }
@@ -52,6 +54,11 @@ for (const p of AFTER) {
     if (rb.itemNumber !== r.itemNumber) rsets.push(`item_number = ${sqlStr(r.itemNumber)}`)
     if (rb.chassis !== r.chassis) rsets.push(`chassis = ${sqlStr(r.chassis)}`)
     if (rb.notes !== r.notes) rsets.push(`notes = ${sqlStr(r.notes)}`)
+    if (rb.editionName !== r.editionName) rsets.push(`edition_name = ${sqlStr(r.editionName)}`)
+    if (rb.releaseYear !== r.releaseYear) rsets.push(`release_year = ${r.releaseYear}`)
+    if (rb.releaseDate !== r.releaseDate) rsets.push(`release_date = ${sqlStr(r.releaseDate)}`)
+    if (Boolean(rb.discontinued) !== Boolean(r.discontinued)) rsets.push(`discontinued = ${Boolean(r.discontinued)}`)
+    if (rb.rarity !== r.rarity) rsets.push(`rarity = ${sqlStr(r.rarity)}`)
     if (rsets.length > 0) {
       releaseUpdates.push({ id: r.id, edition: r.editionName, sets: rsets })
     }

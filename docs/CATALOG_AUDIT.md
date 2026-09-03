@@ -46,8 +46,8 @@ be using).
 | Pseudo-JAN barcodes removed | 60 / 60 (all — see below) |
 | Verified-real MSRP figures retained | 0 |
 | Estimated/demo MSRP values cleared from the factual DB columns | 60 / 60 releases |
-| Item numbers corrected to a verified real value | 8 (7 products + 1 release-only: Magnum Saber Premium) |
-| Item numbers set to `NULL` (no confident replacement found) | 3 products (+ their 5 releases) — Thunder Shot (×2 releases), Dash-4 Cannon Ball, Avante Mk.II |
+| Item numbers corrected to a verified real value | 9 (8 products + 1 release-only: Magnum Saber Premium) |
+| Item numbers set to `NULL` (no confident replacement found) | 2 products (+ their 3 releases) — Thunder Shot (×2 releases), Dash-4 Cannon Ball |
 | Slugs affected | 0 deployed slugs changed in value (see "Slug decoupling" below) — the *generation formula* changed for future correctness |
 | Deployed UUIDs preserved | **96 / 96**, byte-identical, re-verified after every correction (see "ID preservation" below) |
 
@@ -149,7 +149,7 @@ duplicate/invalid concept).
 | Shadow Shark | 18095 | **18704** | CORRECTED | VZ → **AR** | 2020 | item, chassis, description | [tamiya.com/18704](https://www.tamiya.com/english/products/18704/index.html) | 18704 was also this catalog's (equally wrong) number for Dash-4 Cannon Ball — see that row. |
 | Super Avante | 18716 | **18101** | CORRECTED | VZ (unchanged) | 2020 | item | [tamiya.com/18101](https://www.tamiya.com/english/products/18101/index.html) ("Super Avante Jr.") | Moved off 18716 once that number was confirmed to really belong to Geo Glider. |
 | Dash-4 Cannon Ball | 18704 | **NULL** | CORRECTED | Type 3 (unchanged) | 1990 | item → NULL | (no page found; 18704 confirmed to belong to Shadow Shark instead) | No confident real item number found for this vintage release within this pass. |
-| Avante Mk.II | 18710 | **NULL** | CORRECTED | Zero (unchanged) | 1990 | item → NULL | [tamiya.com/18614](https://www.tamiya.com/english/products/18614/index.html) (a *different*, modern product also called "Avante Mk.II") | 18710 could not be confirmed; the only "Avante Mk.II" found live is a clearly modern (2019-era, MA/MS chassis) product, not this catalog's 1990/Zero-chassis entry — reusing that number would have been a new mismatch of the same kind this pass exists to fix. |
+| Avante Mk.II | 18710 | **18614** | CORRECTED | Zero → **MS** | 1990 → **2006** | item, chassis, year, description, rarity, discontinued | Verified official (provided directly, confirmed against Tamiya): item 18614, "Avante Mk.II", Mini 4WD PRO Series No.14, MS chassis, released 2006-06-24 | No official vintage 1990/Zero-chassis "Avante Mk.II" exists — that entry was a seed-data error, likely confused with the real "Avante Jr." (item 18014, Type 2 chassis, 1988), a genuinely distinct historical product not currently in this catalog at all. If wanted later, Avante Jr. must be added as its own separate product (own seedKey/item 18014), never as a release under Avante Mk.II. |
 
 ### Releases of the audited products
 
@@ -174,7 +174,7 @@ duplicate/invalid concept).
 | Shadow Shark | Shadow Shark (original) | 18095 | 18704 | CORRECTED | AR | 2020 | Inherits corrected product item/chassis. |
 | Super Avante | Super Avante (original) | 18716 | 18101 | CORRECTED | VZ | 2020 | Inherits corrected product item. |
 | Dash-4 Cannon Ball | Dash-4 Cannon Ball (original) | 18704 | NULL | CORRECTED | Type 3 | 1990 | Inherits product-level NULL. |
-| Avante Mk.II | Avante Mk.II (original) | 18710 | NULL | CORRECTED | Zero | 1990 | Inherits product-level NULL. |
+| Avante Mk.II | Avante Mk.II (original) | 18710 | 18614 | CORRECTED | Zero → MS | 1990 → 2006 | Inherits corrected product item/chassis/year; release_date newly populated as 2006-06-24 (a previously-unused DB column, now wired for this entry). No longer marked discontinued. |
 
 ### Products NOT individually audited this pass (25) — genuinely UNVERIFIED
 
@@ -223,3 +223,8 @@ pattern found above, several are likely wrong.
 4. Seek verified real MSRP/JAN figures where Tamiya (or another
    authoritative, non-marketplace source) publishes them, to start
    populating `verifiedMsrpJPY`/`verifiedJAN` for real.
+5. If the historical "Avante Jr." (item 18014, Type 2 chassis, 1988) is
+   wanted in the catalog, add it as its own new product entry (its own
+   `seedKey`) — it is a genuinely distinct product from Avante Mk.II
+   (item 18614, MS chassis, 2006), not a release of it. Not added in
+   this pass since it wasn't part of the original 36.
