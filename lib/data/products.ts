@@ -318,7 +318,15 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "19404", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19404",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19406/index.html confirms
+    // "ビクトリーマグナム" (Victory Magnum), Item No. 19406. This
+    // catalog's previous item 19404 does not belong to Victory Magnum in
+    // Tamiya's numbering (chassis/year not independently re-verified
+    // against an official page in this pass -- carried over from the
+    // seed, PARTIALLY VERIFIED for those two fields).
+    item: "19406",
     code: "95004",
     name: "Victory Magnum",
     jp: "ビクトリーマグナム",
@@ -469,15 +477,15 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18725", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
-    // this catalog's previous item 18725 does not belong to "Vanguard
-    // Sonic" in Tamiya's real numbering. PARTIALLY VERIFIED: item 19407
-    // and year 1995 (not 1996) are corroborated by a retailer SKU
-    // (https://www.hlj.com/vanguard-sonic-tam19407) and Fandom citing a
-    // 1995-09-20 release, but not independently confirmed via a direct
-    // tamiya.com fetch in this pass -- flagged for follow-up
-    // confirmation in docs/CATALOG_AUDIT.md rather than treated as fully
-    // VERIFIED.
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19407/index.html confirms
+    // "バンガードソニック" (Vanguard Sonic), Item No. 19407, "1/32
+    // フルカウルミニ四駆シリーズ No.7". This catalog's previous item
+    // 18725 does not belong to Vanguard Sonic in Tamiya's numbering.
+    // Year 1995 corroborated by retailer/wiki sources only (the official
+    // page itself doesn't list a release date) -- flagged PARTIALLY
+    // VERIFIED for the exact year only, item number is fully confirmed.
     item: "19407",
     code: "95125",
     name: "Vanguard Sonic",

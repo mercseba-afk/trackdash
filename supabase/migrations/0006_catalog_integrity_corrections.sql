@@ -48,7 +48,7 @@ update product_releases set barcode_jan = NULL, msrp_jpy = NULL, msrp_eur = NULL
 
 -- =========================================================================
 -- 3. Corrected factual fields on already-deployed products, by id.
---    12 product row(s) affected.
+--    13 product row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -72,6 +72,9 @@ update products set canonical_item_number = '18637', chassis = 'MA', description
 -- Neo-Tridagger ZMC
 update products set canonical_item_number = '19409', chassis = 'Super 1' where id = '9793fbe8-dcf7-51c9-9f45-185194a0bc92';
 
+-- Victory Magnum
+update products set canonical_item_number = '19406' where id = 'f603ed6f-e601-5372-9fe7-6fd1034b6065';
+
 -- Avante Mk.II
 update products set canonical_item_number = '18614', chassis = 'MS', description = 'The MS-chassis Avante Mk.II, Mini 4WD PRO Series No.14 -- a modern take on the Avante line, not the vintage original.', original_release_year = 2006, rarity = 'Uncommon' where id = '6dcb6511-5277-561f-a880-95ef828ce44f';
 
@@ -90,7 +93,7 @@ update products set canonical_item_number = NULL where id = '059b5b3f-9ee9-5932-
 
 -- =========================================================================
 -- 4. Corrected factual fields on already-deployed releases, by id.
---    22 release row(s) affected.
+--    23 release row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -131,6 +134,9 @@ update product_releases set item_number = '19431', chassis = 'Super II' where id
 
 -- Sonic Saber Premium
 update product_releases set item_number = '19432', chassis = 'Super II', release_year = 2011 where id = '62cca367-8a73-5280-b2a2-0aa9497d093d';
+
+-- Victory Magnum
+update product_releases set item_number = '19406' where id = '6ed25d50-4099-5924-b7e5-d7a21945a3f6';
 
 -- Victory Magnum Premium
 update product_releases set item_number = '19434', chassis = 'Super II', release_year = 2011, release_date = '2011-06-25' where id = '0bdb9bcd-e4aa-53ab-b004-984cae96fdca';
