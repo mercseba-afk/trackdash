@@ -106,24 +106,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [wishlist, setWishlist] = React.useState<WishlistItem[]>([])
   const [dataLoaded, setDataLoaded] = React.useState(false)
 
+  // Tracks the id of the currently-loaded (or currently-loading) user, for
+  // use inside the onAuthStateChange callback below. A plain state
+  // variable would be stale there: that callback is registered once by
+  // the effect (dependency array []) and closes over values from mount
+  // time, not the latest render -- a ref is the standard way around that.
+  const currentUserIdRef = React.useRef<string | null>(null)
+
   async function refetchCollectionAndWishlist() {
     const [c, w] = await Promise.all([getMyCollectionAction(), getMyWishlistAction()])
     setCollection(c)
     setWishlist(w)
   }
 
-  // Real auth: resolve the current Supabase session on mount, then stay in
-  // sync via onAuthStateChange (fires on sign-in, sign-out, token refresh --
-  // including sign-ins that happen client-side in auth-screen.tsx, which
-  // this store doesn't call directly). Once a session resolves, also loads
-  // that user's real collection/wishlist; on sign-out, clears them rather
-  // than leaving the previous user's data on screen.
+  // Real auth: resolve the current Supabase session once on mount via
+  // getSession(), then stay in sync via onAuthStateChange for everything
+  // that happens afterwards. Fix (this branch): Supabase fires
+  // onAuthStateChange for far more than "a different person logged in" --
+  // regaining tab focus alone triggers TOKEN_REFRESHED and sometimes a
+  // same-user SIGNED_IN, and every subscription also immediately replays
+  // an INITIAL_SESSION event. Treating all of those identically to a real
+  // sign-in (full reload, `dataLoaded` flipped to false) was what made the
+  // whole app flash to a loading screen every time someone switched back
+  // to this tab -- AuthGate renders that state as a blank screen + spinner
+  // while `hydrated` (== authChecked && dataLoaded) is false. The fix is
+  // to only ever do that full reload for an ACTUAL identity change (a real
+  // sign-in, a sign-out, or switching to a genuinely different account);
+  // everything else either updates quietly or does nothing at all. See
+  // each case below for the reasoning specific to that event.
   React.useEffect(() => {
     const supabase = createClient()
     let cancelled = false
 
-    async function syncUser(authUser: { id: string; email?: string; created_at: string } | null) {
+    // The only path allowed to blank the UI (via setDataLoaded(false) at
+    // its call sites below) -- resolves the profile + collection +
+    // wishlist for a new/changed user, or clears everything on sign-out.
+    async function fullSync(authUser: { id: string; email?: string; created_at: string } | null) {
       if (!authUser) {
+        currentUserIdRef.current = null
         if (!cancelled) {
           setUser(null)
           setCollection([])
@@ -132,6 +152,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         return
       }
+      // Set synchronously, before the async profile fetch below, so a
+      // second event for the same user arriving mid-flight (e.g. a rapid
+      // SIGNED_IN immediately followed by TOKEN_REFRESHED) sees this
+      // user as already-current and bails out early rather than starting
+      // a second, redundant fetch.
+      currentUserIdRef.current = authUser.id
       const profile = await getMyProfileAction()
       if (cancelled) return
       setUser(toAppUser(authUser, profile))
@@ -143,16 +169,71 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      syncUser(session?.user ?? null).finally(() => {
+      fullSync(session?.user ?? null).finally(() => {
         if (!cancelled) setAuthChecked(true)
       })
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setDataLoaded(false)
-      syncUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      switch (event) {
+        case "INITIAL_SESSION":
+          // Fires once, immediately after subscribing, describing the
+          // same session getSession() above is already resolving.
+          // Reacting to it too would just do the initial bootstrap
+          // twice; getSession() is the single source of truth for it.
+          return
+
+        case "SIGNED_OUT":
+          // A real identity change (to "nobody") -- always clear
+          // everything. fullSync(null) resolves synchronously (no
+          // network round trip), so this doesn't need a preceding
+          // setDataLoaded(false) to avoid a stale screen.
+          fullSync(null)
+          return
+
+        case "TOKEN_REFRESHED":
+          // Same session, same user, new access token. Nothing about
+          // identity or app data changed -- do nothing.
+          return
+
+        case "USER_UPDATED": {
+          // Something about the auth user itself changed (confirmed
+          // email, updated metadata, ...). Refresh the profile quietly
+          // in place -- never touch dataLoaded/collection/wishlist for
+          // this, the rest of the UI has no reason to disappear.
+          const authUser = session?.user
+          if (!authUser) return
+          getMyProfileAction().then((profile) => {
+            if (!cancelled) setUser(toAppUser(authUser, profile))
+          })
+          return
+        }
+
+        case "SIGNED_IN": {
+          // Supabase also emits SIGNED_IN when an existing session is
+          // merely reconfirmed (notably: regaining tab focus), not only
+          // for an actual new login. If the session's user matches the
+          // one already loaded, there is nothing to do -- treat it like
+          // TOKEN_REFRESHED.
+          const authUser = session?.user
+          if (!authUser) return
+          if (currentUserIdRef.current === authUser.id) return
+          // A genuinely new sign-in (including switching to a different
+          // account without an intervening sign-out): full reload, and
+          // showing the loading state here is the correct, expected
+          // behavior -- never carry the previous user's data across.
+          setDataLoaded(false)
+          fullSync(authUser)
+          return
+        }
+
+        default:
+          // Any other/future auth event: do nothing rather than risk
+          // blanking the UI for something not explicitly handled above.
+          return
+      }
     })
 
     return () => {
