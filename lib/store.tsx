@@ -141,6 +141,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // The only path allowed to blank the UI (via setDataLoaded(false) at
     // its call sites below) -- resolves the profile + collection +
     // wishlist for a new/changed user, or clears everything on sign-out.
+    //
+    // Race guard: currentUserIdRef also doubles as this function's "is my
+    // result still relevant" check. Two async steps happen here (profile,
+    // then collection/wishlist) with real await points in between, during
+    // which another event (a sign-out, or a sign-in as someone else) can
+    // change currentUserIdRef out from under an in-flight call for the
+    // PREVIOUS user. Checking only `cancelled` (component unmounted) isn't
+    // enough -- the component is still mounted and happily accepting
+    // updates in that scenario, it's just that this particular call's
+    // result no longer belongs to the current session. Re-checking
+    // `currentUserIdRef.current === authUser.id` after every await, before
+    // touching any state, is what makes a superseded call a true no-op
+    // instead of momentarily showing (or, worse, persisting a mutation
+    // against) the wrong account's data.
     async function fullSync(authUser: { id: string; email?: string; created_at: string } | null) {
       if (!authUser) {
         currentUserIdRef.current = null
@@ -158,13 +172,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // user as already-current and bails out early rather than starting
       // a second, redundant fetch.
       currentUserIdRef.current = authUser.id
+
       const profile = await getMyProfileAction()
-      if (cancelled) return
+      if (cancelled || currentUserIdRef.current !== authUser.id) return
       setUser(toAppUser(authUser, profile))
+
       try {
-        await refetchCollectionAndWishlist()
+        const [c, w] = await Promise.all([getMyCollectionAction(), getMyWishlistAction()])
+        if (cancelled || currentUserIdRef.current !== authUser.id) return
+        setCollection(c)
+        setWishlist(w)
       } finally {
-        if (!cancelled) setDataLoaded(true)
+        // Only this user's own (still-current) call gets to mark the
+        // load as done. A superseded call reaching here must NOT flip
+        // dataLoaded to true -- whichever fullSync is actually running
+        // for the current user is responsible for that itself, once its
+        // own checks above pass.
+        if (!cancelled && currentUserIdRef.current === authUser.id) setDataLoaded(true)
       }
     }
 
@@ -187,9 +211,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         case "SIGNED_OUT":
           // A real identity change (to "nobody") -- always clear
-          // everything. fullSync(null) resolves synchronously (no
-          // network round trip), so this doesn't need a preceding
-          // setDataLoaded(false) to avoid a stale screen.
+          // everything immediately. fullSync(null) resolves
+          // synchronously (no network round trip, no await), so this
+          // doesn't need a preceding setDataLoaded(false) to avoid a
+          // stale screen, AND it's what makes the race guard above work:
+          // currentUserIdRef.current becomes null right here, so any
+          // still-in-flight fullSync(previousUser) call correctly sees
+          // a mismatch the next time it checks.
           fullSync(null)
           return
 
@@ -206,7 +234,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const authUser = session?.user
           if (!authUser) return
           getMyProfileAction().then((profile) => {
-            if (!cancelled) setUser(toAppUser(authUser, profile))
+            // Same race guard as fullSync: if the account changed while
+            // this fetch was in flight, this response is stale and must
+            // not overwrite whatever the current session's own sync
+            // already set.
+            if (!cancelled && currentUserIdRef.current === authUser.id) {
+              setUser(toAppUser(authUser, profile))
+            }
           })
           return
         }
