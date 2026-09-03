@@ -36,6 +36,13 @@
       "when": 1788335332330,
       "tag": "0004_app_runtime_role",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788444962809,
+      "tag": "0005_step5b_runtime_grants_hardening",
+      "breakpoints": true
     }
   ]
 }

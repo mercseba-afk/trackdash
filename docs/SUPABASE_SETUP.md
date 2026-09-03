@@ -63,6 +63,7 @@ This applies, in order, everything under `supabase/migrations/`:
 | 0002 | `profile_auto_provision_trigger` | The `handle_new_user()` trigger on `auth.users` that creates a matching `profiles` row on sign-up |
 | 0003 | `seed_initial_catalog` | The 36-model Tamiya Mini 4WD catalog (1 brand, 1 category, 36 products, 60 releases) |
 | 0004 | `app_runtime_role` | The restricted `trackdash_app` Postgres role (see step 5) |
+| 0005 | `step5b_runtime_grants_hardening` | Table-level GRANTs for `trackdash_app`/`anon`/`authenticated` (narrower than 0004's blanket CRUD — see that migration's own comments) and EXECUTE hardening on `handle_new_user`/`rls_auto_enable`. Written after production testing surfaced a real `permission denied for table profiles (42501)` — RLS policies are not a substitute for the underlying GRANT; see `lib/db/rls.ts`'s header comment for the full story. |
 
 All of them are safe to re-run (every statement is `ON CONFLICT ... DO NOTHING`,
 `CREATE ... IF NOT EXISTS`, or `CREATE OR REPLACE`) — re-running
@@ -99,6 +100,30 @@ connection — future migrations (`pnpm db:migrate`) need it, and
 `trackdash_app` deliberately cannot run DDL.
 
 Restart the dev server after changing `.env.local`.
+
+### Why `authenticated` needs its own GRANTs even though RLS is enabled
+
+This tripped up the first production deploy, so it's worth stating
+plainly: **RLS policies and PostgreSQL's ordinary GRANT system are two
+separate gates, checked in order.** A `GRANT SELECT/INSERT/UPDATE/DELETE`
+decides whether a role may touch a table *at all*; RLS policies then
+decide which *rows* it may see or affect within whatever the GRANT
+allows. Having correct RLS policies (migration 0001) does not, by itself,
+let `authenticated` touch a table — that role also needs its own direct
+GRANT (migration 0005), independent of any policy.
+
+This matters specifically because of how `lib/db/rls.ts`'s
+`withUserContext()` works: it runs `SET LOCAL ROLE authenticated` so RLS
+policies scoped `TO authenticated` apply — but `SET ROLE` doesn't just
+help satisfy a policy's `TO` clause, it *switches which role's grants are
+checked* for the rest of the transaction. `trackdash_app`'s own grants
+stop applying the moment the role switches; `authenticated`'s own grants
+are what's checked from that point on. Migration 0004 only granted
+privileges to `trackdash_app` — the first real request that went through
+`withUserContext()` in production failed with `permission denied for
+table profiles (42501)` as a direct result. Migration 0005 fixes this by
+giving `authenticated` (and `anon`, for public reads) their own explicit,
+table-by-table grants.
 
 ## 6. Verify the seed and the connection
 
@@ -235,7 +260,45 @@ problem rather than continuing to the next step.
 Repeat the whole 9b block impersonating **User B**'s id, confirming the
 mirror image (only B's rows, zero access to A's).
 
-## 10. What "done" looks like
+## 10. Deploying to Vercel
+
+A few things that only surface once this runs on Vercel rather than
+locally, learned from the real deploy:
+
+**Use the Transaction pooler, not the Session pooler or the direct
+connection, for `DATABASE_URL`.** Vercel's serverless functions open a
+new database connection per invocation rather than holding one open like
+a long-running `pnpm dev` process — the direct connection (IPv6-only on
+most projects, and not meant for high connection churn) and the Session
+pooler (one persistent server-side connection per client, quickly
+exhausted by serverless) both work poorly under that pattern. Get the
+right string from **Supabase Dashboard → Connect → Transaction pooler**
+(port `6543`) — don't hand-construct it from a remembered host pattern;
+the pooler hostname is project/region-specific and Supabase's own
+infrastructure has changed pooler routing before. Copy it from the
+dashboard every time, not from memory or an old note.
+
+**Prepared statements must stay disabled** — already the case in
+`lib/db/index.ts` (`postgres(connectionString, { prepare: false })`).
+Transaction-mode pooling (Supavisor) doesn't guarantee the same backend
+Postgres connection across statements, so server-side prepared statements
+(which are backend-connection-scoped) silently break. Don't remove that
+option when touching this file.
+
+**Configure Supabase Auth's URL settings for the production domain** —
+**Authentication → URL Configuration**:
+- **Site URL**: the production domain (e.g. `https://trackdash.vercel.app`
+  or a custom domain), not `localhost`. This is what's used to build
+  links in confirmation/reset emails.
+- **Redirect URLs**: add the production domain here too. Supabase Auth
+  rejects redirects to any URL not on this list — sign-up confirmation
+  links will otherwise fail after deployment even though they work
+  locally.
+- `http://localhost:3000` can stay in Redirect URLs alongside the
+  production one — you don't need to remove it for local development to
+  keep working.
+
+## 11. What "done" looks like
 
 - `/api/dev/health` shows `database.connected: true`, `catalog.productCount: 36`.
 - Both test users can add/edit/remove collection and wishlist items, with
