@@ -11,7 +11,7 @@ import type { Product, ProductRelease } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { ProductCard } from "@/components/product-card"
 import { MarketEstimateCard, RarityBadge, TrendIndicator, ConfidenceBadge } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
@@ -35,11 +35,11 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* Identity + primary art */}
         <div className="flex flex-col gap-4">
-          <ProductArt product={product} release={primary} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
+          <ProductImage product={product} release={primary} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
           {product.releases.length > 1 && (
             <div className="grid grid-cols-3 gap-3">
               {product.releases.slice(0, 3).map((r) => (
-                <ProductArt key={r.id} product={product} release={r} className="aspect-square rounded-lg border" size="sm" />
+                <ProductImage key={r.id} product={product} release={r} className="aspect-square rounded-lg border" size="sm" />
               ))}
             </div>
           )}
@@ -123,7 +123,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
                 className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm"
               >
                 <div className="flex items-center gap-3">
-                  <ProductArt product={m.product} release={m.release} className="size-10 rounded-md" size="sm" />
+                  <ProductImage product={m.product} release={m.release} className="size-10 rounded-md" size="sm" />
                   <div>
                     <p className="font-medium">{m.label}</p>
                     <p className="text-xs text-muted-foreground">
@@ -186,7 +186,7 @@ function ReleaseRow({ product, release, owned }: { product: Product; release: Pr
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
-        <ProductArt product={product} release={release} className="size-14 shrink-0 rounded-md" size="sm" />
+        <ProductImage product={product} release={release} className="size-14 shrink-0 rounded-md" size="sm" />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <p className="font-medium">{releaseLabel(release)}</p>

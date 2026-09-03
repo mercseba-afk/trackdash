@@ -43,6 +43,13 @@
       "when": 1788444962809,
       "tag": "0005_step5b_runtime_grants_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788449770296,
+      "tag": "0006_seed_catalog_images",
+      "breakpoints": true
     }
   ]
 }

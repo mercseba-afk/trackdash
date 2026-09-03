@@ -18,12 +18,13 @@ export async function listCategories() {
   return db.select().from(categories).orderBy(categories.name)
 }
 
-// Catalog list view: products with brand/category names and their
-// releases eager-loaded, since the catalog screen shows release count and
-// the product-detail screen needs the release list right away.
+// Catalog list view: products with brand/category names, images, and
+// their releases (with release images) eager-loaded, since the catalog
+// screen shows a primary image + release count and the product-detail
+// screen needs the release list right away.
 export async function listProducts(limit = 50) {
   return db.query.products.findMany({
-    with: { brand: true, category: true, releases: true },
+    with: { brand: true, category: true, images: true, releases: { with: { images: true } } },
     orderBy: (fields, { asc }) => [asc(fields.name)],
     limit,
   })

@@ -9,7 +9,7 @@ import { getProductEstimate } from "@/lib/data/market"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
 import { ProductCard } from "@/components/product-card"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { Input } from "@/components/ui/input"
@@ -219,7 +219,7 @@ export function CatalogScreen({ products }: { products: Product[] }) {
             return (
               <div key={p.id} className="flex items-center gap-3 bg-card p-2.5">
                 <Link href={`/catalog/${p.id}`}>
-                  <ProductArt product={p} release={primary} size="sm" className="h-12 w-16 shrink-0" />
+                  <ProductImage product={p} release={primary} size="sm" className="h-12 w-16 shrink-0" />
                 </Link>
                 <Link href={`/catalog/${p.id}`} className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

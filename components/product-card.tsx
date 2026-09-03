@@ -8,7 +8,7 @@ import { getProductEstimate } from "@/lib/data/market"
 import { primaryRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
 import { Button } from "@/components/ui/button"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
@@ -23,7 +23,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <div className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
       <Link href={`/catalog/${product.id}`} className="relative block">
-        <ProductArt product={product} release={release} className="aspect-[4/3] w-full" />
+        <ProductImage product={product} release={release} className="aspect-[4/3] w-full" />
         {owned && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded bg-success px-1.5 py-0.5 text-[10px] font-semibold text-white">
             <Check className="size-3" /> Owned

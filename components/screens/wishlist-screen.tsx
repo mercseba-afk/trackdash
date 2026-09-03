@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store"
 import { enrichWishlist, type EnrichedWishlistItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { WishlistPriority } from "@/lib/types"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -134,7 +134,7 @@ function WishlistRow({
     <Card className="overflow-hidden py-0">
       <div className="flex items-stretch gap-3 p-3 sm:gap-4">
         <Link href={`/catalog/${e.product.id}`} className="shrink-0">
-          <ProductArt product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
+          <ProductImage product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <div className="flex items-start justify-between gap-2">

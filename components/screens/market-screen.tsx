@@ -7,7 +7,7 @@ import { PRODUCTS } from "@/lib/data/products"
 import { getProductEstimate } from "@/lib/data/market"
 import { formatMoney } from "@/lib/format"
 import type { MarketEstimate, Product } from "@/lib/types"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -98,7 +98,7 @@ export function MarketScreen() {
                 href={`/catalog/${r.product.id}`}
                 className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent"
               >
-                <ProductArt product={r.product} size="sm" className="h-16 w-24 shrink-0" />
+                <ProductImage product={r.product} size="sm" className="h-16 w-24 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{r.product.name}</p>
                   <div className="mt-1 flex items-center gap-1.5">
@@ -159,7 +159,7 @@ function MoverCard({
             className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent"
           >
             <span className="w-4 text-center font-mono text-xs text-muted-foreground">{i + 1}</span>
-            <ProductArt product={r.product} size="sm" className="h-9 w-14 shrink-0" />
+            <ProductImage product={r.product} size="sm" className="h-9 w-14 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{r.product.name}</p>
               <p className="truncate text-xs text-muted-foreground">{r.product.chassis}</p>

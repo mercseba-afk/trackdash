@@ -6,7 +6,7 @@ import { Check, ChevronRight, Boxes } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { PRODUCTS, primaryRelease } from "@/lib/data/products"
 import { BrandMark } from "@/components/brand-mark"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
@@ -171,7 +171,7 @@ export function OnboardingScreen() {
                       active ? "border-brand bg-brand/5" : "border-border hover:border-foreground/20",
                     )}
                   >
-                    <ProductArt product={p} className="aspect-4/3 w-full rounded-lg" />
+                    <ProductImage product={p} className="aspect-4/3 w-full rounded-lg" />
                     <span className="line-clamp-1 px-1 text-xs font-medium">{p.name}</span>
                     {active && (
                       <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-brand text-brand-foreground">

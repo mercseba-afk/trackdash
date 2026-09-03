@@ -7,7 +7,7 @@ import { PRODUCTS, findByCode, resolveRelease } from "@/lib/data/products"
 import { getReleaseEstimate } from "@/lib/data/market"
 import { formatMoney } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator, ConfidenceBadge } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { Card, CardContent } from "@/components/ui/card"
@@ -182,7 +182,7 @@ function ScanResult({
           <span className="text-sm font-medium">Found product</span>
         </div>
         <div className="flex gap-4">
-          <ProductArt product={product} release={release} className="h-24 w-36 shrink-0" />
+          <ProductImage product={product} release={release} className="h-24 w-36 shrink-0" />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <Link href={`/catalog/${product.id}`} className="font-semibold leading-tight hover:text-brand">
               {product.name}

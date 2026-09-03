@@ -64,6 +64,7 @@ This applies, in order, everything under `supabase/migrations/`:
 | 0003 | `seed_initial_catalog` | The 36-model Tamiya Mini 4WD catalog (1 brand, 1 category, 36 products, 60 releases) |
 | 0004 | `app_runtime_role` | The restricted `trackdash_app` Postgres role (see step 5) |
 | 0005 | `step5b_runtime_grants_hardening` | Table-level GRANTs for `trackdash_app`/`anon`/`authenticated` (narrower than 0004's blanket CRUD, and with Supabase's own broader project-bootstrap defaults — including TRUNCATE — explicitly revoked first, not just left in place under new GRANTs on top), EXECUTE hardening on `handle_new_user`/`rls_auto_enable`, and the `ensure_rls` event trigger that auto-enables RLS on every new `public` table. Written after production testing surfaced first a `permission denied for table profiles (42501)` (RLS policies are not a substitute for the underlying GRANT), then separately confirmed live that `authenticated`/`anon` still held TRUNCATE despite the GRANT fix (RLS does not protect TRUNCATE at all). See `lib/db/rls.ts`'s header comment and this migration's own comments for the full story. |
+| 0006 | `seed_catalog_images` | Initial real (official Tamiya, remote-hotlinked) images for a subset of the catalog — `product_images`/`release_images` rows only, no schema change. Generated from `scripts/data/tamiya-images.ts` by `scripts/seed-images.mjs`. See `docs/IMAGES_MVP.md`. |
 
 All of them are safe to re-run (every statement is `ON CONFLICT ... DO NOTHING`,
 `CREATE ... IF NOT EXISTS`, or `CREATE OR REPLACE`) — re-running

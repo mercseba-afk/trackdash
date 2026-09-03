@@ -15,7 +15,7 @@ import {
 import { CATALOG_TARGET } from "@/lib/data/products"
 import { collectorLevel, formatMoney } from "@/lib/format"
 import { StatCard } from "@/components/stat-card"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -146,7 +146,7 @@ export function DashboardScreen() {
                 className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent"
               >
                 <span className="w-4 text-center font-mono text-xs text-muted-foreground">{i + 1}</span>
-                <ProductArt product={e.product} release={e.release} size="sm" className="h-9 w-14 shrink-0" />
+                <ProductImage product={e.product} release={e.release} size="sm" className="h-9 w-14 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{e.product.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
@@ -175,7 +175,7 @@ export function DashboardScreen() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {recent.map((e) => (
                 <Link key={e.item.id} href={`/catalog/${e.product.id}`} className="group flex flex-col gap-1.5">
-                  <ProductArt product={e.product} className="aspect-[4/3] w-full" />
+                  <ProductImage product={e.product} className="aspect-[4/3] w-full" />
                   <p className="truncate text-xs font-medium group-hover:text-brand">{e.product.name}</p>
                   <p className="text-xs font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p>
                 </Link>
@@ -229,7 +229,7 @@ export function DashboardScreen() {
                   href={`/catalog/${e.product.id}`}
                   className="flex items-center gap-3 rounded-lg border border-border p-2 hover:bg-accent"
                 >
-                  <ProductArt product={e.product} size="sm" className="h-12 w-16 shrink-0" />
+                  <ProductImage product={e.product} size="sm" className="h-12 w-16 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{e.product.name}</p>
                     <div className="mt-0.5 flex items-center gap-1.5">

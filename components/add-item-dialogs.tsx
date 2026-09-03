@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ProductArt } from "@/components/product-art"
+import { ProductImage } from "@/components/catalog/product-image"
 
 const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Incomplete"]
 const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
@@ -157,7 +157,7 @@ export function AddToCollectionDialog({
           <DialogDescription>Log the exact release you own, its condition and what you paid.</DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
-          <ProductArt product={product} release={selectedRelease} size="sm" className="h-14 w-20" />
+          <ProductImage product={product} release={selectedRelease} size="sm" className="h-14 w-20" />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
@@ -313,7 +313,7 @@ export function AddToWishlistDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
-          <ProductArt product={product} size="sm" className="h-14 w-20" />
+          <ProductImage product={product} size="sm" className="h-14 w-20" />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
