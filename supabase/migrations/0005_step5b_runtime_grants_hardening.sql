@@ -52,10 +52,10 @@
 -- WHY RLS DOES NOT SAVE YOU HERE
 -- ------------------------------------------------------------------------
 -- PostgreSQL Row-Level Security policies apply to SELECT, INSERT, UPDATE,
--- and DELETE. They do NOT apply to TRUNCATE, which is a separate
--- privilege (and a separate, non-transactional-in-the-usual-sense,
--- whole-table operation) governed purely by the ordinary GRANT system.
--- A role with TRUNCATE on a table can empty it completely regardless of
+-- and DELETE. They do NOT apply to TRUNCATE, which is a separate,
+-- whole-table operation governed by its own dedicated privilege (also
+-- called TRUNCATE) under the ordinary GRANT system, entirely independent
+-- of RLS. A role with TRUNCATE on a table can empty it completely regardless of
 -- how restrictive that table's RLS policies are -- RLS was never
 -- consulted. The only fix is to never grant TRUNCATE (or REFERENCES /
 -- TRIGGER / MAINTAIN, none of which this app's roles have any legitimate
@@ -233,7 +233,10 @@ alter default privileges in schema public grant usage on sequences to trackdash_
 -- =========================================================================
 -- 4. rls_auto_enable() + ensure_rls -- versions the event trigger that
 --    automatically enables RLS on every new table created in the public
---    schema, replicating verified production behavior. This is a
+--    schema, replicating verified production behavior exactly (including
+--    partitioned tables, IF EXISTS, and non-fatal error handling -- an
+--    earlier draft of this migration approximated this function instead
+--    of matching it precisely; this is the corrected version). This is a
 --    fail-closed backstop, not a substitute for writing policies: RLS
 --    enabled with no policy denies ALL access by default (for every role
 --    except the table owner and roles with BYPASSRLS -- trackdash_app is
@@ -255,11 +258,29 @@ declare
 begin
   for obj in select * from pg_event_trigger_ddl_commands()
   loop
-    if obj.object_type = 'table'
+    if obj.command_tag in ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
+       and obj.object_type in ('table', 'partitioned table')
        and obj.schema_name = 'public'
-       and obj.command_tag in ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
+       -- Redundant with the check above given today's only allowed value
+       -- is 'public', but explicit on purpose: this must never silently
+       -- start matching a system/temp schema if that check above is ever
+       -- loosened later.
+       and obj.schema_name not in ('pg_catalog', 'information_schema', 'pg_toast')
+       and obj.schema_name not like 'pg\_temp\_%'
+       and obj.schema_name not like 'pg\_toast\_temp\_%'
     then
-      execute format('alter table %s enable row level security', obj.object_identity);
+      begin
+        execute format('alter table if exists %s enable row level security', obj.object_identity);
+        raise log 'rls_auto_enable: enabled RLS on %', obj.object_identity;
+      exception when others then
+        -- A failure here must never fail the DDL that triggered it --
+        -- log and move on, don't let this trigger become the reason a
+        -- legitimate CREATE TABLE fails.
+        raise log 'rls_auto_enable: failed to enable RLS on % -- %', obj.object_identity, sqlerrm;
+      end;
+    else
+      raise log 'rls_auto_enable: skipped % (schema=%, type=%, tag=%)',
+        obj.object_identity, obj.schema_name, obj.object_type, obj.command_tag;
     end if;
   end loop;
 end;
