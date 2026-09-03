@@ -48,7 +48,7 @@ update product_releases set barcode_jan = NULL, msrp_jpy = NULL, msrp_eur = NULL
 
 -- =========================================================================
 -- 3. Corrected factual fields on already-deployed products, by id.
---    9 product row(s) affected.
+--    12 product row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -66,11 +66,20 @@ update products set canonical_item_number = '18716', original_release_year = 201
 -- Shadow Shark
 update products set canonical_item_number = '18704', chassis = 'AR', description = 'Sharp predatory silhouette debuting on the aerodynamic, responsive AR chassis.' where id = '6f41e40f-a48e-509f-8602-dfd303e25795';
 
+-- Festa Jaune
+update products set canonical_item_number = '18637', chassis = 'MA', description = 'Bright competition body on the MA chassis, popular for its clean lines and rigidity.', original_release_year = 2014 where id = '51deac9c-f8a7-5eff-984f-968d6ad88659';
+
+-- Neo-Tridagger ZMC
+update products set canonical_item_number = '19409', chassis = 'Super 1' where id = '9793fbe8-dcf7-51c9-9f45-185194a0bc92';
+
 -- Avante Mk.II
 update products set canonical_item_number = '18614', chassis = 'MS', description = 'The MS-chassis Avante Mk.II, Mini 4WD PRO Series No.14 -- a modern take on the Avante line, not the vintage original.', original_release_year = 2006, rarity = 'Uncommon' where id = '6dcb6511-5277-561f-a880-95ef828ce44f';
 
 -- Super Avante
 update products set canonical_item_number = '18101' where id = 'dcd372ac-5ad2-5a70-ae48-f1c4a6d6de4a';
+
+-- Vanguard Sonic
+update products set canonical_item_number = '19407', original_release_year = 1995 where id = 'a00d2b12-6a67-56ee-8db5-392eaf86d5c7';
 
 -- Dash-4 Cannon Ball
 update products set canonical_item_number = NULL where id = 'd2c3e3d8-050d-5b9b-932f-023f2ee7dce2';
@@ -81,7 +90,7 @@ update products set canonical_item_number = NULL where id = '059b5b3f-9ee9-5932-
 
 -- =========================================================================
 -- 4. Corrected factual fields on already-deployed releases, by id.
---    15 release row(s) affected.
+--    22 release row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -108,14 +117,35 @@ update product_releases set item_number = '18716', release_year = 2018 where id 
 -- Shadow Shark
 update product_releases set item_number = '18704', chassis = 'AR' where id = 'b57fbc18-d57c-5b3c-9def-ffb4e70c9e27';
 
+-- Festa Jaune
+update product_releases set item_number = '18637', chassis = 'MA', release_year = 2014 where id = 'cbd6e611-e421-5c10-bbd3-352beb80f6fc';
+
+-- Neo-Tridagger ZMC
+update product_releases set item_number = '19409', chassis = 'Super 1' where id = 'fcaf3f82-93b5-5a52-8087-c96e771a030c';
+
+-- Neo-Tridagger ZMC (Premium)
+update product_releases set item_number = '19409' where id = '73dcd8e6-82ab-54c4-961b-f4132bf6d638';
+
 -- Magnum Saber Premium
 update product_releases set item_number = '19431', chassis = 'Super II' where id = '0fdbfd56-f257-5b84-b541-e08a7450cc34';
+
+-- Sonic Saber Premium
+update product_releases set item_number = '19432', chassis = 'Super II', release_year = 2011 where id = '62cca367-8a73-5280-b2a2-0aa9497d093d';
+
+-- Victory Magnum Premium
+update product_releases set item_number = '19434', chassis = 'Super II', release_year = 2011, release_date = '2011-06-25' where id = '0bdb9bcd-e4aa-53ab-b004-984cae96fdca';
 
 -- Avante Mk.II
 update product_releases set item_number = '18614', chassis = 'MS', release_year = 2006, release_date = '2006-06-24', discontinued = false where id = '5a123617-c84c-5012-ab20-1a9d493259e0';
 
 -- Super Avante
 update product_releases set item_number = '18101' where id = '5e5251c2-a130-5fb0-93a7-2bd73c63736d';
+
+-- Vanguard Sonic
+update product_releases set item_number = '19407', release_year = 1995 where id = '203f1f0f-1f5d-5e3b-bd56-b1a175f3e121';
+
+-- Vanguard Sonic (Super II)
+update product_releases set item_number = '19435' where id = 'b3639c7d-581e-5da8-9ec4-ea1eb9d61193';
 
 -- Dash-1 Emperor (2026 Reissue)
 update product_releases set chassis = 'Type 3', notes = 'Modern sealed reissue sharing the classic 18025 item number and Type 3 chassis.' where id = '79e32904-fe5d-5d30-bf54-8643ce4b42d3';

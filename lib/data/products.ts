@@ -216,30 +216,53 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18641", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18641",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official page
+    // https://tamiya.com/english/products/18637/index.html confirms
+    // "FESTA JAUNE", Item No. 18637, "Mini 4WD PRO Series No.37", MA
+    // chassis. This catalog's previous item 18641 belongs to a different
+    // real Tamiya product ("Shooting Proud Star" -- confirmed via
+    // multiple official Tamiya America MAP price list PDFs, e.g.
+    // https://www.tamiyausa.com/media/files/map-price-list-jan-2019-969-c5cb.pdf).
+    item: "18637",
     code: "95271",
     name: "Festa Jaune",
     series: "Racing Mini 4WD",
-    chassis: "AR",
-    originalYear: 2013,
+    chassis: "MA",
+    originalYear: 2014,
     rarity: "Uncommon",
     estimatedMsrpJPY: 1100,
-    desc: "Bright competition body on the AR chassis, popular for its clean lines and rigidity.",
+    desc: "Bright competition body on the MA chassis, popular for its clean lines and rigidity.",
   },
   {
     seedKey: "19434", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19434",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19409/index.html confirms
+    // the base "ネオトライダガー ZMC" (Neo-Tridagger ZMC) is Item No.
+    // 19409, Super 1 chassis. This catalog's previous item 19434 belongs
+    // to a completely different real Tamiya product -- "Victory Magnum
+    // Premium (Carbon Super-II Chassis)" -- confirmed via
+    // https://www.tamiya.com/english/products/19434/index.html,
+    // https://www.tamiya.com/japan/products/19434/index.html, and an
+    // official Tamiya lineup PDF; that item is now correctly used for
+    // this catalog's Victory Magnum Premium release instead (see that
+    // product's entry). The Premium release below (2016, Super-II) was
+    // NOT independently re-verified for its own specific item number in
+    // this pass -- left inheriting the corrected product item rather
+    // than guessed; flagged PARTIALLY VERIFIED in docs/CATALOG_AUDIT.md.
+    item: "19409",
     code: "95084",
     name: "Neo-Tridagger ZMC",
     jp: "ネオトライダガー ZMC",
     series: "Super Mini 4WD",
-    chassis: "Super II",
+    chassis: "Super 1",
     originalYear: 1998,
     rarity: "Rare",
     estimatedMsrpJPY: 1000,
     desc: "The ZMC 'Zero Material Carbon' hero machine. A fan favourite reissued for the modern Super II chassis.",
     releases: [
-      { type: "Original", name: "Neo-Tridagger ZMC", year: 1998, chassis: "Super TZ", rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
+      { type: "Original", name: "Neo-Tridagger ZMC", year: 1998, chassis: "Super 1", rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
       { type: "Premium", name: "Neo-Tridagger ZMC (Premium)", year: 2016, chassis: "Super II", rarity: "Uncommon" },
     ],
   },
@@ -281,7 +304,16 @@ const SEEDS: Seed[] = [
     desc: "Retsu Seiba's counterpart to the Magnum. Sleek blue styling built for cornering.",
     releases: [
       { type: "Original", year: 1994, rarity: "Very Rare", estimatedMsrpJPY: 700, original: true },
-      { type: "Premium", name: "Sonic Saber Premium", year: 2013, rarity: "Uncommon" },
+      // CORRECTED (catalog integrity pass, live-verified against
+      // tamiya.com, see docs/CATALOG_AUDIT.md): official page
+      // https://www.tamiya.com/english/products/19432/index.html
+      // confirms "Sonic Saber Premium (Super-II Chassis)", Item No.
+      // 19432. Was previously silently inheriting the product's item
+      // 19402. Release year (2011) corroborated by multiple retailer
+      // listings citing 2011-01-22, not independently confirmed on an
+      // official page showing a release date directly -- flagged
+      // PARTIALLY VERIFIED for the exact date in docs/CATALOG_AUDIT.md.
+      { type: "Premium", name: "Sonic Saber Premium", year: 2011, item: "19432", chassis: "Super II", rarity: "Uncommon" },
     ],
   },
   {
@@ -298,7 +330,14 @@ const SEEDS: Seed[] = [
     desc: "The Magnum's evolution with a more aggressive cowl. A defining silhouette of the series.",
     releases: [
       { type: "Original", year: 1995, rarity: "Rare", estimatedMsrpJPY: 700, original: true },
-      { type: "Premium", name: "Victory Magnum Premium", year: 2014 },
+      // CORRECTED (catalog integrity pass, live-verified against
+      // tamiya.com, see docs/CATALOG_AUDIT.md): official pages
+      // https://www.tamiya.com/english/products/19434/index.html and
+      // https://www.tamiya.com/japan/products/19434/index.html (and an
+      // official Tamiya lineup PDF) confirm "Victory Magnum Premium
+      // (Carbon Super-II Chassis)", Item No. 19434, released 2011-06-25.
+      // Was previously silently inheriting the product's item 19404.
+      { type: "Premium", name: "Victory Magnum Premium", year: 2011, releaseDate: "2011-06-25", item: "19434", chassis: "Super II" },
     ],
   },
   {
@@ -430,19 +469,35 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18725", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18725",
+    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
+    // this catalog's previous item 18725 does not belong to "Vanguard
+    // Sonic" in Tamiya's real numbering. PARTIALLY VERIFIED: item 19407
+    // and year 1995 (not 1996) are corroborated by a retailer SKU
+    // (https://www.hlj.com/vanguard-sonic-tam19407) and Fandom citing a
+    // 1995-09-20 release, but not independently confirmed via a direct
+    // tamiya.com fetch in this pass -- flagged for follow-up
+    // confirmation in docs/CATALOG_AUDIT.md rather than treated as fully
+    // VERIFIED.
+    item: "19407",
     code: "95125",
     name: "Vanguard Sonic",
     jp: "バンガードソニック",
     series: "Let's & Go",
     chassis: "Super II",
-    originalYear: 1996,
+    originalYear: 1995,
     rarity: "Uncommon",
     estimatedMsrpJPY: 1000,
     desc: "MAX GP hero machine reissued on Super II. Smooth, purposeful racing body.",
     releases: [
-      { type: "Original", year: 1996, chassis: "Super 1", rarity: "Rare", estimatedMsrpJPY: 800, original: true },
-      { type: "Reissue", name: "Vanguard Sonic (Super II)", year: 2013, chassis: "Super II" },
+      { type: "Original", year: 1995, chassis: "Super 1", rarity: "Rare", estimatedMsrpJPY: 800, original: true },
+      // CORRECTED (catalog integrity pass, live-verified against
+      // tamiya.com, see docs/CATALOG_AUDIT.md): official page
+      // https://www.tamiya.com/english/products/19435/index.html
+      // confirms "Vanguard Sonic Premium (Carbon Super-II Chassis)",
+      // Item No. 19435. Was previously silently inheriting the
+      // product's item 18725, which does not belong to this product at
+      // all (see product-level note below).
+      { type: "Reissue", name: "Vanguard Sonic (Super II)", year: 2013, item: "19435", chassis: "Super II" },
     ],
   },
   // ---- Dash! Yonkuro / Emperor line ----

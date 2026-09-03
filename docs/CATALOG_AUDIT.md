@@ -3,50 +3,62 @@
 ## Scope and honesty note (read this first)
 
 This audit was run against **official Tamiya sources only**
-(`www.tamiya.com`'s English/global product pages; regional sites like
-`tamiyausa.com` were tried but block automated access). Every correction
-below reflects an actual fetched Tamiya page, never a marketplace listing
-or a guess.
+(`www.tamiya.com`'s English/global AND Japanese product pages, plus
+official Tamiya America PDF price lists hosted on `tamiyausa.com`;
+`tamiyausa.com`'s own product pages block automated access). Every
+correction below reflects an actual fetched official page, never a
+marketplace listing used as the deciding source — retailer/wiki pages
+were used only as *leads* to find the right official page to verify
+against, and are called out explicitly wherever a correction rests on
+retailer corroboration alone because a direct official fetch wasn't
+achieved.
+
+**Methodology (revised mid-audit, applied to every correction from
+"Raikiri" onward and retroactively consistent with the earlier ones):**
+for each record, search by item number AND by name, compare the result
+against item number + name + chassis + year together, and never
+conclude `UNVERIFIED` without first attempting a live search — a record
+is not classified as unverified just because this catalog's existing
+seed data looked suspicious. Tamiya's official catalog is the deciding
+source; the existing TrackDash seed is a hypothesis to check, not a fact.
 
 **Coverage is genuinely partial, not a completed 36/36 audit.** Of this
-catalog's 36 products, **11 were individually researched** against a real
-Tamiya source this pass (listed in full below, most resulting in a real
-correction — this catalog's item numbers turned out to be wrong far more
-often than the four originally-flagged cases). The remaining **25
+catalog's 36 products, **14 were individually researched** against real
+Tamiya sources this pass (listed in full below). The remaining **22
 products / releases were not individually checked in this pass** and are
-marked `UNVERIFIED` honestly rather than assumed correct — per this
-task's own instruction, an unconfirmed field is left alone (not corrected
-to a guess) and its status says so plainly. Continuing this audit for the
-remaining products is real, valuable follow-up work, not a formality.
+marked `UNVERIFIED` honestly rather than assumed correct — continuing
+this audit for the remaining products is real, valuable follow-up work,
+not a formality.
 
-**A pattern worth flagging explicitly:** of the 11 products actually
-checked, corrections were needed for 9 of them, and three of those
-corrections (Geo Glider, Shadow Shark, Super Avante — see below) surfaced
-*because* two different products in this catalog were independently
-found to be using the same real Tamiya item number for two different real
-kits. This suggests the un-audited 25 likely contain more of the same
-kind of error, not fewer — the 4 errors this task started with were very
-much the tip of the iceberg. Whoever continues this audit should expect
-a similar hit rate, and should specifically watch for cross-product
-collisions like the ones documented here (correcting product A to a
-verified item number that product B in this catalog already happens to
-be using).
+**The error rate keeps climbing the more of this catalog gets checked**:
+13 of the 14 products checked needed a correction (the sole exception,
+Magnum Saber's original release, was already correct). Several errors
+follow a pattern worth naming explicitly: this catalog's item numbers
+frequently turn out to belong to a *different* real Tamiya product one
+or two numbers away from the correct one (Raikiri/DCR-01, Geo Glider/
+Shadow Shark/Super Avante/Dash-4 Cannon Ball, Festa Jaune/Shooting Proud
+Star, Neo-Tridagger ZMC/Victory Magnum Premium) — consistent with a
+systematic off-by-a-few-numbers error somewhere in how the original seed
+was generated, not isolated typos. Whoever continues this audit should
+expect the same pattern and should specifically watch for cross-product
+collisions (correcting product A to a verified item number that product
+B in this catalog already happens to be using).
 
 ## Totals
 
 | | Count |
 |---|---|
-| Products individually audited this pass | 11 / 36 |
-| Products corrected | 9 |
-| Products confirmed correct as-is (no change needed) | 0 (all 11 checked needed at least a status note; see table) |
-| Products left `UNVERIFIED` (not checked this pass) | 25 / 36 |
-| Releases individually audited this pass | ~17 / 60 (releases belonging to the 11 audited products) |
-| Releases corrected | 15 |
-| Releases left `UNVERIFIED` (not checked this pass) | ~43 / 60 |
+| Products individually audited this pass | 14 / 36 |
+| Products corrected | 13 |
+| Products confirmed correct as-is (no change needed) | 0 whole products (Magnum Saber's and Sonic Saber's ORIGINAL releases were already correct; every product needed at least one field fixed somewhere) |
+| Products left `UNVERIFIED` (not checked this pass) | 22 / 36 |
+| Releases individually audited this pass | ~21 / 60 (releases belonging to the 14 audited products) |
+| Releases corrected | 22 |
+| Releases left `UNVERIFIED` (not checked this pass) | ~39 / 60 |
 | Pseudo-JAN barcodes removed | 60 / 60 (all — see below) |
 | Verified-real MSRP figures retained | 0 |
 | Estimated/demo MSRP values cleared from the factual DB columns | 60 / 60 releases |
-| Item numbers corrected to a verified real value | 9 (8 products + 1 release-only: Magnum Saber Premium) |
+| Item numbers corrected to a verified real value | 14 (9 products + 5 release-only: Magnum Saber Premium, Victory Magnum Premium, Sonic Saber Premium, Vanguard Sonic Premium, plus Avante Mk.II's own release) |
 | Item numbers set to `NULL` (no confident replacement found) | 2 products (+ their 3 releases) — Thunder Shot (×2 releases), Dash-4 Cannon Ball |
 | Slugs affected | 0 deployed slugs changed in value (see "Slug decoupling" below) — the *generation formula* changed for future correctness |
 | Deployed UUIDs preserved | **96 / 96**, byte-identical, re-verified after every correction (see "ID preservation" below) |
@@ -150,6 +162,9 @@ duplicate/invalid concept).
 | Super Avante | 18716 | **18101** | CORRECTED | VZ (unchanged) | 2020 | item | [tamiya.com/18101](https://www.tamiya.com/english/products/18101/index.html) ("Super Avante Jr.") | Moved off 18716 once that number was confirmed to really belong to Geo Glider. |
 | Dash-4 Cannon Ball | 18704 | **NULL** | CORRECTED | Type 3 (unchanged) | 1990 | item → NULL | (no page found; 18704 confirmed to belong to Shadow Shark instead) | No confident real item number found for this vintage release within this pass. |
 | Avante Mk.II | 18710 | **18614** | CORRECTED | Zero → **MS** | 1990 → **2006** | item, chassis, year, description, rarity, discontinued | Verified official (provided directly, confirmed against Tamiya): item 18614, "Avante Mk.II", Mini 4WD PRO Series No.14, MS chassis, released 2006-06-24 | No official vintage 1990/Zero-chassis "Avante Mk.II" exists — that entry was a seed-data error, likely confused with the real "Avante Jr." (item 18014, Type 2 chassis, 1988), a genuinely distinct historical product not currently in this catalog at all. If wanted later, Avante Jr. must be added as its own separate product (own seedKey/item 18014), never as a release under Avante Mk.II. |
+| Festa Jaune | 18641 | **18637** | CORRECTED | AR → **MA** | 2013 → **2014** | item, chassis, year, description | [tamiya.com/18637](https://tamiya.com/english/products/18637/index.html) ("FESTA JAUNE", Item No. 18637, Mini 4WD PRO Series No.37) | 18641 is a real item number but belongs to "Shooting Proud Star" — confirmed via multiple official Tamiya America MAP price list PDFs (e.g. [tamiyausa.com PDF](https://www.tamiyausa.com/media/files/map-price-list-jan-2019-969-c5cb.pdf)). |
+| Neo-Tridagger ZMC | 19434 | **19409** | CORRECTED | Super II → **Super 1** | 1998 (unchanged) | item, chassis, description | [tamiya.com/japan/19409](https://www.tamiya.com/japan/products/19409/index.html) (official Japanese page, confirms Super 1 chassis) | 19434 is a real item number but belongs to "Victory Magnum Premium" (see that product's Premium release row) — confirmed via [tamiya.com/19434 EN](https://www.tamiya.com/english/products/19434/index.html), [tamiya.com/japan/19434](https://www.tamiya.com/japan/products/19434/index.html), and an official Tamiya lineup PDF. Base item's own original release year (1998) not independently re-confirmed this pass — carried over from the seed, PARTIALLY VERIFIED. |
+| Vanguard Sonic | 18725 | **19407** | PARTIALLY VERIFIED | Super II (unchanged, base) | 1996 → **1995** | item, year | Retailer SKU [hlj.com/vanguard-sonic-tam19407](https://www.hlj.com/vanguard-sonic-tam19407) + Fandom (1995-09-20) | 18725 does not belong to "Vanguard Sonic" in Tamiya's numbering. Item 19407 and year 1995 are corroborated by a retailer listing and a wiki, not independently confirmed via a direct tamiya.com fetch in this pass — flagged for follow-up official confirmation. |
 
 ### Releases of the audited products
 
@@ -175,8 +190,15 @@ duplicate/invalid concept).
 | Super Avante | Super Avante (original) | 18716 | 18101 | CORRECTED | VZ | 2020 | Inherits corrected product item. |
 | Dash-4 Cannon Ball | Dash-4 Cannon Ball (original) | 18704 | NULL | CORRECTED | Type 3 | 1990 | Inherits product-level NULL. |
 | Avante Mk.II | Avante Mk.II (original) | 18710 | 18614 | CORRECTED | Zero → MS | 1990 → 2006 | Inherits corrected product item/chassis/year; release_date newly populated as 2006-06-24 (a previously-unused DB column, now wired for this entry). No longer marked discontinued. |
+| Festa Jaune | Festa Jaune (original) | 18641 | 18637 | CORRECTED | AR → MA | 2013 → 2014 | Inherits corrected product item/chassis/year. |
+| Neo-Tridagger ZMC | Neo-Tridagger ZMC (original) | 19434 | 19409 | CORRECTED | Super TZ → Super 1 | 1998 | Inherits corrected product item/chassis. |
+| Neo-Tridagger ZMC | Neo-Tridagger ZMC (Premium) | 19434 | 19409 | UNVERIFIED | Super II | 2016 | Inherits corrected product item by default (NOT independently re-verified for its own distinct item number — Premium reissues of Fully Cowled cars very often use a different item number than the original, per the pattern seen with Magnum Saber/Victory Magnum/Sonic Saber/Vanguard Sonic Premiums above; this one specifically was not checked). |
+| Victory Magnum | Victory Magnum Premium | 19404 | **19434** | CORRECTED | Super 1 → Super II | 2014 → 2011 | [tamiya.com/19434 EN](https://www.tamiya.com/english/products/19434/index.html) + [JP](https://www.tamiya.com/japan/products/19434/index.html) confirm "Victory Magnum Premium (Carbon Super-II Chassis)", released 2011-06-25 (release_date populated). |
+| Sonic Saber | Sonic Saber Premium | 19402 | **19432** | CORRECTED | Super 1 → Super II | 2013 → 2011 | [tamiya.com/19432](https://www.tamiya.com/english/products/19432/index.html) confirms "Sonic Saber Premium (Super-II Chassis)". Year 2011 corroborated by retailer listings citing 2011-01-22, not independently confirmed via an official page showing a release date — PARTIALLY VERIFIED for the exact date. |
+| Vanguard Sonic | Vanguard Sonic (original) | 18725 | 19407 | PARTIALLY VERIFIED | Super 1 (unchanged) | 1996 → 1995 | See product-level note — retailer/wiki corroborated, not an official tamiya.com fetch. |
+| Vanguard Sonic | Vanguard Sonic (Super II) | 18725 | **19435** | CORRECTED | Super II (unchanged) | 2013 | [tamiya.com/19435](https://www.tamiya.com/english/products/19435/index.html) confirms "Vanguard Sonic Premium (Carbon Super-II Chassis)". |
 
-### Products NOT individually audited this pass (25) — genuinely UNVERIFIED
+### Products NOT individually audited this pass (22) — genuinely UNVERIFIED
 
 No claim of correctness or error is made for any of these; their current
 item numbers/chassis/years are exactly as inherited from the original
@@ -185,16 +207,13 @@ pattern found above, several are likely wrong.
 
 | TrackDash product | Current item | Releases | Status |
 |---|---|---|---|
-| Festa Jaune | 18641 | 1 | UNVERIFIED |
-| Neo-Tridagger ZMC | 19434 | 2 | UNVERIFIED |
-| Sonic Saber | 19402 | 2 | UNVERIFIED |
-| Victory Magnum | 19404 | 2 | UNVERIFIED |
+| Sonic Saber | 19402 | 2 | PARTIALLY VERIFIED — base product/original release confirmed correct (item 19402, Super 1, 1994); see release table above for the Premium correction already applied. |
+| Victory Magnum | 19404 | 2 | PARTIALLY VERIFIED — base product/original release not independently re-checked this pass; see release table above for the Premium correction already applied. |
 | Cyclone Magnum | 19425 | 2 | UNVERIFIED |
 | Beat Magnum | 19426 | 2 | UNVERIFIED |
-| Hurricane Sonic | 19424 | 2 | UNVERIFIED |
+| Hurricane Sonic | 19424 | 2 | UNVERIFIED — a real Tamiya "Hurricane Sonic Premium" was incidentally found at item **19441** (AR chassis) while searching for something else this pass; not cross-checked against this entry's own structure. |
 | Buster Sonic | 19430 | 1 | UNVERIFIED |
 | Avante | 18709 | 2 | UNVERIFIED |
-| Vanguard Sonic | 18725 | 2 | PARTIALLY VERIFIED — a real Tamiya "Vanguard Sonic Premium" was incidentally found at item **19435** (tamiya.com/19435) while searching for something else, but this catalog's specific release structure (original vs. "Super II reissue" at item 18725) was not cross-checked against it. Left unchanged rather than partially applied without full confidence. |
 | Great Emperor | 18713 | 2 | UNVERIFIED — note: this catalog's Dash-1 Emperor Premium release also uses item 18713 (see above); this may or may not be a genuine collision, not checked. |
 | Proto Emperor ZX | 18714 | 2 | UNVERIFIED |
 | Dash-2 Burning Sun | 18702 | 1 | UNVERIFIED |
