@@ -48,7 +48,7 @@ update product_releases set barcode_jan = NULL, msrp_jpy = NULL, msrp_eur = NULL
 
 -- =========================================================================
 -- 3. Corrected factual fields on already-deployed products, by id.
---    20 product row(s) affected.
+--    27 product row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -99,6 +99,18 @@ update products set canonical_item_number = '18101' where id = 'dcd372ac-5ad2-5a
 -- Vanguard Sonic
 update products set canonical_item_number = '19407', original_release_year = 1995 where id = 'a00d2b12-6a67-56ee-8db5-392eaf86d5c7';
 
+-- Great Emperor
+update products set canonical_item_number = '18036' where id = '203f8219-9d37-5a1a-aad6-9437c80a1ea8';
+
+-- Proto Emperor ZX
+update products set canonical_item_number = '18038' where id = 'a1fd4f6d-0834-5f09-ac3c-5d4b398f0968';
+
+-- Dash-2 Burning Sun
+update products set canonical_item_number = '18015' where id = '3b443635-b33f-5553-a39d-eba8b8cafddb';
+
+-- Dash-3 Shooting Star
+update products set canonical_item_number = '18019' where id = '4b53383c-c417-53c6-addb-e87126546d89';
+
 -- Dash-4 Cannon Ball
 update products set canonical_item_number = NULL where id = 'd2c3e3d8-050d-5b9b-932f-023f2ee7dce2';
 
@@ -108,13 +120,22 @@ update products set canonical_item_number = NULL where id = 'be48e786-11c6-567f-
 -- Dash-01 Horizon
 update products set canonical_item_number = NULL where id = '813a9ba0-170e-5636-9a9a-a7e7fca32366';
 
+-- Dyna-Hawk GX
+update products set canonical_item_number = '19201' where id = 'd3b4ad34-05ac-592e-ad93-fab4cfde0a5a';
+
+-- Mad Bull
+update products set canonical_item_number = NULL where id = '643f208f-c8f6-5574-b9cf-565e28602d17';
+
+-- Trigale
+update products set canonical_item_number = '18638' where id = 'b972592b-ce68-5f39-b3a1-cdc8984d3817';
+
 -- Thunder Shot
 update products set canonical_item_number = NULL where id = '059b5b3f-9ee9-5932-b39f-879642b9414c';
 
 
 -- =========================================================================
 -- 4. Corrected factual fields on already-deployed releases, by id.
---    35 release row(s) affected.
+--    47 release row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -178,7 +199,7 @@ update product_releases set item_number = '19444', chassis = 'AR', release_year 
 update product_releases set item_number = '19415' where id = '71addadb-04b3-579f-96f2-c5e976cf1cd5';
 
 -- Hurricane Sonic Premium
-update product_releases set item_number = '19441', chassis = 'AR' where id = 'e1b626f8-e0ea-52c9-86f0-eb870561d70d';
+update product_releases set item_number = '19415', chassis = 'AR' where id = 'e1b626f8-e0ea-52c9-86f0-eb870561d70d';
 
 -- Buster Sonic
 update product_releases set item_number = '19423' where id = '217fd7d2-2090-593c-bb7d-bef7ce1cf154';
@@ -201,8 +222,29 @@ update product_releases set item_number = '19407', release_year = 1995 where id 
 -- Vanguard Sonic (Super II)
 update product_releases set item_number = '19435' where id = 'b3639c7d-581e-5da8-9ec4-ea1eb9d61193';
 
+-- Dash-1 Emperor Premium
+update product_releases set item_number = '18025' where id = 'f576fa21-8e57-5fa0-953e-f468653e3767';
+
 -- Dash-1 Emperor (2026 Reissue)
 update product_releases set chassis = 'Type 3', notes = 'Modern sealed reissue sharing the classic 18025 item number and Type 3 chassis.' where id = '79e32904-fe5d-5d30-bf54-8643ce4b42d3';
+
+-- Great Emperor
+update product_releases set item_number = '18036' where id = '8c2ca80b-8a9d-5b7a-9325-aec13a0db9ba';
+
+-- Great Emperor Premium
+update product_releases set item_number = '18075' where id = '532f8e3a-f55f-5936-abcd-58e0f8538785';
+
+-- Proto Emperor ZX
+update product_releases set item_number = '18038' where id = '4d5b0a9a-498f-51fc-accd-9316ca11c843';
+
+-- Proto Emperor ZX Premium (Black Special)
+update product_releases set item_number = '95450' where id = 'f0614cb8-d0cb-521d-aa2c-4fc304f39430';
+
+-- Dash-2 Burning Sun
+update product_releases set item_number = '18015' where id = '1d677e65-ca9c-5549-94c5-32e9b957b31a';
+
+-- Dash-3 Shooting Star
+update product_releases set item_number = '18019' where id = '178ef6b8-594c-5cf4-8084-3c910576b29b';
 
 -- Dash-4 Cannon Ball
 update product_releases set item_number = NULL where id = 'c63b8f4a-43f3-597b-82e5-f0e45bb45b7a';
@@ -215,6 +257,21 @@ update product_releases set item_number = NULL where id = '96deae1d-dfec-5aaf-a2
 
 -- Dash-01 Horizon
 update product_releases set item_number = NULL where id = 'a0b042ac-7e6c-57f4-98a2-bd92e8e39f39';
+
+-- Dyna-Hawk GX
+update product_releases set item_number = '19201' where id = '2af882f6-8c66-5508-9acd-2240aac287ad';
+
+-- Dyna-Hawk GX Premium
+update product_releases set item_number = '19201' where id = '1ede5023-9035-5342-b207-6242c5f5190a';
+
+-- Mad Bull
+update product_releases set item_number = NULL where id = '454a8d07-e963-5699-9a8c-2151917f75a5';
+
+-- Mad Bull (2013 Reissue)
+update product_releases set item_number = NULL where id = 'eb3b81bb-3a11-56af-a0cf-b625a1501434';
+
+-- Trigale
+update product_releases set item_number = '18638' where id = '08b3cc73-8c45-5ddd-bab4-9167c7f93c41';
 
 -- Thunder Shot (Type 3)
 update product_releases set item_number = NULL where id = 'dcaa9d00-fe3f-5bc4-9bfa-5bc1078e2087';

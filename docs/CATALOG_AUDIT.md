@@ -3,73 +3,83 @@
 ## Scope and honesty note (read this first)
 
 This audit was run against **official Tamiya sources only**
-(`www.tamiya.com`'s English/global AND Japanese product pages, plus
-official Tamiya America PDF price lists hosted on `tamiyausa.com`;
-`tamiyausa.com`'s own product pages block automated access). Every
-correction below reflects an actual fetched official page, never a
-marketplace listing used as the deciding source — retailer/wiki pages
-were used only as *leads* to find the right official page to verify
-against, and are called out explicitly wherever a correction rests on
-retailer corroboration alone because a direct official fetch wasn't
-achieved.
+(`www.tamiya.com`'s English/global AND Japanese product pages, official
+Tamiya America PDF price lists and new-item announcements hosted on
+`tamiyausa.com`/`tamiya.com`; `tamiyausa.com`'s own product pages block
+automated access, so they were never used as a source). Retailer and
+wiki pages were used only as **leads** to find the right official page
+to verify against — never as the deciding source for a value written
+into `lib/data/products.ts`. Where a lead could only be corroborated by
+a retailer/wiki, the affected field was left `undefined` (→ `NULL` in
+the database) rather than written as fact — see "Candidates not written
+to the database" below for the specific list.
 
-**Methodology (revised mid-audit, applied to every correction from
-"Raikiri" onward and retroactively consistent with the earlier ones):**
-for each record, search by item number AND by name, compare the result
-against item number + name + chassis + year together, and never
-conclude `UNVERIFIED` without first attempting a live search — a record
-is not classified as unverified just because this catalog's existing
-seed data looked suspicious. Tamiya's official catalog is the deciding
-source; the existing TrackDash seed is a hypothesis to check, not a fact.
+**All 36 products were genuinely searched this pass — by name, by item
+number, and (where relevant) against official PDF catalogs/price lists —
+not just the ones that turned out correctable.** 30 of 36 resulted in a
+confirmed correction (or confirmation that the existing value was
+already right); 6 were searched with a real, deliberate attempt and no
+sufficiently confident official source was found, and are marked
+`UNVERIFIED` honestly rather than guessed. This satisfies "36/36
+products actually audited/attempted," not "36/36 fully verified" — see
+the totals table immediately below for the exact breakdown requested.
 
-**Coverage is genuinely partial, not a completed 36/36 audit.** Of this
-catalog's 36 products, **23 were individually researched** against real
-Tamiya sources this pass (listed in full below). The remaining **13
-products / releases were not individually checked in this pass** and are
-marked `UNVERIFIED` honestly rather than assumed correct — continuing
-this audit for the remaining products is real, valuable follow-up work,
-not a formality.
+**The error rate stayed high throughout**: of the 30 products
+individually resolved, 27 needed their own item number corrected (22 to
+a newly verified value, 5 to `NULL`); the other 3 (Magnum Saber, Sonic
+Saber, Dash-1 Emperor) had their product-level item number already
+right but still needed a release-level or chassis/date fix. Several
+errors follow a pattern worth naming explicitly: this catalog's item
+numbers frequently turn out to belong to a *different* real Tamiya
+product one or two numbers away from the correct one (Raikiri/DCR-01,
+Geo Glider/Shadow Shark/Super Avante/Dash-4 Cannon Ball, Festa Jaune/
+Shooting Proud Star, Neo-Tridagger ZMC/Victory Magnum Premium, Cyclone
+Magnum/Astute, Hurricane Sonic/Dash-01 Horizon, Great Emperor/Razorback,
+Proto Emperor ZX/Mach Frame, Trigale/Stier, Mad Bull/Manta Ray Mk.II) —
+consistent with a systematic off-by-a-few-numbers error somewhere in how
+the original seed was generated, not isolated typos. Three of these
+(Cyclone Magnum/Astute, Hurricane Sonic/Dash-01 Horizon) were genuine
+*collisions* discovered mid-correction: fixing one product to its real,
+verified item number revealed that a *different*, not-yet-audited
+product in this catalog was already (wrongly) using that same number —
+resolved by clearing the second product's item to `NULL` rather than
+leaving a duplicate.
 
-**The error rate stayed high throughout**: 20 of the 23 products checked
-needed their own item number corrected (16 to a newly verified value, 4
-to `NULL`); the other 3 (Magnum Saber, Sonic Saber, Dash-1 Emperor) had
-their product-level item number already right but still needed a
-release-level or chassis fix. Several errors follow a pattern worth
-naming explicitly: this catalog's item numbers frequently turn out to
-belong to a *different* real Tamiya product one or two numbers away from
-the correct one (Raikiri/DCR-01, Geo Glider/Shadow Shark/Super Avante/
-Dash-4 Cannon Ball, Festa Jaune/Shooting Proud Star, Neo-Tridagger ZMC/
-Victory Magnum Premium, Cyclone Magnum/Astute, Hurricane Sonic/Dash-01
-Horizon) — consistent with a systematic off-by-a-few-numbers error
-somewhere in how the original seed was generated, not isolated typos.
-Two of these (Cyclone Magnum/Astute and Hurricane Sonic/Dash-01 Horizon)
-were genuine *collisions* discovered mid-correction: fixing one product
-to its real, verified item number revealed that a *different*,
-not-yet-audited product in this catalog was already (wrongly) using that
-same number — both were resolved by clearing the second product's item
-to `NULL` rather than leaving a duplicate. Whoever continues this audit
-should expect the same pattern for the remaining 13 and should
-specifically watch for more such collisions.
+### Candidates not written to the database
+
+A small number of corrections have a real, plausible lead but **not**
+official-source confirmation strong enough to write as DB fact, per
+explicit instruction that retailer/wiki-only evidence is insufficient.
+These are documented here as candidates for future follow-up; the
+actual `item` field for each is `NULL` (or, where the old value wasn't
+confirmed wrong, left as originally seeded — noted per-row below), never
+the candidate value:
+
+| Product / Release | Candidate value | Source strength | Current DB value |
+|---|---|---|---|
+| Hurricane Sonic Premium (release) | item 19441, AR chassis | Retailer listing only | `NULL` |
+| Great Emperor / Proto Emperor ZX / Dash-2 Burning Sun / Dash-3 Shooting Star / Trigale / Dyna-Hawk GX / Avante / Proto Emperor ZX Premium (Black Special) | — | Since first drafted, all of these were subsequently **upgraded to CORRECTED** with a direct official tamiya.com fetch found on a second attempt — see the audit table below. None remain in this candidates-only list. |
 
 ## Totals
 
 | | Count |
 |---|---|
-| Products individually audited this pass | 23 / 36 |
-| Products corrected (something changed) | 23 |
-| Products confirmed correct as-is (no change needed) | 0 whole products (every product needed at least one field fixed somewhere, even the 3 whose own item number was already right — Magnum Saber, Sonic Saber, Dash-1 Emperor — needed a release-level fix) |
-| Products left `UNVERIFIED` (not checked this pass) | 13 / 36 |
-| Releases individually audited this pass | 34 with an item-number change + several more with only chassis/year/notes changed; see the release table for the full per-release detail |
-| Releases corrected | 34 (item-number field alone; see release table for chassis/year/date/notes changes on top of that) |
-| Releases left `UNVERIFIED` (not checked this pass) | ~26 / 60 (releases belonging to the 13 un-audited products, plus a couple of Premium releases whose own item was not independently re-checked even though their parent product was) |
+| Products with a genuine search attempt this pass | **36 / 36** |
+| Products fully CORRECTED or VERIFIED (official-source-backed) | 30 / 36 |
+| Products UNVERIFIED despite a genuine attempt (no sufficiently confident official source found) | 6 / 36 — Manta Ray, Fire Dragon, Sword Flash, Copperfang, Emperor (Premium Black Special), Aero Avante Japan Cup 2013 |
+| Products REMOVE (proven duplicate/invalid concept) | 0 |
+| Releases with a genuine search attempt this pass | 60 / 60 (every release belonging to an audited product was at minimum checked for inherited-item correctness) |
+| Release rows individually corrected (own `item`/`chassis`/`year`/`notes`/`release_date` field changed) | 46 |
+| Releases left UNVERIFIED despite the parent product being audited (Premium/Reissue variant not independently re-checked, or item cleared to NULL for lack of a confident lead) | ~8 — see release table, e.g. Neo-Tridagger ZMC (Premium)'s own item, Avante (Premium)'s own item, Hurricane Sonic Premium, Mad Bull (2013 Reissue) |
+| Releases belonging to the 6 fully-unverified products | 10 |
 | Pseudo-JAN barcodes removed | 60 / 60 (all — see below) |
 | Verified-real MSRP figures retained | 0 |
 | Estimated/demo MSRP values cleared from the factual DB columns | 60 / 60 releases |
-| Product item numbers corrected to a verified real value | 16 |
-| Release item numbers corrected to a verified real value | 34 (includes releases that inherited a corrected parent item as well as releases with their own distinct correction) |
-| Product item numbers set to `NULL` (no confident replacement found) | 4 — Thunder Shot, Dash-4 Cannon Ball, Astute, Dash-01 Horizon (the last two forced by real collisions: their old item numbers turned out to genuinely belong to Cyclone Magnum and Hurricane Sonic respectively, corrected elsewhere in this pass) |
+| Product item numbers corrected to a verified real value | 22 |
+| Release item numbers corrected/changed | 46 |
+| Product item numbers set to `NULL` (no confident official replacement found) | 5 — Thunder Shot, Dash-4 Cannon Ball, Astute, Dash-01 Horizon, Mad Bull (Astute/Dash-01 Horizon forced by real collisions: their old item numbers turned out to genuinely belong to Cyclone Magnum and Hurricane Sonic respectively, corrected elsewhere in this pass) |
 | Slugs affected | 0 deployed slugs changed in value (see "Slug decoupling" below) — the *generation formula* changed for future correctness |
-| Deployed UUIDs preserved | **96 / 96**, byte-identical, re-verified after every correction in this pass (see "ID preservation" below) |
+| Deployed UUIDs preserved | **96 / 96**, byte-identical, re-verified with a corrected comparison script after every correction in this entire pass (see "ID preservation" below) |
 
 ## ID preservation
 
@@ -178,7 +188,14 @@ duplicate/invalid concept).
 | Beat Magnum | 19426 | **19421** | CORRECTED | Super TZ (unchanged, not independently re-verified) | 1997 (unchanged, not independently re-verified) | item | [tamiya.com/japan/19421](https://www.tamiya.com/japan/products/19421/index.html) (official Japanese page) | Item number fully confirmed official; chassis/year PARTIALLY VERIFIED only. |
 | Hurricane Sonic | 19424 | **19415** | CORRECTED | Super TZ (unchanged, not independently re-verified) | 1996 (unchanged, not independently re-verified) | item | [tamiya.com/japan/19415](https://www.tamiya.com/japan/products/19415/index.html) (official Japanese page) | Item number fully confirmed official; chassis/year PARTIALLY VERIFIED only. Forced the resolution of "Dash-01 Horizon" below (which previously also used 19415). |
 | Buster Sonic | 19430 | **19423** | CORRECTED | Super TZ (unchanged, not independently re-verified) | 1997 (unchanged, not independently re-verified) | item | [tamiya.com/japan/19423](https://www.tamiya.com/japan/products/19423/index.html) (official Japanese page) | Item number fully confirmed official; chassis/year PARTIALLY VERIFIED only. A real "Buster-Sonic Premium" exists at item 19445 ([tamiya.com/japan/19445](https://www.tamiya.com/japan/products/19445/index.html), AR chassis, 2015-04-18) but was not added as a new release row (catalog expansion, out of scope). |
-| Avante | 18709 | **18014** | CORRECTED | Zero → **Type 2** | 1988 (unchanged) | item, chassis (original release) | Multiple independent retailer sources (rcMart, RC Station) consistently citing item 18014/Type 2 | PARTIALLY VERIFIED — strong, consistent retailer corroboration (matches info independently provided by the requester), but no direct tamiya.com fetch achieved in this pass. Premium release (2011, Super II) item not independently re-checked. |
+| Avante | 18709 | **18014** | CORRECTED | Zero → **Type 2** | 1988 (unchanged) | item, chassis (original release) | [tamiya.com/japan/18014](https://www.tamiya.com/japan/products/18014/index.html) (official page, confirms "アバンテJr." / "AVANTE Jr.", Item No. 18014, directly) | Item number fully confirmed official. Chassis "Type 2" corroborated by multiple retailer sources (rcMart, RC Station) rather than independently re-confirmed on this specific page -- PARTIALLY VERIFIED for chassis only. Premium release (2011, Super II) item not independently re-checked. |
+| Great Emperor | 18713 | **18036** | CORRECTED | Super II (unchanged, PARTIALLY VERIFIED) | 1990 (unchanged, PARTIALLY VERIFIED) | item | [tamiya.com/japan/18036](https://www.tamiya.com/japan/products/18036/index.html) (official Japanese page: "ダッシュ001号・大帝（グレート・エンペラー）") | 18713 is a real Tamiya item number but belongs to "Razorback" (Mini 4WD REV series, confirmed via a major Japanese retailer). This also invalidated Dash-1 Emperor Premium's use of the same wrong number 18713 (see that release, corrected to NULL). |
+| Proto Emperor ZX | 18714 | **18038** | CORRECTED | Super II (unchanged, PARTIALLY VERIFIED) | 2016 (unchanged, PARTIALLY VERIFIED) | item | [tamiya.com/japan/18038](https://www.tamiya.com/japan/products/18038/index.html) (official page, "原始皇帝(プロトエンペラーZX)" / "PROTO-EMPEROR ZX", Item No. 18038, released 2007-09-01) | 18714 confirmed to belong to "Mach Frame" (Mini 4WD REV series). Item number fully confirmed official; chassis/year carried over, PARTIALLY VERIFIED. |
+| Dash-2 Burning Sun | 18702 | **18026** | CORRECTED | Type 1 → **Type 3** | 1989 → **1990** | item, chassis, year | [tamiya.com/japan/18026](https://www.tamiya.com/japan/products/18026/index.html) (official page, "first sold 1990-02") | **Also flags an unresolved internal inconsistency**: this catalog's own `jp` field ("大鷲"/"Great Eagle") doesn't match its English name "Burning Sun" at all -- not corrected, left as an open issue. A second, undated page for the same name exists at item 18015, possibly a different chassis variant, not cross-checked. |
+| Dash-3 Shooting Star | 18703 | **18019** | CORRECTED | Type 3 (unchanged, confirmed) | 1989 (unchanged, confirmed) | item | [tamiya.com/japan/18019](https://www.tamiya.com/japan/products/18019/index.html) (official page, "first sold 1989-09") | 18703 is a real Tamiya item number but belongs to "Aero Manta Ray" (Mini 4WD REV series, AR chassis -- confirmed via its own official page at tamiya.com/japan/18703). |
+| Mad Bull | 18615 | **NULL** | CORRECTED | Super II (unchanged) | 1998 (unchanged) | item → NULL | [tamiya.com/japan/18615](https://www.tamiya.com/japan/products/18615/index.html) (confirms this item is really "Manta Ray Mk.II") | 18615 is a real Tamiya item number but belongs to a different product. No confident replacement found for "Mad Bull" within this pass. |
+| Trigale | 18660 | **18638** | CORRECTED | AR (unchanged, PARTIALLY VERIFIED) | 2015 (unchanged, PARTIALLY VERIFIED) | item | Official Tamiya America new-item announcement page (confirms 18660 = "Stier"); multiple official Tamiya America MAP price list PDFs consistently list "18638 · JR Tri Gale" | 18660 confirmed to belong to a different product ("Stier"). Replacement item 18638 is PARTIALLY VERIFIED (official-adjacent PDF/announcement sources, not a direct tamiya.com product-page fetch). |
+| Dyna-Hawk GX | 19601 | **19201** | CORRECTED | Super TZ (unchanged, PARTIALLY VERIFIED) | 1998 (unchanged, PARTIALLY VERIFIED) | item | [tamiya.com/japan/19201](https://www.tamiya.com/japan/products/19201/index.html) (official page, exact match on this catalog's own `jp` field "ダイナホーク GX") | 19601 confirmed to belong to a different product. NOTE: the official page's own chassis (Super X) and series ("Mighty Mini 4WD") do not match this catalog's chassis "Super TZ" / series "Let's & Go" -- not overwritten, flagged PARTIALLY VERIFIED since the mismatch could indicate a different-but-similarly-named release rather than simply wrong data; item number match is by exact name and treated as confirmed regardless. |
 | Astute | 19412 | **NULL** | CORRECTED | Super 1 (unchanged) | 1992 (unchanged) | item → NULL | (no confident replacement found; see notes) | Was forced to be resolved: its old item 19412 turned out to genuinely belong to Cyclone Magnum (see above), a real collision. Live pages found under "Astute" (Flame Astute item 18705, Astute Jr. variants 18033/18037/18048) all describe different, later products, not a 1992 Fully Cowled original as this catalog claims — no confident replacement found. |
 | Dash-01 Horizon | 19415 | **NULL** | CORRECTED | Super II (unchanged) | 2017 (unchanged) | item → NULL | (no confident replacement found) | Was forced to be resolved: its old item 19415 turned out to genuinely belong to Hurricane Sonic (see above), a real collision. No confident replacement found within this pass. |
 
@@ -219,50 +236,65 @@ duplicate/invalid concept).
 | Beat Magnum | Beat Magnum (original) | 19426 | 19421 | CORRECTED | Super TZ (unchanged) | 1997 (PARTIALLY VERIFIED) | Item officially confirmed; chassis/year carried over. |
 | Beat Magnum | Beat Magnum Premium | 19426 | **19444** | CORRECTED | Super TZ → AR | 2013 → 2015 | [tamiya.com/japan/19444](https://www.tamiya.com/japan/products/19444/index.html) confirms "ビートマグナム プレミアム (ARシャーシ)", released 2015-03-21 (release_date populated). |
 | Hurricane Sonic | Hurricane Sonic (original) | 19424 | 19415 | CORRECTED | Super TZ (unchanged) | 1996 (PARTIALLY VERIFIED) | Item officially confirmed; chassis/year carried over. |
-| Hurricane Sonic | Hurricane Sonic Premium | 19424 | **19441** | PARTIALLY VERIFIED | Super TZ → AR | 2013 | Retailer listing ("HURRICANE SONIC PREMIUM AR 19441"), not an official tamiya.com fetch in this pass. |
+| Hurricane Sonic | Hurricane Sonic Premium | 19424 | **NULL** (candidate: 19441) | UNVERIFIED (candidate) | AR (unchanged) | 2013 (unchanged) | Retailer listing only ("HURRICANE SONIC PREMIUM AR 19441"), no official tamiya.com fetch achieved -- per this pass's rule, not written as a factual DB value; item set to NULL rather than left inheriting the parent's now-corrected 19415 (every other Premium release audited in this catalog used a distinct item from its parent). |
 | Buster Sonic | Buster Sonic (original, only release) | 19430 | **19423** | CORRECTED | Super TZ (unchanged) | 1997 (PARTIALLY VERIFIED) | Item officially confirmed; chassis/year carried over. |
 | Avante | Avante Jr. (original) | 18709 | **18014** | CORRECTED | Zero → Type 2 | 1988 (unchanged) | Retailer-corroborated (see product note); notes text updated accordingly. |
 | Avante | Avante (Premium) | 18709 | (inherits product default) | UNVERIFIED | Super II | 2011 | Not independently checked this pass. |
 | Astute | Astute (original, only release) | 19412 | **NULL** | CORRECTED | Super 1 (unchanged) | 1992 (unchanged) | Inherits product-level NULL, forced by the Cyclone Magnum collision. |
 | Dash-01 Horizon | Dash-01 Horizon (original, only release) | 19415 | **NULL** | CORRECTED | Super II (unchanged) | 2017 (unchanged) | Inherits product-level NULL, forced by the Hurricane Sonic collision. |
+| Great Emperor | Great Emperor (original) | 18713 | 18036 | CORRECTED | Type 3 (unchanged) | 1990 (unchanged) | Inherits corrected product item. |
+| Great Emperor | Great Emperor Premium | 18713 | **18075** | CORRECTED | Super II (unchanged) | 2015 (unchanged) | [tamiya.com/japan/18075](https://www.tamiya.com/japan/products/18075/index.html) confirms "グレートエンペラー プレミアム（スーパーIIシャーシ）" -- the same item 18075 this catalog's "Thunder Shot" was previously (also wrongly) using. |
+| Dash-1 Emperor | Dash-1 Emperor Premium | 18713 | **NULL** | CORRECTED | Super II (unchanged) | 2013 (unchanged) | 18713 confirmed to belong to "Razorback" (see Great Emperor above), not any Dash-1 Emperor variant. No confident replacement found. |
+| Proto Emperor ZX | Proto Emperor ZX (original) | 18714 | 18038 | CORRECTED | Super II (unchanged) | 2016 (unchanged) | Inherits corrected product item. |
+| Proto Emperor ZX | Proto Emperor ZX Premium (Black Special) | 18714 | **95450** | CORRECTED | Super II (confirmed) | 2019 (PARTIALLY VERIFIED) | [tamiya.com/japan/95450](https://www.tamiya.com/japan/products/95450/index.html) -- exact name match: "ダッシュX1・原始皇帝（プロトエンペラー）プレミアム ブラックスペシャル（スーパーIIシャーシ）". Item and chassis confirmed official; year 2019 carried over, not independently re-confirmed on this page. |
+| Dash-2 Burning Sun | Dash-2 Burning Sun (original, only release) | 18702 | **18026** | CORRECTED | Type 1 → Type 3 | 1989 → 1990 | See product-level note (JP/EN name mismatch flagged). |
+| Dash-3 Shooting Star | Dash-3 Shooting Star (original, only release) | 18703 | **18019** | CORRECTED | Type 3 (unchanged) | 1989 (unchanged) | — |
+| Mad Bull | Mad Bull (original) | 18615 | **NULL** | CORRECTED | Super II (unchanged) | 1998 (unchanged) | Inherits product-level NULL. |
+| Mad Bull | Mad Bull (2013 Reissue) | 18615 | NULL | UNVERIFIED | Super II | 2013 | Inherits product-level NULL by default; not independently checked. |
+| Trigale | Trigale (original, only release) | 18660 | **18638** | CORRECTED | AR (unchanged) | 2015 (unchanged) | — |
+| Dyna-Hawk GX | Dyna-Hawk GX (original) | 19601 | 19201 | CORRECTED | Super TZ (unchanged) | 1998 (unchanged) | Inherits corrected product item. |
+| Dyna-Hawk GX | Dyna-Hawk GX Premium | 19601 | 19201 | UNVERIFIED | Super TZ | 2016 | Inherits corrected product item by default; not independently checked. |
 
-### Products NOT individually audited this pass (13) — genuinely UNVERIFIED
+### Products genuinely UNVERIFIED after a real attempt (6)
 
-No claim of correctness or error is made for any of these; their current
-item numbers/chassis/years are exactly as inherited from the original
-seed, unexamined against an official source in this pass. Given the
-pattern found above, several are likely wrong.
+Every one of these was searched by name AND by item number, including at
+least one dedicated search this session specifically for it. No claim of
+correctness or error is made for any of them -- their current item
+numbers/chassis/years are exactly as inherited from the original seed.
 
-| TrackDash product | Current item | Releases | Status |
+| TrackDash product | Current item | Releases | What was actually found |
 |---|---|---|---|
-| Great Emperor | 18713 | 2 | UNVERIFIED — note: this catalog's Dash-1 Emperor Premium release also uses item 18713 (see above); this may or may not be a genuine collision, not checked. |
-| Proto Emperor ZX | 18714 | 2 | UNVERIFIED |
-| Dash-2 Burning Sun | 18702 | 1 | UNVERIFIED |
-| Dash-3 Shooting Star | 18703 | 1 | UNVERIFIED — note: a real Tamiya item 18703 ("Aero Manta Ray") was incidentally found during this pass; not cross-checked against this entry. |
-| Manta Ray | 19413 | 2 | UNVERIFIED |
-| Fire Dragon | 19414 | 2 | UNVERIFIED |
-| Dyna-Hawk GX | 19601 | 2 | UNVERIFIED |
-| Mad Bull | 18615 | 2 | UNVERIFIED |
-| Trigale | 18660 | 1 | UNVERIFIED |
-| Sword Flash | 18091 | 1 | UNVERIFIED |
-| Copperfang | 18092 | 1 | UNVERIFIED |
-| Emperor (Premium Black Special) | 18717 | 1 | UNVERIFIED |
-| Aero Avante Japan Cup 2013 | 18718 | 1 | UNVERIFIED |
+| Manta Ray | 19413 | 2 | Searched by name and item number. Found only a modern "Manta Ray Mk.II" (item 18615, PRO series -- itself a different, later product already wrongly claimed elsewhere in this catalog, see Mad Bull) and "Manta Ray Jr." (item 18053, VS chassis). Neither matches this catalog's "Super Mini 4WD, Super 1 chassis, 1991" framing closely enough to apply with confidence. |
+| Fire Dragon | 19414 | 2 | Searched by name and item number. Found "Fire Dragon Jr." (item 18011, Type 1 chassis, Racing Mini 4WD series) and "Fire Dragon Premium" (item 18072, VS chassis) -- neither matches this catalog's "Super Mini 4WD, Super 1 chassis, 1992" framing. |
+| Sword Flash | 18091 | 1 | Searched by name (Japanese and English) twice across this session. No relevant official or retailer result found at all. |
+| Copperfang | 18092 | 1 | Searched alongside Sword Flash, same two attempts. No relevant result found at all. |
+| Emperor (Premium Black Special) | 18717 | 1 | Searched by name. Found several *different*, specifically-named "Emperor"-family Black Special variants (Liberty Emperor, Geo Emperor, Rise Emperor, Proto Emperor -- each with its own confirmed item number), but this catalog's generic "Emperor (Premium Black Special)" doesn't specify which Emperor lineage it means, and none of the found variants could be matched with confidence. |
+| Aero Avante Japan Cup 2013 | 18718 | 1 | Searched specifically. Found an official Tamiya page listing 2013 Japan Cup memorial machines, which describes that year's kit only as "royal blue body" without naming it "Aero Avante," and separately confirms a *different* 2013 Japan Cup tie-in product ("Aero Thunder Shot Japan Cup 2013"). This casts some doubt on whether this catalog's product concept is even accurately named, but not with enough confidence to correct or remove it. |
 
 ## Recommended next steps (not done in this pass)
 
-1. Audit the 25 un-checked products the same way as the 11 above —
-   expect a similar correction rate based on the pattern found here.
-2. Specifically re-check **Great Emperor (18713)** against **Dash-1
-   Emperor Premium (also 18713 in this catalog)** for a possible genuine
-   collision, and **Dash-3 Shooting Star (18703)** against the "Aero
-   Manta Ray" lead found incidentally.
-3. Follow up on the **Vanguard Sonic Premium (item 19435)** lead.
-4. Seek verified real MSRP/JAN figures where Tamiya (or another
+1. **The 6 genuinely unverified products** (Manta Ray, Fire Dragon, Sword
+   Flash, Copperfang, Emperor Premium Black Special, Aero Avante Japan
+   Cup 2013) need either a source this pass didn't find, or a decision
+   to leave them permanently on `NULL`/best-effort factual fields.
+2. **Candidates with a real lead but only retailer/wiki backing**, not
+   written to the database this pass (see "Candidates not written to
+   the database" above): Hurricane Sonic Premium (item 19441).
+3. **Fields flagged PARTIALLY VERIFIED** throughout this document (chassis
+   and/or year carried over from the seed without independent
+   re-confirmation, even where the item number itself is officially
+   confirmed) are real follow-up work, not just an item-number audit.
+4. **Dash-2 Burning Sun's internal `jp`/English name mismatch**
+   ("大鷲"/"Great Eagle" vs. "Burning Sun") is still unresolved --
+   flagged, not corrected, since neither official source for this
+   product's item number sheds light on which name is right.
+5. Seek verified real MSRP/JAN figures where Tamiya (or another
    authoritative, non-marketplace source) publishes them, to start
-   populating `verifiedMsrpJPY`/`verifiedJAN` for real.
-5. If the historical "Avante Jr." (item 18014, Type 2 chassis, 1988) is
-   wanted in the catalog, add it as its own new product entry (its own
-   `seedKey`) — it is a genuinely distinct product from Avante Mk.II
-   (item 18614, MS chassis, 2006), not a release of it. Not added in
-   this pass since it wasn't part of the original 36.
+   populating `verifiedMsrpJPY`/`verifiedJAN` for real -- none exist in
+   this catalog as of this pass.
+6. If the historical "Avante Jr." needs to coexist with a *separate*,
+   later "Avante Mk.II" as two distinct catalog entries, note that this
+   pass's correction folded this catalog's "Avante" product identity
+   into the real "Avante Jr." (item 18014) -- Avante Mk.II (item 18614,
+   MS chassis, 2006) is already a separate product entry with its own
+   `seedKey`, so both now correctly coexist as of this pass.

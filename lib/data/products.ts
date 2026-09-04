@@ -429,7 +429,17 @@ const SEEDS: Seed[] = [
       // retailer listing ("TAMIYA 1/32 Fully Cowled Mini 4WD No.41
       // HURRICANE SONIC PREMIUM AR 19441"), not independently confirmed
       // via a direct tamiya.com fetch in this pass.
-      { type: "Premium", name: "Hurricane Sonic Premium", year: 2013, item: "19441", chassis: "AR" },
+      // PARTIALLY VERIFIED CANDIDATE, NOT WRITTEN AS FACT: item 19441
+      // (AR chassis) corroborated only by a retailer listing ("HURRICANE
+      // SONIC PREMIUM AR 19441"), no official tamiya.com fetch achieved
+      // in this pass. Per this pass's rule that retailer-only evidence
+      // is not sufficient for a factual DB value, item is left
+      // undefined rather than set to 19441 (and not left inheriting the
+      // parent's now-corrected 19415 either, since every other Premium
+      // release audited in this catalog turned out to use a distinct
+      // item from its parent -- assuming inheritance here would likely
+      // also be wrong).
+      { type: "Premium", name: "Hurricane Sonic Premium", year: 2013, item: undefined, chassis: "AR" },
     ],
   },
   {
@@ -461,16 +471,16 @@ const SEEDS: Seed[] = [
   // ---- Avante family ----
   {
     seedKey: "18709", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
-    // multiple independent official-adjacent retailer sources (rcMart,
-    // RC Station) consistently cite item 18014, Type 2 chassis for
-    // "Avante Jr." -- this catalog's previous item 18709 does not match.
-    // Not independently confirmed via a direct tamiya.com fetch in this
-    // pass (only retailer corroboration achieved) -- flagged PARTIALLY
-    // VERIFIED in docs/CATALOG_AUDIT.md despite the correction being
-    // applied, given the strength/consistency of the corroborating
-    // sources. Premium release (2011, Super II) item not independently
-    // re-checked this pass.
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/18014/index.html confirms
+    // "アバンテJr." (Avante Jr.), Item No. 18014 directly. This
+    // catalog's previous item 18709 does not match. Chassis "Type 2"
+    // remains corroborated by multiple retailer sources (rcMart, RC
+    // Station) rather than independently re-confirmed on this specific
+    // page in this pass -- PARTIALLY VERIFIED for chassis only, item
+    // number itself is fully confirmed official. Premium release (2011,
+    // Super II) item not independently re-checked this pass.
     item: "18014",
     code: "95109",
     name: "Avante",
@@ -582,7 +592,12 @@ const SEEDS: Seed[] = [
     desc: "The legendary Emperor. Star machine of the Dash! Yonkuro manga and a cornerstone of any vintage-minded collection. First released in 1990 and reissued several times since.",
     releases: [
       { type: "Original", name: "Dash-1 Emperor (Type 3 Chassis)", year: 1990, item: "18025", chassis: "Type 3", rarity: "Very Rare", estimatedMsrpJPY: 600, original: true, notes: "Original 1990 release on the Type 3 chassis." },
-      { type: "Premium", name: "Dash-1 Emperor Premium", year: 2013, item: "18713", chassis: "Super II", rarity: "Uncommon", estimatedMsrpJPY: 1000 },
+      // CONFIRMED WRONG, NOT CORRECTED: item 18713 is a real Tamiya
+      // number but was confirmed (see this catalog's "Great Emperor"
+      // entry) to belong to "Razorback" (Mini 4WD REV series), not any
+      // Dash-1 Emperor variant. No confident replacement found for this
+      // specific 2013 Premium release within this pass.
+      { type: "Premium", name: "Dash-1 Emperor Premium", year: 2013, item: undefined, chassis: "Super II", rarity: "Uncommon", estimatedMsrpJPY: 1000 },
       { type: "Color Special", name: "Dash-1 Emperor Premium (Black Special)", year: 2015, item: "95359", chassis: "Super II", color: "Black", rarity: "Rare", estimatedMsrpJPY: 1100 },
       { type: "Anniversary Edition", name: "Dash-1 Emperor 30th Anniversary", year: 2018, item: "92403", chassis: "Super II", rarity: "Rare", estimatedMsrpJPY: 1200 },
       // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
@@ -599,7 +614,18 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18713", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18713",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/18036/index.html confirms
+    // "ダッシュ001号・大帝（グレート・エンペラー）" (Dash-001 Great
+    // Emperor), Item No. 18036. This catalog's previous item 18713 is a
+    // real Tamiya item number but belongs to a completely different
+    // product ("Razorback", Mini 4WD REV series, FM-A chassis --
+    // confirmed via a major Japanese retailer listing). Chassis/year
+    // carried over from the seed, not independently re-verified against
+    // the official page's own detail text -- PARTIALLY VERIFIED for
+    // those two fields.
+    item: "18036",
     code: "95113",
     name: "Great Emperor",
     jp: "グレート・エンペラー",
@@ -611,12 +637,29 @@ const SEEDS: Seed[] = [
     desc: "The upgraded Emperor with a more aggressive cowl. Highly sought after in original form.",
     releases: [
       { type: "Original", year: 1990, chassis: "Type 3", rarity: "Grail", estimatedMsrpJPY: 600, original: true, discontinued: true },
-      { type: "Premium", name: "Great Emperor Premium", year: 2015, chassis: "Super II", rarity: "Rare", estimatedMsrpJPY: 1000 },
+      // CORRECTED: official page
+      // https://www.tamiya.com/japan/products/18075/index.html confirms
+      // "グレートエンペラー プレミアム（スーパーIIシャーシ）" (Great
+      // Emperor Premium, Super-II Chassis), Item No. 18075 -- this is
+      // the SAME item 18075 that this catalog's "Thunder Shot" entry
+      // was previously (also wrongly) using; see that product's own
+      // correction note.
+      { type: "Premium", name: "Great Emperor Premium", year: 2015, item: "18075", chassis: "Super II", rarity: "Rare", estimatedMsrpJPY: 1000 },
     ],
   },
   {
     seedKey: "18714", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18714",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/18038/index.html confirms
+    // "原始皇帝(プロトエンペラーZX)" (PROTO-EMPEROR ZX), Item No.
+    // 18038, released 2007-09-01. This catalog's previous item 18714
+    // belongs to a different product ("Mach Frame", Mini 4WD REV
+    // series). Chassis "Super II" carried over, not independently
+    // re-verified against this specific page's own detail text --
+    // PARTIALLY VERIFIED for chassis/year only, item number is fully
+    // confirmed official.
+    item: "18038",
     code: "95114",
     name: "Proto Emperor ZX",
     jp: "プロトエンペラー ZX",
@@ -628,12 +671,43 @@ const SEEDS: Seed[] = [
     desc: "The prototype Emperor, a fan-favourite variant of the Emperor bloodline.",
     releases: [
       { type: "Original", year: 2016, original: true },
-      { type: "Color Special", name: "Proto Emperor ZX Premium (Black Special)", year: 2019, color: "Black", rarity: "Very Rare", estimatedMsrpJPY: 1200 },
+      // CORRECTED: official page
+      // https://www.tamiya.com/japan/products/95450/index.html confirms
+      // "ダッシュX1・原始皇帝（プロトエンペラー）プレミアム ブラック
+      // スペシャル（スーパーIIシャーシ）" -- an exact name match for
+      // this release, Item No. 95450, Super-II chassis (confirmed by
+      // the page's own title). Year 2019 carried over, not
+      // independently re-confirmed on this page -- PARTIALLY VERIFIED
+      // for year only.
+      { type: "Color Special", name: "Proto Emperor ZX Premium (Black Special)", year: 2019, item: "95450", chassis: "Super II", color: "Black", rarity: "Very Rare", estimatedMsrpJPY: 1200 },
     ],
   },
   {
     seedKey: "18702", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18702",
+    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
+    // TWO official Japanese pages exist for this body under the same
+    // name, and both were checked before choosing between them (see
+    // docs/CATALOG_AUDIT.md for the full side-by-side):
+    //   - https://www.tamiya.com/japan/products/18015/index.html --
+    //     Item No. 18015, "レーサーミニ四駆シリーズ No.15", Type 1
+    //     chassis, first sold 1989-02, spike tires.
+    //   - https://www.tamiya.com/japan/products/18026/index.html --
+    //     Item No. 18026, Type 3 chassis SPEC (a later reissue with
+    //     slick tires, replacing the Type 1 original), first sold
+    //     1990-02.
+    // Both are genuinely official and agree on name/series; they
+    // disagree on chassis and year because they're two distinct real
+    // releases of the same body -- exactly the "original vs. reissue"
+    // distinction this catalog's OWN existing chassis="Type 1"/year=1989
+    // fields already describe. Item 18015 matches this catalog's
+    // existing data precisely; 18026 is the later Type-3 reissue,
+    // documented here as a known alternate rather than picked
+    // arbitrarily. NOTE: this catalog's own `jp` field below
+    // ("大鷲"/"Great Eagle") does not match its English name "Burning
+    // Sun" at all (nor either official page's own name) -- a separate,
+    // unresolved internal inconsistency in the original seed, left as a
+    // flagged open issue rather than guessed at.
+    item: "18015",
     code: "95102",
     name: "Dash-2 Burning Sun",
     jp: "ダッシュ2号・大鷲",
@@ -644,11 +718,21 @@ const SEEDS: Seed[] = [
     rarity: "Grail",
     estimatedMsrpJPY: 600,
     desc: "Vintage Type 1 rival machine from the Dash! Yonkuro era. Extremely collectible in sealed condition.",
-    releases: [{ type: "Original", year: 1989, original: true, discontinued: true }],
+    releases: [{ type: "Original", year: 1989, item: "18015", chassis: "Type 1", original: true, discontinued: true }],
   },
   {
     seedKey: "18703", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18703",
+    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
+    // official Japanese page
+    // https://www.tamiya.com/japan/products/18019/index.html confirms
+    // "ダッシュ3号・流星（シューティングスター）" (Dash-3
+    // Shooting Star), Item No. 18019, first sold 1989-09. Chassis
+    // "Type 3" and year 1989 already matched this catalog's existing
+    // data -- only the item number was wrong (18703 is a real Tamiya
+    // item number but belongs to a different product, "Aero Manta Ray",
+    // per a lead found incidentally during this pass, not independently
+    // confirmed).
+    item: "18019",
     code: "95103",
     name: "Dash-3 Shooting Star",
     jp: "ダッシュ3号・流星",
@@ -766,7 +850,20 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "19601", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19601",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19201/index.html confirms
+    // "ダイナホーク GX" (exact match on this catalog's own jp field),
+    // Item No. 19201, Super X chassis, "1/32 マイティミニ四駆シリーズ"
+    // (Mighty Mini 4WD series). This catalog's previous item 19601 does
+    // not match. NOTE: the official page's chassis (Super X) and series
+    // (Mighty Mini 4WD) do NOT match this catalog's existing chassis
+    // "Super TZ" / series "Let's & Go" -- flagged PARTIALLY VERIFIED for
+    // those two fields (not overwritten, given the mismatch could mean
+    // this is a different-but-similarly-named release rather than
+    // simply wrong data); item number match is by exact name, treated
+    // as confirmed.
+    item: "19201",
     code: "95601",
     name: "Dyna-Hawk GX",
     jp: "ダイナホーク GX",
@@ -783,7 +880,13 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18615", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18615",
+    // CONFIRMED WRONG, NOT CORRECTED (catalog integrity pass, see
+    // docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/18615/index.html confirms
+    // item 18615 is actually "マンタレイMk.II" (Manta Ray Mk.II, PRO
+    // series), not "Mad Bull". No confident replacement item number was
+    // found for "Mad Bull" within this pass.
+    item: undefined,
     code: "95415",
     name: "Mad Bull",
     jp: "マッドブル",
@@ -800,7 +903,15 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18660", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18660",
+    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
+    // item 18660 is confirmed (via an official Tamiya America new-item
+    // announcement page, tamiya.com/english/newstopics, listing "Stier
+    // (MA Chassis) (Item 18660)") to belong to a different product,
+    // "Stier". "Tri Gale" ("JR Tri Gale") appears consistently across
+    // multiple official Tamiya America MAP price list PDFs as item
+    // 18638 -- PARTIALLY VERIFIED (official-adjacent PDF source, not a
+    // direct tamiya.com product-page fetch in this pass).
+    item: "18638",
     code: "95460",
     name: "Trigale",
     series: "Racing Mini 4WD",
