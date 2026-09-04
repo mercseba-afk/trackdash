@@ -150,7 +150,14 @@ export function mapProductRow(row: ProductRow): Product {
     images: row.images ? row.images.map((i) => i.url) : [],
     releases,
     hasMultipleReleases: releases.length > 1,
-    msrpJPY: primary?.msrpJPY ?? 0,
-    msrpEUR: primary?.msrpEUR ?? 0,
+    // FACTUAL, verified-only -- undefined (never 0, which would wrongly
+    // imply "verified as free") unless a real Tamiya-confirmed figure
+    // exists on the primary release. estimatedMsrpJPY/EUR are
+    // deliberately left undefined here: the database has no concept of a
+    // demo estimate (see lib/data/products.ts's file header) -- only the
+    // mock/seed layer populates those, for lib/data/market.ts's demo
+    // pricing engine.
+    msrpJPY: primary?.msrpJPY,
+    msrpEUR: primary?.msrpEUR,
   }
 }

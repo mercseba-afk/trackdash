@@ -97,8 +97,12 @@ export interface ProductRelease {
   barcodeJAN?: string
   color?: string
   countryMarket?: string
+  /** FACTUAL, verified-only MSRP — undefined unless a real Tamiya-confirmed figure exists. This is what the database stores; never populate from an estimate. */
   msrpJPY?: number
   msrpEUR?: number
+  /** DEMO estimate only, for lib/data/market.ts's pricing engine — NEVER written to the database, NEVER shown as factual MSRP. Distinct on purpose from msrpJPY/msrpEUR above. */
+  estimatedMsrpJPY?: number
+  estimatedMsrpEUR?: number
   images?: string[]
   notes?: string
   discontinued: boolean
@@ -134,8 +138,12 @@ export interface Product {
   releases: ProductRelease[]
   // derived convenience (computed at build time)
   hasMultipleReleases: boolean
-  msrpJPY: number // MSRP of the primary release, for headline display
-  msrpEUR: number
+  /** FACTUAL, verified-only MSRP of the primary release, for headline display -- undefined unless a real Tamiya-confirmed figure exists. */
+  msrpJPY?: number
+  msrpEUR?: number
+  /** DEMO estimate only, for lib/data/market.ts -- NEVER written to the database, NEVER shown as factual MSRP. */
+  estimatedMsrpJPY?: number
+  estimatedMsrpEUR?: number
 }
 
 export interface CollectionItem {

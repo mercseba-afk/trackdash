@@ -25,6 +25,14 @@ function sqlStr(value) {
   return `'${String(value).replace(/'/g, "''")}'`
 }
 
+function sqlNum(value) {
+  return value === undefined || value === null ? "NULL" : String(value)
+}
+
+function sqlBool(value) {
+  return value ? "true" : "false"
+}
+
 const beforeById = new Map()
 for (const p of BEFORE) {
   beforeById.set(p.id, p)
@@ -33,6 +41,7 @@ for (const p of BEFORE) {
 
 const productUpdates = []
 const releaseUpdates = []
+const newReleases = [] // releases genuinely added this pass -- no "before" row exists, so they need INSERT, not UPDATE
 
 for (const p of AFTER) {
   const b = beforeById.get(p.id)
@@ -49,7 +58,14 @@ for (const p of AFTER) {
 
   for (const r of p.releases) {
     const rb = beforeById.get(r.id)
-    if (!rb) continue
+    if (!rb) {
+      // Genuinely new release (e.g. Dash-2 Burning Sun's Type-3 reissue,
+      // Dyna-Hawk GX's 2019 Super XX reissue) -- no corresponding
+      // already-deployed row exists, so this needs an INSERT, not an
+      // UPDATE. Collected separately below.
+      newReleases.push({ product: p, release: r })
+      continue
+    }
     const rsets = []
     if (rb.itemNumber !== r.itemNumber) rsets.push(`item_number = ${sqlStr(r.itemNumber)}`)
     if (rb.chassis !== r.chassis) rsets.push(`chassis = ${sqlStr(r.chassis)}`)
@@ -137,6 +153,33 @@ for (const u of releaseUpdates) {
   lines.push("")
 }
 
+lines.push("")
+lines.push("-- =========================================================================")
+lines.push("-- 5. Genuinely NEW releases added during this pass -- no already-deployed")
+lines.push("--    row exists for these ids, so they need INSERT, not UPDATE. Uses")
+lines.push(`--    \`on conflict (id) do nothing\` for idempotency, matching the pattern`)
+lines.push("--    used by scripts/generate-catalog-seed.mjs's own initial seed.")
+lines.push(`--    ${newReleases.length} new release row(s).`)
+lines.push("-- =========================================================================")
+lines.push("")
+if (newReleases.length > 0) {
+  lines.push(
+    "insert into product_releases (id, product_id, item_number, release_type, edition_name, release_year, release_date, chassis, barcode_jan, color, country_market, msrp_jpy, msrp_eur, notes, discontinued, is_original, rarity, data_source) values",
+  )
+  const insertRows = newReleases.map(
+    ({ product: p, release: r }) =>
+      `  (${sqlStr(r.id)}, ${sqlStr(p.id)}, ${sqlStr(r.itemNumber)}, ${sqlStr(r.releaseType)}, ${sqlStr(r.editionName)}, ${sqlNum(r.releaseYear)}, ${sqlStr(r.releaseDate)}, ${sqlStr(r.chassis)}, ${sqlStr(r.barcodeJAN)}, ${sqlStr(r.color)}, ${sqlStr(r.countryMarket)}, ${sqlNum(r.msrpJPY)}, ${sqlNum(r.msrpEUR)}, ${sqlStr(r.notes)}, ${sqlBool(r.discontinued)}, ${sqlBool(r.isOriginal)}, ${sqlStr(r.rarity)}, 'manual')`,
+  )
+  lines.push(insertRows.join(",\n"))
+  lines.push("on conflict (id) do nothing;")
+  lines.push("")
+  for (const { product: p, release: r } of newReleases) {
+    lines.push(`-- ${p.name} -- ${r.editionName} (item ${r.itemNumber ?? "NULL"})`)
+  }
+}
+
 process.stdout.write(lines.join("\n"))
 
-process.stderr.write(`\n${productUpdates.length} product update(s), ${releaseUpdates.length} release update(s) generated.\n`)
+process.stderr.write(
+  `\n${productUpdates.length} product update(s), ${releaseUpdates.length} release update(s), ${newReleases.length} new release insert(s) generated.\n`,
+)

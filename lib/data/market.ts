@@ -70,7 +70,18 @@ export function getReleaseEstimate(
 ): MarketEstimate {
   const h = hash(release.id)
   const rarity = release.rarity ?? product.rarity
-  const baseEUR = release.msrpEUR && release.msrpEUR > 0 ? release.msrpEUR : (release.msrpJPY ?? product.msrpJPY) / 160
+  // Prefer a real verified MSRP if one ever exists, then the DEMO estimate
+  // (see lib/data/products.ts's file header + lib/types.ts) -- this engine
+  // is explicitly a demo (isDemo: true below) and was never meant to read
+  // factual-only fields, which are now correctly undefined for anything
+  // not independently verified against an official Tamiya source. A
+  // DB-sourced product/release with neither a verified price nor a demo
+  // estimate (the current state for this whole catalog, post-audit) falls
+  // through to 0 rather than throwing/NaN-ing -- a known, honest gap for
+  // real market-data work, out of scope here.
+  const jpyBasis = release.msrpJPY ?? release.estimatedMsrpJPY ?? product.msrpJPY ?? product.estimatedMsrpJPY
+  const eurBasis = release.msrpEUR ?? release.estimatedMsrpEUR ?? product.msrpEUR ?? product.estimatedMsrpEUR
+  const baseEUR = eurBasis && eurBasis > 0 ? eurBasis : (jpyBasis ?? 0) / 160
   const mult = RARITY_MULTIPLIER[rarity]
   const age = Math.max(0, new Date().getFullYear() - release.releaseYear)
   const ageBoost = 1 + Math.min(age, 35) * 0.012

@@ -99,6 +99,17 @@ lines.push("")
 lines.push(
   "insert into product_releases (id, product_id, item_number, release_type, edition_name, release_year, release_date, chassis, barcode_jan, color, country_market, msrp_jpy, msrp_eur, notes, discontinued, is_original, rarity, data_source) values",
 )
+// SAFE BY CONSTRUCTION (see docs/CATALOG_AUDIT.md "Final Fixes" +
+// lib/data/products.ts's file header): r.msrpJPY / r.msrpEUR here are
+// ProductRelease's FACTUAL, verified-only fields -- buildReleases() in
+// lib/data/products.ts populates them exclusively from
+// verifiedMsrpJPY, never from estimatedMsrpJPY. A future developer
+// regenerating this seed for a NEW product cannot accidentally write an
+// estimate into these DB columns by using this script as-is; doing so
+// would require deliberately reading r.estimatedMsrpJPY/EUR here
+// instead, which this script does not do on purpose. Do not "fix" a
+// future undefined/NULL msrp_jpy by wiring in the estimate here --
+// that's the exact mistake this whole audit corrected.
 const releaseRows = []
 for (const p of PRODUCTS) {
   for (const r of p.releases) {

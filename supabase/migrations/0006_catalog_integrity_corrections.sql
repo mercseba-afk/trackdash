@@ -121,7 +121,7 @@ update products set canonical_item_number = NULL where id = 'be48e786-11c6-567f-
 update products set canonical_item_number = NULL where id = '813a9ba0-170e-5636-9a9a-a7e7fca32366';
 
 -- Dyna-Hawk GX
-update products set canonical_item_number = '19201' where id = 'd3b4ad34-05ac-592e-ad93-fab4cfde0a5a';
+update products set canonical_item_number = '19201', chassis = 'Super X' where id = 'd3b4ad34-05ac-592e-ad93-fab4cfde0a5a';
 
 -- Mad Bull
 update products set canonical_item_number = NULL where id = '643f208f-c8f6-5574-b9cf-565e28602d17';
@@ -169,7 +169,7 @@ update product_releases set item_number = '18637', chassis = 'MA', release_year 
 update product_releases set item_number = '19409', chassis = 'Super 1' where id = 'fcaf3f82-93b5-5a52-8087-c96e771a030c';
 
 -- Neo-Tridagger ZMC (Premium)
-update product_releases set item_number = '19409' where id = '73dcd8e6-82ab-54c4-961b-f4132bf6d638';
+update product_releases set item_number = NULL where id = '73dcd8e6-82ab-54c4-961b-f4132bf6d638';
 
 -- Magnum Saber Premium
 update product_releases set item_number = '19431', chassis = 'Super II' where id = '0fdbfd56-f257-5b84-b541-e08a7450cc34';
@@ -199,7 +199,7 @@ update product_releases set item_number = '19444', chassis = 'AR', release_year 
 update product_releases set item_number = '19415' where id = '71addadb-04b3-579f-96f2-c5e976cf1cd5';
 
 -- Hurricane Sonic Premium
-update product_releases set item_number = '19415', chassis = 'AR' where id = 'e1b626f8-e0ea-52c9-86f0-eb870561d70d';
+update product_releases set item_number = '19441', chassis = 'AR', release_year = 2014, release_date = '2014-11-21' where id = 'e1b626f8-e0ea-52c9-86f0-eb870561d70d';
 
 -- Buster Sonic
 update product_releases set item_number = '19423' where id = '217fd7d2-2090-593c-bb7d-bef7ce1cf154';
@@ -208,7 +208,7 @@ update product_releases set item_number = '19423' where id = '217fd7d2-2090-593c
 update product_releases set item_number = '18014', chassis = 'Type 2', notes = 'Original ''Avante Jr.'' on the Type 2 chassis.' where id = 'cafbb6ca-1aba-5732-946d-0045d054aa5c';
 
 -- Avante (Premium)
-update product_releases set item_number = '18014' where id = '7f3f7461-0dee-5d6a-b99d-36e2d910f0ef';
+update product_releases set item_number = NULL where id = '7f3f7461-0dee-5d6a-b99d-36e2d910f0ef';
 
 -- Avante Mk.II
 update product_releases set item_number = '18614', chassis = 'MS', release_year = 2006, release_date = '2006-06-24', discontinued = false where id = '5a123617-c84c-5012-ab20-1a9d493259e0';
@@ -223,7 +223,7 @@ update product_releases set item_number = '19407', release_year = 1995 where id 
 update product_releases set item_number = '19435' where id = 'b3639c7d-581e-5da8-9ec4-ea1eb9d61193';
 
 -- Dash-1 Emperor Premium
-update product_releases set item_number = '18025' where id = 'f576fa21-8e57-5fa0-953e-f468653e3767';
+update product_releases set item_number = '18069', release_year = 2012, release_date = '2012-03-24' where id = 'f576fa21-8e57-5fa0-953e-f468653e3767';
 
 -- Dash-1 Emperor (2026 Reissue)
 update product_releases set chassis = 'Type 3', notes = 'Modern sealed reissue sharing the classic 18025 item number and Type 3 chassis.' where id = '79e32904-fe5d-5d30-bf54-8643ce4b42d3';
@@ -259,10 +259,10 @@ update product_releases set item_number = NULL where id = '96deae1d-dfec-5aaf-a2
 update product_releases set item_number = NULL where id = 'a0b042ac-7e6c-57f4-98a2-bd92e8e39f39';
 
 -- Dyna-Hawk GX
-update product_releases set item_number = '19201' where id = '2af882f6-8c66-5508-9acd-2240aac287ad';
+update product_releases set item_number = '19201', chassis = 'Super X' where id = '2af882f6-8c66-5508-9acd-2240aac287ad';
 
--- Dyna-Hawk GX Premium
-update product_releases set item_number = '19201' where id = '1ede5023-9035-5342-b207-6242c5f5190a';
+-- Dyna-Hawk GX Super XX Special
+update product_releases set item_number = '94717', chassis = 'Super XX', edition_name = 'Dyna-Hawk GX Super XX Special', release_year = 2010, release_date = '2010-03-13' where id = '1ede5023-9035-5342-b207-6242c5f5190a';
 
 -- Mad Bull
 update product_releases set item_number = NULL where id = '454a8d07-e963-5699-9a8c-2151917f75a5';
@@ -278,3 +278,20 @@ update product_releases set item_number = NULL where id = 'dcaa9d00-fe3f-5bc4-9b
 
 -- Thunder Shot Premium
 update product_releases set item_number = NULL where id = 'f4e3f6b8-8ce6-5b87-9d94-5f64a24c031a';
+
+
+-- =========================================================================
+-- 5. Genuinely NEW releases added during this pass -- no already-deployed
+--    row exists for these ids, so they need INSERT, not UPDATE. Uses
+--    `on conflict (id) do nothing` for idempotency, matching the pattern
+--    used by scripts/generate-catalog-seed.mjs's own initial seed.
+--    2 new release row(s).
+-- =========================================================================
+
+insert into product_releases (id, product_id, item_number, release_type, edition_name, release_year, release_date, chassis, barcode_jan, color, country_market, msrp_jpy, msrp_eur, notes, discontinued, is_original, rarity, data_source) values
+  ('45f04c74-a41c-5514-87a2-ab47ea6d66b6', '3b443635-b33f-5553-a39d-eba8b8cafddb', '18026', 'Reissue', 'Dash-2 Burning Sun (Type 3 Chassis)', 1990, NULL, 'Type 3', NULL, NULL, 'Japan', NULL, NULL, NULL, true, false, 'Very Rare', 'manual'),
+  ('ace0d1b1-aaf3-589a-977c-a3df07c83c73', 'd3b4ad34-05ac-592e-ad93-fab4cfde0a5a', '95467', 'Reissue', 'Dyna-Hawk GX Super XX Special (2019 Reissue)', 2019, '2019-03-16', 'Super XX', NULL, NULL, 'Japan', NULL, NULL, NULL, false, false, 'Uncommon', 'manual')
+on conflict (id) do nothing;
+
+-- Dash-2 Burning Sun -- Dash-2 Burning Sun (Type 3 Chassis) (item 18026)
+-- Dyna-Hawk GX -- Dyna-Hawk GX Super XX Special (2019 Reissue) (item 95467)

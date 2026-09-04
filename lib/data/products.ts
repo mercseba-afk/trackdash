@@ -53,6 +53,23 @@ import { stableUuid } from "./stable-id"
 //      the two conceptually separate even once real data exists.
 // -----------------------------------------------------------------------------
 
+// FINAL FIXES PASS (see docs/CATALOG_AUDIT.md "Final Fixes" section):
+// independent review found that `itemNumber: r.item ?? seed.item` could not
+// distinguish "release has no override, inherit the product's item" from
+// "release was audited and its item is intentionally unknown" — both were
+// written as `item: undefined` in this file, and `??` treats `undefined`
+// exactly like "not provided," so audited-unknown releases were silently
+// inheriting the parent's item number in the generated output/SQL instead
+// of staying NULL. Fixed with explicit three-way semantics on
+// `ReleaseSeed.item`:
+//   - omitted entirely (not present in the object literal) → inherit the
+//     product's `item`
+//   - `item: null` → intentionally unknown; do NOT inherit, resolve to NULL
+//   - `item: "12345"` → this release's own explicit, verified value
+// Resolution in `buildReleases()` uses an explicit `=== undefined` check
+// (not `??`) so `null` survives all the way to the generated SQL.
+// -----------------------------------------------------------------------------
+
 // Single brand/category for the current MVP scope — exported so the seed
 // migration and any future catalog-admin tooling reference the exact same
 // ids without hand-copying UUID strings.
@@ -73,13 +90,20 @@ interface ReleaseSeed {
   year: number
   /** Precise ISO release date, when officially verified. Most releases only have a year -- leave unset rather than guess a date. */
   releaseDate?: string
-  item?: string // ITEM number for this release; defaults to the model item
+  /**
+   * ITEM number for this release. Three-way semantics (see file header):
+   * omitted → inherit the product's `item`; `null` → intentionally unknown,
+   * do NOT inherit; a string → this release's own explicit, verified value.
+   * Resolved with an explicit `=== undefined` check, never `??`, so `null`
+   * is preserved rather than falling through to the parent.
+   */
+  item?: string | null
   chassis?: Chassis // defaults to the model chassis
   color?: string
   country?: string
-  /** App-level estimate only — see file header, point 2. Defaults to the model's estimatedMsrpJPY. */
+  /** App-level DEMO estimate only — see file header, point 2. Read by lib/data/market.ts, NEVER by the DB seed generator. Defaults to the model's estimatedMsrpJPY. */
   estimatedMsrpJPY?: number
-  /** Real Tamiya-confirmed MSRP for this specific release, when known. Unused until populated. */
+  /** Real Tamiya-confirmed MSRP for this specific release, when known. This is the ONLY source for the factual `msrpJPY`/`msrpEUR` output fields that flow into the database. */
   verifiedMsrpJPY?: number
   /** Real Tamiya-confirmed barcode/JAN for this specific release. Undefined unless verified — never invented. */
   verifiedJAN?: string
@@ -106,9 +130,9 @@ interface Seed {
   originalYear: number
   discontinued?: boolean
   rarity: Rarity
-  /** App-level estimate only — see file header, point 2. Not a verified historical Tamiya MSRP. */
+  /** App-level DEMO estimate only — see file header, point 2. Read by lib/data/market.ts, NEVER by the DB seed generator. Not a verified historical Tamiya MSRP. */
   estimatedMsrpJPY: number
-  /** Real Tamiya-confirmed MSRP for this model's primary release, when known. Unused until populated. */
+  /** Real Tamiya-confirmed MSRP for this model's primary release, when known. This is the ONLY source for the factual `msrpJPY`/`msrpEUR` output fields that flow into the database. */
   verifiedMsrpJPY?: number
   desc: string
   releases?: ReleaseSeed[]
@@ -263,7 +287,13 @@ const SEEDS: Seed[] = [
     desc: "The ZMC 'Zero Material Carbon' hero machine. A fan favourite reissued for the modern Super II chassis.",
     releases: [
       { type: "Original", name: "Neo-Tridagger ZMC", year: 1998, chassis: "Super 1", rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
-      { type: "Premium", name: "Neo-Tridagger ZMC (Premium)", year: 2016, chassis: "Super II", rarity: "Uncommon" },
+      // UNVERIFIED: this release's own distinct item number was not
+      // independently checked (Premium reissues of Fully Cowled cars
+      // very often use a different item number than the original, per
+      // the pattern seen throughout this catalog). Explicit `null` so
+      // this resolves to NULL rather than silently inheriting the
+      // parent's item — see file header.
+      { type: "Premium", name: "Neo-Tridagger ZMC (Premium)", year: 2016, item: null, chassis: "Super II", rarity: "Uncommon" },
     ],
   },
   // ---- Fully Cowled / Let's & Go ----
@@ -429,17 +459,12 @@ const SEEDS: Seed[] = [
       // retailer listing ("TAMIYA 1/32 Fully Cowled Mini 4WD No.41
       // HURRICANE SONIC PREMIUM AR 19441"), not independently confirmed
       // via a direct tamiya.com fetch in this pass.
-      // PARTIALLY VERIFIED CANDIDATE, NOT WRITTEN AS FACT: item 19441
-      // (AR chassis) corroborated only by a retailer listing ("HURRICANE
-      // SONIC PREMIUM AR 19441"), no official tamiya.com fetch achieved
-      // in this pass. Per this pass's rule that retailer-only evidence
-      // is not sufficient for a factual DB value, item is left
-      // undefined rather than set to 19441 (and not left inheriting the
-      // parent's now-corrected 19415 either, since every other Premium
-      // release audited in this catalog turned out to use a distinct
-      // item from its parent -- assuming inheritance here would likely
-      // also be wrong).
-      { type: "Premium", name: "Hurricane Sonic Premium", year: 2013, item: undefined, chassis: "AR" },
+      // CORRECTED (final fixes pass, live-verified against tamiya.com,
+      // see docs/CATALOG_AUDIT.md): official page
+      // https://www.tamiya.com/japan/products/19441/index.html confirms
+      // "ハリケーンソニック プレミアム（ARシャーシ）" (Hurricane Sonic
+      // Premium, AR Chassis), Item No. 19441, released 2014-11-21.
+      { type: "Premium", name: "Hurricane Sonic Premium", year: 2014, releaseDate: "2014-11-21", item: "19441", chassis: "AR" },
     ],
   },
   {
@@ -493,7 +518,11 @@ const SEEDS: Seed[] = [
     desc: "The original wedge that started the Avante dynasty, reissued for the Super II chassis.",
     releases: [
       { type: "Original", name: "Avante Jr.", year: 1988, item: "18014", chassis: "Type 2", rarity: "Very Rare", estimatedMsrpJPY: 600, original: true, notes: "Original 'Avante Jr.' on the Type 2 chassis." },
-      { type: "Premium", name: "Avante (Premium)", year: 2011, chassis: "Super II", rarity: "Uncommon" },
+      // UNVERIFIED: this release's own distinct item number was not
+      // independently checked. Explicit `null` so this resolves to NULL
+      // rather than silently inheriting the parent's item — see file
+      // header.
+      { type: "Premium", name: "Avante (Premium)", year: 2011, item: null, chassis: "Super II", rarity: "Uncommon" },
     ],
   },
   {
@@ -596,8 +625,18 @@ const SEEDS: Seed[] = [
       // number but was confirmed (see this catalog's "Great Emperor"
       // entry) to belong to "Razorback" (Mini 4WD REV series), not any
       // Dash-1 Emperor variant. No confident replacement found for this
-      // specific 2013 Premium release within this pass.
-      { type: "Premium", name: "Dash-1 Emperor Premium", year: 2013, item: undefined, chassis: "Super II", rarity: "Uncommon", estimatedMsrpJPY: 1000 },
+      // specific 2013 Premium release within this pass. Explicit `null`
+      // (NOT omitted, NOT `undefined`) so this resolves to NULL rather
+      // than silently inheriting the parent's item — see file header.
+      // CORRECTED (final fixes pass, live-verified against tamiya.com):
+      // official page https://www.tamiya.com/japan/products/18069/index.html
+      // confirms "ダッシュ1号エンペラー プレミアム（スーパーIIシャーシ）"
+      // (Dash-1 Emperor Premium, Super-II Chassis), Item No. 18069 --
+      // found on a second attempt, after 18713 was confirmed to belong
+      // to a different product entirely (see the product-level note and
+      // this catalog's "Great Emperor" entry). Chassis matches exactly;
+      // release date 2012-03-24 independently confirmed official.
+      { type: "Premium", name: "Dash-1 Emperor Premium", year: 2012, releaseDate: "2012-03-24", item: "18069", chassis: "Super II", rarity: "Uncommon", estimatedMsrpJPY: 1000 },
       { type: "Color Special", name: "Dash-1 Emperor Premium (Black Special)", year: 2015, item: "95359", chassis: "Super II", color: "Black", rarity: "Rare", estimatedMsrpJPY: 1100 },
       { type: "Anniversary Edition", name: "Dash-1 Emperor 30th Anniversary", year: 2018, item: "92403", chassis: "Super II", rarity: "Rare", estimatedMsrpJPY: 1200 },
       // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
@@ -684,33 +723,33 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18702", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
-    // TWO official Japanese pages exist for this body under the same
-    // name, and both were checked before choosing between them (see
-    // docs/CATALOG_AUDIT.md for the full side-by-side):
+    // CORRECTED (final fixes pass, see docs/CATALOG_AUDIT.md "Final
+    // Fixes" section): independent review confirmed both official
+    // Japanese pages found in the earlier pass describe TWO distinct,
+    // genuinely official releases of the same body, not a contradiction
+    // to resolve by picking one:
     //   - https://www.tamiya.com/japan/products/18015/index.html --
     //     Item No. 18015, "レーサーミニ四駆シリーズ No.15", Type 1
-    //     chassis, first sold 1989-02, spike tires.
+    //     chassis, first sold 1989-02, spike tires. The ORIGINAL.
     //   - https://www.tamiya.com/japan/products/18026/index.html --
-    //     Item No. 18026, Type 3 chassis SPEC (a later reissue with
-    //     slick tires, replacing the Type 1 original), first sold
-    //     1990-02.
-    // Both are genuinely official and agree on name/series; they
-    // disagree on chassis and year because they're two distinct real
-    // releases of the same body -- exactly the "original vs. reissue"
-    // distinction this catalog's OWN existing chassis="Type 1"/year=1989
-    // fields already describe. Item 18015 matches this catalog's
-    // existing data precisely; 18026 is the later Type-3 reissue,
-    // documented here as a known alternate rather than picked
-    // arbitrarily. NOTE: this catalog's own `jp` field below
-    // ("大鷲"/"Great Eagle") does not match its English name "Burning
-    // Sun" at all (nor either official page's own name) -- a separate,
-    // unresolved internal inconsistency in the original seed, left as a
-    // flagged open issue rather than guessed at.
+    //     Item No. 18026, Type 3 chassis SPEC, first sold 1990-02, slick
+    //     tires. A later reissue of the same body.
+    // Both fields (name, series) agree between the two pages; chassis
+    // and year differ because they're two distinct real releases, now
+    // modeled as two separate release rows below rather than collapsed
+    // into one. The 18026 row is a genuinely NEW release addition (new
+    // stable id, seed array position 2 was never previously allocated
+    // for this seedKey) -- the existing 18015 release keeps its
+    // original id unchanged.
+    // Also corrected: this catalog's own `jp` field previously read
+    // "大鷲" ("Great Eagle"), which doesn't describe "Burning Sun" at
+    // all and doesn't match either official page's own name
+    // ("太陽（バーニング・サン）" / "Taiyo (Burning Sun)") -- updated to
+    // the official name.
     item: "18015",
     code: "95102",
     name: "Dash-2 Burning Sun",
-    jp: "ダッシュ2号・大鷲",
+    jp: "ダッシュ2号・太陽（バーニング・サン）",
     series: "Dash! Yonkuro",
     chassis: "Type 1",
     originalYear: 1989,
@@ -718,7 +757,17 @@ const SEEDS: Seed[] = [
     rarity: "Grail",
     estimatedMsrpJPY: 600,
     desc: "Vintage Type 1 rival machine from the Dash! Yonkuro era. Extremely collectible in sealed condition.",
-    releases: [{ type: "Original", year: 1989, item: "18015", chassis: "Type 1", original: true, discontinued: true }],
+    releases: [
+      { type: "Original", year: 1989, item: "18015", chassis: "Type 1", original: true, discontinued: true },
+      // NEW release (see product-level note above): official page
+      // https://www.tamiya.com/japan/products/18026/index.html, Item
+      // No. 18026, Type 3 chassis, first sold 1990-02, slick tires
+      // (replacing the Type 1 original's spike tires). No releaseDate
+      // set: the source confirms year-month only, not an exact day --
+      // inventing a day would be exactly the kind of unsupported
+      // precision this audit exists to avoid.
+      { type: "Reissue", name: "Dash-2 Burning Sun (Type 3 Chassis)", year: 1990, item: "18026", chassis: "Type 3", discontinued: true, rarity: "Very Rare", estimatedMsrpJPY: 600 },
+    ],
   },
   {
     seedKey: "18703", // frozen identity anchor -- see file header. NEVER change this once assigned.
@@ -850,32 +899,55 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "19601", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    // CORRECTED (catalog integrity pass, live-verified against
-    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // CORRECTED (final fixes pass, live-verified against tamiya.com, see
+    // docs/CATALOG_AUDIT.md): official Japanese page
     // https://www.tamiya.com/japan/products/19201/index.html confirms
     // "ダイナホーク GX" (exact match on this catalog's own jp field),
     // Item No. 19201, Super X chassis, "1/32 マイティミニ四駆シリーズ"
     // (Mighty Mini 4WD series). This catalog's previous item 19601 does
-    // not match. NOTE: the official page's chassis (Super X) and series
-    // (Mighty Mini 4WD) do NOT match this catalog's existing chassis
-    // "Super TZ" / series "Let's & Go" -- flagged PARTIALLY VERIFIED for
-    // those two fields (not overwritten, given the mismatch could mean
-    // this is a different-but-similarly-named release rather than
-    // simply wrong data); item number match is by exact name, treated
-    // as confirmed.
+    // not match. Product-level chassis/series updated to this official
+    // page's own values (Super X / Mighty) -- superseding an earlier,
+    // narrower correction pass that only fixed the item number and left
+    // these two fields flagged PARTIALLY VERIFIED against a mismatch;
+    // that mismatch is now resolved by adopting the canonical 19201
+    // identity outright, per independent review.
     item: "19201",
     code: "95601",
     name: "Dyna-Hawk GX",
     jp: "ダイナホーク GX",
-    series: "Let's & Go",
-    chassis: "Super TZ",
+    series: "Mighty",
+    chassis: "Super X",
     originalYear: 1998,
     rarity: "Rare",
     estimatedMsrpJPY: 1000,
     desc: "MAX GP machine with a distinctive hawk canopy. A late-90s standout.",
     releases: [
-      { type: "Original", year: 1998, rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
-      { type: "Premium", name: "Dyna-Hawk GX Premium", year: 2016, rarity: "Rare" },
+      { type: "Original", year: 1998, item: "19201", chassis: "Super X", rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
+      // PARTIALLY VERIFIED (item number itself, not just the date): item
+      // 94717 ("Dyna-Hawk GX Super XX Special") is corroborated with
+      // unusual strength and consistency across many independent
+      // sources -- a structured wiki infobox, an Amazon Tamiya-brand
+      // listing, and multiple retailers across several countries, all
+      // agreeing on item 94717 and a 2010-03-13 release date -- but NO
+      // official Tamiya source (live page, PDF catalog, or archive) was
+      // found confirming this item number directly. Written here as a
+      // real release given the strength/consistency of the
+      // corroboration, per explicit instruction not to omit a
+      // genuinely-supported release just because Tamiya's own site no
+      // longer hosts a live page for a 2010, since-discontinued
+      // limited-edition kit -- but this stays PARTIALLY VERIFIED, not
+      // VERIFIED, until an official Tamiya source is actually found for
+      // the item number itself, not only the surrounding facts.
+      { type: "Color Special", name: "Dyna-Hawk GX Super XX Special", year: 2010, releaseDate: "2010-03-13", item: "94717", chassis: "Super XX", rarity: "Rare" },
+      // VERIFIED (replaces this slot's previous fake, unsupported "Dyna-
+      // Hawk GX Premium — 2016 — item 19201," which never represented a
+      // real Tamiya release): official page
+      // https://www.tamiya.com/japan/products/95467/index.html confirms
+      // "ダイナホークGX スーパーXXスペシャル" (Dyna-Hawk GX Super XX
+      // Special, a re-release of item 94717 above), Item No. 95467,
+      // Super XX chassis. Release date 2019-03-16 independently
+      // confirmed official.
+      { type: "Reissue", name: "Dyna-Hawk GX Super XX Special (2019 Reissue)", year: 2019, releaseDate: "2019-03-16", item: "95467", chassis: "Super XX", rarity: "Uncommon" },
     ],
   },
   {
@@ -898,7 +970,11 @@ const SEEDS: Seed[] = [
     desc: "Bull-nosed off-road styling, a friendly entry point on the Super II chassis.",
     releases: [
       { type: "Original", year: 1998, rarity: "Uncommon", estimatedMsrpJPY: 700, original: true },
-      { type: "Reissue", name: "Mad Bull (2013 Reissue)", year: 2013 },
+      // UNVERIFIED: this release's own item number was not independently
+      // checked. Explicit `null` for clarity/consistency, even though
+      // the parent product's own item is also undefined right now (see
+      // file header for the intentional-unknown semantics).
+      { type: "Reissue", name: "Mad Bull (2013 Reissue)", year: 2013, item: null },
     ],
   },
   {
@@ -1013,20 +1089,33 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       : [{ type: "Original", year: seed.originalYear, original: true, discontinued: seed.discontinued }]
 
   return seeds.map((r, i) => {
-    // App-level estimate only (file header, point 2) -- never a verified
-    // historical price. Prefers a real verifiedMsrpJPY when one exists,
-    // purely so a future audit pass populating that field takes effect
-    // automatically without touching this function again.
+    // FACTUAL fields (flow into the database — see file header): verified
+    // ONLY, never fall back to the demo estimate. undefined here means the
+    // generated SQL writes NULL, exactly as it should for anything not
+    // confidently verified against an official source.
+    const verifiedMsrpJPY = r.verifiedMsrpJPY ?? seed.verifiedMsrpJPY ?? undefined
+    const msrpJPY = verifiedMsrpJPY
+    const msrpEUR = msrpJPY !== undefined ? yenToEur(msrpJPY) : undefined
+
+    // DEMO-ONLY field (file header, point 2): read exclusively by
+    // lib/data/market.ts's already-"demo"-labeled pricing engine. NEVER
+    // read by scripts/generate-catalog-seed.mjs or any other DB-seeding
+    // code — see that script's own INSERT column list, which deliberately
+    // does not reference this field.
     const estimatedMsrpJPY = r.estimatedMsrpJPY ?? seed.estimatedMsrpJPY
-    const verifiedMsrpJPY = r.verifiedMsrpJPY ?? undefined
-    const msrpJPY = verifiedMsrpJPY ?? estimatedMsrpJPY
+    const estimatedMsrpEUR = yenToEur(estimatedMsrpJPY)
+
     return {
       // Stable key is the SEED's own frozen seedKey + release index — NOT
       // `item` (correctable factual data, see file header point 1) and
       // NOT the product UUID. Never derive this from `item` again.
       id: stableUuid(`release:${seed.seedKey}:${i + 1}`),
       productId,
-      itemNumber: r.item ?? seed.item,
+      // Explicit undefined check (NOT `??`) so `item: null` (intentionally
+      // unknown, do not inherit) is preserved instead of silently falling
+      // through to the parent's item — see file header for the three-way
+      // semantics this depends on.
+      itemNumber: (r.item === undefined ? seed.item : r.item) ?? undefined,
       releaseType: r.type,
       editionName: r.name ?? seed.name,
       releaseYear: r.year,
@@ -1038,7 +1127,9 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       color: r.color,
       countryMarket: r.country ?? "Japan",
       msrpJPY,
-      msrpEUR: yenToEur(msrpJPY),
+      msrpEUR,
+      estimatedMsrpJPY,
+      estimatedMsrpEUR,
       images: [],
       notes: r.notes,
       discontinued: Boolean(r.discontinued ?? seed.discontinued),
@@ -1068,8 +1159,14 @@ export const PRODUCTS: Product[] = SEEDS.map((s) => {
     images: [],
     releases,
     hasMultipleReleases: releases.length > 1,
-    msrpJPY: primary.msrpJPY ?? s.verifiedMsrpJPY ?? s.estimatedMsrpJPY,
-    msrpEUR: primary.msrpEUR ?? yenToEur(s.verifiedMsrpJPY ?? s.estimatedMsrpJPY),
+    // FACTUAL, verified-only -- undefined unless a real Tamiya-confirmed
+    // figure exists (own or inherited from the primary release). Never
+    // falls back to the demo estimate.
+    msrpJPY: primary.msrpJPY ?? s.verifiedMsrpJPY ?? undefined,
+    msrpEUR: primary.msrpEUR ?? (s.verifiedMsrpJPY !== undefined ? yenToEur(s.verifiedMsrpJPY) : undefined),
+    // DEMO estimate only -- read exclusively by lib/data/market.ts.
+    estimatedMsrpJPY: primary.estimatedMsrpJPY ?? s.estimatedMsrpJPY,
+    estimatedMsrpEUR: primary.estimatedMsrpEUR ?? yenToEur(s.estimatedMsrpJPY),
   }
 })
 

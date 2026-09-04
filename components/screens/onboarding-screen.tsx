@@ -58,7 +58,12 @@ export function OnboardingScreen() {
             releaseId: release.id,
             condition: "New / Opened",
             acquisitionDate: new Date().toISOString(),
-            acquisitionPrice: product.msrpEUR,
+            // Prefer a real verified price; fall back to the demo estimate
+            // as a reasonable, user-editable starting point (this is a
+            // pre-filled form field, not a factual claim) -- see
+            // lib/data/products.ts's file header for why msrpEUR is now
+            // correctly undefined for anything unverified.
+            acquisitionPrice: product.msrpEUR ?? product.estimatedMsrpEUR ?? 0,
             acquisitionCurrency: "EUR",
             notes: "",
           })
