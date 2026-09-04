@@ -32,9 +32,14 @@ hardening pass made its guarantees real rather than conventional:
   checked-in, append-only literal — the checker compares against it
   rather than re-deriving the floor from the catalog, so a *disappeared*
   id is actually detectable (proven with a negative test).
-- **releaseSeedKey.** Release UUIDs derive from an immutable
-  `productSeedKey:releaseSeedKey` pair, no longer array position — so
-  reordering a product's releases can't change any UUID.
+- **releaseSeedKey (fully positional-independent).** Release UUIDs
+  derive from an immutable `productSeedKey:releaseSeedKey` pair. In the
+  consistency-fix pass `releaseSeedKey` became **required** on every
+  `ReleaseSeed` (all 62 releases carry an explicit key), and
+  `buildReleases()` no longer falls back to `String(i + 1)` — so the
+  UUID has **zero** dependence on array position. Proven by
+  `scripts/test-release-id-reorder.mjs`, which physically reverses a
+  product's `releases` array and confirms every UUID is byte-identical.
 - **NULLS NOT DISTINCT.** The release identity unique constraint treats
   NULLs as equal, so nullable factual fields can't defeat duplicate
   protection — tested on real Postgres.
@@ -42,8 +47,23 @@ hardening pass made its guarantees real rather than conventional:
   key images on `productSeedKey`/`releaseSeedKey`, never Tamiya item
   number (retained only as human-readable metadata).
 - **Factual production status.** `production_status` defaults to
-  `unknown`; the legacy `discontinued` boolean now derives from it, not
-  the reverse.
+  `unknown`; the legacy `discontinued` boolean derives from it, not the
+  reverse. A non-`unknown` (factual) status now additionally requires
+  `status_checked_at` **and** provenance — a production claim can't exist
+  without evidence (invariant checker).
+- **UNKNOWN in the seed layer too (consistency fix).** Beyond the compat
+  fields, the *release* factual fields are now genuinely unknown-capable
+  at the seed level: `ReleaseSeed.year` is `number | null` (no invented
+  default), `chassis` uses the same three-way omitted/`null`/value
+  semantics as `item` (`null` = explicitly unknown, never inherited),
+  and `country` has **no `?? "Japan"` default** — an unknown market is
+  `NULL`, enforced by an invented-geographic-default invariant.
+- **MSRP JPY and EUR are independent facts (consistency fix).** Factual
+  `msrp_eur` comes only from a real `verifiedMsrpEUR`, **never** from
+  converting `verifiedMsrpJPY` — a converted JP price is not an official
+  European MSRP. Currency conversion lives only in the demo estimate
+  fields. Each populated factual price requires provenance backing that
+  specific field (JPY and EUR checked independently).
 
 
 
@@ -226,9 +246,14 @@ when it was checked, and notes.
 **hard-fails** (not warns) on: a `verified` release with zero sources; a
 `verified_fields` value outside the controlled vocabulary; and any
 populated factual `barcode_jan`, `msrp_jpy`, or `msrp_eur` whose release
-has no source specifically backing that field. (This catalog has no
-verified barcode/MSRP today, so those field-level checks pass vacuously
-— they guard the future.)
+has no source specifically backing that field. `msrp_jpy` and `msrp_eur`
+are checked **independently** (consistency fix) — a factual EUR price
+must have its own EUR provenance and is never a converted JP price (the
+seed builder sources `msrp_eur` only from `verifiedMsrpEUR`, never from
+`verifiedMsrpJPY`). Currency conversion exists only in the demo estimate
+fields (`estimatedMsrpEUR`), never in the factual `msrp_eur`. (This
+catalog has no verified barcode/MSRP today, so the field-level checks
+pass vacuously — they guard the future.)
 
 ## 9. Production status
 
@@ -248,6 +273,14 @@ iff `production_status === 'discontinued'`), so a leftover seed-level
 claim. Both `lib/data/products.ts` and
 `scripts/check-catalog-invariants.mjs` (production-status/discontinued
 consistency) enforce this.
+
+**Evidence required for a factual status (consistency fix).** A
+non-`unknown` status (`active`/`announced`/`discontinued`) must be
+backed by both a `status_checked_at` timestamp and at least one
+provenance source — the invariant checker hard-fails otherwise. Without
+evidence, the status stays `unknown`; no status or source is ever
+invented. This catalog currently has every release at `unknown`, so the
+check passes cleanly.
 
 ## 10. Two new releases added this pass
 
@@ -398,12 +431,21 @@ literal fake placeholders in factual columns; no fabricated barcodes; no
 estimated MSRP masquerading as factual; **cross-product item-number
 collisions across ALL release item numbers**; **NULL-aware duplicate
 release identity** (mirroring the `NULLS NOT DISTINCT` constraint);
-image-mapping validity **by seed key**; and production-status/
-discontinued consistency. Checks that need a live database
-(Collection/Wishlist FK validity **and product↔canonical compat-column
-drift in the actual DB**) run only when `DATABASE_URL` is set and
-reachable, and are clearly reported as skipped otherwise — never
-silently ignored.
+image-mapping validity **by seed key**; production-status/
+discontinued consistency **plus the factual-status evidence rule**
+(a non-`unknown` production status requires `status_checked_at` +
+provenance); **no invented geographic default** (catches a reintroduced
+`?? "Japan"`); and **independent JPY/EUR MSRP provenance** (a factual
+`msrp_eur` must have its own EUR source, never a converted JP price).
+Checks that need a live database (Collection/Wishlist FK validity **and
+product↔canonical compat-column drift in the actual DB**) run only when
+`DATABASE_URL` is set and reachable, and are clearly reported as skipped
+otherwise — never silently ignored.
+
+A separate script, `scripts/test-release-id-reorder.mjs`, proves release
+UUIDs are independent of array position: it builds a product's releases
+in normal order and again with the `releases` array physically reversed,
+and confirms every UUID is byte-identical.
 
 **Provenance is a hard requirement (hardening).** A `verified` release
 with zero `release_sources`, or a populated factual barcode/MSRP with no

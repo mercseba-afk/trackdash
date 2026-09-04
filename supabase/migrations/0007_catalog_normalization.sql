@@ -19,14 +19,15 @@
 
 
 -- =========================================================================
--- 1. Unconditional: clear barcode_jan/msrp_jpy/msrp_eur for every release.
---    No release in this catalog has a verified real JAN or MSRP as of
---    this pass -- see lib/data/products.ts's file header, point 2, and
---    lib/types.ts's estimatedMsrpJPY/EUR split (the demo estimate NEVER
---    reaches these factual columns).
+-- 1. Unconditional: clear barcode_jan/msrp_jpy/msrp_eur/country_market for
+--    every release. No release in this catalog has a verified real JAN or
+--    MSRP as of this pass, and no release has a source-derived market --
+--    the old 'Japan' default was an invented value (hardening point 2),
+--    now cleared to NULL. See lib/data/products.ts's file header and
+--    lib/types.ts's estimatedMsrpJPY/EUR split.
 -- =========================================================================
 
-update product_releases set barcode_jan = NULL, msrp_jpy = NULL, msrp_eur = NULL;
+update product_releases set barcode_jan = NULL, msrp_jpy = NULL, msrp_eur = NULL, country_market = NULL;
 
 
 -- =========================================================================
@@ -337,8 +338,8 @@ update product_releases set item_number = '19434', chassis = 'Super II', edition
 -- =========================================================================
 
 insert into product_releases (id, product_id, item_number, release_type, edition_type, edition_name, release_year, release_date, chassis, barcode_jan, color, country_market, msrp_jpy, msrp_eur, notes, discontinued, is_original, rarity, data_source, verification_status, production_status, status_checked_at) values
-  ('45f04c74-a41c-5514-87a2-ab47ea6d66b6', '3b443635-b33f-5553-a39d-eba8b8cafddb', '18026', 'Reissue', 'reissue', 'Dash-2 Burning Sun (Type 3 Chassis)', 1990, NULL, 'Type 3', NULL, NULL, 'Japan', NULL, NULL, NULL, false, false, 'Very Rare', 'manual', 'verified', 'unknown', NULL),
-  ('ace0d1b1-aaf3-589a-977c-a3df07c83c73', 'd3b4ad34-05ac-592e-ad93-fab4cfde0a5a', '95467', 'Reissue', 'reissue', 'Dyna-Hawk GX Super XX Special (2019 Reissue)', 2019, '2019-03-16', 'Super XX', NULL, NULL, 'Japan', NULL, NULL, NULL, false, false, 'Uncommon', 'manual', 'verified', 'unknown', NULL)
+  ('45f04c74-a41c-5514-87a2-ab47ea6d66b6', '3b443635-b33f-5553-a39d-eba8b8cafddb', '18026', 'Reissue', 'reissue', 'Dash-2 Burning Sun (Type 3 Chassis)', 1990, NULL, 'Type 3', NULL, NULL, NULL, NULL, NULL, NULL, false, false, 'Very Rare', 'manual', 'verified', 'unknown', NULL),
+  ('ace0d1b1-aaf3-589a-977c-a3df07c83c73', 'd3b4ad34-05ac-592e-ad93-fab4cfde0a5a', '95467', 'Reissue', 'reissue', 'Dyna-Hawk GX Super XX Special (2019 Reissue)', 2019, '2019-03-16', 'Super XX', NULL, NULL, NULL, NULL, NULL, NULL, false, false, 'Uncommon', 'manual', 'verified', 'unknown', NULL)
 on conflict (id) do nothing;
 
 -- Dash-2 Burning Sun -- Dash-2 Burning Sun (Type 3 Chassis) (item 18026)

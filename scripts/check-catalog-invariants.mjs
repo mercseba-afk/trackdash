@@ -340,6 +340,66 @@ for (const p of PRODUCTS) {
 }
 
 // -----------------------------------------------------------------------
+// Point 4: a FACTUAL, non-"unknown" production status
+// (active/announced/discontinued) must be backed by evidence -- it must
+// have statusCheckedAt AND at least one provenance source. "unknown" needs
+// nothing. This stops a production claim from existing without evidence.
+// -----------------------------------------------------------------------
+for (const p of PRODUCTS) {
+  for (const r of p.releases) {
+    if (r.productionStatus !== "unknown") {
+      if (!r.statusCheckedAt) {
+        fail(`${p.name} / ${r.editionName}: productionStatus="${r.productionStatus}" (factual) but no statusCheckedAt`)
+      }
+      if (r.sources.length === 0) {
+        fail(`${p.name} / ${r.editionName}: productionStatus="${r.productionStatus}" (factual) but no provenance source`)
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Point 2: no invented geographic default. If the seed layer ever
+// reintroduced a `?? "Japan"` (or any blanket default), every release
+// would carry the same non-null countryMarket. We can't prove a specific
+// value is "real" here, but we CAN catch the invented-default smell: if
+// EVERY release has the identical countryMarket, that's the signature of a
+// hardcoded default rather than source-derived data. Today every release
+// has countryMarket === undefined (no source data set it), so this passes.
+// -----------------------------------------------------------------------
+{
+  const markets = PRODUCTS.flatMap((p) => p.releases.map((r) => r.countryMarket))
+  const nonNull = markets.filter((m) => m !== undefined)
+  const distinct = new Set(nonNull)
+  if (nonNull.length === markets.length && distinct.size === 1) {
+    fail(`Every release has the same non-null countryMarket ("${[...distinct][0]}") -- looks like a reintroduced invented default, not source data`)
+  }
+}
+
+// -----------------------------------------------------------------------
+// Point 3: factual msrpEUR must never be a currency conversion of msrpJPY.
+// The two are independent facts (an official JP price converted to EUR is
+// not an official European MSRP). We can't see the source math here, but a
+// converted value would be a deterministic function of msrpJPY; the clean
+// invariant is: a populated msrpEUR must have provenance specifically
+// backing "msrpEUR" (checked below in the field-provenance block) AND must
+// not silently exist only because msrpJPY does. Enforce the "EUR present
+// implies its own provenance, independent of JPY" rule explicitly.
+// (Today no release has either, so this passes vacuously -- it guards the
+// future.)
+// -----------------------------------------------------------------------
+for (const p of PRODUCTS) {
+  for (const r of p.releases) {
+    if (r.msrpEUR !== undefined) {
+      const eurBacked = r.sources.some((s) => s.verifiedFields.includes("msrpEUR"))
+      if (!eurBacked) {
+        fail(`${p.name} / ${r.editionName}: factual msrpEUR is set but no source backs "msrpEUR" -- a converted JP price is not an official EU MSRP`)
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
 // 2, 61 total (36 products, 62 releases) -- basic shape sanity so a
 // silent structural regression (e.g. a product losing all its releases)
 // is caught immediately.
