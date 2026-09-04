@@ -48,7 +48,7 @@ update product_releases set barcode_jan = NULL, msrp_jpy = NULL, msrp_eur = NULL
 
 -- =========================================================================
 -- 3. Corrected factual fields on already-deployed products, by id.
---    13 product row(s) affected.
+--    20 product row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -75,6 +75,21 @@ update products set canonical_item_number = '19409', chassis = 'Super 1' where i
 -- Victory Magnum
 update products set canonical_item_number = '19406' where id = 'f603ed6f-e601-5372-9fe7-6fd1034b6065';
 
+-- Cyclone Magnum
+update products set canonical_item_number = '19412' where id = '53791485-2948-5176-8acb-2ec947eafc51';
+
+-- Beat Magnum
+update products set canonical_item_number = '19421' where id = 'a66d871c-00b1-56e5-9bc4-1621ea1729b2';
+
+-- Hurricane Sonic
+update products set canonical_item_number = '19415' where id = 'dee35418-283b-5603-889b-b3eb2d68eea5';
+
+-- Buster Sonic
+update products set canonical_item_number = '19423' where id = 'da28c703-24ef-5ebd-a952-87346735dc7e';
+
+-- Avante
+update products set canonical_item_number = '18014' where id = '82b478fd-21dd-5c93-82fb-bf50461a107d';
+
 -- Avante Mk.II
 update products set canonical_item_number = '18614', chassis = 'MS', description = 'The MS-chassis Avante Mk.II, Mini 4WD PRO Series No.14 -- a modern take on the Avante line, not the vintage original.', original_release_year = 2006, rarity = 'Uncommon' where id = '6dcb6511-5277-561f-a880-95ef828ce44f';
 
@@ -87,13 +102,19 @@ update products set canonical_item_number = '19407', original_release_year = 199
 -- Dash-4 Cannon Ball
 update products set canonical_item_number = NULL where id = 'd2c3e3d8-050d-5b9b-932f-023f2ee7dce2';
 
+-- Astute
+update products set canonical_item_number = NULL where id = 'be48e786-11c6-567f-b063-8026957bb403';
+
+-- Dash-01 Horizon
+update products set canonical_item_number = NULL where id = '813a9ba0-170e-5636-9a9a-a7e7fca32366';
+
 -- Thunder Shot
 update products set canonical_item_number = NULL where id = '059b5b3f-9ee9-5932-b39f-879642b9414c';
 
 
 -- =========================================================================
 -- 4. Corrected factual fields on already-deployed releases, by id.
---    23 release row(s) affected.
+--    35 release row(s) affected.
 -- =========================================================================
 
 -- Aero Avante
@@ -141,6 +162,33 @@ update product_releases set item_number = '19406' where id = '6ed25d50-4099-5924
 -- Victory Magnum Premium
 update product_releases set item_number = '19434', chassis = 'Super II', release_year = 2011, release_date = '2011-06-25' where id = '0bdb9bcd-e4aa-53ab-b004-984cae96fdca';
 
+-- Cyclone Magnum
+update product_releases set item_number = '19412' where id = 'efd6902b-f080-5165-8a13-0375c1d32298';
+
+-- Cyclone Magnum Premium
+update product_releases set item_number = '19440', chassis = 'AR', release_year = 2014, release_date = '2014-11-21' where id = '85a3549a-d563-5dda-bc6d-bd1ac684601e';
+
+-- Beat Magnum
+update product_releases set item_number = '19421' where id = '7683c862-f484-5603-aa28-c76ae7453892';
+
+-- Beat Magnum Premium
+update product_releases set item_number = '19444', chassis = 'AR', release_year = 2015, release_date = '2015-03-21' where id = 'a49b33d9-9f2c-5333-9521-8a7c732995d2';
+
+-- Hurricane Sonic
+update product_releases set item_number = '19415' where id = '71addadb-04b3-579f-96f2-c5e976cf1cd5';
+
+-- Hurricane Sonic Premium
+update product_releases set item_number = '19441', chassis = 'AR' where id = 'e1b626f8-e0ea-52c9-86f0-eb870561d70d';
+
+-- Buster Sonic
+update product_releases set item_number = '19423' where id = '217fd7d2-2090-593c-bb7d-bef7ce1cf154';
+
+-- Avante Jr.
+update product_releases set item_number = '18014', chassis = 'Type 2', notes = 'Original ''Avante Jr.'' on the Type 2 chassis.' where id = 'cafbb6ca-1aba-5732-946d-0045d054aa5c';
+
+-- Avante (Premium)
+update product_releases set item_number = '18014' where id = '7f3f7461-0dee-5d6a-b99d-36e2d910f0ef';
+
 -- Avante Mk.II
 update product_releases set item_number = '18614', chassis = 'MS', release_year = 2006, release_date = '2006-06-24', discontinued = false where id = '5a123617-c84c-5012-ab20-1a9d493259e0';
 
@@ -158,6 +206,15 @@ update product_releases set chassis = 'Type 3', notes = 'Modern sealed reissue s
 
 -- Dash-4 Cannon Ball
 update product_releases set item_number = NULL where id = 'c63b8f4a-43f3-597b-82e5-f0e45bb45b7a';
+
+-- Astute
+update product_releases set item_number = NULL where id = '3d1c1580-c921-530f-9aaf-7ca5ff77e86c';
+
+-- Astute (Reissue)
+update product_releases set item_number = NULL where id = '96deae1d-dfec-5aaf-a247-835386533002';
+
+-- Dash-01 Horizon
+update product_releases set item_number = NULL where id = 'a0b042ac-7e6c-57f4-98a2-bd92e8e39f39';
 
 -- Thunder Shot (Type 3)
 update product_releases set item_number = NULL where id = 'dcaa9d00-fe3f-5bc4-9bfa-5bc1078e2087';

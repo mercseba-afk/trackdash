@@ -350,7 +350,14 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "19425", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19425",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19412/index.html confirms
+    // "サイクロンマグナム" (Cyclone Magnum), Item No. 19412. This
+    // catalog's previous item 19425 does not belong to Cyclone Magnum in
+    // Tamiya's numbering (chassis/year carried over, not independently
+    // re-verified -- PARTIALLY VERIFIED for those two fields).
+    item: "19412",
     code: "95025",
     name: "Cyclone Magnum",
     jp: "サイクロンマグナム",
@@ -362,12 +369,23 @@ const SEEDS: Seed[] = [
     desc: "Twin-intake cowl on the high-rigidity Super TZ chassis. One of the most beloved Magnum forms.",
     releases: [
       { type: "Original", year: 1996, rarity: "Rare", estimatedMsrpJPY: 800, original: true },
-      { type: "Premium", name: "Cyclone Magnum Premium", year: 2013 },
+      // CORRECTED: official page
+      // https://www.tamiya.com/japan/products/19440/index.html confirms
+      // "サイクロンマグナム プレミアム (ARシャーシ)" (Cyclone Magnum
+      // Premium, AR Chassis), Item No. 19440, released 2014-11-21.
+      { type: "Premium", name: "Cyclone Magnum Premium", year: 2014, releaseDate: "2014-11-21", item: "19440", chassis: "AR" },
     ],
   },
   {
     seedKey: "19426", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19426",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19421/index.html confirms
+    // "ビートマグナム" (Beat Magnum), Item No. 19421. This catalog's
+    // previous item 19426 does not belong to Beat Magnum (chassis/year
+    // carried over, not independently re-verified -- PARTIALLY VERIFIED
+    // for those two fields).
+    item: "19421",
     code: "95026",
     name: "Beat Magnum",
     jp: "ビートマグナム",
@@ -379,12 +397,23 @@ const SEEDS: Seed[] = [
     desc: "The final Magnum of the original manga arc. Iconic red-and-white split cowl.",
     releases: [
       { type: "Original", year: 1997, rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
-      { type: "Premium", name: "Beat Magnum Premium", year: 2013, rarity: "Uncommon" },
+      // CORRECTED: official page
+      // https://www.tamiya.com/japan/products/19444/index.html confirms
+      // "ビートマグナム プレミアム (ARシャーシ)" (Beat-Magnum Premium,
+      // AR Chassis), Item No. 19444, released 2015-03-21.
+      { type: "Premium", name: "Beat Magnum Premium", year: 2015, releaseDate: "2015-03-21", item: "19444", chassis: "AR", rarity: "Uncommon" },
     ],
   },
   {
     seedKey: "19424", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19424",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19415/index.html confirms
+    // "ハリケーンソニック" (Hurricane Sonic), Item No. 19415. This
+    // catalog's previous item 19424 does not belong to Hurricane Sonic
+    // (chassis/year carried over, not independently re-verified --
+    // PARTIALLY VERIFIED for those two fields).
+    item: "19415",
     code: "95024",
     name: "Hurricane Sonic",
     jp: "ハリケーンソニック",
@@ -396,12 +425,29 @@ const SEEDS: Seed[] = [
     desc: "Sonic lineage's high-speed form with sweeping intakes on the Super TZ chassis.",
     releases: [
       { type: "Original", year: 1996, rarity: "Rare", estimatedMsrpJPY: 800, original: true },
-      { type: "Premium", name: "Hurricane Sonic Premium", year: 2013 },
+      // PARTIALLY VERIFIED: item 19441 (AR chassis) corroborated by a
+      // retailer listing ("TAMIYA 1/32 Fully Cowled Mini 4WD No.41
+      // HURRICANE SONIC PREMIUM AR 19441"), not independently confirmed
+      // via a direct tamiya.com fetch in this pass.
+      { type: "Premium", name: "Hurricane Sonic Premium", year: 2013, item: "19441", chassis: "AR" },
     ],
   },
   {
     seedKey: "19430", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19430",
+    // CORRECTED (catalog integrity pass, live-verified against
+    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // https://www.tamiya.com/japan/products/19423/index.html confirms
+    // "バスターソニック" (Buster Sonic), Item No. 19423. This catalog's
+    // previous item 19430 does not belong to Buster Sonic (chassis/year
+    // carried over, not independently re-verified -- PARTIALLY VERIFIED
+    // for those two fields). Note: a real "Buster-Sonic Premium (AR
+    // Chassis)" exists at item 19445 (confirmed via
+    // tamiya.com/japan/19445, released 2015-04-18) -- not added as a
+    // release here since this catalog's existing single release for
+    // this product was never split into Original/Premium; adding a new
+    // release row is catalog expansion, out of scope for this
+    // correction pass (see docs/CATALOG_AUDIT.md).
+    item: "19423",
     code: "95030",
     name: "Buster Sonic",
     jp: "バスターソニック",
@@ -415,7 +461,17 @@ const SEEDS: Seed[] = [
   // ---- Avante family ----
   {
     seedKey: "18709", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "18709",
+    // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
+    // multiple independent official-adjacent retailer sources (rcMart,
+    // RC Station) consistently cite item 18014, Type 2 chassis for
+    // "Avante Jr." -- this catalog's previous item 18709 does not match.
+    // Not independently confirmed via a direct tamiya.com fetch in this
+    // pass (only retailer corroboration achieved) -- flagged PARTIALLY
+    // VERIFIED in docs/CATALOG_AUDIT.md despite the correction being
+    // applied, given the strength/consistency of the corroborating
+    // sources. Premium release (2011, Super II) item not independently
+    // re-checked this pass.
+    item: "18014",
     code: "95109",
     name: "Avante",
     jp: "アバンテ",
@@ -426,7 +482,7 @@ const SEEDS: Seed[] = [
     estimatedMsrpJPY: 1000,
     desc: "The original wedge that started the Avante dynasty, reissued for the Super II chassis.",
     releases: [
-      { type: "Original", name: "Avante Jr.", year: 1988, chassis: "Zero", rarity: "Very Rare", estimatedMsrpJPY: 600, original: true, notes: "Original 'Avante Jr.' on the Zero chassis." },
+      { type: "Original", name: "Avante Jr.", year: 1988, item: "18014", chassis: "Type 2", rarity: "Very Rare", estimatedMsrpJPY: 600, original: true, notes: "Original 'Avante Jr.' on the Type 2 chassis." },
       { type: "Premium", name: "Avante (Premium)", year: 2011, chassis: "Super II", rarity: "Uncommon" },
     ],
   },
@@ -630,7 +686,17 @@ const SEEDS: Seed[] = [
   // ---- Super Mini 4WD classics ----
   {
     seedKey: "19412", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19412",
+    // CONFIRMED WRONG, NOT CORRECTED (catalog integrity pass, see
+    // docs/CATALOG_AUDIT.md): item 19412 is a real Tamiya item number,
+    // but it belongs to "Cyclone Magnum" (corrected elsewhere in this
+    // file, verified via https://www.tamiya.com/japan/products/19412/index.html)
+    // -- this collision is exactly why this field is being cleared
+    // rather than left as-is. No confident replacement item number was
+    // found for a "Fully Cowled"-series Astute (the live items found
+    // under this name -- 18705 "Flame Astute", 18033/18037/18048
+    // "Astute Jr." variants -- describe different, later products, not
+    // this catalog's claimed 1992 Fully Cowled original).
+    item: undefined,
     code: "95212",
     name: "Astute",
     jp: "アスチュート",
@@ -681,7 +747,14 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "19415", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    item: "19415",
+    // CONFIRMED WRONG, NOT CORRECTED (catalog integrity pass, see
+    // docs/CATALOG_AUDIT.md): item 19415 is a real Tamiya item number,
+    // but it belongs to "Hurricane Sonic" (corrected elsewhere in this
+    // file, verified via https://www.tamiya.com/japan/products/19415/index.html)
+    // -- this collision is exactly why this field is being cleared
+    // rather than left as-is. No confident replacement item number was
+    // found for "Dash-01 Horizon" within this pass.
+    item: undefined,
     code: "95215",
     name: "Dash-01 Horizon",
     series: "Super Mini 4WD",
