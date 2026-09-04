@@ -5,7 +5,7 @@
 // UI is actually wired up to the database in a later step.
 
 import { relations } from "drizzle-orm"
-import { productImages, productReleases, products, releaseImages } from "./catalog"
+import { productImages, productReleases, products, releaseImages, releaseSources } from "./catalog"
 import { brands, categories } from "./taxonomy"
 
 export const brandsRelations = relations(brands, ({ many }) => ({
@@ -22,6 +22,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   brand: one(brands, { fields: [products.brandId], references: [brands.id] }),
   releases: many(productReleases),
   images: many(productImages),
+  canonicalRelease: one(productReleases, { fields: [products.canonicalReleaseId], references: [productReleases.id] }),
 }))
 
 export const productImagesRelations = relations(productImages, ({ one }) => ({
@@ -31,8 +32,13 @@ export const productImagesRelations = relations(productImages, ({ one }) => ({
 export const productReleasesRelations = relations(productReleases, ({ one, many }) => ({
   product: one(products, { fields: [productReleases.productId], references: [products.id] }),
   images: many(releaseImages),
+  sources: many(releaseSources),
 }))
 
 export const releaseImagesRelations = relations(releaseImages, ({ one }) => ({
   release: one(productReleases, { fields: [releaseImages.releaseId], references: [productReleases.id] }),
+}))
+
+export const releaseSourcesRelations = relations(releaseSources, ({ one }) => ({
+  release: one(productReleases, { fields: [releaseSources.releaseId], references: [productReleases.id] }),
 }))

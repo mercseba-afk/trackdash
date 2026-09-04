@@ -11,7 +11,12 @@
 // Prints SQL to stdout. To regenerate the checked-in migration after
 // editing scripts/data/tamiya-images.ts:
 //   node --experimental-strip-types scripts/seed-images.mjs \
-//     > supabase/migrations/0006_seed_catalog_images.sql
+//     > supabase/migrations/0008_seed_catalog_images.sql
+//
+// Renumbered from 0006/0007 to 0008 as part of the Catalog Model V2 pass
+// (see docs/CATALOG_MODEL_V2.md section 28): 0006 is now schema-only,
+// 0007 is data normalization, and this image seed comes last since it
+// references product/release rows that must already exist.
 //
 // Every statement is ON CONFLICT (id) DO NOTHING (each image row's id is
 // itself a stableUuid() derived from its natural key), so re-running this

@@ -47,15 +47,22 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1788455283745,
-      "tag": "0006_catalog_integrity_corrections",
+      "when": 1788527302096,
+      "tag": "0006_catalog_model_v2",
       "breakpoints": true
     },
     {
       "idx": 7,
       "version": "7",
-      "when": 1788455284754,
-      "tag": "0007_seed_catalog_images",
+      "when": 1788528014838,
+      "tag": "0007_catalog_normalization",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788528016245,
+      "tag": "0008_seed_catalog_images",
       "breakpoints": true
     }
   ]

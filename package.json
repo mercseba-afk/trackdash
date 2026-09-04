@@ -9,7 +9,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed:generate": "node --experimental-strip-types scripts/generate-catalog-seed.mjs > supabase/migrations/0003_seed_initial_catalog.sql",
-    "db:seed:images:generate": "node --experimental-strip-types scripts/seed-images.mjs > supabase/migrations/0007_seed_catalog_images.sql"
+    "db:seed:images:generate": "node --experimental-strip-types scripts/seed-images.mjs > supabase/migrations/0008_seed_catalog_images.sql",
+    "db:normalize:generate": "node --experimental-strip-types scripts/generate-catalog-normalization.mjs > supabase/migrations/0007_catalog_normalization.sql"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

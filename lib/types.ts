@@ -81,6 +81,56 @@ export type PriceConfidence = "High" | "Medium" | "Low" | "Insufficient"
 export type TrendDirection = "rising" | "stable" | "falling"
 
 // -----------------------------------------------------------------------------
+// CATALOG MODEL V2 — controlled vocabularies (see docs/CATALOG_MODEL_V2.md)
+// -----------------------------------------------------------------------------
+
+// How confidently a RELEASE's factual data is backed by evidence. Does NOT
+// require every field to be populated — a `verified` release may still have
+// e.g. `barcodeJAN: undefined` because the barcode specifically was never
+// checked. NULL/undefined fields are always valid; this status describes the
+// release's core identity (existence, item number where claimed, chassis),
+// not field-by-field completeness.
+export type VerificationStatus = "verified" | "partial" | "unverified"
+
+// Coarse, deliberately small edition classification — see
+// lib/data/products.ts's file header for the normalization rule from the
+// existing (richer, free-er) ReleaseType. Not a replacement for
+// `releaseType`/`editionName`, which remain the primary display vocabulary.
+export type EditionType =
+  | "original"
+  | "premium"
+  | "color_special"
+  | "limited"
+  | "anniversary"
+  | "japan_cup"
+  | "reissue"
+  | "special"
+  | "other"
+
+// Whether Tamiya still officially sells/produces this specific release.
+// Deliberately distinct from marketplace availability (whether a copy can be
+// found on eBay/Amazon right now) -- that's a Price Intelligence/Market
+// Data concern, not a catalog fact.
+export type ProductionStatus = "announced" | "active" | "discontinued" | "unknown"
+
+export type ReleaseSourceType = "official_manufacturer" | "official_catalog_pdf" | "official_archive" | "trusted_secondary" | "other"
+
+// A single piece of evidence backing a release's factual data — so a future
+// maintainer can see WHY a value exists without reading old chat history or
+// dense code comments. `verifiedFields` names which specific release fields
+// this particular source backs (e.g. ["itemNumber", "chassis"]), since one
+// source rarely confirms every field at once.
+export interface ReleaseSource {
+  id: string
+  releaseId: string
+  sourceType: ReleaseSourceType
+  sourceUrl?: string
+  verifiedFields: string[]
+  checkedAt?: string // ISO date
+  notes?: string
+}
+
+// -----------------------------------------------------------------------------
 // PRODUCT_RELEASE / EDITION
 // A specific commercial release of a model. This is the identity a collection
 // item points at, and the identity the price engine values.
@@ -91,6 +141,8 @@ export interface ProductRelease {
   itemNumber?: string // ITEM number for THIS release (may match the model or differ) -- undefined when genuinely unverified, never a placeholder string
   releaseType: ReleaseType
   editionName: string // display name for this release, e.g. "Dash-1 Emperor (2026 Reissue)"
+  /** Coarse controlled classification (Catalog Model V2) — see lib/types.ts. Distinct from releaseType/editionName above, which remain the primary display vocabulary. */
+  editionType: EditionType
   releaseYear: number // the year THIS release hit the market
   releaseDate?: string // ISO date if a precise date is known
   chassis: Chassis
@@ -105,9 +157,16 @@ export interface ProductRelease {
   estimatedMsrpEUR?: number
   images?: string[]
   notes?: string
-  discontinued: boolean
+  discontinued: boolean // compatibility field — see productionStatus below, the Catalog Model V2 authoritative source; kept in sync (discontinued === productionStatus === 'discontinued'), never set independently
   isOriginal: boolean // true for the model's original historical release
   rarity?: Rarity // release-specific rarity; falls back to the model rarity
+  /** How confidently this release's factual data is backed by evidence — see lib/types.ts's VerificationStatus. Does not require every field to be populated. */
+  verificationStatus: VerificationStatus
+  /** Whether Tamiya still officially sells/produces this exact release — distinct from marketplace availability. */
+  productionStatus: ProductionStatus
+  statusCheckedAt?: string // ISO date productionStatus was last confirmed
+  /** Evidence backing this release's factual data — see ReleaseSource. Empty array is valid (no source recorded yet); NEVER invent a source. */
+  sources: ReleaseSource[]
 }
 
 // -----------------------------------------------------------------------------
@@ -118,7 +177,13 @@ export interface ProductRelease {
 export interface Product {
   id: string
   category: ProductCategory
-  itemNumber?: string // canonical/representative ITEM number for the model -- undefined when genuinely unverified
+  /**
+   * COMPATIBILITY/CACHE field (Catalog Model V2) — denormalized from
+   * `canonicalRelease.itemNumber` below, NEVER an independent source of
+   * truth. See lib/data/products.ts's file header. Undefined when
+   * genuinely unverified.
+   */
+  itemNumber?: string
   /**
    * Internal stable identity anchor (see lib/data/stable-id.ts and
    * lib/data/products.ts's file header) — NOT for display. Exists so
@@ -130,12 +195,32 @@ export interface Product {
   name: string // canonical model name
   japaneseName?: string
   series: Series
-  chassis: Chassis // primary/representative chassis (releases may differ)
-  originalReleaseYear: number // the model's FIRST-EVER release year
+  /**
+   * COMPATIBILITY/CACHE field (Catalog Model V2) — denormalized from
+   * `canonicalRelease.chassis`. A Product does NOT have one universally
+   * true chassis (releases legitimately differ, e.g. Vanguard Sonic's
+   * Original is Super 1 while its Premium is Super II) — this field
+   * exists only so existing UI that expects a single representative
+   * chassis keeps working, and it is ALWAYS the canonical/original
+   * release's own chassis, never an independently curated value.
+   */
+  chassis: Chassis
+  originalReleaseYear: number // the model's FIRST-EVER release year -- COMPATIBILITY/CACHE, denormalized from canonicalRelease.releaseYear
   rarity: Rarity
   description: string
   images: string[]
   releases: ProductRelease[]
+  /**
+   * The release considered authoritative for this model's identity —
+   * normally its original historical release. May be undefined when no
+   * release can be confidently identified as canonical (UNKNOWN >
+   * INVENTED — never force an arbitrary release to be canonical merely
+   * to populate this field). When set, `itemNumber`/`chassis`/
+   * `originalReleaseYear` above are always derived from this release;
+   * see lib/data/products.ts's PRODUCTS.map() and
+   * scripts/check-catalog-invariants.mjs, which both enforce this.
+   */
+  canonicalReleaseId?: string
   // derived convenience (computed at build time)
   hasMultipleReleases: boolean
   /** FACTUAL, verified-only MSRP of the primary release, for headline display -- undefined unless a real Tamiya-confirmed figure exists. */
@@ -252,4 +337,28 @@ export const RELEASE_TYPES: ReleaseType[] = [
   "Premium",
   "Chassis Variant",
   "Other",
+]
+
+export const VERIFICATION_STATUSES: VerificationStatus[] = ["verified", "partial", "unverified"]
+
+export const EDITION_TYPES: EditionType[] = [
+  "original",
+  "premium",
+  "color_special",
+  "limited",
+  "anniversary",
+  "japan_cup",
+  "reissue",
+  "special",
+  "other",
+]
+
+export const PRODUCTION_STATUSES: ProductionStatus[] = ["announced", "active", "discontinued", "unknown"]
+
+export const RELEASE_SOURCE_TYPES: ReleaseSourceType[] = [
+  "official_manufacturer",
+  "official_catalog_pdf",
+  "official_archive",
+  "trusted_secondary",
+  "other",
 ]

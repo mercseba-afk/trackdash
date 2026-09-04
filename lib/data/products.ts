@@ -1,4 +1,15 @@
-import type { Chassis, Product, ProductRelease, Rarity, ReleaseType, Series } from "@/lib/types"
+import type {
+  Chassis,
+  EditionType,
+  Product,
+  ProductRelease,
+  ProductionStatus,
+  Rarity,
+  ReleaseSource,
+  ReleaseType,
+  Series,
+  VerificationStatus,
+} from "@/lib/types"
 import { stableUuid } from "./stable-id"
 
 // -----------------------------------------------------------------------------
@@ -84,6 +95,15 @@ export const MINI4WD_CATEGORY_ID = stableUuid("category:mini4wd")
 // result as a real historical conversion rate or a verified price.
 const yenToEur = (jpy: number) => Math.round((jpy / 160) * 100) / 100
 
+/** Lightweight seed-level source, expanded into a full ReleaseSource (with id/releaseId) in buildReleases(). See file header + docs/CATALOG_MODEL_V2.md section 13. */
+interface ReleaseSourceSeed {
+  sourceType: ReleaseSource["sourceType"]
+  sourceUrl?: string
+  verifiedFields: string[]
+  checkedAt?: string
+  notes?: string
+}
+
 interface ReleaseSeed {
   type: ReleaseType
   name?: string // edition name; defaults to the model name
@@ -111,6 +131,22 @@ interface ReleaseSeed {
   discontinued?: boolean
   original?: boolean
   notes?: string
+  /**
+   * Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 12): explicit
+   * override for how confidently this release's data is backed by
+   * evidence. When omitted, buildReleases() infers a reasonable default
+   * from whether `item` resolved to a real value (see that function) --
+   * but that default is only a heuristic and does NOT match every case
+   * (e.g. a release can have a plausible-looking, never-actually-checked
+   * item number carried over from the original mock seed, which needs an
+   * explicit "unverified" here rather than the item-presence default).
+   */
+  verificationStatus?: VerificationStatus
+  /** Catalog Model V2: whether Tamiya still officially sells this exact release. Defaults to 'discontinued' when `discontinued` is true, 'unknown' otherwise -- override only when independently confirmed. */
+  productionStatus?: ProductionStatus
+  statusCheckedAt?: string
+  /** Evidence backing this release's factual data -- see docs/CATALOG_MODEL_V2.md section 13. Practical, non-exhaustive: populated where a clean single source URL was already documented during the catalog integrity audit; empty is valid and common. */
+  sources?: ReleaseSourceSeed[]
 }
 
 interface Seed {
@@ -158,8 +194,8 @@ const SEEDS: Seed[] = [
     desc: "The flagship of the AR chassis era, launched for Mini 4WD's 30th anniversary. A low, wedge-shaped aero body that became the face of modern Mini 4WD racing.",
     releases: [
       { type: "Original", year: 2012, original: true },
-      { type: "Clear Body", name: "Aero Avante Clear Body (Polycarbonate)", year: 2013, rarity: "Uncommon", notes: "Lightweight polycarbonate special." },
-      { type: "Color Special", name: "Aero Avante Black Special", year: 2014, color: "Black", rarity: "Uncommon" },
+      { type: "Clear Body", name: "Aero Avante Clear Body (Polycarbonate)", year: 2013, rarity: "Uncommon", notes: "Lightweight polycarbonate special.", verificationStatus: "partial" },
+      { type: "Color Special", name: "Aero Avante Black Special", year: 2014, color: "Black", rarity: "Uncommon", verificationStatus: "partial" },
     ],
   },
   {
@@ -181,7 +217,7 @@ const SEEDS: Seed[] = [
     desc: "Aggressive twin-blade styling on the rigid AR chassis. A staple of the modern competitive scene.",
     releases: [
       { type: "Original", year: 2014, original: true },
-      { type: "Color Special", name: "Raikiri Black Special", year: 2016, color: "Black", rarity: "Uncommon" },
+      { type: "Color Special", name: "Raikiri Black Special", year: 2016, color: "Black", rarity: "Uncommon", verificationStatus: "partial" },
     ],
   },
   {
@@ -637,8 +673,8 @@ const SEEDS: Seed[] = [
       // this catalog's "Great Emperor" entry). Chassis matches exactly;
       // release date 2012-03-24 independently confirmed official.
       { type: "Premium", name: "Dash-1 Emperor Premium", year: 2012, releaseDate: "2012-03-24", item: "18069", chassis: "Super II", rarity: "Uncommon", estimatedMsrpJPY: 1000 },
-      { type: "Color Special", name: "Dash-1 Emperor Premium (Black Special)", year: 2015, item: "95359", chassis: "Super II", color: "Black", rarity: "Rare", estimatedMsrpJPY: 1100 },
-      { type: "Anniversary Edition", name: "Dash-1 Emperor 30th Anniversary", year: 2018, item: "92403", chassis: "Super II", rarity: "Rare", estimatedMsrpJPY: 1200 },
+      { type: "Color Special", name: "Dash-1 Emperor Premium (Black Special)", year: 2015, item: "95359", chassis: "Super II", color: "Black", rarity: "Rare", estimatedMsrpJPY: 1100, verificationStatus: "unverified" },
+      { type: "Anniversary Edition", name: "Dash-1 Emperor 30th Anniversary", year: 2018, item: "92403", chassis: "Super II", rarity: "Rare", estimatedMsrpJPY: 1200, verificationStatus: "unverified" },
       // CORRECTED (catalog integrity pass, see docs/CATALOG_AUDIT.md):
       // verified live at https://www.tamiya.com/english/products/18025/index.html
       // (page explicitly dated "current as of June 24, 2026") -- item
@@ -857,8 +893,8 @@ const SEEDS: Seed[] = [
     estimatedMsrpJPY: 900,
     desc: "Wide, low manta-inspired body. One of the most recognisable Super Mini 4WD machines.",
     releases: [
-      { type: "Original", year: 1991, rarity: "Rare", estimatedMsrpJPY: 700, original: true },
-      { type: "Reissue", name: "Manta Ray (2015 Reissue)", year: 2015 },
+      { type: "Original", year: 1991, rarity: "Rare", estimatedMsrpJPY: 700, original: true, verificationStatus: "unverified" },
+      { type: "Reissue", name: "Manta Ray (2015 Reissue)", year: 2015, verificationStatus: "unverified" },
     ],
   },
   {
@@ -874,8 +910,8 @@ const SEEDS: Seed[] = [
     estimatedMsrpJPY: 900,
     desc: "Dragon-themed Super Mini 4WD from the classic Dragon series.",
     releases: [
-      { type: "Original", year: 1992, rarity: "Rare", estimatedMsrpJPY: 700, original: true },
-      { type: "Premium", name: "Fire Dragon Premium", year: 2017 },
+      { type: "Original", year: 1992, rarity: "Rare", estimatedMsrpJPY: 700, original: true, verificationStatus: "unverified" },
+      { type: "Premium", name: "Fire Dragon Premium", year: 2017, verificationStatus: "unverified" },
     ],
   },
   {
@@ -938,7 +974,7 @@ const SEEDS: Seed[] = [
       // limited-edition kit -- but this stays PARTIALLY VERIFIED, not
       // VERIFIED, until an official Tamiya source is actually found for
       // the item number itself, not only the surrounding facts.
-      { type: "Color Special", name: "Dyna-Hawk GX Super XX Special", year: 2010, releaseDate: "2010-03-13", item: "94717", chassis: "Super XX", rarity: "Rare" },
+      { type: "Color Special", name: "Dyna-Hawk GX Super XX Special", year: 2010, releaseDate: "2010-03-13", item: "94717", chassis: "Super XX", rarity: "Rare", verificationStatus: "partial" },
       // VERIFIED (replaces this slot's previous fake, unsupported "Dyna-
       // Hawk GX Premium — 2016 — item 19201," which never represented a
       // real Tamiya release): official page
@@ -1008,6 +1044,11 @@ const SEEDS: Seed[] = [
     rarity: "Common",
     estimatedMsrpJPY: 1100,
     desc: "Blade-like VZ chassis body tuned for light, nimble handling.",
+    // Catalog Model V2: genuinely searched (by name, twice) with no result
+    // found at all -- item 18091 is carried over from the original mock
+    // seed, never confirmed OR disproven. Explicit "unverified" override
+    // since the default (item present -> "verified") would be wrong here.
+    releases: [{ type: "Original", year: 2020, original: true, verificationStatus: "unverified" }],
   },
   {
     seedKey: "18092", // frozen identity anchor -- see file header. NEVER change this once assigned.
@@ -1020,6 +1061,9 @@ const SEEDS: Seed[] = [
     rarity: "Uncommon",
     estimatedMsrpJPY: 1100,
     desc: "Front-motor FM-A machine with a low, fang-shaped nose for downforce.",
+    // Catalog Model V2: same as Sword Flash above -- genuinely searched,
+    // no result found, item 18092 carried over unconfirmed.
+    releases: [{ type: "Original", year: 2019, original: true, verificationStatus: "unverified" }],
   },
   {
     seedKey: "18075", // frozen identity anchor -- see file header. NEVER change this once assigned.
@@ -1065,7 +1109,7 @@ const SEEDS: Seed[] = [
     rarity: "Very Rare",
     estimatedMsrpJPY: 1200,
     desc: "Blacked-out AR-chassis Emperor special. A limited run prized by Emperor collectors.",
-    releases: [{ type: "Limited Edition", name: "Emperor (Premium Black Special)", year: 2017, color: "Black", original: true }],
+    releases: [{ type: "Limited Edition", name: "Emperor (Premium Black Special)", year: 2017, color: "Black", original: true, verificationStatus: "unverified" }],
   },
   {
     seedKey: "18718", // frozen identity anchor -- see file header. NEVER change this once assigned.
@@ -1078,9 +1122,97 @@ const SEEDS: Seed[] = [
     rarity: "Very Rare",
     estimatedMsrpJPY: 1200,
     desc: "Japan Cup commemorative colourway of the Aero Avante. Event-limited and hard to find.",
-    releases: [{ type: "Japan Cup Edition", name: "Aero Avante Japan Cup 2013", year: 2013, original: true }],
+    releases: [{ type: "Japan Cup Edition", name: "Aero Avante Japan Cup 2013", year: 2013, original: true, verificationStatus: "unverified" }],
   },
 ]
+
+// Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 5): coarse,
+// deliberately small classification derived automatically from the
+// existing (richer, free-text-ish) ReleaseType -- never annotated
+// per-release by hand, so it can never drift from releaseType. Not
+// attempting to encode every Tamiya marketing phrase; "other" is a
+// legitimate, common bucket.
+function inferEditionType(type: ReleaseType, isOriginal: boolean): EditionType {
+  if (isOriginal) return "original"
+  switch (type) {
+    case "Premium":
+      return "premium"
+    case "Color Special":
+    case "Clear Body":
+      return "color_special"
+    case "Limited Edition":
+      return "limited"
+    case "Anniversary Edition":
+      return "anniversary"
+    case "Japan Cup Edition":
+      return "japan_cup"
+    case "Reissue":
+      return "reissue"
+    case "Special Edition":
+    case "Chassis Variant":
+      return "special"
+    default:
+      return "other"
+  }
+}
+
+// Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 13): provenance for
+// releases whose factual data was confirmed against an official Tamiya
+// source during the catalog integrity audit. Keyed by `${seedKey}:${1-based
+// release index}`, matching the same addressing scheme as id generation.
+// Deliberately NOT exhaustive -- populated only from URLs already
+// documented in this file's own inline comments during that earlier audit
+// (see docs/CATALOG_AUDIT.md), never from new research. A release with no
+// entry here simply has an empty `sources` array; that's valid and common,
+// not an error.
+const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
+  "18626:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18701/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
+  "19404:2": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19434/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" },
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19434/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" },
+  ],
+  "19402:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19432/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "18641:1": [
+    { sourceType: "official_catalog_pdf", sourceUrl: "https://www.tamiyausa.com/media/files/map-price-list-jan-2019-969-c5cb.pdf", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04", notes: "Official Tamiya America MAP price list PDF -- confirms this catalog's OLD (wrong) item was really 'Shooting Proud Star'." },
+    { sourceType: "official_manufacturer", sourceUrl: "https://tamiya.com/english/products/18637/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" },
+  ],
+  "19434:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19409/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "18725:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19407/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "18725:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19435/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "19425:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19412/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "19425:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19440/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "19426:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19421/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "19426:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19444/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "19424:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19415/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "19424:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19441/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "19430:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19423/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "18709:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18014/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "18710:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18614/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-03" }],
+  "18716:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18101/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-03" }],
+  "18713:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18036/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "18713:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18075/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "18025:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18025/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
+  "18025:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18069/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "18025:5": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18025/index.html", verifiedFields: ["chassis"], checkedAt: "2026-06-24", notes: "Page explicitly dated 'current as of June 24, 2026'; confirms the 2026 reissue is still Type 3 chassis, not Super-II." }],
+  "18714:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18038/index.html", verifiedFields: ["itemNumber", "releaseDate"], checkedAt: "2026-09-04" }],
+  "18714:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95450/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "18702:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18015/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
+  "18702:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18026/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
+  "18703:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18019/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
+  "18660:1": [{ sourceType: "official_catalog_pdf", sourceUrl: "https://www.tamiyausa.com/media/files/map-price-list-jan-2019-969-c5cb.pdf", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04", notes: "'Tri Gale' consistently listed as item 18638 across multiple official Tamiya America MAP price list PDFs." }],
+  "19601:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19201/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
+  "19601:3": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95467/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "18615:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18615/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04", notes: "Confirms item 18615 is really Manta Ray Mk.II, not this product -- source for why the item was cleared to NULL." }],
+  "18646:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18640/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
+  "18647:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18646/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-03" }],
+  "18093:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18716/index.html", verifiedFields: ["itemNumber", "releaseYear"], checkedAt: "2026-09-03" }],
+  "18095:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18704/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
+  "19401:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19431/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
+}
+
+function lookupSources(seedKey: string, index: number): ReleaseSourceSeed[] {
+  return KNOWN_SOURCES[`${seedKey}:${index}`] ?? []
+}
 
 function buildReleases(productId: string, seed: Seed): ProductRelease[] {
   const seeds: ReleaseSeed[] =
@@ -1105,18 +1237,47 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
     const estimatedMsrpJPY = r.estimatedMsrpJPY ?? seed.estimatedMsrpJPY
     const estimatedMsrpEUR = yenToEur(estimatedMsrpJPY)
 
+    // Explicit undefined check (NOT `??`) so `item: null` (intentionally
+    // unknown, do not inherit) is preserved instead of silently falling
+    // through to the parent's item — see file header for the three-way
+    // semantics this depends on.
+    const itemNumber = (r.item === undefined ? seed.item : r.item) ?? undefined
+    const releaseId = stableUuid(`release:${seed.seedKey}:${i + 1}`)
+    const isOriginal = Boolean(r.original)
+    const discontinued = Boolean(r.discontinued ?? seed.discontinued)
+
+    // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 12): explicit
+    // per-release override wins; otherwise infer a reasonable default from
+    // whether this release has a real item number. This default is
+    // deliberately a HEURISTIC, not authoritative -- a release can have a
+    // plausible-but-never-checked item number (needs an explicit
+    // "unverified" override) or a confirmed-wrong item that was correctly
+    // nulled (the default correctly lands on "partial" here: we DO know
+    // something -- that the old value was wrong -- even without a positive
+    // replacement).
+    const verificationStatus: VerificationStatus = r.verificationStatus ?? (itemNumber !== undefined ? "verified" : "partial")
+
+    const productionStatus: ProductionStatus = r.productionStatus ?? (discontinued ? "discontinued" : "unknown")
+
+    const sources: ReleaseSource[] = [...(r.sources ?? []), ...lookupSources(seed.seedKey, i + 1)].map((s, si) => ({
+      id: stableUuid(`release-source:${seed.seedKey}:${i + 1}:${si + 1}`),
+      releaseId,
+      sourceType: s.sourceType,
+      sourceUrl: s.sourceUrl,
+      verifiedFields: s.verifiedFields,
+      checkedAt: s.checkedAt,
+      notes: s.notes,
+    }))
+
     return {
       // Stable key is the SEED's own frozen seedKey + release index — NOT
       // `item` (correctable factual data, see file header point 1) and
       // NOT the product UUID. Never derive this from `item` again.
-      id: stableUuid(`release:${seed.seedKey}:${i + 1}`),
+      id: releaseId,
       productId,
-      // Explicit undefined check (NOT `??`) so `item: null` (intentionally
-      // unknown, do not inherit) is preserved instead of silently falling
-      // through to the parent's item — see file header for the three-way
-      // semantics this depends on.
-      itemNumber: (r.item === undefined ? seed.item : r.item) ?? undefined,
+      itemNumber,
       releaseType: r.type,
+      editionType: inferEditionType(r.type, isOriginal),
       editionName: r.name ?? seed.name,
       releaseYear: r.year,
       releaseDate: r.releaseDate,
@@ -1132,9 +1293,13 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       estimatedMsrpEUR,
       images: [],
       notes: r.notes,
-      discontinued: Boolean(r.discontinued ?? seed.discontinued),
-      isOriginal: Boolean(r.original),
+      discontinued,
+      isOriginal,
       rarity: r.rarity,
+      verificationStatus,
+      productionStatus,
+      statusCheckedAt: r.statusCheckedAt,
+      sources,
     }
   })
 }
@@ -1143,21 +1308,41 @@ export const PRODUCTS: Product[] = SEEDS.map((s) => {
   const id = stableUuid(`product:${s.seedKey}`)
   const releases = buildReleases(id, s)
   const primary = releases.find((r) => r.isOriginal) ?? releases[0]
+  // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 10): the release
+  // considered authoritative for this model's identity. Every current
+  // product's seed marks exactly one release `original: true`, so this
+  // resolves for all 36 -- but the code makes no assumption that it always
+  // will (a future product added without a confidently-identified original
+  // simply gets `canonicalReleaseId: undefined`, never a forced/arbitrary
+  // choice; see scripts/check-catalog-invariants.mjs, which enforces this).
+  const canonicalRelease = releases.find((r) => r.isOriginal)
   return {
     id,
     category: "mini4wd",
-    itemNumber: s.item,
+    // COMPATIBILITY/CACHE fields (Catalog Model V2, docs/CATALOG_MODEL_V2.md
+    // section 11): derived from the canonical release when one exists,
+    // falling back to the seed's own top-level fields only when it doesn't
+    // (never happens for any of this catalog's current 36 products, but
+    // keeps this function total for a hypothetical future product with no
+    // confidently-identified original). This is what actually eliminates
+    // product-vs-release drift, rather than merely documenting a rule to
+    // follow by hand -- e.g. Vanguard Sonic's product-level chassis is now
+    // genuinely always its Original release's Super 1, never an
+    // independently-set "Super II" that happened to match its Premium
+    // instead.
+    itemNumber: canonicalRelease?.itemNumber ?? s.item,
     seedKey: s.seedKey,
     productCode: s.code,
     name: s.name,
     japaneseName: s.jp,
     series: s.series,
-    chassis: s.chassis,
-    originalReleaseYear: s.originalYear,
+    chassis: canonicalRelease?.chassis ?? s.chassis,
+    originalReleaseYear: canonicalRelease?.releaseYear ?? s.originalYear,
     rarity: s.rarity,
     description: s.desc,
     images: [],
     releases,
+    canonicalReleaseId: canonicalRelease?.id,
     hasMultipleReleases: releases.length > 1,
     // FACTUAL, verified-only -- undefined unless a real Tamiya-confirmed
     // figure exists (own or inherited from the primary release). Never

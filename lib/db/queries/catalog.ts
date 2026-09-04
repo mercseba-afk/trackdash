@@ -19,12 +19,13 @@ export async function listCategories() {
 }
 
 // Catalog list view: products with brand/category names, images, and
-// their releases (with release images) eager-loaded, since the catalog
-// screen shows a primary image + release count and the product-detail
-// screen needs the release list right away.
+// their releases (with release images + provenance sources) eager-loaded,
+// since the catalog screen shows a primary image + release count and the
+// product-detail screen needs the release list (and, per Catalog Model
+// V2, its verification/provenance) right away.
 export async function listProducts(limit = 50) {
   return db.query.products.findMany({
-    with: { brand: true, category: true, images: true, releases: { with: { images: true } } },
+    with: { brand: true, category: true, images: true, releases: { with: { images: true, sources: true } } },
     orderBy: (fields, { asc }) => [asc(fields.name)],
     limit,
   })
@@ -37,7 +38,7 @@ export async function getProductById(id: string) {
       brand: true,
       category: true,
       images: true,
-      releases: { with: { images: true } },
+      releases: { with: { images: true, sources: true } },
     },
   })
 }
@@ -49,7 +50,7 @@ export async function getProductBySlug(slug: string) {
       brand: true,
       category: true,
       images: true,
-      releases: { with: { images: true } },
+      releases: { with: { images: true, sources: true } },
     },
   })
 }
@@ -57,7 +58,7 @@ export async function getProductBySlug(slug: string) {
 export async function listReleasesForProduct(productId: string) {
   return db.query.productReleases.findMany({
     where: eq(productReleases.productId, productId),
-    with: { images: true },
+    with: { images: true, sources: true },
     orderBy: (fields, { asc }) => [asc(fields.releaseYear)],
   })
 }
@@ -69,6 +70,6 @@ export async function listReleasesForProduct(productId: string) {
 export async function getReleaseById(id: string) {
   return db.query.productReleases.findFirst({
     where: eq(productReleases.id, id),
-    with: { product: true, images: true },
+    with: { product: true, images: true, sources: true },
   })
 }

@@ -1,6 +1,23 @@
 import "server-only"
 
-import type { Chassis, CollectionItem, Condition, Currency, Product, ProductRelease, Rarity, ReleaseType, Series, WishlistItem, WishlistPriority } from "@/lib/types"
+import type {
+  Chassis,
+  CollectionItem,
+  Condition,
+  Currency,
+  EditionType,
+  Product,
+  ProductRelease,
+  ProductionStatus,
+  Rarity,
+  ReleaseSource,
+  ReleaseSourceType,
+  ReleaseType,
+  Series,
+  VerificationStatus,
+  WishlistItem,
+  WishlistPriority,
+} from "@/lib/types"
 
 // Bridges Drizzle's DB row shapes (lib/db/schema/*.ts — numeric columns as
 // strings, dates as Date/string per column mode, snake_case in Postgres but
@@ -74,11 +91,34 @@ export function mapWishlistRow(row: WishlistRow): WishlistItem {
   }
 }
 
+type SourceRow = {
+  id: string
+  releaseId: string
+  sourceType: string
+  sourceUrl: string | null
+  verifiedFields: string[]
+  checkedAt: string | null
+  notes: string | null
+}
+
+function mapSourceRow(row: SourceRow): ReleaseSource {
+  return {
+    id: row.id,
+    releaseId: row.releaseId,
+    sourceType: row.sourceType as ReleaseSourceType,
+    sourceUrl: row.sourceUrl ?? undefined,
+    verifiedFields: row.verifiedFields ?? [],
+    checkedAt: row.checkedAt ?? undefined,
+    notes: row.notes ?? undefined,
+  }
+}
+
 type ReleaseRow = {
   id: string
   productId: string
   itemNumber: string | null
   releaseType: string
+  editionType: string
   editionName: string
   releaseYear: number
   releaseDate: string | null
@@ -92,7 +132,11 @@ type ReleaseRow = {
   discontinued: boolean
   isOriginal: boolean
   rarity: string | null
+  verificationStatus: string
+  productionStatus: string
+  statusCheckedAt: Date | null
   images?: { url: string }[]
+  sources?: SourceRow[]
 }
 
 export function mapReleaseRow(row: ReleaseRow): ProductRelease {
@@ -101,6 +145,7 @@ export function mapReleaseRow(row: ReleaseRow): ProductRelease {
     productId: row.productId,
     itemNumber: row.itemNumber ?? undefined,
     releaseType: row.releaseType as ReleaseType,
+    editionType: row.editionType as EditionType,
     editionName: row.editionName,
     releaseYear: row.releaseYear,
     releaseDate: row.releaseDate ?? undefined,
@@ -110,11 +155,18 @@ export function mapReleaseRow(row: ReleaseRow): ProductRelease {
     countryMarket: row.countryMarket ?? undefined,
     msrpJPY: row.msrpJpy ? Number(row.msrpJpy) : undefined,
     msrpEUR: row.msrpEur ? Number(row.msrpEur) : undefined,
+    // estimatedMsrpJPY/EUR deliberately left undefined here: the database
+    // has no concept of a demo estimate (see lib/data/products.ts's file
+    // header) -- only the mock/seed layer populates those.
     images: row.images ? row.images.map((i) => i.url) : [],
     notes: row.notes ?? undefined,
     discontinued: row.discontinued,
     isOriginal: row.isOriginal,
     rarity: (row.rarity as Rarity) ?? undefined,
+    verificationStatus: row.verificationStatus as VerificationStatus,
+    productionStatus: row.productionStatus as ProductionStatus,
+    statusCheckedAt: row.statusCheckedAt ? row.statusCheckedAt.toISOString() : undefined,
+    sources: row.sources ? row.sources.map(mapSourceRow) : [],
   }
 }
 
@@ -129,6 +181,7 @@ type ProductRow = {
   originalReleaseYear: number
   rarity: string
   description: string | null
+  canonicalReleaseId: string | null
   images?: { url: string }[]
   releases?: ReleaseRow[]
 }
@@ -136,19 +189,29 @@ type ProductRow = {
 export function mapProductRow(row: ProductRow): Product {
   const releases = (row.releases ?? []).map(mapReleaseRow)
   const primary = releases.find((r) => r.isOriginal) ?? releases[0]
+  // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 11): prefer the
+  // release the DB explicitly names canonical; fall back to the row's own
+  // canonicalItemNumber/chassis columns (kept in sync by migration
+  // 0007_catalog_normalization.sql) only if that release isn't in the
+  // eager-loaded set for some reason. This mirrors
+  // lib/data/products.ts's PRODUCTS.map() so a product's chassis/item/year
+  // mean the same thing whether the app is running off the mock seed or
+  // real Supabase data.
+  const canonicalRelease = row.canonicalReleaseId ? releases.find((r) => r.id === row.canonicalReleaseId) : undefined
   return {
     id: row.id,
     category: "mini4wd",
-    itemNumber: row.canonicalItemNumber ?? row.releases?.[0]?.itemNumber ?? undefined,
+    itemNumber: canonicalRelease?.itemNumber ?? row.canonicalItemNumber ?? undefined,
     name: row.name,
     japaneseName: row.japaneseName ?? undefined,
     series: (row.series as Series) ?? "Racing Mini 4WD",
-    chassis: (row.chassis as Chassis) ?? primary?.chassis ?? "MA",
-    originalReleaseYear: row.originalReleaseYear,
+    chassis: canonicalRelease?.chassis ?? (row.chassis as Chassis) ?? primary?.chassis ?? "MA",
+    originalReleaseYear: canonicalRelease?.releaseYear ?? row.originalReleaseYear,
     rarity: row.rarity as Rarity,
     description: row.description ?? "",
     images: row.images ? row.images.map((i) => i.url) : [],
     releases,
+    canonicalReleaseId: row.canonicalReleaseId ?? undefined,
     hasMultipleReleases: releases.length > 1,
     // FACTUAL, verified-only -- undefined (never 0, which would wrongly
     // imply "verified as free") unless a real Tamiya-confirmed figure

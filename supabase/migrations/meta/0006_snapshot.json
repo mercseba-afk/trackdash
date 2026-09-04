@@ -1,5 +1,5 @@
 {
-  "id": "04847bed-a084-4080-8ba0-590388f89efe",
+  "id": "925f86c1-ca82-4b83-abf8-410220d7715f",
   "prevId": "d6867e8b-a36a-487c-8482-2c2353abe582",
   "version": "7",
   "dialect": "postgresql",
@@ -41,10 +41,10 @@
       "uniqueConstraints": {
         "brands_slug_unique": {
           "name": "brands_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -104,25 +104,25 @@
         "categories_parent_id_categories_id_fk": {
           "name": "categories_parent_id_categories_id_fk",
           "tableFrom": "categories",
+          "tableTo": "categories",
           "columnsFrom": [
             "parent_id"
           ],
-          "tableTo": "categories",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "categories_slug_unique": {
           "name": "categories_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -183,15 +183,15 @@
         "product_images_product_id_products_id_fk": {
           "name": "product_images_product_id_products_id_fk",
           "tableFrom": "product_images",
+          "tableTo": "products",
           "columnsFrom": [
             "product_id"
           ],
-          "tableTo": "products",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -232,13 +232,20 @@
           "name": "item_number",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "release_type": {
           "name": "release_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "edition_type": {
+          "name": "edition_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'other'"
         },
         "edition_name": {
           "name": "edition_name",
@@ -326,6 +333,26 @@
           "primaryKey": false,
           "notNull": false
         },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'unverified'"
+        },
+        "production_status": {
+          "name": "production_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'unknown'"
+        },
+        "status_checked_at": {
+          "name": "status_checked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -353,9 +380,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_releases_item_number": {
           "name": "idx_releases_item_number",
@@ -368,9 +395,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_releases_barcode": {
           "name": "idx_releases_barcode",
@@ -383,37 +410,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "product_releases_product_id_products_id_fk": {
           "name": "product_releases_product_id_products_id_fk",
           "tableFrom": "product_releases",
+          "tableTo": "products",
           "columnsFrom": [
             "product_id"
           ],
-          "tableTo": "products",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "product_releases_identity_unique": {
           "name": "product_releases_identity_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "product_id",
             "item_number",
             "release_year",
             "color"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -428,7 +455,20 @@
           "using": "true"
         }
       },
-      "checkConstraints": {},
+      "checkConstraints": {
+        "product_releases_verification_status_check": {
+          "name": "product_releases_verification_status_check",
+          "value": "\"product_releases\".\"verification_status\" in ('verified', 'partial', 'unverified')"
+        },
+        "product_releases_edition_type_check": {
+          "name": "product_releases_edition_type_check",
+          "value": "\"product_releases\".\"edition_type\" in ('original', 'premium', 'color_special', 'limited', 'anniversary', 'japan_cup', 'reissue', 'special', 'other')"
+        },
+        "product_releases_production_status_check": {
+          "name": "product_releases_production_status_check",
+          "value": "\"product_releases\".\"production_status\" in ('announced', 'active', 'discontinued', 'unknown')"
+        }
+      },
       "isRLSEnabled": true
     },
     "public.products": {
@@ -508,6 +548,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "canonical_release_id": {
+          "name": "canonical_release_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "metadata": {
           "name": "metadata",
           "type": "jsonb",
@@ -542,9 +588,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_products_brand": {
           "name": "idx_products_brand",
@@ -557,9 +603,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_products_item_number": {
           "name": "idx_products_item_number",
@@ -572,47 +618,75 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
+        },
+        "idx_products_canonical_release": {
+          "name": "idx_products_canonical_release",
+          "columns": [
+            {
+              "expression": "canonical_release_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
         "products_category_id_categories_id_fk": {
           "name": "products_category_id_categories_id_fk",
           "tableFrom": "products",
+          "tableTo": "categories",
           "columnsFrom": [
             "category_id"
           ],
-          "tableTo": "categories",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "products_brand_id_brands_id_fk": {
           "name": "products_brand_id_brands_id_fk",
           "tableFrom": "products",
+          "tableTo": "brands",
           "columnsFrom": [
             "brand_id"
           ],
-          "tableTo": "brands",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "products_canonical_release_id_product_releases_id_fk": {
+          "name": "products_canonical_release_id_product_releases_id_fk",
+          "tableFrom": "products",
+          "tableTo": "product_releases",
+          "columnsFrom": [
+            "canonical_release_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "products_slug_unique": {
           "name": "products_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -666,15 +740,15 @@
         "release_images_release_id_product_releases_id_fk": {
           "name": "release_images_release_id_product_releases_id_fk",
           "tableFrom": "release_images",
+          "tableTo": "product_releases",
           "columnsFrom": [
             "release_id"
           ],
-          "tableTo": "product_releases",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -692,6 +766,116 @@
         }
       },
       "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.release_sources": {
+      "name": "release_sources",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "release_id": {
+          "name": "release_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_type": {
+          "name": "source_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_fields": {
+          "name": "verified_fields",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "checked_at": {
+          "name": "checked_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_release_sources_release": {
+          "name": "idx_release_sources_release",
+          "columns": [
+            {
+              "expression": "release_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "release_sources_release_id_product_releases_id_fk": {
+          "name": "release_sources_release_id_product_releases_id_fk",
+          "tableFrom": "release_sources",
+          "tableTo": "product_releases",
+          "columnsFrom": [
+            "release_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "release_sources_public_read": {
+          "name": "release_sources_public_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "anon",
+            "authenticated"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "release_sources_source_type_check": {
+          "name": "release_sources_source_type_check",
+          "value": "\"release_sources\".\"source_type\" in ('official_manufacturer', 'official_catalog_pdf', 'official_archive', 'trusted_secondary', 'other')"
+        }
+      },
       "isRLSEnabled": true
     },
     "public.profiles": {
@@ -756,26 +940,26 @@
         "profiles_id_users_id_fk": {
           "name": "profiles_id_users_id_fk",
           "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
           "columnsFrom": [
             "id"
           ],
-          "tableTo": "users",
-          "schemaTo": "auth",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "profiles_username_unique": {
           "name": "profiles_username_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -854,15 +1038,15 @@
         "collection_item_photos_collection_item_id_collection_items_id_fk": {
           "name": "collection_item_photos_collection_item_id_collection_items_id_fk",
           "tableFrom": "collection_item_photos",
+          "tableTo": "collection_items",
           "columnsFrom": [
             "collection_item_id"
           ],
-          "tableTo": "collection_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -944,24 +1128,24 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "collection_item_value_history_collection_item_id_collection_items_id_fk": {
           "name": "collection_item_value_history_collection_item_id_collection_items_id_fk",
           "tableFrom": "collection_item_value_history",
+          "tableTo": "collection_items",
           "columnsFrom": [
             "collection_item_id"
           ],
-          "tableTo": "collection_items",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1086,9 +1270,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_collection_release": {
           "name": "idx_collection_release",
@@ -1101,50 +1285,50 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "collection_items_user_id_profiles_id_fk": {
           "name": "collection_items_user_id_profiles_id_fk",
           "tableFrom": "collection_items",
+          "tableTo": "profiles",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "collection_items_product_id_products_id_fk": {
           "name": "collection_items_product_id_products_id_fk",
           "tableFrom": "collection_items",
+          "tableTo": "products",
           "columnsFrom": [
             "product_id"
           ],
-          "tableTo": "products",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "collection_items_release_id_product_releases_id_fk": {
           "name": "collection_items_release_id_product_releases_id_fk",
           "tableFrom": "collection_items",
+          "tableTo": "product_releases",
           "columnsFrom": [
             "release_id"
           ],
-          "tableTo": "product_releases",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1239,50 +1423,50 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "wishlist_items_user_id_profiles_id_fk": {
           "name": "wishlist_items_user_id_profiles_id_fk",
           "tableFrom": "wishlist_items",
+          "tableTo": "profiles",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "wishlist_items_product_id_products_id_fk": {
           "name": "wishlist_items_product_id_products_id_fk",
           "tableFrom": "wishlist_items",
+          "tableTo": "products",
           "columnsFrom": [
             "product_id"
           ],
-          "tableTo": "products",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "wishlist_items_release_id_product_releases_id_fk": {
           "name": "wishlist_items_release_id_product_releases_id_fk",
           "tableFrom": "wishlist_items",
+          "tableTo": "product_releases",
           "columnsFrom": [
             "release_id"
           ],
-          "tableTo": "product_releases",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1419,35 +1603,35 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "market_estimates_release_id_product_releases_id_fk": {
           "name": "market_estimates_release_id_product_releases_id_fk",
           "tableFrom": "market_estimates",
+          "tableTo": "product_releases",
           "columnsFrom": [
             "release_id"
           ],
-          "tableTo": "product_releases",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "market_estimates_release_condition_unique": {
           "name": "market_estimates_release_condition_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "release_id",
             "condition"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -1593,9 +1777,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_price_points_sale_date": {
           "name": "idx_price_points_sale_date",
@@ -1614,61 +1798,61 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "price_points_release_id_product_releases_id_fk": {
           "name": "price_points_release_id_product_releases_id_fk",
           "tableFrom": "price_points",
+          "tableTo": "product_releases",
           "columnsFrom": [
             "release_id"
           ],
-          "tableTo": "product_releases",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "price_points_source_id_price_sources_id_fk": {
           "name": "price_points_source_id_price_sources_id_fk",
           "tableFrom": "price_points",
+          "tableTo": "price_sources",
           "columnsFrom": [
             "source_id"
           ],
-          "tableTo": "price_sources",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "price_points_submitted_by_user_id_profiles_id_fk": {
           "name": "price_points_submitted_by_user_id_profiles_id_fk",
           "tableFrom": "price_points",
+          "tableTo": "profiles",
           "columnsFrom": [
             "submitted_by_user_id"
           ],
-          "tableTo": "profiles",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "price_points_source_external_id_unique": {
           "name": "price_points_source_external_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "source_id",
             "external_listing_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -1742,10 +1926,10 @@
       "uniqueConstraints": {
         "price_sources_slug_unique": {
           "name": "price_sources_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {
@@ -1766,10 +1950,10 @@
   },
   "enums": {},
   "schemas": {},
-  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},
