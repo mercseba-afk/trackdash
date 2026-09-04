@@ -40,7 +40,7 @@ export function ProductCard({ product }: { product: Product }) {
           <Link href={`/catalog/${product.id}`} className="min-w-0">
             <p className="truncate text-sm font-semibold leading-tight hover:text-brand">{product.name}</p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {product.chassis} · orig. {product.originalReleaseYear}
+              {product.chassis ?? "—"} · orig. {product.originalReleaseYear ?? "—"}
             </p>
           </Link>
           <RarityBadge rarity={product.rarity} />

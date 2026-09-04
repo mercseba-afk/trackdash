@@ -83,7 +83,10 @@ export function getReleaseEstimate(
   const eurBasis = release.msrpEUR ?? release.estimatedMsrpEUR ?? product.msrpEUR ?? product.estimatedMsrpEUR
   const baseEUR = eurBasis && eurBasis > 0 ? eurBasis : (jpyBasis ?? 0) / 160
   const mult = RARITY_MULTIPLIER[rarity]
-  const age = Math.max(0, new Date().getFullYear() - release.releaseYear)
+  // Catalog Model V2 hardening (point 2): an unknown release year yields
+  // no age boost (age 0) rather than crashing -- a neutral, honest default
+  // for a demo estimate on a release whose year isn't known.
+  const age = release.releaseYear ? Math.max(0, new Date().getFullYear() - release.releaseYear) : 0
   const ageBoost = 1 + Math.min(age, 35) * 0.012
   // Modern reissues that are still in production trade nearer to retail.
   const reissueDamp = release.isOriginal ? 1 : age <= 6 ? 0.7 : 0.88

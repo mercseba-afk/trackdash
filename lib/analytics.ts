@@ -11,7 +11,9 @@ import { getProductById, resolveRelease } from "@/lib/data/products"
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
 // Respects a per-item release-year override without mutating shared data.
 export function releaseLabel(release: ProductRelease, displayYear?: number): string {
-  return `${displayYear ?? release.releaseYear} ${release.releaseType}`
+  const year = displayYear ?? release.releaseYear
+  // Catalog Model V2 hardening (point 2): year can be genuinely unknown.
+  return `${year ?? "—"} ${release.releaseType}`
 }
 
 export interface EnrichedCollectionItem {
@@ -19,7 +21,7 @@ export interface EnrichedCollectionItem {
   product: Product
   release: ProductRelease
   estimate: MarketEstimate
-  displayYear: number // release-year override if set, else the release year
+  displayYear?: number // release-year override if set, else the release year; undefined when genuinely unknown
   label: string // e.g. "2026 Reissue"
 }
 

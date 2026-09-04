@@ -67,7 +67,11 @@ export const products = pgTable(
     chassis: text("chassis"),
     // COMPATIBILITY/CACHE (Catalog Model V2) — see file header. Denormalized
     // from canonicalReleaseId's own release_year.
-    originalReleaseYear: integer("original_release_year").notNull(), // first-ever release year of the model
+    // COMPATIBILITY/CACHE (Catalog Model V2) — see file header. Denormalized
+    // from canonicalReleaseId's own release_year. Nullable (hardening
+    // point 1): NULL when there is no canonical release, never an invented
+    // default. Every current product has one, so no existing data is NULL.
+    originalReleaseYear: integer("original_release_year"), // first-ever release year of the model
     rarity: text("rarity").notNull(), // fallback rarity when a release doesn't set its own
     description: text("description"),
     // The release considered authoritative for this model's identity —
@@ -139,9 +143,15 @@ export const productReleases = pgTable(
     // release_type above, which remains the primary display value.
     editionType: text("edition_type").notNull().default("other"),
     editionName: text("edition_name").notNull(), // e.g. "Dash-1 Emperor (40th Anniversary)"
-    releaseYear: integer("release_year").notNull(),
+    // Nullable (Catalog Model V2 hardening, point 2): a real release can
+    // exist before its exact year is confirmed. NULL = genuinely unknown,
+    // never a placeholder. Every current release has a year -- this is a
+    // capability change for future catalog items.
+    releaseYear: integer("release_year"),
     releaseDate: date("release_date"),
-    chassis: text("chassis").notNull(),
+    // Nullable (Catalog Model V2 hardening, point 2): a release's chassis
+    // can be genuinely unknown. NULL, never an invented default.
+    chassis: text("chassis"),
     barcodeJan: text("barcode_jan"),
     color: text("color"),
     countryMarket: text("country_market"),
@@ -181,7 +191,16 @@ export const productReleases = pgTable(
     // (same product + same item + same year + same color), not to forbid
     // item-number reuse across genuinely distinct release rows. See
     // docs/CATALOG_MODEL_V2.md section 8.
-    unique("product_releases_identity_unique").on(table.productId, table.itemNumber, table.releaseYear, table.color),
+    //
+    // NULLS NOT DISTINCT (Catalog Model V2 hardening, point 8): a standard
+    // Postgres UNIQUE treats every NULL as distinct, so two rows that are
+    // identical EXCEPT both have item_number NULL (or year NULL, or color
+    // NULL) would NOT be caught — exactly the duplicate this is meant to
+    // block, now that those fields are legitimately nullable. NULLS NOT
+    // DISTINCT makes two NULLs compare equal, closing that hole while still
+    // permitting genuinely distinct reissues (which differ on at least one
+    // of the four columns).
+    unique("product_releases_identity_unique").on(table.productId, table.itemNumber, table.releaseYear, table.color).nullsNotDistinct(),
     check("product_releases_verification_status_check", sql`${table.verificationStatus} in ('verified', 'partial', 'unverified')`),
     check(
       "product_releases_edition_type_check",

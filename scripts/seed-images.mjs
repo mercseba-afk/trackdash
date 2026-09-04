@@ -58,25 +58,33 @@ const productImageRows = []
 const releaseImageRows = []
 const skipped = []
 
+// Catalog Model V2 hardening (point 9): resolve each image entry by
+// TrackDash's immutable seedKey/releaseSeedKey -- NOT by Tamiya item
+// number. This mirrors how lib/data/products.ts derives every product/
+// release UUID, so the image attaches to the right row no matter how the
+// item number is later corrected. Each image row's OWN id is likewise
+// derived from the immutable seedKey, never the item number.
 for (const entry of TAMIYA_IMAGES) {
-  const product = PRODUCTS.find((p) => p.itemNumber === entry.productItem)
+  const product = PRODUCTS.find((p) => p.seedKey === entry.productSeedKey)
   if (!product) {
-    skipped.push(`productItem ${entry.productItem}: no matching product in lib/data/products.ts`)
+    skipped.push(`productSeedKey ${entry.productSeedKey}: no matching product in lib/data/products.ts`)
     continue
   }
 
-  if (entry.releaseItem) {
-    const release = product.releases.find(
-      (r) => r.itemNumber === entry.releaseItem && (entry.releaseYear === undefined || r.releaseYear === entry.releaseYear),
-    )
+  if (entry.releaseSeedKey) {
+    // Resolve the release by its stable UUID, which is itself derived from
+    // productSeedKey + releaseSeedKey -- so this never depends on array
+    // position or item number.
+    const releaseId = stableUuid(`release:${entry.productSeedKey}:${entry.releaseSeedKey}`)
+    const release = product.releases.find((r) => r.id === releaseId)
     if (!release) {
-      skipped.push(`productItem ${entry.productItem} / releaseItem ${entry.releaseItem} (${entry.releaseYear ?? "any year"}): no matching release`)
+      skipped.push(`productSeedKey ${entry.productSeedKey} / releaseSeedKey ${entry.releaseSeedKey}: no matching release`)
       continue
     }
-    const imageId = stableUuid(`release-image:${entry.productItem}:${entry.releaseItem}:${entry.releaseYear ?? "x"}:0`)
+    const imageId = stableUuid(`release-image:${entry.productSeedKey}:${entry.releaseSeedKey}:0`)
     releaseImageRows.push(`  (${sqlStr(imageId)}, ${sqlStr(release.id)}, ${sqlStr(entry.imageUrl)}, 0)`)
   } else {
-    const imageId = stableUuid(`product-image:${entry.productItem}:0`)
+    const imageId = stableUuid(`product-image:${entry.productSeedKey}:0`)
     productImageRows.push(`  (${sqlStr(imageId)}, ${sqlStr(product.id)}, ${sqlStr(entry.imageUrl)}, 0)`)
   }
 }

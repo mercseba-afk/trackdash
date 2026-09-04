@@ -1,10 +1,51 @@
 # TrackDash — Catalog Model V2
 
-This document describes the **final, locked** catalog architecture as of
-this implementation pass. It supersedes any earlier informal description
-of the Product/Release relationship in `docs/CATALOG_AUDIT.md` (which
-remains the record of the underlying *factual* audit — item numbers,
-chassis, sources — that this architecture normalizes on top of).
+This document describes the **final, locked** catalog architecture,
+including the **hardening pass** that closed the structural gaps found in
+review before applying to Supabase. Where the hardening pass changed a
+behavior, this document describes the FINAL (post-hardening) state, not
+the intermediate one.
+
+## Hardening pass — summary of what became structurally enforced
+
+The base Catalog Model V2 established the Product/Release boundary. The
+hardening pass made its guarantees real rather than conventional:
+
+- **UNKNOWN > INVENTED, end to end.** Product compat fields
+  (`canonical_item_number`, `chassis`, `original_release_year`) and
+  release factual fields (`item_number`, `release_year`, `chassis`) are
+  all nullable in the type layer, the DB schema, and the UI. There are
+  **no factual fallbacks** anywhere — no `?? seed.item`, no `?? "MA"`, no
+  `primary?.chassis` — a value is either the canonical release's real
+  value or `NULL`/`—`. Verified with the invariant checker (a product
+  with no canonical release must have all three compat fields NULL) and
+  in the UI (every display site renders `—` for a missing value).
+- **DB-level drift enforcement (triggers).** Three PL/pgSQL triggers in
+  `0006_catalog_model_v2.sql` make product↔canonical-release drift
+  impossible even under a direct post-deploy SQL edit — tested on a real
+  Postgres (see "DB trigger enforcement" below).
+- **Safe verification default.** `unverified` is the default;
+  `verified` is reached only via curated official provenance, never from
+  a plausible-looking item number. A `verified` release with no
+  provenance is a **hard fail** in the checker.
+- **Immutable 98-ID manifest.** `lib/data/stable-id-manifest.ts` is a
+  checked-in, append-only literal — the checker compares against it
+  rather than re-deriving the floor from the catalog, so a *disappeared*
+  id is actually detectable (proven with a negative test).
+- **releaseSeedKey.** Release UUIDs derive from an immutable
+  `productSeedKey:releaseSeedKey` pair, no longer array position — so
+  reordering a product's releases can't change any UUID.
+- **NULLS NOT DISTINCT.** The release identity unique constraint treats
+  NULLs as equal, so nullable factual fields can't defeat duplicate
+  protection — tested on real Postgres.
+- **Image identity by seed key.** `tamiya-images.ts`/`seed-images.mjs`
+  key images on `productSeedKey`/`releaseSeedKey`, never Tamiya item
+  number (retained only as human-readable metadata).
+- **Factual production status.** `production_status` defaults to
+  `unknown`; the legacy `discontinued` boolean now derives from it, not
+  the reverse.
+
+
 
 ## 1. The hierarchy
 
@@ -78,6 +119,32 @@ impossible: `chassis` is always read from whichever release
 `canonical_release_id` points at. Vanguard Sonic's product page now
 correctly shows `Super 1` (its Original), not `Super II` (its Premium).
 
+**DB-level enforcement (hardening).** The seed layer keeps these in sync
+by construction, but a *direct SQL edit after deploy* (a future Catalog
+Admin, a manual fix, a bulk import) could still drift them. Three
+PL/pgSQL triggers at the bottom of `0006_catalog_model_v2.sql` close
+that gap — Drizzle can't express triggers, so this is explicit,
+documented SQL (architectural correctness over "everything must be
+generated"):
+
+- `products_canonical_release_ownership` (a deferrable constraint
+  trigger): `canonical_release_id`, when set, MUST reference a release of
+  the same product — a plain FK can't express "same product".
+- `products_sync_from_canonical` (BEFORE UPDATE OF canonical_release_id):
+  changing the pointer re-pulls all three compat columns from the new
+  canonical release, or NULLs them if the pointer is set NULL.
+- `releases_sync_canonical_product` (AFTER UPDATE OF item_number/chassis/
+  release_year): editing a canonical release's own fields re-syncs its
+  product's compat columns.
+
+All three were tested end-to-end on a real (embedded) Postgres: setting/
+repointing/NULLing `canonical_release_id`, editing a canonical release's
+fields, and an attempted cross-product ownership violation (correctly
+rejected). The live-DB branch of `scripts/check-catalog-invariants.mjs`
+additionally re-checks, when `DATABASE_URL` is set, that no product's
+compat columns have drifted from its canonical release in the actual
+database.
+
 ## 5. `canonical_release_id`
 
 `products.canonical_release_id` is a nullable FK into `product_releases`
@@ -134,29 +201,53 @@ A `verified` release can legitimately have `barcode_jan = NULL`, because
 the barcode specifically was never checked; that's valid, not a
 contradiction.
 
-`release_sources` (new table) is queryable provenance: source type
-(`official_manufacturer | official_catalog_pdf | official_archive |
-trusted_secondary | other`), URL, which specific fields it backs
-(`verified_fields`), when it was checked, and free-text notes. Populated
-in this pass **only from URLs already documented** during the earlier
-catalog integrity audit — see `lib/data/products.ts`'s `KNOWN_SOURCES`
-table — never from new research. Coverage is deliberately partial: 38
-releases have `verification_status = 'verified'`, and 35 of those have
-at least one `release_sources` row; the remaining 3 (Magnum Saber, Sonic
-Saber, and Victory Magnum's own original releases) are flagged as
-non-fatal warnings by `scripts/check-catalog-invariants.mjs` — genuine,
-honest provenance backlog, not an error to block on.
+**Safe default (hardening).** The default is **`unverified`**. A
+plausible-looking item number is NEVER treated as verification. A
+release reaches `verified` only when it carries at least one OFFICIAL
+source (`official_manufacturer`/`official_catalog_pdf`/
+`official_archive`) in the curated `KNOWN_SOURCES` table that backs a
+field the release actually has a value for. That table is the explicit,
+hand-curated record of what was officially confirmed during the catalog
+integrity audit, so deriving `verified` from it is an explicit editorial
+signal, not a heuristic. (Mad Bull's source documents *why its item is
+NULL* — it backs a field the release doesn't have — so Mad Bull
+correctly stays `unverified`.) Final distribution: 35 verified, 4
+partial, 23 unverified. The three releases that were `verified` without
+provenance in the pre-hardening state (Magnum Saber, Sonic Saber, and
+Victory Magnum's own originals) correctly downgraded to `unverified` —
+no new research was done to "rescue" them, per instruction.
+
+`release_sources` (table) is queryable provenance: source type, URL,
+which specific fields it backs (`verified_fields`, drawn from a
+controlled vocabulary of app field keys — validated by the checker),
+when it was checked, and notes.
+
+**Provenance is a hard requirement (hardening).** The invariant checker
+**hard-fails** (not warns) on: a `verified` release with zero sources; a
+`verified_fields` value outside the controlled vocabulary; and any
+populated factual `barcode_jan`, `msrp_jpy`, or `msrp_eur` whose release
+has no source specifically backing that field. (This catalog has no
+verified barcode/MSRP today, so those field-level checks pass vacuously
+— they guard the future.)
 
 ## 9. Production status
 
 `product_releases.production_status` (`announced | active | discontinued
 | unknown`) is deliberately distinct from marketplace availability
 (whether a copy can currently be found on eBay/Amazon) — that's a future
-Market Data concern, not a catalog fact. The existing `discontinued`
-boolean is kept as a compatibility field (existing code reads it) and is
-always kept in sync: `discontinued === (production_status ===
-'discontinued')`, enforced by both `lib/data/products.ts`'s generation
-logic and `scripts/check-catalog-invariants.mjs` (checks 22–23).
+Market Data concern, not a catalog fact.
+
+**Factual default (hardening).** It defaults to `unknown` and is a
+FACTUAL field: `active`/`announced`/`discontinued` are only ever set
+with a real status check (`status_checked_at`). It is **never
+auto-inferred** from the legacy `discontinued` prototype boolean. The
+direction of derivation is now reversed: the compatibility `discontinued`
+boolean **derives from** `production_status` (`discontinued === true`
+iff `production_status === 'discontinued'`), so a leftover seed-level
+`discontinued: true` can no longer silently become a factual production
+claim. Both `lib/data/products.ts` and
+`scripts/check-catalog-invariants.mjs` (production-status/discontinued
+consistency) enforce this.
 
 ## 10. Two new releases added this pass
 
@@ -201,21 +292,23 @@ per instruction not to modify what already evolves cleanly.
 three-level image model (Product image / Release image / Collection Item
 photo) already exists as three separate tables
 (`product_images`/`release_images`/`collection_item_photos`) and was
-never merged. The resolver rule from the Images MVP pass is unchanged
-and was re-verified this pass (`lib/images/resolve.ts`):
+never merged. The resolver rule is unchanged (release A never stands in for release
+B); what the hardening pass changed is **image IDENTITY**. Previously
+`tamiya-images.ts` keyed each mapping on the Tamiya item number
+(`productItem`/`releaseItem`) — correctable factual data. Now entries key
+on TrackDash's own immutable identifiers: a product's `seedKey` and, for
+release-specific images, that release's `releaseSeedKey`
+(`productSeedKey`/`releaseSeedKey`). The Tamiya item number is retained
+only as human-readable metadata (`tamiyaItemNumber`/`note`), never as
+identity, and each image ROW's own UUID is likewise derived from the
+seed key, not the item number. `scripts/seed-images.mjs` resolves
+targets by these keys, and `scripts/check-catalog-invariants.mjs`
+validates image mappings the same way. Re-verified idempotent (two runs,
+byte-identical) and all three current mappings resolve correctly.
 
-- Viewing a **specific Release**: exact release image → generic Product
-  image → placeholder. **Never** release A's image standing in for
-  release B's.
-- Viewing a **Product in general** (no release selected, e.g. a catalog
-  grid card): Product image → any suitable Release image → placeholder.
-
-The image *seed* migration was renumbered from `0006`/`0007` (depending
-on which pass) to `0008_seed_catalog_images.sql`, since it references
-product/release rows that must already exist — it now correctly runs
-last in the sequence. Content is otherwise unchanged and was re-verified
-idempotent (two runs, byte-identical output) and correctly resolving
-against the final 62-release structure.
+The image *seed* migration was renumbered to
+`0008_seed_catalog_images.sql`, since it references product/release rows
+that must already exist — it now correctly runs last in the sequence.
 
 ### Market schema
 
@@ -292,28 +385,38 @@ node --experimental-strip-types scripts/check-catalog-invariants.mjs
 ```
 
 It validates (see the script's own inline comments for exactly which
-numbered check does what): id shape and a permanent stable-id floor that
-only ever grows; canonical-release ownership and compatibility-field
-sync; controlled-vocabulary membership (verification status, edition
-type, production status, source type); no literal fake placeholders in
-factual columns; no fabricated barcodes; no estimated MSRP masquerading
-as factual; cross-product item-number collisions; image-mapping
-validity; and production-status/discontinued consistency. A handful of
-checks that need a live database (Collection/Wishlist foreign key
-validity) run only when `DATABASE_URL` is set and reachable, and are
-clearly reported as skipped otherwise — never silently ignored.
+check does what): id shape; **the immutable 98-ID manifest**
+(`lib/data/stable-id-manifest.ts` — a checked-in, append-only literal;
+the checker hard-fails if any manifested id has disappeared or changed
+kind, and warns when a new catalog id needs appending — a runtime-derived
+floor could never catch a *deletion*, which is the whole reason the
+manifest is a separate file); canonical-release ownership and
+compatibility-field sync (including the NULL-canonical ⇒ NULL-compat
+rule); controlled-vocabulary membership (verification status, edition
+type, production status, source type, **and `verified_fields`**); no
+literal fake placeholders in factual columns; no fabricated barcodes; no
+estimated MSRP masquerading as factual; **cross-product item-number
+collisions across ALL release item numbers**; **NULL-aware duplicate
+release identity** (mirroring the `NULLS NOT DISTINCT` constraint);
+image-mapping validity **by seed key**; and production-status/
+discontinued consistency. Checks that need a live database
+(Collection/Wishlist FK validity **and product↔canonical compat-column
+drift in the actual DB**) run only when `DATABASE_URL` is set and
+reachable, and are clearly reported as skipped otherwise — never
+silently ignored.
 
-Provenance completeness (a `verified` release having at least one
-`release_sources` row) is intentionally a **warning**, not a hard
-failure — this pass's source population is explicitly non-exhaustive, by
-instruction, and a missing source is a backfill candidate, not a defect.
+**Provenance is a hard requirement (hardening).** A `verified` release
+with zero `release_sources`, or a populated factual barcode/MSRP with no
+source specifically backing that field, is now a **hard failure**, not a
+warning. The catalog passes this cleanly: the safe `unverified` default
+means nothing is `verified` without curated official provenance.
 
 ## Migration sequence (none applied to Supabase in this pass)
 
 | | Contents |
 |---|---|
-| `0006_catalog_model_v2.sql` | Schema/architecture only — auto-generated by `drizzle-kit generate` from `lib/db/schema/*.ts` (not hand-written). New `release_sources` table; new `product_releases` columns (`edition_type`, `verification_status`, `production_status`, `status_checked_at`) + CHECK constraints; new `products.canonical_release_id`; `product_releases.item_number` becomes nullable (folding in a gap where the old, now-removed `0006_catalog_integrity_corrections.sql` had changed this without a tracked Drizzle snapshot). |
+| `0006_catalog_model_v2.sql` | Schema/architecture. The CREATE/ALTER/ADD-CONSTRAINT block is auto-generated by `drizzle-kit generate` from `lib/db/schema/*.ts`; the trigger block at the bottom is explicit hand-written SQL (point 3). New `release_sources` table; new `product_releases` columns (`edition_type`, `verification_status`, `production_status`, `status_checked_at`) + CHECK constraints; new `products.canonical_release_id`; `item_number`, `release_year`, `chassis` on `product_releases` and `original_release_year` on `products` all become nullable (UNKNOWN > INVENTED); the identity unique constraint gains `NULLS NOT DISTINCT`; three canonical-sync triggers. |
 | `0007_catalog_normalization.sql` | Data only — generated by `scripts/generate-catalog-normalization.mjs` as a full sync (not a diff) from `lib/data/products.ts`. Absorbs everything the old `0006_catalog_integrity_corrections.sql` did (factual corrections, pseudo-JAN removal, demo-MSRP removal) plus the new V2 fields: `canonical_release_id`, `verification_status`, `edition_type`, `production_status`, and `release_sources` rows. Every statement targets an existing row by id, except two `INSERT ... on conflict (id) do nothing` blocks for the 2 genuinely new releases and the `release_sources` rows. |
-| `0008_seed_catalog_images.sql` | Renamed from the earlier `0006`/`0007` (depending on when you last looked) — unchanged content, generated by `scripts/seed-images.mjs`. Runs last since it references rows the prior two migrations must have already created/corrected. |
+| `0008_seed_catalog_images.sql` | Renamed to run last. Generated by `scripts/seed-images.mjs` from `scripts/data/tamiya-images.ts`, now keyed on immutable `productSeedKey`/`releaseSeedKey` (hardening point 9), not item number. Idempotent (`on conflict (id) do nothing`). |
 
 None of these three has been applied to Supabase in this pass.

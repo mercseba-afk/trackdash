@@ -120,9 +120,9 @@ type ReleaseRow = {
   releaseType: string
   editionType: string
   editionName: string
-  releaseYear: number
+  releaseYear: number | null
   releaseDate: string | null
-  chassis: string
+  chassis: string | null
   barcodeJan: string | null
   color: string | null
   countryMarket: string | null
@@ -147,9 +147,9 @@ export function mapReleaseRow(row: ReleaseRow): ProductRelease {
     releaseType: row.releaseType as ReleaseType,
     editionType: row.editionType as EditionType,
     editionName: row.editionName,
-    releaseYear: row.releaseYear,
+    releaseYear: row.releaseYear ?? undefined,
     releaseDate: row.releaseDate ?? undefined,
-    chassis: row.chassis as Chassis,
+    chassis: (row.chassis as Chassis) ?? undefined,
     barcodeJAN: row.barcodeJan ?? undefined,
     color: row.color ?? undefined,
     countryMarket: row.countryMarket ?? undefined,
@@ -178,7 +178,7 @@ type ProductRow = {
   japaneseName: string | null
   series: string | null
   chassis: string | null
-  originalReleaseYear: number
+  originalReleaseYear: number | null
   rarity: string
   description: string | null
   canonicalReleaseId: string | null
@@ -205,8 +205,12 @@ export function mapProductRow(row: ProductRow): Product {
     name: row.name,
     japaneseName: row.japaneseName ?? undefined,
     series: (row.series as Series) ?? "Racing Mini 4WD",
-    chassis: canonicalRelease?.chassis ?? (row.chassis as Chassis) ?? primary?.chassis ?? "MA",
-    originalReleaseYear: canonicalRelease?.releaseYear ?? row.originalReleaseYear,
+    // COMPATIBILITY/CACHE (Catalog Model V2 hardening point 1): strictly
+    // the canonical release's chassis, or the DB's own canonical cache
+    // column (kept in sync by the DB triggers), never an invented default.
+    // undefined when there is no canonical release -- the UI shows "—".
+    chassis: (canonicalRelease?.chassis ?? (row.chassis as Chassis)) || undefined,
+    originalReleaseYear: canonicalRelease?.releaseYear ?? row.originalReleaseYear ?? undefined,
     rarity: row.rarity as Rarity,
     description: row.description ?? "",
     images: row.images ? row.images.map((i) => i.url) : [],

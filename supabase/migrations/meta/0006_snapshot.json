@@ -1,5 +1,5 @@
 {
-  "id": "925f86c1-ca82-4b83-abf8-410220d7715f",
+  "id": "4a96c7a5-1f36-49d3-94cb-69a8d54b96dc",
   "prevId": "d6867e8b-a36a-487c-8482-2c2353abe582",
   "version": "7",
   "dialect": "postgresql",
@@ -257,7 +257,7 @@
           "name": "release_year",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "release_date": {
           "name": "release_date",
@@ -269,7 +269,7 @@
           "name": "chassis",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "barcode_jan": {
           "name": "barcode_jan",
@@ -434,7 +434,7 @@
       "uniqueConstraints": {
         "product_releases_identity_unique": {
           "name": "product_releases_identity_unique",
-          "nullsNotDistinct": false,
+          "nullsNotDistinct": true,
           "columns": [
             "product_id",
             "item_number",
@@ -534,7 +534,7 @@
           "name": "original_release_year",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "rarity": {
           "name": "rarity",

@@ -31,7 +31,7 @@ export function DashboardScreen() {
   const wl = React.useMemo(() => enrichWishlist(wishlist), [wishlist])
   const recent = React.useMemo(() => recentAdditions(enriched, 4), [enriched])
   const top = React.useMemo(() => topValued(enriched, 5), [enriched])
-  const byChassis = React.useMemo(() => breakdownBy(enriched, (e) => e.product.chassis).slice(0, 6), [enriched])
+  const byChassis = React.useMemo(() => breakdownBy(enriched, (e) => e.product.chassis ?? "Unknown").slice(0, 6), [enriched])
 
   const level = collectorLevel(summary.count)
   const catalogProgress = Math.min(100, Math.round((summary.uniqueProducts / CATALOG_TARGET) * 100))

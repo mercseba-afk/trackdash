@@ -140,10 +140,10 @@ export function CollectionScreen() {
                       {e.product.name}
                     </Link>
                     <p className="truncate text-xs text-muted-foreground">
-                      {e.label} · {e.release.chassis} · #{e.release.itemNumber}
+                      {e.label} · {e.release.chassis ?? "—"} · #{e.release.itemNumber ?? "—"}
                     </p>
                     <p className="truncate text-[11px] text-muted-foreground">
-                      Model originally released {e.product.originalReleaseYear}
+                      Model originally released {e.product.originalReleaseYear ?? "—"}
                     </p>
                   </div>
                   <RarityBadge rarity={e.release.rarity ?? e.product.rarity} />
@@ -243,7 +243,7 @@ function EditDialog({
     if (entry) {
       setCondition(entry.item.condition)
       setPrice(String(entry.item.acquisitionPrice))
-      setYear(String(entry.displayYear))
+      setYear(entry.displayYear ? String(entry.displayYear) : "")
       setNotes(entry.item.notes ?? "")
     }
   }, [entry])

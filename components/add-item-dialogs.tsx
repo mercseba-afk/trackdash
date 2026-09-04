@@ -35,7 +35,7 @@ const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
 
 function releaseOptionLabel(r: ProductRelease): string {
-  return `${r.releaseYear} · ${r.releaseType}${r.color ? ` (${r.color})` : ""} · #${r.itemNumber}`
+  return `${r.releaseYear ?? "—"} · ${r.releaseType}${r.color ? ` (${r.color})` : ""} · #${r.itemNumber ?? "—"}`
 }
 
 function ReleaseSelect({
@@ -93,7 +93,7 @@ export function AddToCollectionDialog({
   const [releaseId, setReleaseId] = React.useState(initialRelease.id)
   const [condition, setCondition] = React.useState<Condition>("New / Opened")
   const [date, setDate] = React.useState(new Date().toISOString().slice(0, 10))
-  const [year, setYear] = React.useState(String(initialRelease.releaseYear))
+  const [year, setYear] = React.useState(initialRelease.releaseYear ? String(initialRelease.releaseYear) : "")
   const [currency, setCurrency] = React.useState<Currency>("EUR")
   const [notes, setNotes] = React.useState("")
 
@@ -106,7 +106,7 @@ export function AddToCollectionDialog({
     if (!open) return
     const r = resolveRelease(product, defaultReleaseId)
     setReleaseId(r.id)
-    setYear(String(r.releaseYear))
+    setYear(r.releaseYear ? String(r.releaseYear) : "")
     setCondition("New / Opened")
     setPrice(String(getReleaseEstimate(product, r, "New / Opened").value))
     setNotes("")
@@ -117,7 +117,7 @@ export function AddToCollectionDialog({
   function handleReleaseChange(id: string) {
     setReleaseId(id)
     const r = resolveRelease(product, id)
-    setYear(String(r.releaseYear))
+    setYear(r.releaseYear ? String(r.releaseYear) : "")
   }
 
   async function submit(e: React.FormEvent) {
@@ -161,7 +161,7 @@ export function AddToCollectionDialog({
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
-              #{selectedRelease.itemNumber} · {selectedRelease.chassis} · original {product.originalReleaseYear}
+              #{selectedRelease.itemNumber ?? "—"} · {selectedRelease.chassis ?? "—"} · original {product.originalReleaseYear ?? "—"}
             </p>
           </div>
         </div>
@@ -198,7 +198,7 @@ export function AddToCollectionDialog({
               </Field>
             </div>
             <p className="-mt-1 text-[11px] text-muted-foreground">
-              Original model release: {product.originalReleaseYear}. Adjust the year above to match your exact kit.
+              Original model release: {product.originalReleaseYear ?? "—"}. Adjust the year above to match your exact kit.
             </p>
             <div className="grid grid-cols-2 gap-3">
               <Field>

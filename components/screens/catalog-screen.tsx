@@ -50,7 +50,10 @@ export function CatalogScreen({ products }: { products: Product[] }) {
   // Derived from whatever the server actually fetched, rather than a
   // static module constant, so these stay accurate if the catalog ever
   // grows beyond exactly what lib/data/products.ts seeds today.
-  const chassisOptions = React.useMemo(() => Array.from(new Set(products.map((p) => p.chassis))), [products])
+  const chassisOptions = React.useMemo(
+    () => Array.from(new Set(products.map((p) => p.chassis).filter((c): c is NonNullable<typeof c> => Boolean(c)))),
+    [products],
+  )
   const seriesOptions = React.useMemo(() => Array.from(new Set(products.map((p) => p.series))), [products])
 
   const results = React.useMemo(() => {
@@ -72,9 +75,12 @@ export function CatalogScreen({ products }: { products: Product[] }) {
         case "name":
           return a.name.localeCompare(b.name)
         case "year-desc":
-          return b.originalReleaseYear - a.originalReleaseYear
+          // Catalog Model V2 hardening (point 2): products with an unknown
+          // year sort to the end, never crash. Treat undefined as -Infinity
+          // for desc (oldest-known first from the top means unknowns last).
+          return (b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)
         case "year-asc":
-          return a.originalReleaseYear - b.originalReleaseYear
+          return (a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)
         case "value-desc":
           return getProductEstimate(b).value - getProductEstimate(a).value
         case "value-asc":

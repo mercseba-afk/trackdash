@@ -105,6 +105,21 @@ interface ReleaseSourceSeed {
 }
 
 interface ReleaseSeed {
+  /**
+   * Immutable per-release identity anchor (Catalog Model V2 hardening,
+   * docs/CATALOG_MODEL_V2.md). Combined with the product's seedKey to
+   * derive this release's UUID: `stableUuid(release:${productSeedKey}:${releaseSeedKey})`.
+   * When omitted, defaults to the release's 1-based array position AT THE
+   * TIME THE DEFAULT IS FIRST APPLIED -- which is exactly the value the
+   * pre-hardening code used implicitly, so every existing release UUID
+   * stays byte-identical. Once assigned (explicitly or via the default),
+   * NEVER change it: reordering a product's `releases` array must not
+   * change any release's UUID. New releases added to the MIDDLE of an
+   * array MUST carry an explicit releaseSeedKey (the next unused value
+   * for that product), never rely on the positional default, or they'd
+   * shift the ids of everything after them.
+   */
+  releaseSeedKey?: string
   type: ReleaseType
   name?: string // edition name; defaults to the model name
   year: number
@@ -1158,13 +1173,17 @@ function inferEditionType(type: ReleaseType, isOriginal: boolean): EditionType {
 
 // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 13): provenance for
 // releases whose factual data was confirmed against an official Tamiya
-// source during the catalog integrity audit. Keyed by `${seedKey}:${1-based
-// release index}`, matching the same addressing scheme as id generation.
-// Deliberately NOT exhaustive -- populated only from URLs already
-// documented in this file's own inline comments during that earlier audit
-// (see docs/CATALOG_AUDIT.md), never from new research. A release with no
-// entry here simply has an empty `sources` array; that's valid and common,
-// not an error.
+// source during the catalog integrity audit. Keyed by
+// `${productSeedKey}:${releaseSeedKey}` (hardening point 6) -- the same
+// immutable addressing scheme as release id generation, NOT array
+// position. For every current release the releaseSeedKey equals its
+// original 1-based array position (the positional default), so these keys
+// are unchanged; but a future reorder that assigns/keeps explicit
+// releaseSeedKeys keeps these attached correctly. Deliberately NOT
+// exhaustive -- populated only from URLs already documented in this file's
+// own inline comments during that earlier audit (see docs/CATALOG_AUDIT.md),
+// never from new research. A release with no entry here simply has an empty
+// `sources` array; that's valid and common, not an error.
 const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
   "18626:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18701/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
   "19404:2": [
@@ -1210,8 +1229,11 @@ const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
   "19401:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19431/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
 }
 
-function lookupSources(seedKey: string, index: number): ReleaseSourceSeed[] {
-  return KNOWN_SOURCES[`${seedKey}:${index}`] ?? []
+// Catalog Model V2 hardening (point 6): keyed by
+// `${productSeedKey}:${releaseSeedKey}`, NOT array position -- so moving a
+// release within its product's array can never detach it from its sources.
+function lookupSources(productSeedKey: string, releaseSeedKey: string): ReleaseSourceSeed[] {
+  return KNOWN_SOURCES[`${productSeedKey}:${releaseSeedKey}`] ?? []
 }
 
 function buildReleases(productId: string, seed: Seed): ProductRelease[] {
@@ -1242,25 +1264,22 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
     // through to the parent's item — see file header for the three-way
     // semantics this depends on.
     const itemNumber = (r.item === undefined ? seed.item : r.item) ?? undefined
-    const releaseId = stableUuid(`release:${seed.seedKey}:${i + 1}`)
+    // Catalog Model V2 hardening (point 6): the release UUID derives from
+    // the product's seedKey + this release's OWN immutable releaseSeedKey,
+    // NOT its array position. The default (String(i + 1)) reproduces the
+    // exact pre-hardening positional value, so every existing UUID stays
+    // byte-identical -- but once a release carries an explicit
+    // releaseSeedKey, reordering the array can never change its id.
+    const releaseSeedKey = r.releaseSeedKey ?? String(i + 1)
+    const releaseId = stableUuid(`release:${seed.seedKey}:${releaseSeedKey}`)
     const isOriginal = Boolean(r.original)
-    const discontinued = Boolean(r.discontinued ?? seed.discontinued)
 
-    // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 12): explicit
-    // per-release override wins; otherwise infer a reasonable default from
-    // whether this release has a real item number. This default is
-    // deliberately a HEURISTIC, not authoritative -- a release can have a
-    // plausible-but-never-checked item number (needs an explicit
-    // "unverified" override) or a confirmed-wrong item that was correctly
-    // nulled (the default correctly lands on "partial" here: we DO know
-    // something -- that the old value was wrong -- even without a positive
-    // replacement).
-    const verificationStatus: VerificationStatus = r.verificationStatus ?? (itemNumber !== undefined ? "verified" : "partial")
-
-    const productionStatus: ProductionStatus = r.productionStatus ?? (discontinued ? "discontinued" : "unknown")
-
-    const sources: ReleaseSource[] = [...(r.sources ?? []), ...lookupSources(seed.seedKey, i + 1)].map((s, si) => ({
-      id: stableUuid(`release-source:${seed.seedKey}:${i + 1}:${si + 1}`),
+    // Provenance for this release -- computed early because
+    // verificationStatus (below) derives from it. Combines any inline
+    // r.sources with the curated KNOWN_SOURCES lookup, both keyed by the
+    // immutable productSeedKey + releaseSeedKey (hardening point 6).
+    const sources: ReleaseSource[] = [...(r.sources ?? []), ...lookupSources(seed.seedKey, releaseSeedKey)].map((s, si) => ({
+      id: stableUuid(`release-source:${seed.seedKey}:${releaseSeedKey}:${si + 1}`),
       releaseId,
       sourceType: s.sourceType,
       sourceUrl: s.sourceUrl,
@@ -1268,6 +1287,48 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       checkedAt: s.checkedAt,
       notes: s.notes,
     }))
+
+    // Catalog Model V2 hardening (point 4): SAFE default is "unverified".
+    // A plausible item number is NEVER verification. A release becomes
+    // "verified" only via (a) an explicit r.verificationStatus, or (b)
+    // carrying at least one OFFICIAL source (official_manufacturer /
+    // official_catalog_pdf / official_archive) in the curated KNOWN_SOURCES
+    // table that verifies a factual field the release actually HAS. The
+    // KNOWN_SOURCES table is itself the explicit, hand-curated record of
+    // what was officially confirmed during the catalog integrity audit --
+    // so deriving "verified" from it is an explicit editorial signal, NOT
+    // the banned "item present => verified" heuristic. Mad Bull's source,
+    // for instance, documents why its item is NULL (it verifies a field
+    // the release does NOT have), so Mad Bull correctly stays unverified.
+    // Every "verified" release therefore provably has provenance, which the
+    // invariant checker enforces as a HARD FAIL.
+    const officialFieldsBacked = sources.some((s) => {
+      const isOfficial = s.sourceType === "official_manufacturer" || s.sourceType === "official_catalog_pdf" || s.sourceType === "official_archive"
+      if (!isOfficial) return false
+      return s.verifiedFields.some((f) => {
+        if (f === "itemNumber") return itemNumber !== undefined
+        if (f === "chassis") return (r.chassis ?? seed.chassis) !== undefined
+        if (f === "releaseYear") return r.year !== undefined
+        if (f === "releaseDate") return r.releaseDate !== undefined
+        return false
+      })
+    })
+    const verificationStatus: VerificationStatus = r.verificationStatus ?? (officialFieldsBacked ? "verified" : "unverified")
+
+    // Catalog Model V2 hardening (point 11): production_status is a
+    // FACTUAL, official piece of information -- never auto-derived from the
+    // legacy `discontinued` prototype boolean without evidence. Default is
+    // "unknown"; active/announced/discontinued are set explicitly only
+    // with a real status check. The legacy `discontinued` compatibility
+    // boolean now DERIVES FROM production_status (see below), not the
+    // reverse.
+    const productionStatus: ProductionStatus = r.productionStatus ?? "unknown"
+    // Compatibility field, now derived FROM production_status (point 11):
+    // only true when we have positive factual evidence the release is
+    // discontinued. A seed-level `discontinued: true` with no explicit
+    // productionStatus no longer silently becomes a factual claim -- it
+    // must go through productionStatus to take effect.
+    const discontinuedCompat = productionStatus === "discontinued"
 
     return {
       // Stable key is the SEED's own frozen seedKey + release index — NOT
@@ -1279,8 +1340,14 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       releaseType: r.type,
       editionType: inferEditionType(r.type, isOriginal),
       editionName: r.name ?? seed.name,
+      // Catalog Model V2 hardening (point 2): release year can be
+      // genuinely unknown for a future catalog item. Every current seed
+      // provides one, so this is a capability change, not a data change.
       releaseYear: r.year,
       releaseDate: r.releaseDate,
+      // Catalog Model V2 hardening (point 2): chassis can be genuinely
+      // unknown too. Falls back to the product's chassis only when the
+      // product HAS one; never invents a default (no more "MA").
       chassis: r.chassis ?? seed.chassis,
       // Never invented (file header, point 2) -- undefined unless a real
       // Tamiya-confirmed barcode was found.
@@ -1293,7 +1360,7 @@ function buildReleases(productId: string, seed: Seed): ProductRelease[] {
       estimatedMsrpEUR,
       images: [],
       notes: r.notes,
-      discontinued,
+      discontinued: discontinuedCompat,
       isOriginal,
       rarity: r.rarity,
       verificationStatus,
@@ -1320,24 +1387,22 @@ export const PRODUCTS: Product[] = SEEDS.map((s) => {
     id,
     category: "mini4wd",
     // COMPATIBILITY/CACHE fields (Catalog Model V2, docs/CATALOG_MODEL_V2.md
-    // section 11): derived from the canonical release when one exists,
-    // falling back to the seed's own top-level fields only when it doesn't
-    // (never happens for any of this catalog's current 36 products, but
-    // keeps this function total for a hypothetical future product with no
-    // confidently-identified original). This is what actually eliminates
-    // product-vs-release drift, rather than merely documenting a rule to
-    // follow by hand -- e.g. Vanguard Sonic's product-level chassis is now
-    // genuinely always its Original release's Super 1, never an
-    // independently-set "Super II" that happened to match its Premium
-    // instead.
-    itemNumber: canonicalRelease?.itemNumber ?? s.item,
+    // section 11 + hardening point 1): STRICTLY derived from the canonical
+    // release. When there is no canonical release, these are undefined (→
+    // NULL in the DB), NEVER filled from the seed's own top-level fields or
+    // any invented default. UNKNOWN > INVENTED is a real property of the
+    // model here, not just documentation: a product with no confidently-
+    // identified original genuinely has no canonical item/chassis/year, and
+    // the UI shows "—". Every current product has a canonical release, so
+    // this changes no existing data -- it's a capability change.
+    itemNumber: canonicalRelease?.itemNumber,
     seedKey: s.seedKey,
     productCode: s.code,
     name: s.name,
     japaneseName: s.jp,
     series: s.series,
-    chassis: canonicalRelease?.chassis ?? s.chassis,
-    originalReleaseYear: canonicalRelease?.releaseYear ?? s.originalYear,
+    chassis: canonicalRelease?.chassis,
+    originalReleaseYear: canonicalRelease?.releaseYear,
     rarity: s.rarity,
     description: s.desc,
     images: [],
@@ -1410,13 +1475,15 @@ export function getRelatedProducts(product: Product, limit = 4, catalog: Product
   const scored = catalog.filter((p) => p.id !== product.id).map((p) => {
     let score = 0
     if (p.series === product.series) score += 3
-    if (p.chassis === product.chassis) score += 2
+    if (p.chassis && product.chassis && p.chassis === product.chassis) score += 2
     if (p.rarity === product.rarity) score += 1
-    if (Math.abs(p.originalReleaseYear - product.originalReleaseYear) <= 3) score += 1
+    // Catalog Model V2 hardening (point 2): year proximity only scores when
+    // BOTH years are known; an unknown year simply doesn't contribute.
+    if (p.originalReleaseYear !== undefined && product.originalReleaseYear !== undefined && Math.abs(p.originalReleaseYear - product.originalReleaseYear) <= 3) score += 1
     return { p, score }
   })
   return scored
-    .sort((a, b) => b.score - a.score || b.p.originalReleaseYear - a.p.originalReleaseYear)
+    .sort((a, b) => b.score - a.score || (b.p.originalReleaseYear ?? -Infinity) - (a.p.originalReleaseYear ?? -Infinity))
     .slice(0, limit)
     .map((s) => s.p)
 }

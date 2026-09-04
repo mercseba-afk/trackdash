@@ -188,7 +188,7 @@ function ScanResult({
               {product.name}
             </Link>
             <p className="text-xs text-muted-foreground">
-              #{release.itemNumber} · {release.chassis} · original release {product.originalReleaseYear}
+              #{release.itemNumber ?? "—"} · {release.chassis ?? "—"} · original release {product.originalReleaseYear ?? "—"}
             </p>
             <div className="flex flex-wrap items-center gap-1.5">
               <RarityBadge rarity={release.rarity ?? product.rarity} />
@@ -210,14 +210,14 @@ function ScanResult({
               <SelectValue>
                 {(v: string) => {
                   const r = product.releases.find((x) => x.id === v)
-                  return r ? `${r.releaseYear} · ${r.releaseType} · #${r.itemNumber}` : "Select release"
+                  return r ? `${r.releaseYear ?? "—"} · ${r.releaseType} · #${r.itemNumber ?? "—"}` : "Select release"
                 }}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {product.releases.map((r) => (
                 <SelectItem key={r.id} value={r.id}>
-                  {r.releaseYear} · {r.releaseType} · #{r.itemNumber}
+                  {r.releaseYear ?? "—"} · {r.releaseType} · #{r.itemNumber ?? "—"}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -104,7 +104,7 @@ export function MarketScreen() {
                   <div className="mt-1 flex items-center gap-1.5">
                     <RarityBadge rarity={r.product.rarity} />
                     <Badge variant="outline" className="text-xs">
-                      orig. {r.product.originalReleaseYear}
+                      orig. {r.product.originalReleaseYear ?? "—"}
                     </Badge>
                   </div>
                 </div>
@@ -162,7 +162,7 @@ function MoverCard({
             <ProductImage product={r.product} size="sm" className="h-9 w-14 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{r.product.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{r.product.chassis}</p>
+              <p className="truncate text-xs text-muted-foreground">{r.product.chassis ?? "—"}</p>
             </div>
             <div className="text-right">
               <p className="text-sm font-semibold tabular-nums">{formatMoney(r.estimate.value)}</p>

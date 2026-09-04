@@ -1,6 +1,6 @@
 {
-  "id": "c8328437-8bd2-400a-8647-f35491761701",
-  "prevId": "028f5d30-1bf9-450d-bcc1-1707adf4edb0",
+  "id": "cf642213-a341-4f48-a71d-3a36586ddef3",
+  "prevId": "edf2ee95-3be3-4345-b3bc-3ba8642303a6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -257,7 +257,7 @@
           "name": "release_year",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "release_date": {
           "name": "release_date",
@@ -269,7 +269,7 @@
           "name": "chassis",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "barcode_jan": {
           "name": "barcode_jan",
@@ -440,7 +440,7 @@
             "release_year",
             "color"
           ],
-          "nullsNotDistinct": false
+          "nullsNotDistinct": true
         }
       },
       "policies": {
@@ -534,7 +534,7 @@
           "name": "original_release_year",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "rarity": {
           "name": "rarity",

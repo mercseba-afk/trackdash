@@ -143,9 +143,11 @@ export interface ProductRelease {
   editionName: string // display name for this release, e.g. "Dash-1 Emperor (2026 Reissue)"
   /** Coarse controlled classification (Catalog Model V2) — see lib/types.ts. Distinct from releaseType/editionName above, which remain the primary display vocabulary. */
   editionType: EditionType
-  releaseYear: number // the year THIS release hit the market
+  /** The year THIS release hit the market. Optional (Catalog Model V2 hardening point 2): a real release can exist before its exact year is confirmed — undefined means genuinely unknown, shown as "—". */
+  releaseYear?: number
   releaseDate?: string // ISO date if a precise date is known
-  chassis: Chassis
+  /** Optional (Catalog Model V2 hardening point 2): a release's chassis can be genuinely unknown — undefined, never an invented default. */
+  chassis?: Chassis
   barcodeJAN?: string
   color?: string
   countryMarket?: string
@@ -203,9 +205,12 @@ export interface Product {
    * exists only so existing UI that expects a single representative
    * chassis keeps working, and it is ALWAYS the canonical/original
    * release's own chassis, never an independently curated value.
+   * Optional (hardening point 1): undefined when there is no canonical
+   * release — the UI shows "—" rather than an invented default.
    */
-  chassis: Chassis
-  originalReleaseYear: number // the model's FIRST-EVER release year -- COMPATIBILITY/CACHE, denormalized from canonicalRelease.releaseYear
+  chassis?: Chassis
+  /** COMPATIBILITY/CACHE field — denormalized from canonicalRelease.releaseYear. Optional (hardening point 1): undefined when there is no canonical release. */
+  originalReleaseYear?: number
   rarity: Rarity
   description: string
   images: string[]

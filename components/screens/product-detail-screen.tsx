@@ -63,9 +63,9 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
           </div>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
-            <Spec label="First released" value={String(product.originalReleaseYear)} />
-            <Spec label="Chassis (original)" value={product.chassis} />
-            <Spec label="Item no. (original)" value={`#${primary.itemNumber}`} />
+            <Spec label="First released" value={product.originalReleaseYear ? String(product.originalReleaseYear) : "—"} />
+            <Spec label="Chassis (original)" value={product.chassis ?? "—"} />
+            <Spec label="Item no. (original)" value={primary.itemNumber ? `#${primary.itemNumber}` : "—"} />
             <Spec label="Series" value={product.series} />
           </div>
 

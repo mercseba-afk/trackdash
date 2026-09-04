@@ -144,7 +144,7 @@ function WishlistRow({
               </Link>
               <p className="truncate text-xs text-muted-foreground">
                 {e.label ? `${e.label} · ` : "Any edition · "}
-                {e.product.chassis}
+                {e.product.chassis ?? "—"}
               </p>
             </div>
             <div className="flex items-center gap-1.5">

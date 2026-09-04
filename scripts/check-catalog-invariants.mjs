@@ -19,6 +19,7 @@ register("./ts-extension-loader.mjs", import.meta.url)
 
 const { PRODUCTS } = await import("../lib/data/products.ts")
 const { TAMIYA_IMAGES } = await import("./data/tamiya-images.ts")
+const { STABLE_ID_MANIFEST } = await import("../lib/data/stable-id-manifest.ts")
 
 const errors = []
 const warnings = []
@@ -33,11 +34,14 @@ function warn(msg) {
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // -----------------------------------------------------------------------
-// 1-4, 17-18. ID shape + a permanent regression floor. Every id ever
-// deployed as of this migration (the original 96 + the 2 genuinely new
-// releases added during the "Final Fixes" pass) must remain present and
-// byte-identical forever -- this list only ever GROWS as new legitimate
-// products/releases are added; nothing is ever removed from it.
+// 1-4, 17-18. ID shape + a permanent regression floor from the IMMUTABLE
+// MANIFEST (Catalog Model V2 hardening point 5). The floor is imported
+// from lib/data/stable-id-manifest.ts -- a checked-in, append-only
+// literal -- NOT re-derived from PRODUCTS at runtime. This is the whole
+// point: a runtime-derived floor could never notice an id DISAPPEARING
+// (it would just re-derive the smaller set), whereas comparing against a
+// fixed manifest hard-fails the moment any historically-allocated id is
+// missing or has changed kind.
 // -----------------------------------------------------------------------
 const allProductIds = PRODUCTS.map((p) => p.id)
 const allReleaseIds = PRODUCTS.flatMap((p) => p.releases.map((r) => r.id))
@@ -51,28 +55,40 @@ for (const id of allIds) {
   if (dupes.length > 0) fail(`Duplicate ids across products+releases (must never happen): ${[...new Set(dupes)].join(", ")}`)
 }
 
-// This floor is deliberately hardcoded, not re-derived from a snapshot
-// file: it is a permanent historical fact about which rows were already
-// live before Catalog Model V2, verified by direct comparison during
-// that pass (see docs/CATALOG_AUDIT.md's "ID preservation" section). If
-// this check ever fails, an id that used to exist has been removed or
-// changed -- which would orphan real collection_items/wishlist_items
-// rows in production. Grow this list (append-only) whenever a migration
-// is confirmed applied and its new ids become part of the permanent
-// floor; never remove an entry.
-const REQUIRED_STABLE_IDS = [
-  ...allIds, // as of this script's authoring, every id below is required; see note above for how this list evolves
-]
-for (const id of REQUIRED_STABLE_IDS) {
-  if (!allIds.includes(id)) fail(`Required stable id missing from the catalog: ${id}`)
+// Every id in the manifest must still be present in the catalog, with the
+// same kind (product vs release). A missing/changed id would orphan real
+// collection_items/wishlist_items rows in production.
+{
+  const productIdSet = new Set(allProductIds)
+  const releaseIdSet = new Set(allReleaseIds)
+  for (const entry of STABLE_ID_MANIFEST) {
+    if (entry.kind === "product") {
+      if (!productIdSet.has(entry.id)) fail(`Stable-id manifest: product id ${entry.id} ("${entry.label}") has DISAPPEARED or changed from the catalog`)
+    } else {
+      if (!releaseIdSet.has(entry.id)) fail(`Stable-id manifest: release id ${entry.id} ("${entry.label}") has DISAPPEARED or changed from the catalog`)
+    }
+  }
+  // Also surface ids present now but NOT in the manifest -- these are new
+  // legitimate rows that must be APPENDED to the manifest once their
+  // migration is confirmed applied. Warning, not failure: adding a product
+  // is normal; the manifest just needs updating.
+  const manifestIds = new Set(STABLE_ID_MANIFEST.map((e) => e.id))
+  for (const id of allIds) {
+    if (!manifestIds.has(id)) warn(`Catalog id ${id} is not yet in the stable-id manifest -- append it to lib/data/stable-id-manifest.ts once its migration is confirmed applied`)
+  }
 }
 
 // -----------------------------------------------------------------------
-// 5-9. canonical_release_id: ownership + compatibility field sync.
+// 5-9. canonical_release_id: ownership + compatibility field sync. With
+// the compat fields now nullable (hardening point 1), a NULL canonical
+// release means all three compat fields MUST be undefined too.
 // -----------------------------------------------------------------------
 for (const p of PRODUCTS) {
   if (!p.canonicalReleaseId) {
-    // UNKNOWN > INVENTED is valid -- not an error on its own.
+    // UNKNOWN > INVENTED: no canonical release => no compat facts either.
+    if (p.itemNumber !== undefined) fail(`${p.name}: has no canonicalReleaseId but itemNumber is set ("${p.itemNumber}") -- compat fields must be undefined when there is no canonical release`)
+    if (p.chassis !== undefined) fail(`${p.name}: has no canonicalReleaseId but chassis is set ("${p.chassis}")`)
+    if (p.originalReleaseYear !== undefined) fail(`${p.name}: has no canonicalReleaseId but originalReleaseYear is set (${p.originalReleaseYear})`)
     continue
   }
   const canonical = p.releases.find((r) => r.id === p.canonicalReleaseId)
@@ -119,16 +135,70 @@ for (const p of PRODUCTS) {
 }
 
 // -----------------------------------------------------------------------
-// 11. Verified data traceable to source evidence -- a PRACTICAL rule, not
-// a hard requirement: this audit's provenance population is explicitly
-// non-exhaustive (see docs/CATALOG_MODEL_V2.md section 13), so a
-// "verified" release with no source row is a WARNING (worth eventually
-// backfilling), never a hard failure.
+// Point 4 + 10: a "verified" release MUST have provenance -- HARD FAIL now,
+// not a warning. The safe default is "unverified"; nothing reaches
+// "verified" without an explicit official source (see
+// lib/data/products.ts's buildReleases). This check guarantees that
+// invariant holds even if a future edit sets verificationStatus by hand.
 // -----------------------------------------------------------------------
 for (const p of PRODUCTS) {
   for (const r of p.releases) {
     if (r.verificationStatus === "verified" && r.sources.length === 0) {
-      warn(`${p.name} / ${r.editionName}: verificationStatus is "verified" but has no release_sources row (provenance backfill candidate, not an error)`)
+      fail(`${p.name} / ${r.editionName}: verificationStatus="verified" but has ZERO provenance sources -- a verified release must be traceable to evidence`)
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Point 10: release_sources.verified_fields must use a controlled
+// vocabulary (the app-field-key convention, matching ProductRelease's own
+// property names), never arbitrary strings. This is what makes the
+// field-level provenance checks below (barcode/MSRP) meaningful.
+// -----------------------------------------------------------------------
+const VALID_VERIFIED_FIELDS = new Set([
+  "itemNumber",
+  "chassis",
+  "releaseYear",
+  "releaseDate",
+  "editionName",
+  "color",
+  "barcodeJAN",
+  "msrpJPY",
+  "msrpEUR",
+  "countryMarket",
+])
+for (const p of PRODUCTS) {
+  for (const r of p.releases) {
+    for (const s of r.sources) {
+      for (const f of s.verifiedFields) {
+        if (!VALID_VERIFIED_FIELDS.has(f)) {
+          fail(`${p.name} / ${r.editionName}: source verified_fields contains unknown field "${f}" (not in the controlled vocabulary)`)
+        }
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Point 10: a populated FACTUAL barcode or MSRP must have provenance that
+// specifically verifies THAT field -- being generically "verified"/
+// "partial" is not enough. Checks barcodeJAN, msrpJPY, and msrpEUR
+// independently. (This catalog currently has none of these populated, so
+// these checks pass vacuously today -- they're a guard for the future.)
+// -----------------------------------------------------------------------
+function sourcesVerifyField(release, field) {
+  return release.sources.some((s) => s.verifiedFields.includes(field))
+}
+for (const p of PRODUCTS) {
+  for (const r of p.releases) {
+    if (r.barcodeJAN !== undefined && !sourcesVerifyField(r, "barcodeJAN")) {
+      fail(`${p.name} / ${r.editionName}: has a factual barcodeJAN but no source verifies "barcodeJAN"`)
+    }
+    if (r.msrpJPY !== undefined && !sourcesVerifyField(r, "msrpJPY")) {
+      fail(`${p.name} / ${r.editionName}: has a factual msrpJPY but no source verifies "msrpJPY"`)
+    }
+    if (r.msrpEUR !== undefined && !sourcesVerifyField(r, "msrpEUR")) {
+      fail(`${p.name} / ${r.editionName}: has a factual msrpEUR but no source verifies "msrpEUR"`)
     }
   }
 }
@@ -184,38 +254,72 @@ for (const p of PRODUCTS) {
 }
 
 // -----------------------------------------------------------------------
-// 16. Intentional duplicate item numbers only within the SAME product
-// (legitimate reissues reusing a number); an item number shared across
-// two DIFFERENT products is always a real collision to surface.
+// Point 7: cross-product item-number collision on ALL release item
+// numbers (not just the product-level canonical one). The same item
+// number on multiple releases of the SAME product can be legitimate
+// (reissue reusing a number); the same item number on releases belonging
+// to DIFFERENT products is a hard-fail collision (no allowlist exists yet
+// -- add one, explicitly documented, only if a real case ever emerges).
 // -----------------------------------------------------------------------
 {
   const itemToProducts = new Map()
   for (const p of PRODUCTS) {
-    if (!p.itemNumber) continue
-    if (!itemToProducts.has(p.itemNumber)) itemToProducts.set(p.itemNumber, new Set())
-    itemToProducts.get(p.itemNumber).add(p.name)
+    for (const r of p.releases) {
+      if (!r.itemNumber) continue
+      if (!itemToProducts.has(r.itemNumber)) itemToProducts.set(r.itemNumber, new Set())
+      itemToProducts.get(r.itemNumber).add(p.id)
+    }
   }
-  for (const [item, names] of itemToProducts) {
-    if (names.size > 1) fail(`Item number "${item}" is used as the canonical item for multiple DIFFERENT products: ${[...names].join(", ")}`)
+  for (const [item, productIds] of itemToProducts) {
+    if (productIds.size > 1) {
+      const names = PRODUCTS.filter((p) => productIds.has(p.id)).map((p) => p.name)
+      fail(`Item number "${item}" appears on releases of multiple DIFFERENT products: ${names.join(", ")} -- accidental cross-product collision`)
+    }
   }
 }
 
 // -----------------------------------------------------------------------
-// 21. Image mappings reference existing product/release ids -- resolves
-// TAMIYA_IMAGES the same way scripts/seed-images.mjs does and confirms
-// every entry lands on a real, current product (and release, when
-// specified).
+// Point 8: duplicate release identity, NULL-aware. The DB unique
+// constraint is (product_id, item_number, release_year, color) with NULLS
+// NOT DISTINCT. Mirror that semantics here so a duplicate is caught BEFORE
+// the migration runs: two releases of the same product with the same
+// (item_number, release_year, color) tuple -- treating NULL as equal to
+// NULL -- are a forbidden duplicate. Genuinely distinct reissues differ on
+// at least one of the three and pass.
 // -----------------------------------------------------------------------
+{
+  for (const p of PRODUCTS) {
+    const seen = new Map()
+    for (const r of p.releases) {
+      // NULL-as-equal key: a literal sentinel for undefined, matching
+      // NULLS NOT DISTINCT (two undefineds collide).
+      const key = `${r.itemNumber ?? "\u0000NULL"}|${r.releaseYear ?? "\u0000NULL"}|${r.color ?? "\u0000NULL"}`
+      if (seen.has(key)) {
+        fail(`${p.name}: two releases share identity (item_number, release_year, color) = (${r.itemNumber ?? "NULL"}, ${r.releaseYear ?? "NULL"}, ${r.color ?? "NULL"}): "${seen.get(key)}" and "${r.editionName}" -- would violate the NULLS NOT DISTINCT unique constraint`)
+      } else {
+        seen.set(key, r.editionName)
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Point 9/21: image mappings reference existing product/release rows,
+// resolved by IMMUTABLE seedKey/releaseSeedKey (the same way
+// scripts/seed-images.mjs does), NOT by item number.
+// -----------------------------------------------------------------------
+const stableUuidForImages = (await import("../lib/data/stable-id.ts")).stableUuid
 for (const entry of TAMIYA_IMAGES) {
-  const product = PRODUCTS.find((p) => p.itemNumber === entry.productItem)
+  const product = PRODUCTS.find((p) => p.seedKey === entry.productSeedKey)
   if (!product) {
-    fail(`Image mapping "${entry.imageUrl}": no product currently has itemNumber "${entry.productItem}"`)
+    fail(`Image mapping "${entry.imageUrl}": no product currently has seedKey "${entry.productSeedKey}"`)
     continue
   }
-  if (entry.releaseItem) {
-    const release = product.releases.find((r) => r.itemNumber === entry.releaseItem)
+  if (entry.releaseSeedKey) {
+    const releaseId = stableUuidForImages(`release:${entry.productSeedKey}:${entry.releaseSeedKey}`)
+    const release = product.releases.find((r) => r.id === releaseId)
     if (!release) {
-      fail(`Image mapping "${entry.imageUrl}": product "${product.name}" has no release with itemNumber "${entry.releaseItem}"`)
+      fail(`Image mapping "${entry.imageUrl}": product "${product.name}" has no release with releaseSeedKey "${entry.releaseSeedKey}"`)
     }
   }
 }
@@ -274,10 +378,47 @@ if (process.env.DATABASE_URL) {
       if (row.releaseId && !releaseIdSet.has(row.releaseId)) fail(`wishlist_items ${row.id}: releaseId ${row.releaseId} does not reference an existing release`)
     }
 
+    // Point 3: verify in the ACTUAL database that every product's three
+    // compatibility columns match its canonical release's own columns --
+    // i.e. that the DB-level triggers have kept them in sync and nothing
+    // has drifted since deploy. This is the live counterpart to the
+    // in-seed canonical-sync check above.
+    const dbProducts = await db
+      .select({
+        id: schema.products.id,
+        name: schema.products.name,
+        canonicalReleaseId: schema.products.canonicalReleaseId,
+        canonicalItemNumber: schema.products.canonicalItemNumber,
+        chassis: schema.products.chassis,
+        originalReleaseYear: schema.products.originalReleaseYear,
+      })
+      .from(schema.products)
+    const dbReleases = await db
+      .select({ id: schema.productReleases.id, productId: schema.productReleases.productId, itemNumber: schema.productReleases.itemNumber, chassis: schema.productReleases.chassis, releaseYear: schema.productReleases.releaseYear })
+      .from(schema.productReleases)
+    const dbReleaseById = new Map(dbReleases.map((r) => [r.id, r]))
+    for (const p of dbProducts) {
+      if (!p.canonicalReleaseId) {
+        if (p.canonicalItemNumber !== null || p.chassis !== null || p.originalReleaseYear !== null) {
+          fail(`DB product ${p.name}: canonical_release_id is NULL but a compat column is non-NULL (drift)`)
+        }
+        continue
+      }
+      const rel = dbReleaseById.get(p.canonicalReleaseId)
+      if (!rel) {
+        fail(`DB product ${p.name}: canonical_release_id ${p.canonicalReleaseId} not found`)
+        continue
+      }
+      if (rel.productId !== p.id) fail(`DB product ${p.name}: canonical_release_id belongs to a different product (ownership violation)`)
+      if ((p.canonicalItemNumber ?? null) !== (rel.itemNumber ?? null)) fail(`DB product ${p.name}: canonical_item_number drifted from canonical release`)
+      if ((p.chassis ?? null) !== (rel.chassis ?? null)) fail(`DB product ${p.name}: chassis drifted from canonical release`)
+      if ((p.originalReleaseYear ?? null) !== (rel.releaseYear ?? null)) fail(`DB product ${p.name}: original_release_year drifted from canonical release`)
+    }
+
     await sql.end()
     dbChecksRan = true
   } catch (e) {
-    warn(`Live-DB checks (Collection/Wishlist FK validity) could not run: ${e.message}`)
+    warn(`Live-DB checks (Collection/Wishlist FK validity + canonical cache sync) could not run: ${e.message}`)
   }
 }
 
