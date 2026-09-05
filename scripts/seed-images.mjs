@@ -1,27 +1,30 @@
 #!/usr/bin/env node
 // Generates the catalog-image seed SQL from scripts/data/tamiya-images.ts,
-// resolving each entry's natural keys (productItem/releaseItem) against
-// lib/data/products.ts's real (stable, deterministic) UUIDs -- the same
-// pattern scripts/generate-catalog-seed.mjs already uses for the catalog
-// itself, extended to cover product_images/release_images.
+// resolving each entry's IMMUTABLE seed keys (productSeedKey +
+// releaseSeedKey) against lib/data/products.ts's real (stable,
+// deterministic) UUIDs -- the same pattern scripts/generate-catalog-seed.mjs
+// uses for the catalog itself, extended to cover
+// product_images/release_images. Tamiya item numbers are NEVER used for
+// identity (see scripts/data/tamiya-images.ts and docs/IMAGES_MVP.md).
 //
 // Usage:
 //   node --experimental-strip-types scripts/seed-images.mjs
+//   (or: pnpm db:seed:images:generate to overwrite the checked-in migration)
 //
 // Prints SQL to stdout. To regenerate the checked-in migration after
 // editing scripts/data/tamiya-images.ts:
 //   node --experimental-strip-types scripts/seed-images.mjs \
 //     > supabase/migrations/0008_seed_catalog_images.sql
 //
-// Renumbered from 0006/0007 to 0008 as part of the Catalog Model V2 pass
-// (see docs/CATALOG_MODEL_V2.md section 28): 0006 is now schema-only,
-// 0007 is data normalization, and this image seed comes last since it
-// references product/release rows that must already exist.
+// Runs last in the migration sequence (0008) since it references
+// product/release rows created/normalized by 0006/0007.
 //
 // Every statement is ON CONFLICT (id) DO NOTHING (each image row's id is
 // itself a stableUuid() derived from its natural key), so re-running this
 // after adding new TAMIYA_IMAGES entries is safe -- existing rows are
 // left untouched, only genuinely new ones get inserted.
+//
+// Validate the manifest first with: pnpm images:check
 import { register } from "node:module"
 
 register("./ts-extension-loader.mjs", import.meta.url)

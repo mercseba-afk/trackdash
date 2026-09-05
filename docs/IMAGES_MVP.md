@@ -1,178 +1,204 @@
-# TrackDash — Catalog Images (MVP)
+# TrackDash — Catalog Images
 
 ## What this is
 
-The first real image system for the catalog: product/release cards show
-an actual photo when one is available, instead of always showing the
-illustrated placeholder (`components/product-art.tsx`).
+The catalog image system: product and release cards show a real photo
+when one is available, instead of always showing the illustrated
+placeholder (`components/product-art.tsx`).
 
-**Deliberately an MVP architecture.** Images are remote-hotlinked official
-Tamiya URLs, stored as plain text in the existing `product_images` /
-`release_images` tables — nothing is downloaded into this repository, and
-nothing is uploaded to Supabase Storage. Swapping a Tamiya URL for our own
-hosted/licensed image later (`https://our-storage.../image.jpg` instead of
-`https://tamiya.../image.jpg`) is a **data change** — edit
-`scripts/data/tamiya-images.ts`, regenerate the seed migration — not a UI
-or schema change. Every consumer (the resolver, the UI component) only
-ever sees "a URL or null," never anything host-specific.
+**Phase 1 goal (this document's scope):** a *scalable, safe pipeline* for
+adding images to 62, 200, or 2,000 releases without touching application
+code each time, and without ever attaching one release's image to a
+different release. The current dataset is deliberately tiny (3 mappings)
+— a proving set, not a populated catalog. Populating more images is
+later, ordinary data work: edit one file, run one validator, regenerate
+one migration.
 
-## How image resolution works
+**Still an MVP at the storage layer.** Images are remote image URLs
+stored as plain text in the existing `product_images` / `release_images`
+tables — nothing is downloaded into this repository, and nothing is
+uploaded to Supabase Storage. Swapping a remote URL for our own
+hosted/licensed image later is a **data change** (edit
+`scripts/data/tamiya-images.ts`, regenerate the seed migration), not a UI
+or schema change. Every consumer (resolver, UI component) only ever sees
+"a URL or null," never anything host-specific.
 
-Three layers, each with exactly one job:
+## The three image concepts (never merged)
 
-1. **`lib/images/resolve.ts`** — pure functions implementing the priority
-   order (no React, no fetching). **Two different chains**, not one —
-   corrected during the catalog integrity pass (see
-   `docs/CATALOG_AUDIT.md`) after the first version let a specific
-   release's view fall back to a *different* release's photo, which is
-   misleading precisely because releases of the same product can look
-   genuinely different:
-   - `resolveReleaseImageUrl(release, product)`: this release's own image
-     → the parent product's generic image → `null`. **Never** falls back
-     to a sibling release's image — showing a different edition's photo
-     as though it were the one specifically selected would misrepresent
-     it.
-   - `resolveProductImageUrl(product)`: the product's own image → any of
-     its releases' images → `null`. The sibling-release fallback lives
-     **only** here — showing *some* representative photo for the model in
-     general (no specific release selected, e.g. a catalog grid card) is
-     reasonable in a way it isn't for a specific edition.
-   - `resolveDisplayImageUrl(product, release?)`: picks whichever of the
-     two above applies, based on whether a release was given. This is the
-     one the UI actually calls.
+| Concept | Table | Meaning |
+|---|---|---|
+| **Product image** | `product_images` | Generic image of the *model* — a reasonable representative photo. |
+| **Release image** | `release_images` | Image of one *specific edition* (this Premium, this Black Special...). |
+| **Collection Item photo** | `collection_item_photos` | A photo of the *user's own physical specimen* (owner-only, RLS-scoped). |
 
-   A release-specific image always wins over the generic product image
-   when displaying that release specifically — e.g. Dash-1 Emperor's
-   original 1990 release, if it had its own `release_images` row, would
-   show that instead of the generic product photo even though both exist
-   (this catalog currently doesn't attach one to that specific release —
-   see `docs/CATALOG_AUDIT.md`'s note on why the current Tamiya photo for
-   item 18025 is stored generically rather than tied to the 1990 row
-   specifically).
+These are three separate tables and three separate concepts. A user's
+photo is never catalog truth; a release image is never silently used for
+a different release (see the resolver).
 
-2. **`components/catalog/product-image.tsx`** (`<ProductImage>`) — the
-   only place resolution + rendering meet. A **drop-in replacement** for
-   `<ProductArt>`: identical props (`product`, `release?`, `className?`,
-   `size?`), so every existing call site was swapped with a pure
-   import/rename change, not a redesign. Behavior:
-   - No URL resolves → renders `<ProductArt>` directly (the existing
-     data-driven illustrated placeholder) — never attempts an `<Image>` at
-     all.
-   - A URL resolves → renders `next/image`, `object-contain`, filling its
-     container (callers already pass sizing via `className`, same as they
-     did for `<ProductArt>`).
-   - The image fails to load (404, dead host, malformed URL, ...) → the
-     `onError` handler swaps to `<ProductArt>` instead of leaving a broken
-     image icon on screen. A `useEffect` resets that failure flag whenever
-     the resolved URL itself changes (e.g. selecting a different release
-     in product-detail-screen.tsx), so a stale failure never blocks a
-     genuinely different, working URL.
+## Identity: by TrackDash seed keys, never item number
 
-3. **`product_images` / `release_images`** (existing tables, unchanged
-   schema) — `lib/db/queries/catalog.ts` already eager-loads both via
-   Drizzle relations; `lib/actions/mappers.ts` already maps them onto
-   `Product.images` / `ProductRelease.images: string[]`. The resolver
-   just reads `images[0]`.
+An image mapping targets a product or release by **TrackDash's own
+immutable identifiers**, exactly like every catalog UUID:
 
-The UI never knows or cares which of these three layers a given image
-came from, or whether it's a Tamiya hotlink or (later) our own storage.
+- **Product image** → the product's `seedKey`
+  (`stableUuid(product:${productSeedKey})`).
+- **Release image** → the pair `productSeedKey + releaseSeedKey`
+  (`stableUuid(release:${productSeedKey}:${releaseSeedKey})`).
+- **The image row's own id** is likewise seed-key-derived
+  (`stableUuid(product-image:${productSeedKey}:0)` /
+  `stableUuid(release-image:${productSeedKey}:${releaseSeedKey}:0)`).
 
-## Data import: how a URL gets into the database
+The **Tamiya item number never participates in identity**. It is
+correctable factual data (an item number can be fixed by a later audit
+without the image needing to move), so it lives only as optional
+human-readable metadata (`tamiyaItemNumber`). This is enforced: the
+validator hard-fails if an item-number-shaped identity field
+(`productItem`/`releaseItem`/`itemNumber`) ever reappears.
 
-```
-scripts/data/tamiya-images.ts   (source of truth: verified mappings)
-          │
-          ▼
-scripts/seed-images.mjs          (resolves natural keys -> stable UUIDs,
-          │                       emits SQL)
-          ▼
-supabase/migrations/0006_seed_catalog_images.sql
-```
+## Resolver (the definitive fallback policy)
 
-- **`scripts/data/tamiya-images.ts`** — a plain array of
-  `{ productItem, releaseItem?, imageUrl, sourcePageUrl, sourceDomain,
-  verifiedAgainstItem?, note }`. Keyed on **this catalog's own natural
-  identifiers** (the same `item` fields used in `lib/data/products.ts`'s
-  `SEEDS`), not on database UUIDs. Every entry's `note` records exactly
-  how it was verified, and flags it explicitly when this catalog's item
-  number doesn't match Tamiya's real numbering for that model (see
-  "Accuracy over coverage" below — this happened more than once).
+`lib/images/resolve.ts` — pure functions, no React, no fetching. **Two
+different chains**, depending on whether a specific release is in view:
 
-- **`scripts/seed-images.mjs`** — generates the migration. For each
-  mapping entry it looks up the matching product (and release, if
-  `releaseItem` is set) in `lib/data/products.ts`'s real `PRODUCTS` array
-  to get its real (stable, deterministic) UUID, derives a **stable id for
-  the image row itself** via `stableUuid()` (e.g.
-  `stableUuid('product-image:${productItem}:0')`), and emits an
-  `ON CONFLICT (id) DO NOTHING` insert. Running it twice never creates a
-  duplicate row — same idempotent pattern as
-  `scripts/generate-catalog-seed.mjs` (Step 4B) for the catalog itself.
-  `position = 0` is used for every row here (the primary image); a future
-  gallery feature can add position 1, 2, 3, ... without touching these
-  ids.
+- **Specific release** — `resolveReleaseImageUrl(release, product)`:
+  `exact release image → product image → null`. **Never** a sibling
+  release's image. Showing a *different* edition's photo as though it
+  were the selected one is misleading — editions of the same model can
+  look genuinely different.
+- **Generic product** (no specific release, e.g. a catalog grid card) —
+  `resolveProductImageUrl(product)`: `product image → any suitable
+  release image → null`. The sibling-release fallback lives **only**
+  here: showing *some* representative photo for the model in general is
+  reasonable in a way it isn't for a specifically-selected edition.
+- `resolveDisplayImageUrl(product, release?)` picks the right chain and
+  is what the UI calls.
 
-To add more images later: add entries to `tamiya-images.ts`, then:
+`null` means "no image anywhere" → the caller shows the placeholder.
 
-```bash
-node --experimental-strip-types scripts/seed-images.mjs \
-  > supabase/migrations/0006_seed_catalog_images.sql
-pnpm db:migrate
-```
+The four cases, and the critical rule, are covered by
+`scripts/test-image-resolver.mjs` (`pnpm images:test`):
 
-(Regenerating **overwrites** 0006 rather than creating 0007+, since it's
-still the same logical "catalog images" seed migration and hasn't been
-applied to production as of this step — see the git history/report for
-this step for the exact state at time of writing. Once this migration
-*has* shipped to production, treat it the same way
-`0003_seed_initial_catalog.sql` is treated: new images belong in a new,
-later migration, not a rewrite of this one.)
+| Case | Situation | Result |
+|---|---|---|
+| A | Product has a product image (generic view) | product image |
+| B | Release has its own exact image | that release image (beats product image) |
+| C | Release has no image, product has one | product image |
+| D | No image anywhere | `null` → placeholder |
+| **HARD** | Imageless release, only a *sibling* has an image | `null` → placeholder — **never** the sibling's image |
 
-## Accuracy over coverage
+## Rendering
 
-Every mapping in `tamiya-images.ts` was verified by fetching the real
-Tamiya product page and confirming its title/description names the same
-model — never generated by guessing a URL pattern from an item number.
+`components/catalog/product-image.tsx` (`<ProductImage>`) is the only
+place resolution + rendering meet — a drop-in replacement for
+`<ProductArt>` (same props). No URL resolves → `<ProductArt>` directly
+(no `<Image>` attempted). A URL resolves but fails to load (404, dead
+host) → `onError` swaps to `<ProductArt>`, never a broken-image icon. A
+`useEffect` resets the failure flag when the resolved URL changes, so a
+stale failure never blocks a new working URL.
 
-This mattered in practice, and led directly to a much larger effort: the
-**catalog integrity pass** (`docs/CATALOG_AUDIT.md`), which audited and
-corrected `lib/data/products.ts` itself rather than working around
-mismatches only in the image layer. For example, this catalog's item
-`18626` was originally labeled "Aero Avante," but that item number is a
-real, different Tamiya kit (Avante Mk.III Azure); the real Aero Avante is
-Tamiya item `18701` — the catalog itself now uses `18701`, so this
-image's mapping no longer needs a workaround, it just matches directly.
-Several other products had similar (in some cases worse — two products
-independently using the same real item number) issues; see
-`docs/CATALOG_AUDIT.md` for the full list. Where a mismatch couldn't be
-confidently resolved by name, the entry (in the catalog and/or the image
-mapping) was left unverified rather than risk asserting the wrong fact or
-attaching the wrong photo to the wrong model.
+## The manifest: `scripts/data/tamiya-images.ts`
 
-See the Images MVP step's own report for the exact current coverage
-count and the list of what's still on the placeholder.
+A plain array of `TamiyaImageEntry`. Each entry can carry:
+
+- `productSeedKey` (required) and `releaseSeedKey` (only for a
+  release-specific image) — **identity**.
+- `imageUrl` (required) — the image.
+- `sourcePageUrl` — the page it was verified against (required by the
+  validator's default config).
+- `sourceType` — `official_manufacturer | official_catalog | other`.
+- `sourceDomain` — raw host string, human-readable.
+- `tamiyaItemNumber` — optional metadata only (never identity).
+- `attribution` — optional `{ holder?, license?, usageNote? }`.
+- `note` — free text.
+
+### UNKNOWN > INVENTED (including attribution/licensing)
+
+Leave any field you don't actually know **undefined** — never guess. This
+applies especially to `attribution`: recording an official image URL here
+for development/private-beta use **does not by itself grant any
+redistribution or public-hotlinking right**. The `attribution` slot is a
+place to record licensing facts *when they are actually known*, not a
+place to assert a license we don't have. Do not invent a `license`
+string. (This is a metadata policy, not legal analysis — see the caveat
+at the end.)
+
+## How to add a new image
+
+1. Add an entry to `scripts/data/tamiya-images.ts` with, at minimum, the
+   target `productSeedKey` (+ `releaseSeedKey` for a release image),
+   `imageUrl`, and `sourcePageUrl`. Fill in `sourceType`/`attribution`
+   only with what's actually known.
+2. Validate the manifest:
+   ```bash
+   pnpm images:check
+   ```
+   This hard-fails on: a non-existent product/release seed key; a release
+   key resolving to a different product; a duplicate identical mapping;
+   two entries targeting the same exact release; an empty/malformed URL; a
+   missing source URL (when required); or any item-number-derived
+   identity.
+3. Confirm the resolver policy still holds (fixtures, no DB needed):
+   ```bash
+   pnpm images:test
+   ```
+4. Regenerate the seed migration:
+   ```bash
+   pnpm db:seed:images:generate
+   ```
+   This overwrites `supabase/migrations/0008_seed_catalog_images.sql`
+   **only until it has shipped to production.** `0008` was applied to
+   live Supabase on 2026-09-05 (see `docs/CATALOG_MODEL_V2.md`), so from
+   now on new images belong in a **new, later migration**, not a rewrite
+   of `0008` — the same rule that protects `0003_seed_initial_catalog`.
+   Because every insert is `ON CONFLICT (id) DO NOTHING` and every id is
+   seed-key-derived and stable, a fresh later migration re-emitting an
+   already-present row is harmless.
+5. If a genuinely new official image *host* is introduced, add it to
+   `next.config.mjs`'s `images.remotePatterns` (with a reason) — see
+   below.
+
+## Seeder idempotency
+
+`scripts/seed-images.mjs` derives each image row's id from its seed key
+and emits `ON CONFLICT (id) DO NOTHING`. Running it twice produces
+byte-identical SQL, and applying it twice inserts nothing the second
+time. Verified in the Phase 1 verification run (two regenerations
+diff-clean). Changing an entry's *metadata* (source type, attribution,
+note) does **not** change the emitted SQL — those fields aren't seeded,
+so `0008` is stable against metadata edits.
+
+## Validation & tests (run independently)
+
+| Command | What it checks |
+|---|---|
+| `pnpm images:check` | The manifest: identity resolves, no duplicates/collisions, URLs valid, source present, no item-number identity. |
+| `pnpm images:test` | The resolver policy: cases A/B/C/D + the sibling hard-test. |
+| `pnpm catalog:check` | The full catalog invariants (includes a basic image-mapping existence check; the exhaustive image validation is `images:check`). |
+
+All three run with plain Node (no DB, no build), so they fit CI or a
+pre-commit hook.
 
 ## Next.js remote image configuration
 
-`next.config.mjs`'s `images.remotePatterns` allows exactly one host:
+`next.config.mjs`'s `images.remotePatterns` allowlists exactly the hosts
+that appear in `tamiya-images.ts` — no wildcards, no "just in case"
+hosts. Optimization is left **on** (not `unoptimized: true`) so the
+allowlist is actually enforced (Next skips it entirely when `unoptimized`
+is set). Add a host only when a real new official image host is used.
 
-| Host | Path prefix | Why |
-|---|---|---|
-| `www.tamiya.com` | `/japan_contents/img/**` | The only domain any URL in `tamiya-images.ts` uses — Tamiya's own product-image path, confirmed via each page's own `og:image` meta tag. |
+## What's explicitly out of scope for Phase 1
 
-No wildcards, no additional hosts "just in case." Add a new entry (with a
-matching reason) only when a genuinely new official Tamiya image host is
-used in `tamiya-images.ts`.
+No mass image research (the 3 mappings stay as the proving set), no
+Supabase Storage buckets, no downloading/re-hosting images, no
+user-uploaded images, no collection-item photo UI, no scanner, no
+price-intelligence. Phase 1 is the *pipeline and its guardrails*.
 
-Optimization is left **on** (not `unoptimized: true`) specifically so
-this restriction is actually enforced — Next.js skips the remote-pattern
-allowlist entirely when `unoptimized` is set, which would make this table
-purely decorative.
+## Redistribution / hotlinking caveat
 
-## What's explicitly out of scope for this step
-
-Per the Images MVP brief: no Supabase Storage buckets, no downloading
-Tamiya's images into this repo or re-hosting them, no user-uploaded
-images, no collection-item personal photos, no image recognition/scanner
-work, no price-intelligence work. This step is the image *architecture*
-(resolver, component, import pipeline) plus an initial, deliberately
-partial, accuracy-first set of real URLs — not a finished asset pipeline.
+Official image URLs used in development or a private beta do **not**
+automatically confer rights to redistribute or hotlink them in public
+production. Before a public launch, the images actually served must be
+ones we're permitted to serve (our own photography, licensed assets, or
+explicit permission), and the `attribution` metadata should reflect the
+real, known terms. This document records that constraint; it is not legal
+advice.

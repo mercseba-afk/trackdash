@@ -306,7 +306,12 @@ for (const p of PRODUCTS) {
 // -----------------------------------------------------------------------
 // Point 9/21: image mappings reference existing product/release rows,
 // resolved by IMMUTABLE seedKey/releaseSeedKey (the same way
-// scripts/seed-images.mjs does), NOT by item number.
+// scripts/seed-images.mjs does), NOT by item number. This is a basic
+// existence check kept here so the full catalog check catches a broken
+// image mapping too; the EXHAUSTIVE image-manifest validation (URL
+// validity, duplicate/ownership/source-required, item-number identity,
+// etc.) lives in scripts/check-images.mjs and runs independently via
+// `pnpm images:check` -- see docs/IMAGES_MVP.md.
 // -----------------------------------------------------------------------
 const stableUuidForImages = (await import("../lib/data/stable-id.ts")).stableUuid
 for (const entry of TAMIYA_IMAGES) {
