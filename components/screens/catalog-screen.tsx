@@ -64,8 +64,8 @@ export function CatalogScreen({ products }: { products: Product[] }) {
       if (rarity !== "all" && p.rarity !== rarity) return false
       if (ownedOnly && !isInCollection(p.id)) return false
       if (q) {
-        const itemNumbers = p.releases.map((r) => r.itemNumber).join(" ")
-        const hay = `${p.name} ${p.japaneseName ?? ""} ${p.chassis} ${p.series} ${p.itemNumber} ${itemNumbers}`.toLowerCase()
+        const itemNumbers = p.releases.map((r) => r.itemNumber ?? "").join(" ")
+        const hay = `${p.name} ${p.japaneseName ?? ""} ${p.chassis ?? ""} ${p.series} ${p.itemNumber ?? ""} ${itemNumbers}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true
@@ -238,7 +238,7 @@ export function CatalogScreen({ products }: { products: Product[] }) {
                     )}
                   </div>
                   <p className="truncate text-xs text-muted-foreground">
-                    #{primary.itemNumber} · {p.chassis} · orig. {p.originalReleaseYear}
+                    {primary.itemNumber ? `#${primary.itemNumber}` : "—"} · {p.chassis ?? "—"} · orig. {p.originalReleaseYear ?? "—"}
                   </p>
                 </Link>
                 <div className="hidden sm:block">

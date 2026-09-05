@@ -127,7 +127,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
                   <div>
                     <p className="font-medium">{m.label}</p>
                     <p className="text-xs text-muted-foreground">
-                      {m.item.condition} · #{m.release.itemNumber} · acquired {formatDate(m.item.acquisitionDate)}
+                      {m.item.condition} · {m.release.itemNumber ? `#${m.release.itemNumber}` : "—"} · acquired {formatDate(m.item.acquisitionDate)}
                     </p>
                   </div>
                 </div>
@@ -199,7 +199,7 @@ function ReleaseRow({ product, release, owned }: { product: Product; release: Pr
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            #{release.itemNumber} · {release.chassis} · {release.releaseYear}
+            {release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}
             {release.notes ? ` · ${release.notes}` : ""}
           </p>
           <div className="mt-1 flex items-center gap-2">
