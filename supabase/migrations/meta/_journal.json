@@ -64,6 +64,20 @@
       "when": 1788560154377,
       "tag": "0008_seed_catalog_images",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788611238572,
+      "tag": "0009_release_sources_read_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788611239827,
+      "tag": "0010_catalog_trigger_search_path_hardening",
+      "breakpoints": true
     }
   ]
 }
