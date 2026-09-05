@@ -20,8 +20,25 @@
 // (including "is Supabase Auth itself reachable" — which the redirect
 // rule below would prevent it from ever reporting on if it were treated
 // as a protected route). It has its own NODE_ENV guard for prod safety.
-const PUBLIC_PATHS = ["/login", "/signup"]
-const UNGATED_PREFIXES = ["/api/dev"]
+//
+// Forgot/reset password (Images Phase 2 + Auth pass): /forgot-password
+// behaves exactly like /login and /signup -- reachable when signed out,
+// bounced to / when already signed in.
+//
+// /auth/callback and /update-password are deliberately UNGATED, not
+// merely "public": a user arriving via a real recovery link has, by the
+// time they reach /update-password, a genuine Supabase session (created
+// by the callback route's code exchange) -- indistinguishable from an
+// ordinary signed-in session to `supabase.auth.getUser()`. If
+// /update-password were in PUBLIC_PATHS, the "signed-in + public path ->
+// redirect to /" rule above would immediately bounce them away and break
+// the entire recovery flow. Ungating both routes lets them work whether
+// or not a session exists yet; each route/page decides for itself what
+// to show (see app/auth/callback/route.ts and
+// components/screens/update-password-screen.tsx for how each handles a
+// missing/invalid recovery state).
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password"]
+const UNGATED_PREFIXES = ["/api/dev", "/auth/callback", "/update-password"]
 
 import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/proxy"

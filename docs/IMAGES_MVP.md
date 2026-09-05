@@ -6,13 +6,20 @@ The catalog image system: product and release cards show a real photo
 when one is available, instead of always showing the illustrated
 placeholder (`components/product-art.tsx`).
 
-**Phase 1 goal (this document's scope):** a *scalable, safe pipeline* for
-adding images to 62, 200, or 2,000 releases without touching application
-code each time, and without ever attaching one release's image to a
-different release. The current dataset is deliberately tiny (3 mappings)
-— a proving set, not a populated catalog. Populating more images is
-later, ordinary data work: edit one file, run one validator, regenerate
-one migration.
+**Phase 1 goal:** a *scalable, safe pipeline* for adding images to 62,
+200, or 2,000 releases without touching application code each time, and
+without ever attaching one release's image to a different release.
+Phase 1 shipped that pipeline with a deliberately tiny proving set (3
+mappings).
+
+**Phase 2 (this update) used that pipeline to populate real coverage.**
+As of Phase 2: **25 / 36 products** have a genuine product-level image
+(confirmed against official `tamiya.com` pages), up from 3. Release-level
+exact images remain deliberately sparse (1 — Magnum Saber Premium) per
+"UNKNOWN > INVENTED": a correct product image beats a guessed release
+image, so Phase 2 did not chase 62/62 exact release coverage. See
+"Coverage (Phase 2)" below for the full breakdown, including exactly
+which products are still uncovered and why.
 
 **Still an MVP at the storage layer.** Images are remote image URLs
 stored as plain text in the existing `product_images` / `release_images`
@@ -147,12 +154,18 @@ at the end.)
    ```
    This overwrites `supabase/migrations/0008_seed_catalog_images.sql`
    **only until it has shipped to production.** `0008` was applied to
-   live Supabase on 2026-09-05 (see `docs/CATALOG_MODEL_V2.md`), so from
-   now on new images belong in a **new, later migration**, not a rewrite
-   of `0008` — the same rule that protects `0003_seed_initial_catalog`.
-   Because every insert is `ON CONFLICT (id) DO NOTHING` and every id is
+   live Supabase on 2026-09-05 (see `docs/CATALOG_MODEL_V2.md`), so new
+   images now belong in a **new, later migration**, not a rewrite of
+   `0008` — the same rule that protects `0003_seed_initial_catalog`.
+   `0011_images_phase2_product_coverage.sql` is the working example: it
+   contains only the rows genuinely new since `0008` (extracted by
+   diffing the full regenerated output against `0008`'s own committed
+   rows), not a re-declaration of `0008`'s three original rows. Because
+   every insert is `ON CONFLICT (id) DO NOTHING` and every id is
    seed-key-derived and stable, a fresh later migration re-emitting an
-   already-present row is harmless.
+   already-present row would be harmless even if included — but keeping
+   each migration to its own genuinely new rows is the cleaner practice
+   and is what `0011` does.
 5. If a genuinely new official image *host* is introduced, add it to
    `next.config.mjs`'s `images.remotePatterns` (with a reason) — see
    below.
@@ -186,9 +199,53 @@ hosts. Optimization is left **on** (not `unoptimized: true`) so the
 allowlist is actually enforced (Next skips it entirely when `unoptimized`
 is set). Add a host only when a real new official image host is used.
 
-## What's explicitly out of scope for Phase 1
+## Coverage (Phase 2)
 
-No mass image research (the 3 mappings stay as the proving set), no
+| | Before Phase 2 (= live `0008`) | After Phase 2 (`0008` + `0011`) |
+|---|---|---|
+| `product_images` rows | **2** / 36 | **25** / 36 |
+| `release_images` rows | **1** / 62 | **1** / 62 (unchanged) |
+| Manifest entries (product + release, not summed with the above) | 3 | 26 |
+
+(Product and release image counts are reported separately and must not
+be added together — 2 product + 1 release = 3 manifest entries
+pre-Phase-2, not "3 product images.")
+
+Every Phase 2 entry was confirmed against a live official `tamiya.com`
+page (English or Japanese) fetched or searched during this pass, using
+this catalog's own already-audited item numbers (see
+`docs/CATALOG_AUDIT.md`) — never a fresh, independent identity
+re-verification, and never a guess. The image URL itself follows
+Tamiya's own confirmed CDN path
+(`japan_contents/img/usr/item/1/{item}/{item}_1.jpg`), directly observed
+in fetched page markup.
+
+### Products still without any image (11)
+
+Left uncovered deliberately (UNKNOWN > INVENTED) — each either has no
+confidently verified item number at all, or its item number was never
+independently checked in the catalog audit, so there is no reliable key
+to fetch an official image by:
+
+Dash-4 Cannon Ball, Astute, Manta Ray, Fire Dragon, Dash-01 Horizon, Mad
+Bull, Sword Flash, Copperfang, Thunder Shot, Emperor (Premium Black
+Special), Aero Avante Japan Cup 2013.
+
+### Exact release images not added
+
+Step A2 (exact release images for Black/Red Special, Premium, Limited,
+Anniversary, reissues with a meaningfully different look) was **not**
+pursued as a bulk research pass in Phase 2 — Phase 1's single
+Magnum-Saber-Premium mapping remains the only one. Every one of these
+releases now at least resolves to its **product** image (25 of them) or
+the placeholder, never a wrong or fabricated release-specific image. Real
+exact-release coverage is future, incremental data work using the same
+pipeline (`pnpm images:check` validates each addition immediately).
+
+
+
+No mass exact-release-image research (see "Exact release images not
+added" above), no
 Supabase Storage buckets, no downloading/re-hosting images, no
 user-uploaded images, no collection-item photo UI, no scanner, no
 price-intelligence. Phase 1 is the *pipeline and its guardrails*.
