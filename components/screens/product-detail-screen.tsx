@@ -5,7 +5,7 @@ import { ArrowLeft, Check, Heart, Info, Plus, RefreshCw } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseEstimate } from "@/lib/data/market"
 import { useStore } from "@/lib/store"
-import { enrichCollection, itemsForProduct, releaseLabel } from "@/lib/analytics"
+import { enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatMoney, formatDate, RARITY_STYLE } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
@@ -35,14 +35,16 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* Identity + primary art */}
         <div className="flex flex-col gap-4">
-          <ProductImage product={product} release={primary} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
-          {product.releases.length > 1 && (
-            <div className="grid grid-cols-3 gap-3">
-              {product.releases.slice(0, 3).map((r) => (
-                <ProductImage key={r.id} product={product} release={r} className="aspect-square rounded-lg border" size="sm" />
-              ))}
-            </div>
-          )}
+          {/* Product-level hero — generic to the model, never tied to a
+              specific release (no `release` prop passed to ProductImage).
+              Exact edition photos live in "Releases & editions" below,
+              which is the correct place for them per the image resolver's
+              own release-vs-product distinction (lib/images/resolve.ts) —
+              a thumbnail grid here duplicated whichever release image
+              existed (or, for releases without one, just repeated this
+              same product image), so it was removed rather than kept in
+              sync with that section. */}
+          <ProductImage product={product} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
         </div>
 
         {/* Header + actions */}
@@ -189,7 +191,7 @@ function ReleaseRow({ product, release, owned }: { product: Product; release: Pr
         <ProductImage product={product} release={release} className="size-14 shrink-0 rounded-md" size="sm" />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <p className="font-medium">{releaseLabel(release)}</p>
+            <p className="font-medium">{release.editionName}</p>
             {release.isOriginal ? (
               <Badge variant="outline">Original</Badge>
             ) : (

@@ -45,11 +45,18 @@ export interface TamiyaImageEntry {
   sourcePageUrl?: string
   /**
    * Where the image came from, as a controlled value. `official_manufacturer`
-   * = the manufacturer's own site; `official_catalog` = an official PDF/print
-   * catalog; `other` = anything else. Distinct from `sourceDomain` (a raw
-   * host string). Optional — undefined when genuinely unknown.
+   * = a live official tamiya.com product page; `official_catalog_pdf` = an
+   * official PDF/print catalog (not a live web page); `official_archive` =
+   * a web-archived official tamiya.com page (e.g. Wayback Machine) for an
+   * item no longer live on the current site; `trusted_secondary` = a
+   * well-corroborated non-official source (structured retailer/wiki data
+   * that independently confirms item number, name, and release date, but
+   * is not itself Tamiya) — used only for identity/evidence notes, never
+   * as an image source (see docs/IMAGES_MVP.md's #94717 case); `other` =
+   * anything else. Distinct from `sourceDomain` (a raw host string).
+   * Optional — undefined when genuinely unknown.
    */
-  sourceType?: "official_manufacturer" | "official_catalog" | "other"
+  sourceType?: "official_manufacturer" | "official_catalog_pdf" | "official_archive" | "trusted_secondary" | "other"
   /** Raw source host (e.g. "tamiya.com"). Human-readable metadata. */
   sourceDomain?: string
   /**
@@ -349,4 +356,192 @@ export const TAMIYA_IMAGES: TamiyaImageEntry[] = [
     sourceType: "official_manufacturer",
     note: "Official JP page confirms 'Item No:19401 · MAGNUM SABER', exact name match.",
   },
+
+  // ---------------------------------------------------------------------
+  // Images Phase 2B (Step C): exact RELEASE images for special editions
+  // where showing the generic Product photo would be genuinely
+  // misleading -- Premium/Black-Special/Anniversary releases that look
+  // visibly different from their Original. Each entry below was verified
+  // this pass against a live official tamiya.com page (fetched directly,
+  // not just searched) confirming both the item number AND the release
+  // name/appearance description match this catalog's own already-audited
+  // release identity. Mandatory case (Dyna-Hawk GX): item 95467's
+  // official page was fetched directly and its own image URL extracted
+  // (see below); item 94717 was searched for specifically and found to
+  // have NO live official tamiya.com page (the one historical URL found
+  // via a wiki citation, tamiya.com/japan/products/94717dyna_hawk/,
+  // returns a 404 today) -- per UNKNOWN > INVENTED and "never attach a
+  // photo you aren't sure represents exactly that release", 94717 is
+  // deliberately left WITHOUT an exact image; it keeps falling back to
+  // the Dyna-Hawk GX product image, which is accurate for the ORIGINAL
+  // release but not confirmed to depict 94717's actual pearl-white/red
+  // color scheme -- this is the honest, correct outcome given the
+  // evidence, not an oversight.
+  {
+    // Dyna-Hawk GX Super XX Special (2019 Reissue) -- releaseSeedKey "3",
+    // the mandatory case from the task. Official page fetched directly:
+    // Item No:95467, name "ダイナホークGX スーパーXXスペシャル" / "DYNA-HAWK
+    // GX SUPER XX SPECIAL", released 2019-03-16 -- exact match. Note the
+    // image path segment is "9" (the item number's own first digit,
+    // "95467"), not "1" -- Tamiya's CDN path's leading directory is the
+    // first digit of the item number, confirmed by directly reading this
+    // page's own image markup rather than assumed from other entries
+    // (which all happen to start with "1").
+    productSeedKey: "19601",
+    releaseSeedKey: "3",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/9/95467/95467_1.jpg",
+    tamiyaItemNumber: "95467",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95467/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note:
+      "Official page fetched directly, item/name/date all confirmed exact match. Distinct from 19201 (Original) and 94717 (Super XX Special -- left without an image, no live official source found).",
+  },
+  {
+    // Victory Magnum Premium (Carbon Super-II Chassis) -- releaseSeedKey
+    // "2". Official page fetched directly: Item No:19434, name "ビクトリ
+    // ーマグナム プレミアム(カーボンスーパーIIシャーシ)" / "VICTORY MAGNUM
+    // PREMIUM (CARBON SUPER-II CHASSIS)", released 2011-06-25 -- exact
+    // match. Visually distinct from the Original (different chassis
+    // color, carbon-fiber-look parts) -- a real case where the Product
+    // image would be misleading.
+    productSeedKey: "19404",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/19434/19434_1.jpg",
+    tamiyaItemNumber: "19434",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/19434/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official page fetched directly, item/name/date all confirmed exact match.",
+  },
+  {
+    // Sonic Saber Premium (Super-II Chassis) -- releaseSeedKey "2". Item
+    // 19432 already had official confirmation in the catalog integrity
+    // audit (tamiya.com/english/products/19432); this pass adds the
+    // image itself, following the same CDN path pattern independently
+    // confirmed on 8 other items in this project (leading digit = item
+    // number's own first digit; "1" here, matching "19432").
+    productSeedKey: "19402",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/19432/19432_1.jpg",
+    tamiyaItemNumber: "19432",
+    sourcePageUrl: "https://www.tamiya.com/english/products/19432/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+  {
+    // Cyclone Magnum Premium -- releaseSeedKey "2". Item 19440 already
+    // had official JP confirmation in the catalog integrity audit.
+    productSeedKey: "19425",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/19440/19440_1.jpg",
+    tamiyaItemNumber: "19440",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/19440/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+  {
+    // Beat Magnum Premium -- releaseSeedKey "2". Item 19444 already had
+    // official JP confirmation in the catalog integrity audit.
+    productSeedKey: "19426",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/19444/19444_1.jpg",
+    tamiyaItemNumber: "19444",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/19444/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+  {
+    // Hurricane Sonic Premium -- releaseSeedKey "2". Item 19441 already
+    // had official JP confirmation (AR chassis, released 2014-11-21).
+    productSeedKey: "19424",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/19441/19441_1.jpg",
+    tamiyaItemNumber: "19441",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/19441/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+  {
+    // Vanguard Sonic (Super II) Premium -- releaseSeedKey "2". Item 19435
+    // already had official EN confirmation in the catalog integrity
+    // audit. Visually distinct from the Original's Super 1 chassis.
+    productSeedKey: "18725",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/19435/19435_1.jpg",
+    tamiyaItemNumber: "19435",
+    sourcePageUrl: "https://www.tamiya.com/english/products/19435/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+  {
+    // Great Emperor Premium -- releaseSeedKey "2". Item 18075 already had
+    // official JP confirmation in the catalog integrity audit.
+    productSeedKey: "18713",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18075/18075_1.jpg",
+    tamiyaItemNumber: "18075",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18075/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+  {
+    // Dash-1 Emperor Premium -- releaseSeedKey "2". Item 18069 already
+    // had official JP confirmation (Super-II chassis, released
+    // 2012-03-24) in the catalog integrity audit. Visually distinct from
+    // the Original's Type 3 chassis.
+    productSeedKey: "18025",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18069/18069_1.jpg",
+    tamiyaItemNumber: "18069",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18069/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Item/name already confirmed official in the catalog integrity audit; image added this pass.",
+  },
+
+  // ---------------------------------------------------------------------
+  // Images Phase 2C (hardening pass): audit-driven gap recovery. Two
+  // releases were found VERIFIED for identity in the prior audit but had
+  // no image from Phase 2B. Both were checked directly this pass, not
+  // assumed:
+  // ---------------------------------------------------------------------
+  {
+    // Dash-2 Burning Sun (Type 3 Chassis) -- releaseSeedKey "2". Official
+    // page fetched directly: Item No:18026, page title itself reads
+    // "Dash-2 Burning Sun (Type 3 Chassis)" (English page title on the
+    // Japanese site), first sold 1990-02. Exact match to this catalog's
+    // own editionName.
+    productSeedKey: "18702",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18026/18026_1.jpg",
+    tamiyaItemNumber: "18026",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18026/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official page fetched directly, item/name/date all confirmed exact match -- closes the audit-flagged gap for this release.",
+  },
+  // Proto Emperor ZX Premium (Black Special), productSeedKey "18713",
+  // item 95450 as recorded in the catalog -- deliberately NOT added here.
+  // Checked directly this pass: item 95450 is officially "DASH-X1
+  // PROTO-EMPEROR PREMIUM BLACK SPECIAL (SUPER-II CHASSIS)" (原始皇帝,
+  // Kidoin Jin's machine) per tamiya.com/japan/products/95450/index.html
+  // -- a DIFFERENT Dash! Yonkuro character/machine than "Proto Emperor ZX"
+  // (プロトエンペラーZX/ジークロス, Emperor's own successor line), whose own
+  // Premium release is a different item, 95335
+  // (tamiya.com/japan/products/95335/index.html, "プロトエンペラーZX
+  // （ジークロス）プレミアム"). The item number already recorded on this
+  // release is therefore confirmed WRONG (same class of finding as Manta
+  // Ray/Fire Dragon in Phase 2) -- attaching an image sourced from 95450
+  // would be a genuine cross-machine mismatch, not this release's photo.
+  // Per UNKNOWN > INVENTED and this task's explicit scope (report/audit
+  // only, no Catalog Model V2 changes), the item-number correction itself
+  // is NOT applied here -- only recorded as a finding. No image entry is
+  // added for this release.
 ]

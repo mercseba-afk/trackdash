@@ -85,6 +85,13 @@
       "when": 1788630346053,
       "tag": "0011_images_phase2_product_coverage",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788724884758,
+      "tag": "0012_images_phase2b_release_images",
+      "breakpoints": true
     }
   ]
 }

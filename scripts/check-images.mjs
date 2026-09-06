@@ -72,6 +72,20 @@ TAMIYA_IMAGES.forEach((entry, i) => {
     fail(`${where}: sourcePageUrl is set but malformed ("${entry.sourcePageUrl}")`)
   }
 
+  // --- sourceType vocabulary (Phase 2B hardening) ---
+  // Kept in sync with the sourceType union in scripts/data/tamiya-images.ts.
+  // `trusted_secondary` may appear on identity/evidence notes but must never
+  // back an actual imageUrl -- a non-official source is never used as a
+  // photo provenance (see docs/IMAGES_MVP.md's #94717 case: identity only,
+  // no image entry was created for it).
+  const VALID_SOURCE_TYPES = new Set(["official_manufacturer", "official_catalog_pdf", "official_archive", "trusted_secondary", "other"])
+  if (entry.sourceType !== undefined && !VALID_SOURCE_TYPES.has(entry.sourceType)) {
+    fail(`${where}: sourceType "${entry.sourceType}" is not a recognized value (expected one of: ${[...VALID_SOURCE_TYPES].join(", ")})`)
+  }
+  if (entry.sourceType === "trusted_secondary") {
+    fail(`${where}: sourceType "trusted_secondary" must never back an actual image entry -- it is for identity/evidence notes only, never a photo source`)
+  }
+
   // --- identity must not be item-number-derived ---
   // The manifest interface has no productItem/releaseItem field, and item
   // number is optional metadata only. Defensive: if a future edit ever
