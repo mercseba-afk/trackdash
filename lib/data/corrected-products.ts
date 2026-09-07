@@ -8,6 +8,8 @@ import { applyCatalogCorrectionsBatch3 } from "./catalog-corrections-batch3"
 import { applyCatalogCorrectionsBatch4 } from "./catalog-corrections-batch4"
 import { applyCatalogCorrectionsBatch5 } from "./catalog-corrections-batch5"
 import { applyCatalogCorrectionsBatch6 } from "./catalog-corrections-batch6"
+import { applyCatalogCorrectionsBatch7 } from "./catalog-corrections-batch7"
+import { applyCatalogImageManifest } from "./catalog-image-overlay"
 
 // Runtime/demo compatibility view of the historical seed catalog after applying
 // every evidence-backed factual correction in sequence. The production catalog
@@ -18,11 +20,17 @@ import { applyCatalogCorrectionsBatch6 } from "./catalog-corrections-batch6"
 // already applies catalog-corrections-batch2 internally. Do NOT apply Batch 2 a
 // second time here: its additive release corrections are intentionally not a
 // separate pass through this module.
+//
+// Images are projected last from the canonical Tamiya image manifest. That same
+// manifest seeds Supabase, so Scanner/demo helpers no longer maintain a second,
+// hand-synchronized image source of truth.
 const BATCH2_PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
 const BATCH3_PRODUCTS = applyCatalogCorrectionsBatch3(BATCH2_PRODUCTS)
 const BATCH4_PRODUCTS = applyCatalogCorrectionsBatch4(BATCH3_PRODUCTS)
 const BATCH5_PRODUCTS = applyCatalogCorrectionsBatch5(BATCH4_PRODUCTS)
-export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch6(BATCH5_PRODUCTS)
+const BATCH6_PRODUCTS = applyCatalogCorrectionsBatch6(BATCH5_PRODUCTS)
+const BATCH7_PRODUCTS = applyCatalogCorrectionsBatch7(BATCH6_PRODUCTS)
+export const PRODUCTS: Product[] = applyCatalogImageManifest(BATCH7_PRODUCTS)
 
 export { getRelatedProducts }
 
