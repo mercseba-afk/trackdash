@@ -135,7 +135,7 @@ export function applyCatalogCorrectionsBatch4(products: Product[]): Product[] {
           notes: "Original Avante Jr. occurrence. Tamiya confirms item 18014, Type 2 chassis and first release in December 1988; no exact day or archival exact image is inferred.",
           sources: [
             source(
-              "c2e99448-ad98-5e20-b02f-61985f037e1e",
+              "671f1490-fe87-5e8d-8ed9-1b5bcbce24ab",
               ORIGINAL_ID,
               "https://www.tamiya.com/japan/products/18014/index.html",
               ["itemNumber", "chassis", "releaseYear", "editionName", "color"],
