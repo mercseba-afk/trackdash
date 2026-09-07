@@ -27,7 +27,7 @@ import { register } from "node:module"
 
 register("./ts-extension-loader.mjs", import.meta.url)
 
-const { PRODUCTS } = await import("../lib/data/products.ts")
+const { PRODUCTS } = await import("../lib/data/corrected-products.ts")
 const { stableUuid } = await import("../lib/data/stable-id.ts")
 const { TAMIYA_IMAGES } = await import("./data/tamiya-image-manifest.ts")
 
