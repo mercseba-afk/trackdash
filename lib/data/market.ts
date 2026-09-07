@@ -7,7 +7,7 @@ import type {
   Rarity,
   TrendDirection,
 } from "@/lib/types"
-import { getReleaseById, primaryRelease } from "@/lib/data/products"
+import { getReleaseById, primaryRelease } from "@/lib/data/corrected-products"
 
 // -----------------------------------------------------------------------------
 // PRICE ENGINE (DEMO)
