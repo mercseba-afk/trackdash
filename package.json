@@ -6,14 +6,15 @@
     "dev": "next dev",
     "build": "pnpm verify && next build",
     "start": "next start",
-    "verify": "pnpm catalog:check && pnpm images:check && pnpm images:test",
+    "verify": "pnpm catalog:check && pnpm images:check && pnpm images:parity && pnpm images:test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed:generate": "node --experimental-strip-types scripts/generate-catalog-seed.mjs > supabase/migrations/0003_seed_initial_catalog.sql",
     "db:seed:images:generate": "node --experimental-strip-types scripts/seed-images.mjs > supabase/migrations/0008_seed_catalog_images.sql",
     "db:normalize:generate": "node --experimental-strip-types scripts/generate-catalog-normalization.mjs > supabase/migrations/0007_catalog_normalization.sql",
-    "catalog:check": "node --experimental-strip-types scripts/check-catalog-invariants.mjs",
+    "catalog:check": "node --experimental-strip-types scripts/run-catalog-check.mjs",
     "images:check": "node --experimental-strip-types scripts/check-images.mjs",
+    "images:parity": "node --experimental-strip-types scripts/check-demo-image-parity.mjs",
     "images:test": "node --experimental-strip-types scripts/test-image-resolver.mjs"
   },
   "dependencies": {
