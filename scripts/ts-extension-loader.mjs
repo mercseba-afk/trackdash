@@ -10,20 +10,34 @@
 // time) — this loader lets scripts import that same source directly with
 // plain `node`, without needing esbuild/tsx as an extra dependency.
 //
-// Catalog-audit compatibility: check-catalog-invariants.mjs predates the
-// evidence-backed correction overlay and still names the historical seed and
-// base image file in its two dynamic imports. Because that checker registers
-// this loader before making those imports, remap ONLY those two imports to the
-// effective corrected catalog and canonical aggregate image manifest. This
-// keeps every existing invariant intact while making it inspect exactly what
-// runtime/seed tooling now consumes. Other callers are never remapped.
+// Catalog-audit compatibility: the historical invariant checker still names
+// products.ts + tamiya-images.ts internally. `pnpm catalog:check` now enters
+// through run-catalog-check.mjs, which imports the checker with an explicit
+// `?effectiveCatalog=1` marker. That marker — not the checker filename — is the
+// authoritative signal to remap those two legacy imports to the effective
+// corrected catalog and aggregate image manifest. The old filename match is
+// retained only so invoking the legacy checker directly keeps the same behavior.
 export async function resolve(specifier, context, nextResolve) {
-  const fromCatalogChecker = context.parentURL?.endsWith("/scripts/check-catalog-invariants.mjs")
+  let effectiveCatalogCheck = false
 
-  if (fromCatalogChecker && specifier === "../lib/data/products.ts") {
+  if (context.parentURL) {
+    try {
+      const parent = new URL(context.parentURL)
+      effectiveCatalogCheck = parent.searchParams.get("effectiveCatalog") === "1"
+
+      // Backward compatibility for direct manual invocation of the legacy file.
+      if (!effectiveCatalogCheck) {
+        effectiveCatalogCheck = parent.pathname.endsWith("/scripts/check-catalog-invariants.mjs")
+      }
+    } catch {
+      // Fall through to normal resolution below.
+    }
+  }
+
+  if (effectiveCatalogCheck && specifier === "../lib/data/products.ts") {
     return nextResolve("../lib/data/corrected-products.ts", context)
   }
-  if (fromCatalogChecker && specifier === "./data/tamiya-images.ts") {
+  if (effectiveCatalogCheck && specifier === "./data/tamiya-images.ts") {
     return nextResolve("./data/tamiya-image-manifest.ts", context)
   }
 
