@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Generates the catalog seed SQL from lib/data/products.ts — the actual
-// app source, not a hand-copied duplicate — so the ids and data in the
-// database seed are always byte-for-byte what the app itself computes at
-// runtime via lib/data/stable-id.ts's stableUuid().
+// Generates the catalog seed SQL from lib/data/products.ts plus the audited
+// post-seed correction layer in lib/data/catalog-release-corrections.ts.
+// The correction layer preserves immutable product/release UUIDs while ensuring
+// factual item/chassis/date corrections are not reintroduced by a future seed
+// regeneration.
 //
 // Usage:
 //   node --experimental-strip-types scripts/generate-catalog-seed.mjs
@@ -14,13 +15,15 @@
 //
 // Every statement is ON CONFLICT (id) DO NOTHING, so re-running this
 // after adding a handful of new SEEDS entries is safe — existing rows are
-// left untouched, only the new ones get inserted.
+// left untouched, only the new ones get inserted. Deployed factual corrections
+// are handled by their own forward migrations.
 import { register } from "node:module"
-import { pathToFileURL } from "node:url"
 
 register("./ts-extension-loader.mjs", import.meta.url)
 
-const { PRODUCTS, TAMIYA_BRAND_ID, MINI4WD_CATEGORY_ID } = await import("../lib/data/products.ts")
+const { PRODUCTS: BASE_PRODUCTS, TAMIYA_BRAND_ID, MINI4WD_CATEGORY_ID } = await import("../lib/data/products.ts")
+const { applyCatalogReleaseCorrections } = await import("../lib/data/catalog-release-corrections.ts")
+const PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
 
 function sqlStr(value) {
   if (value === undefined || value === null || value === "") return "NULL"
@@ -63,13 +66,9 @@ lines.push("-- lib/data/products.ts, now also persisted as real rows so that")
 lines.push("-- collection_items/wishlist_items (which have NOT NULL foreign keys into")
 lines.push("-- products/product_releases) have real catalog rows to reference.")
 lines.push("--")
-lines.push("-- Generated FROM lib/data/products.ts (not hand-written) by")
-lines.push("-- scripts/generate-catalog-seed.mjs, so the ids below are byte-for-byte")
-lines.push("-- identical to the ones the app computes at runtime via")
-lines.push("-- lib/data/stable-id.ts's stableUuid() -- both are derived from the exact")
-lines.push("-- same natural keys (item numbers, release indices). Re-running the")
-lines.push("-- generator after adding new SEEDS entries only ever produces new rows;")
-lines.push("-- it never changes an id that already exists.")
+lines.push("-- Generated FROM lib/data/products.ts plus the audited factual correction")
+lines.push("-- overlay, so immutable ids remain byte-for-byte identical while corrected")
+lines.push("-- release facts are carried into any future clean seed generation.")
 lines.push("--")
 lines.push("-- Every INSERT is ON CONFLICT (id) DO NOTHING, so this migration is safe")
 lines.push("-- to re-run (e.g. against a project that already has these rows).")
