@@ -544,4 +544,29 @@ export const TAMIYA_IMAGES: TamiyaImageEntry[] = [
   // only, no Catalog Model V2 changes), the item-number correction itself
   // is NOT applied here -- only recorded as a finding. No image entry is
   // added for this release.
+
+  // ---------------------------------------------------------------------
+  // Micro-fix: Proto Emperor ZX Premium's own exact release image. Item
+  // 95335 (the CORRECT Premium, per the note above and the Catalog
+  // Integrity Hardening pass that fixed this release's data) has its own
+  // live official Tamiya page. Fetched directly this pass -- not
+  // pattern-guessed: page confirms Item No:95335, name
+  // "プロトエンペラーZX（ジークロス）プレミアム（スーパーIIシャーシ）" /
+  // "PROTO-EMPEROR ZX PREMIUM (SUPER-II CHASSIS)", released 2017-07-15,
+  // and its own image URL was read directly from the page's body markup
+  // (not assumed from the path pattern) -- confirming the leading path
+  // segment "9" (95335's own first digit), consistent with the CDN
+  // pattern already established for other 9xxxx items in this project
+  // (e.g. 95467).
+  // ---------------------------------------------------------------------
+  {
+    productSeedKey: "18714",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/9/95335/95335_1.jpg",
+    tamiyaItemNumber: "95335",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95335/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official page fetched directly, item/name/date all confirmed exact match. This is the corrected Proto Emperor ZX Premium (see Catalog Integrity Hardening pass) -- never the false 95450.",
+  },
 ]
