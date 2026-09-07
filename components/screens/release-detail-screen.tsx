@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { MarketEstimateCard, RarityBadge } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
+import { CollectorsSection } from "@/components/collectors-section"
 
 export function ReleaseDetailScreen({ product, release }: { product: Product; release: ProductRelease }) {
   const { collection } = useStore()
@@ -105,6 +106,8 @@ export function ReleaseDetailScreen({ product, release }: { product: Product; re
           ) : null}
         </div>
       </div>
+
+      <CollectorsSection releaseId={release.id} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MarketEstimateCard estimate={estimate} title="Market value — this release" msrp={release.msrpEUR} />
