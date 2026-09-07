@@ -100,15 +100,15 @@ create policy collection_shares_owner_insert
   for insert
   to authenticated
   with check (
-    (select auth.uid()) = user_id
+    (select auth.uid()) = collection_shares.user_id
     and exists (
       select 1
       from public.collection_items ci
-      where ci.id = collection_item_id
+      where ci.id = collection_shares.collection_item_id
         and ci.user_id = (select auth.uid())
-        and ci.product_id = product_id
-        and ci.release_id = release_id
-        and ci.condition = condition
+        and ci.product_id = collection_shares.product_id
+        and ci.release_id = collection_shares.release_id
+        and ci.condition = collection_shares.condition
     )
   );
 
@@ -117,17 +117,17 @@ create policy collection_shares_owner_update
   on public.collection_shares
   for update
   to authenticated
-  using ((select auth.uid()) = user_id)
+  using ((select auth.uid()) = collection_shares.user_id)
   with check (
-    (select auth.uid()) = user_id
+    (select auth.uid()) = collection_shares.user_id
     and exists (
       select 1
       from public.collection_items ci
-      where ci.id = collection_item_id
+      where ci.id = collection_shares.collection_item_id
         and ci.user_id = (select auth.uid())
-        and ci.product_id = product_id
-        and ci.release_id = release_id
-        and ci.condition = condition
+        and ci.product_id = collection_shares.product_id
+        and ci.release_id = collection_shares.release_id
+        and ci.condition = collection_shares.condition
     )
   );
 
@@ -136,4 +136,4 @@ create policy collection_shares_owner_delete
   on public.collection_shares
   for delete
   to authenticated
-  using ((select auth.uid()) = user_id);
+  using ((select auth.uid()) = collection_shares.user_id);
