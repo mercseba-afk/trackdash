@@ -2,12 +2,17 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Boxes, Coins, Layers, Pencil, Trash2, TrendingUp } from "lucide-react"
+import { Boxes, Coins, Globe2, Handshake, Layers, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { breakdownBy, enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatDate, formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition } from "@/lib/types"
 import { CONDITIONS } from "@/lib/types"
+import {
+  getMyCollectionSharesAction,
+  removeCollectionShareAction,
+  setCollectionShareAction,
+} from "@/lib/actions/sharing"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
@@ -39,15 +44,32 @@ import {
 import { toast } from "sonner"
 
 type SortKey = "recent" | "value-desc" | "value-asc" | "name"
+type MyShare = Awaited<ReturnType<typeof getMyCollectionSharesAction>>[number]
+type Visibility = "private" | MyShare["shareMode"]
 
 export function CollectionScreen() {
   const { collection, updateCollectionItem, removeFromCollection } = useStore()
   const [sort, setSort] = React.useState<SortKey>("recent")
   const [editing, setEditing] = React.useState<EnrichedCollectionItem | null>(null)
+  const [shares, setShares] = React.useState<MyShare[]>([])
+
+  React.useEffect(() => {
+    let cancelled = false
+    getMyCollectionSharesAction().then((rows) => {
+      if (!cancelled) setShares(rows)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const enriched = React.useMemo(() => enrichCollection(collection), [collection])
   const summary = React.useMemo(() => portfolioSummary(enriched), [enriched])
   const byCondition = React.useMemo(() => breakdownBy(enriched, (e) => e.item.condition), [enriched])
+  const shareByCollectionItem = React.useMemo(
+    () => new Map(shares.map((share) => [share.collectionItemId, share])),
+    [shares],
+  )
 
   const sorted = React.useMemo(() => {
     const list = [...enriched]
@@ -127,86 +149,114 @@ export function CollectionScreen() {
       </div>
 
       <div className="grid gap-3">
-        {sorted.map((e) => (
-          <Card key={e.item.id} className="overflow-hidden py-0">
-            <div className="flex items-stretch gap-3 p-3 sm:gap-4">
-              <Link href={`/catalog/${e.product.id}`} className="shrink-0">
-                <ProductImage product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
-              </Link>
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <Link href={`/catalog/${e.product.id}`} className="truncate font-medium hover:text-brand">
-                      {e.product.name}
-                    </Link>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {e.label} · {e.release.chassis ?? "—"} · #{e.release.itemNumber ?? "—"}
-                    </p>
-                    <p className="truncate text-[11px] text-muted-foreground">
-                      Model originally released {e.product.originalReleaseYear ?? "—"}
-                    </p>
+        {sorted.map((e) => {
+          const share = shareByCollectionItem.get(e.item.id)
+          return (
+            <Card key={e.item.id} className="overflow-hidden py-0">
+              <div className="flex items-stretch gap-3 p-3 sm:gap-4">
+                <Link href={`/catalog/${e.product.id}`} className="shrink-0">
+                  <ProductImage product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
+                </Link>
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <Link href={`/catalog/${e.product.id}`} className="truncate font-medium hover:text-brand">
+                        {e.product.name}
+                      </Link>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {e.label} · {e.release.chassis ?? "—"} · #{e.release.itemNumber ?? "—"}
+                      </p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        Model originally released {e.product.originalReleaseYear ?? "—"}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      {share?.shareMode === "open_to_offers" ? (
+                        <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
+                          <Handshake className="size-3" /> Open to offers
+                        </Badge>
+                      ) : share ? (
+                        <Badge variant="secondary" className="gap-1">
+                          <Globe2 className="size-3" /> Shared
+                        </Badge>
+                      ) : null}
+                      <RarityBadge rarity={e.release.rarity ?? e.product.rarity} />
+                    </div>
                   </div>
-                  <RarityBadge rarity={e.release.rarity ?? e.product.rarity} />
-                </div>
-                <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span>
-                    Condition <span className="font-medium text-foreground">{e.item.condition}</span>
-                  </span>
-                  <span>
-                    Paid{" "}
-                    <span className="font-medium text-foreground">
-                      {formatMoney(e.item.acquisitionPrice, e.item.acquisitionCurrency)}
+                  <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span>
+                      Condition <span className="font-medium text-foreground">{e.item.condition}</span>
                     </span>
-                  </span>
-                  <span className="hidden sm:inline">Added {formatDate(e.item.acquisitionDate)}</span>
+                    <span>
+                      Paid{" "}
+                      <span className="font-medium text-foreground">
+                        {formatMoney(e.item.acquisitionPrice, e.item.acquisitionCurrency)}
+                      </span>
+                    </span>
+                    <span className="hidden sm:inline">Added {formatDate(e.item.acquisitionDate)}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end justify-between border-l border-border pl-3 sm:pl-4">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p>
+                    <TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" />
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      aria-label="Edit"
+                      onClick={() => setEditing(e)}
+                    >
+                      <Pencil />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground hover:text-destructive"
+                      aria-label="Remove"
+                      onClick={async () => {
+                        try {
+                          await removeFromCollection(e.item.id)
+                          setShares((current) => current.filter((item) => item.collectionItemId !== e.item.id))
+                          toast.success(`Removed ${e.product.name}`)
+                        } catch (error) {
+                          toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
+                        }
+                      }}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end justify-between border-l border-border pl-3 sm:pl-4">
-                <div className="text-right">
-                  <p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p>
-                  <TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" />
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    aria-label="Edit"
-                    onClick={() => setEditing(e)}
-                  >
-                    <Pencil />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground hover:text-destructive"
-                    aria-label="Remove"
-                    onClick={async () => {
-                      try {
-                        await removeFromCollection(e.item.id)
-                        toast.success(`Removed ${e.product.name}`)
-                      } catch (error) {
-                        toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
-                      }
-                    }}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          )
+        })}
       </div>
 
       <EditDialog
         entry={editing}
+        shareMode={editing ? shareByCollectionItem.get(editing.item.id)?.shareMode : undefined}
         onClose={() => setEditing(null)}
-        onSave={async (id, patch) => {
+        onSave={async (id, patch, visibility) => {
           try {
             await updateCollectionItem(id, patch)
+
+            if (visibility === "private") {
+              await removeCollectionShareAction(id)
+              setShares((current) => current.filter((share) => share.collectionItemId !== id))
+            } else {
+              const savedShare = await setCollectionShareAction(id, visibility)
+              setShares((current) => {
+                const withoutCurrent = current.filter((share) => share.collectionItemId !== id)
+                return [...withoutCurrent, savedShare]
+              })
+            }
+
             setEditing(null)
-            toast.success("Collection updated")
+            toast.success(visibility === "private" ? "Collection updated" : "Collection and sharing updated")
           } catch (error) {
             toast.error(error instanceof Error ? error.message : "Couldn't save changes")
           }
@@ -220,24 +270,29 @@ function PageHeader() {
   return (
     <div className="flex flex-col gap-1">
       <h1 className="text-2xl font-semibold tracking-tight">My collection</h1>
-      <p className="text-sm text-muted-foreground">Every model you own, valued with indicative demo estimates.</p>
+      <p className="text-sm text-muted-foreground">
+        Your collection is private by default. Share individual items only when you want them in your collector showcase.
+      </p>
     </div>
   )
 }
 
 function EditDialog({
   entry,
+  shareMode,
   onClose,
   onSave,
 }: {
   entry: EnrichedCollectionItem | null
+  shareMode?: MyShare["shareMode"]
   onClose: () => void
-  onSave: (id: string, patch: Partial<CollectionItem>) => void
+  onSave: (id: string, patch: Partial<CollectionItem>, visibility: Visibility) => void
 }) {
   const [condition, setCondition] = React.useState<Condition>("Sealed")
   const [price, setPrice] = React.useState("")
   const [year, setYear] = React.useState("")
   const [notes, setNotes] = React.useState("")
+  const [visibility, setVisibility] = React.useState<Visibility>("private")
 
   React.useEffect(() => {
     if (entry) {
@@ -245,8 +300,9 @@ function EditDialog({
       setPrice(String(entry.item.acquisitionPrice))
       setYear(entry.displayYear ? String(entry.displayYear) : "")
       setNotes(entry.item.notes ?? "")
+      setVisibility(shareMode ?? "private")
     }
-  }, [entry])
+  }, [entry, shareMode])
 
   return (
     <Dialog open={Boolean(entry)} onOpenChange={(o) => !o && onClose()}>
@@ -301,6 +357,23 @@ function EditDialog({
             <FieldLabel htmlFor="edit-notes">Notes</FieldLabel>
             <Input id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </Field>
+          <Separator />
+          <Field>
+            <FieldLabel>Shared collection</FieldLabel>
+            <Select value={visibility} onValueChange={(value) => setVisibility(value as Visibility)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">Private — only you can see it</SelectItem>
+                <SelectItem value="showcase">Shared — show it in your collector showcase</SelectItem>
+                <SelectItem value="open_to_offers">Open to offers — shared and open to proposals</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Sharing exposes only the model, exact release and condition. Purchase price, acquisition source and private notes never leave My Collection.
+            </p>
+          </Field>
         </FieldGroup>
         <Separator />
         <DialogFooter>
@@ -311,12 +384,16 @@ function EditDialog({
               const parsedYear = Number(year)
               const releaseYearOverride =
                 Number.isFinite(parsedYear) && parsedYear !== entry.release.releaseYear ? parsedYear : undefined
-              onSave(entry.item.id, {
-                condition,
-                acquisitionPrice: Number(price) || 0,
-                releaseYearOverride,
-                notes: notes.trim() || undefined,
-              })
+              onSave(
+                entry.item.id,
+                {
+                  condition,
+                  acquisitionPrice: Number(price) || 0,
+                  releaseYearOverride,
+                  notes: notes.trim() || undefined,
+                },
+                visibility,
+              )
             }}
           >
             Save changes
