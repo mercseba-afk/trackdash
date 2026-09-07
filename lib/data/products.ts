@@ -345,19 +345,54 @@ const SEEDS: Seed[] = [
     jp: "ネオトライダガー ZMC",
     series: "Super Mini 4WD",
     chassis: "Super 1",
-    originalYear: 1998,
+    // CATALOG EXPANSION WAVE 1 -- targeted audit (see
+    // docs/CATALOG_AUDIT.md): originalYear corrected 1998 -> 1996.
+    // No live official Tamiya page states this historical release date
+    // directly (the current 19409 page only reflects a 2015 price
+    // update, not the original sale date) -- corrected on
+    // trusted_secondary evidence: TWO independent structured sources
+    // (w.atwiki.jp/mini4vipwiki, a dedicated Japanese Mini 4WD history
+    // wiki, and the Mini 4WD Fandom wiki) both independently state
+    // "released by Tamiya on March 6, 1996" for this exact item
+    // (19409) -- CONCUR, confidence HIGH per the two-independent-
+    // trusted-secondary bar. Not upgraded to "verified" for this field
+    // (no official primary confirms the historical date), but is no
+    // longer left at the old, unsupported 1998 guess either.
+    originalYear: 1996,
     rarity: "Rare",
     estimatedMsrpJPY: 1000,
     desc: "The ZMC 'Zero Material Carbon' hero machine. A fan favourite reissued for the modern Super II chassis.",
     releases: [
-      { releaseSeedKey: "1", type: "Original", name: "Neo-Tridagger ZMC", year: 1998, chassis: "Super 1", rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
-      // UNVERIFIED: this release's own distinct item number was not
-      // independently checked (Premium reissues of Fully Cowled cars
-      // very often use a different item number than the original, per
-      // the pattern seen throughout this catalog). Explicit `null` so
-      // this resolves to NULL rather than silently inheriting the
-      // parent's item — see file header.
-      { releaseSeedKey: "2", type: "Premium", name: "Neo-Tridagger ZMC (Premium)", year: 2016, item: null, chassis: "Super II", rarity: "Uncommon" },
+      { releaseSeedKey: "1", type: "Original", name: "Neo-Tridagger ZMC", year: 1996, releaseDate: "1996-03-06", chassis: "Super 1", rarity: "Very Rare", estimatedMsrpJPY: 800, original: true },
+      // CORRECTED (Catalog Expansion Wave 1): the previous "Neo-Tridagger
+      // ZMC (Premium)" 2016/item-null entry here had NO evidence of a
+      // real Tamiya commercial release after a full search (Tamiya,
+      // official catalogs, RCJaz, trusted secondary) -- the only real
+      // 2015 event for this item was 15480, a Clear Body upgrade PART
+      // (grade-up parts series), not a complete kit, so it does not
+      // qualify as a Release per this catalog's own kit-vs-parts rule.
+      // Replaced in place (same releaseSeedKey "2", same UUID -- see
+      // docs/CATALOG_AUDIT.md's Proto Emperor ZX precedent for why this
+      // is the correct way to fix a false release rather than deleting
+      // it) with the real Carbon Special: official page
+      // tamiya.com/japan/products/95508/index.html confirms Item
+      // No:95508, "NEO-TRIDAGGER ZMC CARBON SPECIAL (SUPER-II CHASSIS)",
+      // and states its own "初回発売日：2019年8月" (initial release:
+      // August 2019) explicitly. RCJaz
+      // (rcjaz.com/tamiya-95508-neotridagger-zmc-carbon-special-superii)
+      // agrees on item/name/chassis -- CONCUR, confidence HIGH. Day not
+      // stated by the source (month only) -- releaseDate left unset
+      // rather than guessed.
+      { releaseSeedKey: "2", type: "Color Special", name: "Neo-Tridagger ZMC Carbon Special", year: 2019, item: "95508", chassis: "Super II", color: "Black", notes: "Initial release month: August 2019 (day not officially stated)." },
+      // NEW (Catalog Expansion Wave 1): the same item's own official
+      // page currently advertises a distinct, later on-sale date --
+      // "2023年8月12日(土)発売日指定" (2023-08-12) -- for what Tamiya's own
+      // page treats as a fresh production/sale event of the same kit.
+      // Per this catalog's existing convention (a commercially distinct
+      // reissue can be its own Release even sharing the parent item
+      // number -- see Dash-1 Emperor's 2026 Reissue), recorded as its
+      // own release rather than folded into releaseSeedKey "2".
+      { releaseSeedKey: "3", type: "Reissue", name: "Neo-Tridagger ZMC Carbon Special (2023 Reissue)", year: 2023, releaseDate: "2023-08-12", item: "95508", chassis: "Super II", color: "Black" },
     ],
   },
   // ---- Fully Cowled / Let's & Go ----
@@ -1179,6 +1214,163 @@ const SEEDS: Seed[] = [
     desc: "Japan Cup commemorative colourway of the Aero Avante. Event-limited and hard to find.",
     releases: [{ releaseSeedKey: "1", type: "Japan Cup Edition", name: "Aero Avante Japan Cup 2013", year: 2013, original: true, verificationStatus: "unverified" }],
   },
+  // ---- Catalog Expansion Wave 1 (docs/CATALOG_AUDIT.md) ----
+  {
+    // NEW immutable semantic anchor -- deliberately NOT a Tamiya item
+    // number (this catalog's convention where a stable, descriptive key
+    // is available; see file header point 1). Never reuse or repurpose
+    // once assigned.
+    seedKey: "dash-x1-proto-emperor",
+    // Both releases verified directly against tamiya.com (fetched live)
+    // and cross-checked against RCJaz (trusted_secondary) this pass --
+    // see docs/CATALOG_AUDIT.md's Catalog Expansion Wave 1 section for
+    // the full ITEM|TAMIYA|RCJAZ|PARENT|CHASSIS|DATE|RESULT report.
+    //
+    // IMPORTANT: this is NOT Proto Emperor ZX (seedKey 18714) -- a
+    // distinct machine/character in the Dash! Yonkuro manga (Kidoin
+    // Jin's original Proto-Emperor, later superseded in-story by Proto
+    // Emperor ZX). Confirmed explicitly by the Fandom wiki: "It was
+    // superseded by Proto-Emperor ZX in the series's run." This is the
+    // exact confusion that caused the original 95450 miscatalogation
+    // fixed in the Catalog Integrity Hardening pass -- kept as two
+    // fully separate Products on purpose.
+    //
+    // Canonical release note: a genuine earlier commercial kit exists
+    // (item 94708, "VS" chassis, limited edition, November 28, 2009 --
+    // per the Fandom wiki) that predates 18074. It is NOT implemented in
+    // Wave 1 (not in this task's explicit scope) and is listed as a
+    // Wave 2 candidate. 18074 (Premium) is used as this Product's
+    // canonical/original release as a pragmatic choice for Wave 1 --
+    // it is Tamiya's current "regular release" line entry for this
+    // machine, and the alternative (leaving canonicalReleaseId entirely
+    // unset) would leave this Product without any item/chassis/year
+    // displayed anywhere outside its own release rows. This choice
+    // should be revisited if/when 94708 is added in a future wave.
+    item: "18074",
+    code: "95172",
+    name: "DASH-X1 Proto-Emperor",
+    jp: "ダッシュX1・原始皇帝（プロトエンペラー）",
+    series: "Dash! Yonkuro",
+    chassis: "Super II",
+    originalYear: 2013,
+    rarity: "Rare",
+    estimatedMsrpJPY: 1100,
+    desc: "Jin Kidoin's machine, Yonkuro Hinomaru's rival in Dash! Yonkuro. Later superseded in-story by Proto-Emperor ZX -- a distinct machine from that later Product in this catalog.",
+    releases: [
+      {
+        releaseSeedKey: "1",
+        type: "Premium",
+        name: "Dash-X1 Proto-Emperor Premium",
+        year: 2013,
+        releaseDate: "2013-01-12",
+        chassis: "Super II",
+        color: "Violet",
+        original: true,
+      },
+      {
+        releaseSeedKey: "2",
+        type: "Color Special",
+        name: "Dash-X1 Proto-Emperor Premium Black Special",
+        year: 2019,
+        releaseDate: "2019-01-12",
+        item: "95450",
+        chassis: "Super II",
+        color: "Black",
+        notes: "Chassis molded in Yellow ABS (per official retailer listing corroboration); body/A-parts Black -- hence \"Black Special\" naming despite the yellow chassis.",
+      },
+    ],
+  },
+  {
+    // NEW immutable semantic anchor -- see note on the entry above.
+    seedKey: "avante-mk3",
+    // All 6 releases verified directly against tamiya.com (fetched/
+    // searched live this pass) and cross-checked against RCJaz where
+    // available -- see docs/CATALOG_AUDIT.md's Catalog Expansion Wave 1
+    // section for the full per-release report.
+    //
+    // Parent-family check (explicitly required by this task, per the
+    // 95450 lesson: item validity alone never implies correct parent):
+    // Azure and Nero share the same "AVANTE Mk.III" series numbering
+    // (Mini 4WD PRO No.26/No.27) on their own official pages, released
+    // the same month (September 2008); every other release below is
+    // explicitly named "アバンテMk.III ..." / "AVANTE Mk.III ..." on its
+    // own official Tamiya page. Fandom wiki's dedicated "Avante Mk.III"
+    // entry independently corroborates all six as the same family. All
+    // CONFIRMED same-Product-family, not merely same-name-prefix.
+    item: "18626",
+    code: "95201",
+    name: "Avante Mk.III",
+    jp: "アバンテMk.III",
+    series: "Avante",
+    chassis: "MS",
+    originalYear: 2008,
+    rarity: "Uncommon",
+    estimatedMsrpJPY: 1100,
+    desc: "The third-generation Avante PRO racer, launched in Azure and Nero colourways on the new MS chassis. A long-running special-edition family across MS and MA chassis variants.",
+    releases: [
+      { releaseSeedKey: "1", type: "Original", name: "Avante Mk.III Azure", year: 2008, releaseDate: "2008-09-06", chassis: "MS", color: "Light Blue", original: true },
+      { releaseSeedKey: "2", type: "Original", name: "Avante Mk.III Nero", year: 2008, releaseDate: "2008-09-27", item: "18627", chassis: "MS", color: "Black" },
+      {
+        releaseSeedKey: "3",
+        type: "Japan Cup Edition",
+        name: "Avante Mk.III Japan Cup 2015 Limited Edition",
+        year: 2015,
+        releaseDate: "2015-07-11",
+        item: "95087",
+        chassis: "MA",
+        color: "Magenta",
+        notes: "MS-chassis Azure body remounted on MA chassis for this limited edition -- chassis change alone does not imply a different Product per this catalog's own convention.",
+      },
+      {
+        releaseSeedKey: "4",
+        type: "Color Special",
+        name: "Avante Mk.III Red Special",
+        year: 2018,
+        releaseDate: "2018-12-01",
+        item: "95425",
+        chassis: "MS",
+        color: "Red",
+        notes: "This is a re-release: Tamiya's own Avante Mk.III lineup lists an earlier Red Special (item 94692, June 27, 2009) not implemented in Wave 1 -- see Wave 2 candidates in docs/CATALOG_AUDIT.md.",
+      },
+      {
+        releaseSeedKey: "5",
+        type: "Color Special",
+        name: "Avante Mk.III White Special",
+        year: 2019,
+        releaseDate: "2019-03-23",
+        item: "95469",
+        chassis: "MS",
+        color: "White",
+        notes: "This is a re-release: an earlier White Special (January 30, 2010, per the Fandom wiki) exists under a different, unconfirmed item number and was not implemented in Wave 1 -- see Wave 2 candidates.",
+      },
+      {
+        releaseSeedKey: "6",
+        type: "Clear Body",
+        name: "Avante Mk.III Azure Clear Special (Polycarbonate Body)",
+        year: 2010,
+        item: "95464",
+        chassis: "MS",
+        color: "Clear/Azure",
+        notes: "Official page states its own initial release as 2010年9月 (September 2010, month only) -- releaseDate left unset (no day stated by the source).",
+      },
+      {
+        // Consistency fix: the same official page also explicitly states
+        // a distinct current on-sale date, 2023年11月11日(土)頃発売
+        // (2023-11-11) -- confirmed via direct fetch, same pattern as
+        // Neo-Tridagger ZMC Carbon Special (item 95508)'s 2019-initial /
+        // 2023-reissue split. Recorded as its own release rather than
+        // folded into releaseSeedKey "6", per the same convention.
+        releaseSeedKey: "7",
+        type: "Reissue",
+        name: "Avante Mk.III Azure Clear Special (2023 Reissue)",
+        year: 2023,
+        releaseDate: "2023-11-11",
+        item: "95464",
+        chassis: "MS",
+        color: "Clear/Azure",
+      },
+    ],
+  },
 ]
 
 // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 5): coarse,
@@ -1235,7 +1427,24 @@ const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
     { sourceType: "official_catalog_pdf", sourceUrl: "https://www.tamiyausa.com/media/files/map-price-list-jan-2019-969-c5cb.pdf", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04", notes: "Official Tamiya America MAP price list PDF -- confirms this catalog's OLD (wrong) item was really 'Shooting Proud Star'." },
     { sourceType: "official_manufacturer", sourceUrl: "https://tamiya.com/english/products/18637/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" },
   ],
-  "19434:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19409/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "19434:1": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19409/index.html", verifiedFields: ["itemNumber", "chassis", "editionName"], checkedAt: "2026-09-04" },
+    // trusted_secondary, per Catalog Expansion Wave 1's Neo-Tridagger
+    // audit: two independent structured sources (w.atwiki.jp/mini4vipwiki
+    // and the Mini 4WD Fandom wiki) both state 1996-03-06 for this exact
+    // item. Recorded as its own source entry (not merged into the
+    // official one above) so the provenance for this specific claim
+    // stays honestly distinguishable from the official item/chassis
+    // confirmation.
+    { sourceType: "trusted_secondary", sourceUrl: "https://mini-4wd.fandom.com/wiki/Neo-Tridagger_ZMC", verifiedFields: ["releaseYear", "releaseDate"], checkedAt: "2026-09-07", notes: "Corroborated independently by w.atwiki.jp/mini4vipwiki/pages/178.html (same exact date, 1996-03-06). Two independent trusted-secondary sources concur; no official primary source states this historical date." },
+  ],
+  "19434:2": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95508/index.html", verifiedFields: ["itemNumber", "chassis", "editionName"], checkedAt: "2026-09-07", notes: "Page states its own initial release as 2019年8月 (August 2019, month only) -- releaseYear 2019 verified, releaseDate left unset (no day stated)." },
+    { sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.com/tamiya-95508-neotridagger-zmc-carbon-special-superii-p-14563.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-07", notes: "RCJaz cross-check: concurs with Tamiya on item number and chassis." },
+  ],
+  "19434:3": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95508/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-07", notes: "Page explicitly states 2023年8月12日(土)発売日指定 (2023-08-12) as this item's current on-sale date -- distinct from the 2019 initial release recorded on releaseSeedKey \"2\"." },
+  ],
   "18725:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19407/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
   "18725:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19435/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
   "19425:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19412/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
@@ -1267,6 +1476,30 @@ const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
   "18093:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18716/index.html", verifiedFields: ["itemNumber", "releaseYear"], checkedAt: "2026-09-03" }],
   "18095:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18704/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
   "19401:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19431/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
+  // ---- Catalog Expansion Wave 1 ----
+  "dash-x1-proto-emperor:1": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18074/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "color"], checkedAt: "2026-09-07" },
+    { sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.com/tamiya-18074-jr-dashx1-proto-emperor-premium-super-ii-chassis-p-90059083.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-07", notes: "RCJaz cross-check: concurs with Tamiya on item and chassis." },
+  ],
+  "dash-x1-proto-emperor:2": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95450/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "color"], checkedAt: "2026-09-06", notes: "This item was ORIGINALLY (incorrectly) attached to the Proto Emperor ZX product in this catalog; confirmed this pass to belong to Dash-X1 Proto-Emperor instead -- see the Catalog Integrity Hardening pass and this Product's own header comment." },
+    { sourceType: "trusted_secondary", sourceUrl: "https://mini-4wd.fandom.com/wiki/Dash-X1_Proto-Emperor", verifiedFields: ["releaseDate", "releaseYear"], checkedAt: "2026-09-07", notes: "Fandom wiki's structured release table independently states January 12, 2019 for item 95450 -- matches the official page exactly." },
+  ],
+  "avante-mk3:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18626/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-07" }],
+  "avante-mk3:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18627/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "color"], checkedAt: "2026-09-07" }],
+  "avante-mk3:3": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95087/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-07" }],
+  "avante-mk3:4": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95425/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-07" },
+    { sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.com/tamiya-94692-avante-mkiii-red-special-p-90012922.html", verifiedFields: [], checkedAt: "2026-09-07", notes: "Corroborates that an EARLIER Red Special exists under a different item (94692) -- evidence this 95425 release is a re-release, not the original; not used to back any of THIS release's own field values." },
+  ],
+  "avante-mk3:5": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95469/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-07" }],
+  "avante-mk3:6": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95464/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear", "editionName"], checkedAt: "2026-09-07", notes: "Page states its own initial release as 2010年9月 (month only) -- releaseYear verified, releaseDate left unset." },
+    { sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.com/tamiya-95464-avante-mkiii-azure-clear-special-polycarbonate-body-ms-chassis-p-12108.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-07", notes: "RCJaz cross-check: concurs with Tamiya on item and chassis (MS)." },
+  ],
+  "avante-mk3:7": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95464/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-07", notes: "Same official page as releaseSeedKey \"6\" (same item), fetched directly -- explicitly states 2023年11月11日(土)頃発売 (2023-11-11) as this item's current on-sale date, distinct from the 2010年9月 initial release recorded on releaseSeedKey \"6\". Same pattern as Neo-Tridagger ZMC Carbon Special's 2019-initial/2023-reissue split." },
+  ],
 }
 
 // Catalog Model V2 hardening (point 6): keyed by

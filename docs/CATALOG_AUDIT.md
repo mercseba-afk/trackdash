@@ -717,3 +717,85 @@ specific releases/fields don't appear in this table.
    confirmed -- pure metadata, no factual change expected.
 6. Close the 14 P2 provenance-gap-report rows above with a genuine new
    source citation (chassis/year not yet backed by any source at all).
+
+## Catalog Expansion Wave 1
+
+Three families audited/expanded per the Catalog Editorial Policy
+(`ITEM | RELEASE | TAMIYA | RCJAZ | PARENT | CHASSIS | DATE/YEAR | IMAGE | RESULT`):
+
+```
+18074  | Dash-X1 Proto-Emperor Premium              | OK | OK | Dash-X1 OK    | Super II OK | 2013-01-12 OK | product img OK | VERIFIED
+95450  | Dash-X1 Proto-Emperor Premium Black Special | OK | OK | Dash-X1 OK    | Super II OK | 2019-01-12 OK | unresolved     | VERIFIED
+18626  | Avante Mk.III Azure                        | OK | -- | Avante Mk3 OK | MS OK       | 2008-09-06 OK | product img OK | VERIFIED
+18627  | Avante Mk.III Nero                          | OK | -- | Avante Mk3 OK | MS OK       | 2008-09-27 OK | unresolved     | VERIFIED
+95087  | Avante Mk.III Japan Cup 2015 Limited Edition| OK | -- | Avante Mk3 OK | MA OK       | 2015-07-11 OK | unresolved     | VERIFIED
+95425  | Avante Mk.III Red Special (re-release)      | OK | corroborates re-release | Avante Mk3 OK | MS OK | 2018-12-01 OK | unresolved | VERIFIED
+95469  | Avante Mk.III White Special (re-release)    | OK | -- | Avante Mk3 OK | MS OK       | 2019-03-23 OK | unresolved     | VERIFIED
+95464  | Avante Mk.III Azure Clear Special (2010, initial) | OK | OK | Avante Mk3 OK | MS OK       | 2010-09 (month only) OK | unresolved | VERIFIED
+95464  | Avante Mk.III Azure Clear Special (2023 Reissue) | OK | -- | Avante Mk3 OK | MS OK       | 2023-11-11 OK | exact release image OK | VERIFIED
+19409  | Neo-Tridagger ZMC (year corrected)          | item/chassis OK, year trusted_secondary only | OK (item/chassis) | Neo-Tridagger OK | Super 1 OK | 1996-03-06 (trusted_secondary x2) | unchanged (product img) | VERIFIED
+95508  | Neo-Tridagger ZMC Carbon Special (2019)     | OK | OK | Neo-Tridagger OK | Super II OK | 2019-08 (month only) OK | unresolved | VERIFIED
+95508  | Neo-Tridagger ZMC Carbon Special (2023 Reissue) | OK | -- | Neo-Tridagger OK | Super II OK | 2023-08-12 OK | unresolved | VERIFIED
+```
+
+Removed as unsupported: the previous "Neo-Tridagger ZMC (Premium)"
+2016/item-null entry -- no evidence found of a real commercial Tamiya
+kit; the only real 2015 event for this item was 15480, a Clear Body
+upgrade PART, not a complete kit.
+
+### Images added this pass
+
+Product-level: two confirmed via direct official-page fetch (not
+pattern-guessed): DASH-X1 Proto-Emperor (18074), Avante Mk.III (18626,
+Azure). Release-level: one exact image, added in a post-approval
+consistency fix -- Avante Mk.III Azure Clear Special (2023 Reissue,
+item 95464), whose official page explicitly represents that reissue
+(states 2023-11-11); its own image is attributed only to that release,
+never the 2010 original. Every other release above without its own
+exact image correctly falls back to its product's image, never a
+wrong/fabricated photo.
+
+### productionStatus
+
+Left `unknown` for every Wave 1 release. No source cited above states
+a Release-level `productionStatus` in terms this catalog's schema can
+safely consume (Tamiya USA's "Discontinued" tag on 95508, noted during
+research, is a US-market storefront status, not confirmed to mean the
+same thing as this schema's factual, source-backed
+`productionStatus` field) -- left `unknown` and reported here rather
+than inferred.
+
+### Verified MSRP / JAN
+
+None promoted to factual `msrpJPY`/`msrpEUR`/`barcodeJAN` this pass.
+Historical/current JPY list prices appeared in several fetched pages
+(e.g. 18074: ¥1,430/¥1,300; 18626: ¥1,320/¥1,200) but were not carried
+into any factual MSRP field -- consistent with this catalog's existing
+policy of never treating a listed price as automatically "verified"
+without a dedicated pass confirming it meets the project's own bar.
+No GTIN/JAN was recorded by any source fetched this pass.
+
+### Wave 2 candidates (discovery only -- not implemented)
+
+- Dash-X1 Proto-Emperor: earlier "VS" chassis limited kit, item 94708
+  (November 28, 2009) -- predates 18074; would let this Product's
+  canonical release reflect its true first commercial kit.
+- Avante Mk.III: substantial family of earlier/regional specials found
+  during Fandom-wiki research but not implemented -- earlier Red
+  Special (item 94692, June 27, 2009, the true original before 95425's
+  2018 re-release), earlier White Special (January 30, 2010, item not
+  confirmed), Azure Eva-01 SP (September 2009), Azure Clear Blue SP
+  (July 31, 2010), Nero Clear Violet SP (June 15, 2013), Stargek SP
+  (2014), Tamiya Korea 25th Anniversary SP (items 92422/92428,
+  2020-2021), Azure TPF Hong Kong SP (August 2021), Azure Plamodel
+  Factory Hong Kong SP (item 92430). None classified beyond
+  TRUSTED-SECONDARY-STRONG (Fandom wiki) -- none independently
+  Tamiya-confirmed with an item-level official page in this pass.
+- Other clearly collectible discontinued/special kits noticed in
+  passing during this research (genuinely NOT investigated beyond
+  their names appearing in retailer/RCJaz listings, per this task's
+  explicit "discovery only, do not expand scope"): Manta Ray Mk.II
+  Black Special (95466), Thunder Shot Mk.II Clear Special (95463) and
+  Waigo Hobby 45th Anniversary Special (92429), Ray Stinger / Brocken
+  Gigant variants (referenced in the earlier Images Phase 2 pass's
+  wrong-item findings), Shining Scorpion Premium (19436).

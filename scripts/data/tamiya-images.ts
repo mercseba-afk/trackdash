@@ -569,4 +569,59 @@ export const TAMIYA_IMAGES: TamiyaImageEntry[] = [
     sourceType: "official_manufacturer",
     note: "Official page fetched directly, item/name/date all confirmed exact match. This is the corrected Proto Emperor ZX Premium (see Catalog Integrity Hardening pass) -- never the false 95450.",
   },
+
+  // ---------------------------------------------------------------------
+  // Catalog Expansion Wave 1: product-level images for the two new
+  // products, both confirmed via direct official-page fetch this pass
+  // (not pattern-guessed). Release-level exact images for these two
+  // products' individual editions (95450, 18627, 95087, 95425, 95469,
+  // 95464) were NOT added in this pass -- each would need its own
+  // direct page fetch to read the real image URL (the task explicitly
+  // required this, no pattern deduction), and this pass's time did not
+  // extend to all of them. Every release without its own exact image
+  // correctly falls back to its product's image via the existing,
+  // unmodified resolver -- never a wrong or fabricated release-specific
+  // photo. See docs/CATALOG_AUDIT.md's Wave 1 section for the honest
+  // accounting of which images were and weren't added.
+  // ---------------------------------------------------------------------
+  {
+    productSeedKey: "dash-x1-proto-emperor",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18074/18074_1.jpg",
+    tamiyaItemNumber: "18074",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18074/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official page fetched directly this pass; image URL read from the page's own body markup, not assumed from the path pattern.",
+  },
+  {
+    productSeedKey: "avante-mk3",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18626/18626_1.jpg",
+    tamiyaItemNumber: "18626",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18626/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official page fetched directly this pass (Azure, the canonical/original release); image URL read from the page's own body markup, not assumed from the path pattern.",
+  },
+
+  // ---------------------------------------------------------------------
+  // Consistency fix (post-Wave-1): Avante Mk.III Azure Clear Special's
+  // official page (95464) explicitly states BOTH an initial release
+  // (2010年9月, month only) AND a distinct current on-sale date
+  // (2023年11月11日) -- the same dual-date pattern already modeled for
+  // Neo-Tridagger ZMC Carbon Special (95508). This exact image belongs
+  // ONLY to the 2023 Reissue release (releaseSeedKey "7") -- the current
+  // page represents that reissue, not the 2010 original, so it is
+  // deliberately NOT attached to releaseSeedKey "6", which keeps falling
+  // back to the product image per UNKNOWN > INVENTED.
+  // ---------------------------------------------------------------------
+  {
+    productSeedKey: "avante-mk3",
+    releaseSeedKey: "7",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/9/95464/95464_1.jpg",
+    tamiyaItemNumber: "95464",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95464/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official page fetched directly, image URL read from the page's own body markup (leading path digit '9' confirmed from the page itself, consistent with other 9xxxx items in this project). Page explicitly states 2023年11月11日(土)頃発売 -- this is the 2023 Reissue's own image, not attributed to the 2010 original release.",
+  },
 ]

@@ -121,4 +121,17 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "f4e3f6b8-8ce6-5b87-9d94-5f64a24c031a", kind: "release", label: "Thunder Shot — Thunder Shot Premium" },
   { id: "8c923a15-a5e7-5e5c-ab8f-b2d1f722ac76", kind: "release", label: "Emperor (Premium Black Special) — Emperor (Premium Black Special)" },
   { id: "035abf4d-65da-5b0c-855d-9e611798c4e4", kind: "release", label: "Aero Avante Japan Cup 2013 — Aero Avante Japan Cup 2013" },
+  // ---- Catalog Expansion Wave 1 ----
+  { id: "d9b9392b-d149-52a2-b862-0eafc66af7ef", kind: "release", label: "Neo-Tridagger ZMC — Neo-Tridagger ZMC Carbon Special (2023 Reissue)" },
+  { id: "1acf7850-c8a9-5627-b104-54db6e235ba2", kind: "product", label: "DASH-X1 Proto-Emperor" },
+  { id: "0226dfa5-5e29-5557-b134-ddbad7682e28", kind: "release", label: "DASH-X1 Proto-Emperor — Dash-X1 Proto-Emperor Premium" },
+  { id: "6168c423-9f3e-5495-9a1d-06185ea7fa34", kind: "release", label: "DASH-X1 Proto-Emperor — Dash-X1 Proto-Emperor Premium Black Special" },
+  { id: "de719716-e50a-5811-b99d-18bbb153b166", kind: "product", label: "Avante Mk.III" },
+  { id: "497455cb-838d-5430-97dd-ae0be52e69e4", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure" },
+  { id: "86763fe4-bfc0-551e-8541-c3fc9c2442b7", kind: "release", label: "Avante Mk.III — Avante Mk.III Nero" },
+  { id: "68be3b41-30a7-55be-8cd9-f741193ce595", kind: "release", label: "Avante Mk.III — Avante Mk.III Japan Cup 2015 Limited Edition" },
+  { id: "3ba49f54-21c9-532d-a34a-7b9e38668a6d", kind: "release", label: "Avante Mk.III — Avante Mk.III Red Special" },
+  { id: "e31c9f48-a776-564a-a496-63771e4a4f9d", kind: "release", label: "Avante Mk.III — Avante Mk.III White Special" },
+  { id: "9d9d9015-81e5-5388-9d36-3e8b3b223b54", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure Clear Special (Polycarbonate Body)" },
+  { id: "cc1fb7fa-67db-5303-9514-80b9705fe732", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure Clear Special (2023 Reissue)" },
 ]
