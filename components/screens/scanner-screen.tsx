@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Camera, Loader2, ScanLine, Sparkles, X } from "lucide-react"
-import { PRODUCTS, findByCode, resolveRelease } from "@/lib/data/products"
+import { PRODUCTS, findByCode, resolveRelease } from "@/lib/data/corrected-products"
 import { getReleaseEstimate } from "@/lib/data/market"
 import { formatMoney } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
