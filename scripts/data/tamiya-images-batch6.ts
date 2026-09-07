@@ -3,6 +3,21 @@ import type { TamiyaImageEntry } from "./tamiya-images"
 const officialImage = (item: string) =>
   `https://www.tamiya.com/japan_contents/img/usr/item/${item.startsWith("9") ? "9" : "1"}/${item}/${item}_1.jpg`
 
+const productImage = (
+  productSeedKey: string,
+  item: string,
+  sourcePageUrl: string,
+  note: string,
+): TamiyaImageEntry => ({
+  productSeedKey,
+  imageUrl: officialImage(item),
+  tamiyaItemNumber: item,
+  sourcePageUrl,
+  sourceDomain: "tamiya.com",
+  sourceType: "official_manufacturer",
+  note,
+})
+
 const releaseImage = (
   productSeedKey: string,
   releaseSeedKey: string,
@@ -26,6 +41,10 @@ const releaseImage = (
 // the initial 2017 Emperor Black Special deliberately remain on Product fallback
 // because this pass does not have an attributable release-exact archival asset.
 export const TAMIYA_IMAGES_BATCH6: TamiyaImageEntry[] = [
+  // Supersedes the old Product-level Emperor 18025 fallback in the base manifest:
+  // the corrected Product identity is the original 18012 / Type 1 lineage.
+  productImage("18025", "18012", "https://www.tamiya.com/japan/products/18012/index.html", "Official ITEM 18012 asset used as the generic Dash-1 Emperor Product image after the genealogy correction. It is intentionally Product-level, not claimed as an exact archival photo of the September 1988 occurrence."),
+
   releaseImage("18626", "2", "95062", "https://www.tamiya.com/japan/products/95062/index.html", "Exact official image for Aero Avante Violet Special (Clear Body), ITEM 95062."),
   releaseImage("18626", "4", "95267", "https://www.tamiya.com/japan/products/95267/index.html", "Exact official image for Aero Avante Gold Metallic, ITEM 95267."),
   releaseImage("18626", "5", "95268", "https://www.tamiya.com/japan/products/95268/index.html", "Exact official image for Aero Avante Blue Metallic, ITEM 95268."),
