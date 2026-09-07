@@ -185,13 +185,24 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
 
 function ReleaseRow({ product, release, owned }: { product: Product; release: ProductRelease; owned: boolean }) {
   const estimate = getReleaseEstimate(product, release)
+  const releaseHref = `/catalog/${product.id}/releases/${release.id}`
+
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
-        <ProductImage product={product} release={release} className="size-14 shrink-0 rounded-md" size="sm" />
+        <Link href={releaseHref} className="shrink-0">
+          <ProductImage
+            product={product}
+            release={release}
+            className="h-20 w-28 rounded-md sm:h-24 sm:w-32"
+            size="md"
+          />
+        </Link>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <p className="font-medium">{release.editionName}</p>
+            <Link href={releaseHref} className="font-medium hover:text-brand hover:underline">
+              {release.editionName}
+            </Link>
             {release.isOriginal ? (
               <Badge variant="outline">Original</Badge>
             ) : (
@@ -222,12 +233,17 @@ function ReleaseRow({ product, release, owned }: { product: Product; release: Pr
           <p className="font-semibold tabular-nums">{formatMoney(estimate.value)}</p>
           <TrendIndicator value={estimate.trend90d} className="justify-end text-xs" />
         </div>
-        <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-          <Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">
-            {owned ? <Check className="size-4" /> : <Plus className="size-4" />}
-            {owned ? "Add another" : "Add this"}
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" render={<Link href={releaseHref} />}>
+            Details
           </Button>
-        </AddToCollectionDialog>
+          <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+            <Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">
+              {owned ? <Check className="size-4" /> : <Plus className="size-4" />}
+              {owned ? "Add another" : "Add this"}
+            </Button>
+          </AddToCollectionDialog>
+        </div>
       </div>
     </div>
   )
