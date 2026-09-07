@@ -171,24 +171,36 @@ function ScanResult({
   onScanAgain: () => void
 }) {
   const [releaseId, setReleaseId] = React.useState(resolveRelease(product, matchedReleaseId).id)
+
+  // ScanResult stays mounted while the user performs subsequent lookups, so the
+  // selected release must follow the newly matched product/release instead of
+  // retaining state from the previous result.
+  React.useEffect(() => {
+    setReleaseId(resolveRelease(product, matchedReleaseId).id)
+  }, [product, matchedReleaseId])
+
   const release: ProductRelease = resolveRelease(product, releaseId)
   const estimate = getReleaseEstimate(product, release)
+  const releaseHref = `/catalog/${product.id}/releases/${release.id}`
 
   return (
     <Card className="border-brand/40">
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-brand">
           <Sparkles className="size-4" />
-          <span className="text-sm font-medium">Found product</span>
+          <span className="text-sm font-medium">{matchedReleaseId ? "Found release" : "Found product"}</span>
         </div>
         <div className="flex gap-4">
           <ProductImage product={product} release={release} className="h-24 w-36 shrink-0" />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <Link href={`/catalog/${product.id}`} className="font-semibold leading-tight hover:text-brand">
-              {product.name}
+            <Link href={releaseHref} className="font-semibold leading-tight hover:text-brand">
+              {release.editionName}
             </Link>
             <p className="text-xs text-muted-foreground">
-              #{release.itemNumber ?? "—"} · {release.chassis ?? "—"} · original release {product.originalReleaseYear ?? "—"}
+              Model: <Link href={`/catalog/${product.id}`} className="hover:text-foreground">{product.name}</Link>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              #{release.itemNumber ?? "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}
             </p>
             <div className="flex flex-wrap items-center gap-1.5">
               <RarityBadge rarity={release.rarity ?? product.rarity} />
