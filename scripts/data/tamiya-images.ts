@@ -624,4 +624,88 @@ export const TAMIYA_IMAGES: TamiyaImageEntry[] = [
     sourceType: "official_manufacturer",
     note: "Official page fetched directly, image URL read from the page's own body markup (leading path digit '9' confirmed from the page itself, consistent with other 9xxxx items in this project). Page explicitly states 2023年11月11日(土)頃発売 -- this is the 2023 Reissue's own image, not attributed to the 2010 original release.",
   },
+
+  // ---------------------------------------------------------------------
+  // Consistency restore (Release Detail Page QA pass): migrations 0017
+  // ("Image Audit / Fix -- batch 1 (Avante Mk.III family)") and 0018
+  // (runtime-safe URL fix for two of them) had already added these 5
+  // release_images rows directly to SQL, without mirroring them here --
+  // this manifest is the project's established single source of truth
+  // that every prior migration was generated FROM, so the two had
+  // drifted out of sync (pnpm images:check/images:test never saw these
+  // rows, and regenerating a migration from this file would have
+  // silently dropped them). No new migration created and 0017/0018 are
+  // NOT modified -- this only restores the manifest to match what was
+  // already committed there, using the same ids those migrations
+  // reference. URLs below are the FINAL, runtime-verified ones (0018's
+  // fix applied for Nero/Japan Cup 2015; Red Special/White Special/Azure
+  // were correct in 0017 and never changed).
+  // ---------------------------------------------------------------------
+  {
+    // Azure (releaseSeedKey "1") -- release-level exact image alongside
+    // the product-level one already in the manifest (same URL, since
+    // Azure IS this product's canonical/original release, item 18626).
+    productSeedKey: "avante-mk3",
+    releaseSeedKey: "1",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18626/18626_1.jpg",
+    tamiyaItemNumber: "18626",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18626/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Mirrors the release_images row already committed in migration 0017 (id 47d09877-8068-5e19-beac-725d54e4f0bc).",
+  },
+  {
+    // Nero (releaseSeedKey "2"). 0017 originally used a tamiyausa.com
+    // asset; 0018 corrected the URL after that host returned
+    // INVALID_IMAGE_OPTIMIZE_REQUEST from TrackDash's production image
+    // optimizer -- this entry reflects 0018's final, runtime-verified URL.
+    productSeedKey: "avante-mk3",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/1/18627/18627_1.jpg",
+    tamiyaItemNumber: "18627",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/18627/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Mirrors migration 0017's row (id c9017410-eac7-59a8-9610-64022841a9eb) as corrected by 0018's runtime-safety fix.",
+  },
+  {
+    // Japan Cup 2015 (releaseSeedKey "3"). Same tamiyausa.com -> tamiya.com
+    // runtime fix as Nero, applied by 0018.
+    productSeedKey: "avante-mk3",
+    releaseSeedKey: "3",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/9/95087/95087_1.jpg",
+    tamiyaItemNumber: "95087",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95087/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Mirrors migration 0017's row (id a81bad8f-f6c2-5c25-9a87-a092f1b979f7) as corrected by 0018's runtime-safety fix.",
+  },
+  {
+    // Red Special (releaseSeedKey "4"). Served from Tamiya's own
+    // CloudFront CDN (d7z22c0gz59ng.cloudfront.net) -- same official
+    // asset family as the /japan_contents/img/usr/item/ path, just a
+    // different official host; already allow-listed in
+    // next.config.mjs's remotePatterns and confirmed runtime-safe in
+    // production (never needed a 0018-style fix).
+    productSeedKey: "avante-mk3",
+    releaseSeedKey: "4",
+    imageUrl: "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/9/95425/95425_1.jpg",
+    tamiyaItemNumber: "95425",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95425/index.html",
+    sourceDomain: "d7z22c0gz59ng.cloudfront.net",
+    sourceType: "official_manufacturer",
+    note: "Mirrors the release_images row already committed in migration 0017 (id 2af0f788-40ce-58d7-8255-34e5c76f87c8). Official Tamiya CloudFront-served asset -- confirmed runtime-safe, never needed the 0018 fix.",
+  },
+  {
+    // White Special (releaseSeedKey "5"). Same CloudFront host as Red
+    // Special.
+    productSeedKey: "avante-mk3",
+    releaseSeedKey: "5",
+    imageUrl: "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/9/95469/95469_4c2.jpg",
+    tamiyaItemNumber: "95469",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95469/index.html",
+    sourceDomain: "d7z22c0gz59ng.cloudfront.net",
+    sourceType: "official_manufacturer",
+    note: "Mirrors the release_images row already committed in migration 0017 (id e0a6c73f-54bd-5bbf-af45-bd917de6b4bf). Official Tamiya CloudFront-served asset -- confirmed runtime-safe, never needed the 0018 fix.",
+  },
 ]
