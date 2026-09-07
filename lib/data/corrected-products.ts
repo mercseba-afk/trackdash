@@ -6,6 +6,7 @@ import {
 import { applyCatalogReleaseCorrections } from "./catalog-release-corrections"
 import { applyCatalogCorrectionsBatch2 } from "./catalog-corrections-batch2"
 import { applyCatalogCorrectionsBatch3 } from "./catalog-corrections-batch3"
+import { applyCatalogCorrectionsBatch4 } from "./catalog-corrections-batch4"
 
 // Runtime/demo compatibility view of the historical seed catalog after applying
 // every evidence-backed factual correction in sequence. The production catalog
@@ -13,7 +14,8 @@ import { applyCatalogCorrectionsBatch3 } from "./catalog-corrections-batch3"
 // with that same effective catalog instead of silently reading stale seed facts.
 const BATCH1_PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
 const BATCH2_PRODUCTS = applyCatalogCorrectionsBatch2(BATCH1_PRODUCTS)
-export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch3(BATCH2_PRODUCTS)
+const BATCH3_PRODUCTS = applyCatalogCorrectionsBatch3(BATCH2_PRODUCTS)
+export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch4(BATCH3_PRODUCTS)
 
 export { getRelatedProducts }
 
