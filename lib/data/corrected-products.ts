@@ -40,14 +40,23 @@ export function resolveRelease(product: Product, releaseId?: string): ProductRel
 export function findByCode(query: string): { product: Product; release?: ProductRelease } | undefined {
   const q = query.trim().toLowerCase()
   if (!q) return undefined
+
+  // Scanner identity priority is deliberately global, not product-by-product:
+  // 1) exact release item/JAN, 2) canonical product item, 3) legacy productCode.
+  // A legacy productCode must never steal a real Tamiya release item number from
+  // a different product (e.g. Avante Mk.II productCode 95110 vs Emperor release 95110).
   for (const product of PRODUCTS) {
     const releaseHit = product.releases.find(
       (r) => r.itemNumber?.toLowerCase() === q || r.barcodeJAN?.toLowerCase() === q,
     )
     if (releaseHit) return { product, release: releaseHit }
-    if (product.productCode?.toLowerCase() === q || product.itemNumber?.toLowerCase() === q) {
-      return { product }
-    }
   }
+
+  const productByItem = PRODUCTS.find((product) => product.itemNumber?.toLowerCase() === q)
+  if (productByItem) return { product: productByItem }
+
+  const productByLegacyCode = PRODUCTS.find((product) => product.productCode?.toLowerCase() === q)
+  if (productByLegacyCode) return { product: productByLegacyCode }
+
   return undefined
 }
