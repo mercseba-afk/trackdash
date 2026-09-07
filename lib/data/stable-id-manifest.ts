@@ -12,9 +12,7 @@
 //     existing entry.
 //   - The invariant checker HARD-FAILS if any id listed here is missing
 //     from the current catalog, or if its product/release kind changed.
-//   - Currently 36 products + 62 releases = 98 ids (the 96 originally
-//     deployed + the 2 releases added in the catalog integrity Final
-//     Fixes pass: Dash-2 Burning Sun Type-3, Dyna-Hawk GX 2019 reissue).
+//   - Current sealed floor: 38 products + 96 releases = 134 ids.
 
 export interface StableIdManifestEntry {
   id: string
@@ -121,6 +119,7 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "f4e3f6b8-8ce6-5b87-9d94-5f64a24c031a", kind: "release", label: "Thunder Shot — Thunder Shot Premium" },
   { id: "8c923a15-a5e7-5e5c-ab8f-b2d1f722ac76", kind: "release", label: "Emperor (Premium Black Special) — Emperor (Premium Black Special)" },
   { id: "035abf4d-65da-5b0c-855d-9e611798c4e4", kind: "release", label: "Aero Avante Japan Cup 2013 — Aero Avante Japan Cup 2013" },
+
   // ---- Catalog Expansion Wave 1 ----
   { id: "d9b9392b-d149-52a2-b862-0eafc66af7ef", kind: "release", label: "Neo-Tridagger ZMC — Neo-Tridagger ZMC Carbon Special (2023 Reissue)" },
   { id: "1acf7850-c8a9-5627-b104-54db6e235ba2", kind: "product", label: "DASH-X1 Proto-Emperor" },
@@ -134,4 +133,30 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "e31c9f48-a776-564a-a496-63771e4a4f9d", kind: "release", label: "Avante Mk.III — Avante Mk.III White Special" },
   { id: "9d9d9015-81e5-5388-9d36-3e8b3b223b54", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure Clear Special (Polycarbonate Body)" },
   { id: "cc1fb7fa-67db-5303-9514-80b9705fe732", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure Clear Special (2023 Reissue)" },
+
+  // ---- Catalog audits sealed after deployment ----
+  { id: "c4e3dc97-3c9d-5268-bc19-06095086f5e5", kind: "release", label: "Aero Avante — Aero Avante Gold Metallic (AR Chassis)" },
+  { id: "9728c37c-503c-5359-bc45-cfc2f62a1e48", kind: "release", label: "Aero Avante — Aero Avante Blue Metallic (AR Chassis)" },
+  { id: "4399ee13-81df-539c-9d46-783b789a1d82", kind: "release", label: "Aero Avante — Aero Avante Black Metallic (AR Chassis)" },
+  { id: "96d0bc96-ef24-5296-ac21-d038c1811048", kind: "release", label: "Raikiri — Raikiri Matte Pink Plated (MA Chassis)" },
+  { id: "26493506-a333-59b3-9050-62c6deecd0be", kind: "release", label: "Raikiri — Raikiri Pink Special (Polycarbonate Body) (MS Chassis)" },
+  { id: "dc6199ed-4cf0-5da4-85a4-a2141dc6a265", kind: "release", label: "DCR-01 — DCR-01 Purple Special (MA Chassis)" },
+  { id: "e5eebd62-334d-5738-8c04-d52354cc56ab", kind: "release", label: "Shadow Shark — Shadow Shark Yellow Special (AR Chassis)" },
+  { id: "10f430a6-2865-5f58-8041-b8bbbb2e2e6f", kind: "release", label: "Shadow Shark — Shadow Shark Italia Special (AR Chassis)" },
+  { id: "df8815eb-fd68-54ba-a908-e4fecbe9b5cf", kind: "release", label: "Avante Jr. — Avante Jr. 30th Anniversary Special" },
+  { id: "c680423c-a5eb-564c-afa6-953a105e9310", kind: "release", label: "Avante Jr. — Avante Jr. (2024 Reissue)" },
+  { id: "91bcff13-76b4-5a09-a83b-1cfb85400b40", kind: "release", label: "Avante Jr. — Avante Jr. Black Special (2024 Reissue)" },
+  { id: "13fa8bc9-0a44-51f5-ae90-885932c81b16", kind: "release", label: "Super Avante Jr. — Super Avante Jr. Black Special (VZ Chassis)" },
+  { id: "e1069825-3715-5fa6-80e9-93dcee32d4be", kind: "release", label: "Dash-1 Emperor — Dash-1 Emperor (Type 1 Chassis)" },
+  { id: "0306bc1a-cdb6-5b9c-9461-91cd2a39e07c", kind: "release", label: "Dash-1 Emperor — Dash-1 Emperor (MS Chassis)" },
+  { id: "061cc21a-4382-5bce-b08c-216b456fcaeb", kind: "release", label: "Dash-1 Emperor — Dash-1 Emperor (MS Chassis) Black Special (2017 Initial Release)" },
+  { id: "7e6cd351-658c-5558-bff9-3a1ea608e6d4", kind: "release", label: "Dash-4 Cannonball — Dash-4 Cannonball Premium (Super-II Chassis)" },
+  { id: "f2dda5bd-a337-5f5a-b4ed-7d6288e16f22", kind: "release", label: "Dash-0 Horizon — Dash-0 Horizon Premium (Super-II Chassis)" },
+  { id: "3bc0bd97-e11c-5c50-ad45-934b5f1f733b", kind: "release", label: "Trigale — Tri Gale Japan Cup 2017 (MA Chassis)" },
+  { id: "2ef185b6-0b2a-5208-a8c6-582d6b4d9c58", kind: "release", label: "Copperfang — Copperfang Black Special (FM-A Chassis)" },
+  { id: "beb90479-df22-5667-bfe5-6517d3cfa351", kind: "release", label: "Dyipne — Dyipne (2025 Japan Reissue)" },
+  { id: "8c08137b-cfc6-5c1d-8d1b-a151d53afc01", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Japan Cup 2013 Limited (AR Chassis)" },
+  { id: "d0e6d2fc-3566-5004-a479-52f89253863b", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Silver Metallic Special (AR Chassis)" },
+  { id: "e96a1769-9b91-55b8-84c4-697799d0b441", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Asia Challenge 2016 (AR Chassis)" },
+  { id: "324310d8-9c3d-5fa9-9d75-1202b43cfce7", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Black Special (AR Chassis)" },
 ]
