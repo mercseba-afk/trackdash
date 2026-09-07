@@ -4,16 +4,21 @@ import {
   getRelatedProducts,
 } from "./products"
 import { applyCatalogReleaseCorrections } from "./catalog-release-corrections"
-import { applyCatalogCorrectionsBatch2 } from "./catalog-corrections-batch2"
 import { applyCatalogCorrectionsBatch3 } from "./catalog-corrections-batch3"
+import { applyCatalogCorrectionsBatch4 } from "./catalog-corrections-batch4"
 
 // Runtime/demo compatibility view of the historical seed catalog after applying
 // every evidence-backed factual correction in sequence. The production catalog
 // itself is DB-backed; this module keeps Scanner and local/demo helpers aligned
 // with that same effective catalog instead of silently reading stale seed facts.
-const BATCH1_PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
-const BATCH2_PRODUCTS = applyCatalogCorrectionsBatch2(BATCH1_PRODUCTS)
-export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch3(BATCH2_PRODUCTS)
+//
+// NOTE: applyCatalogReleaseCorrections() is a legacy composition entry point that
+// already applies catalog-corrections-batch2 internally. Do NOT apply Batch 2 a
+// second time here: its additive release corrections are intentionally not a
+// separate pass through this module.
+const BATCH2_PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
+const BATCH3_PRODUCTS = applyCatalogCorrectionsBatch3(BATCH2_PRODUCTS)
+export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch4(BATCH3_PRODUCTS)
 
 export { getRelatedProducts }
 
