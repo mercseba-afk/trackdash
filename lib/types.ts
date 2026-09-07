@@ -22,6 +22,7 @@ export type Chassis =
   | "Zero"
   | "Super 1"
   | "Super TZ"
+  | "Super TZ-X"
   | "Super X"
   | "Super XX"
   | "Super II"
@@ -143,7 +144,7 @@ export interface ProductRelease {
   editionName: string // display name for this release, e.g. "Dash-1 Emperor (2026 Reissue)"
   /** Coarse controlled classification (Catalog Model V2) — see lib/types.ts. Distinct from releaseType/editionName above, which remain the primary display vocabulary. */
   editionType: EditionType
-  /** The year THIS release hit the market. Optional (Catalog Model V2 hardening point 2): a real release can exist before its exact year is confirmed — undefined means genuinely unknown, shown as "—". */
+  /** The year THIS release hit the market. Optional (Catalog Model V2 hardening point 2): a real release can exist before its year is confirmed — undefined means genuinely unknown, shown as "—". */
   releaseYear?: number
   releaseDate?: string // ISO date if a precise date is known
   /** Optional (Catalog Model V2 hardening point 2): a release's chassis can be genuinely unknown — undefined, never an invented default. */
