@@ -4,12 +4,16 @@ import {
   getRelatedProducts,
 } from "./products"
 import { applyCatalogReleaseCorrections } from "./catalog-release-corrections"
+import { applyCatalogCorrectionsBatch2 } from "./catalog-corrections-batch2"
+import { applyCatalogCorrectionsBatch3 } from "./catalog-corrections-batch3"
 
 // Runtime/demo compatibility view of the historical seed catalog after applying
-// evidence-backed factual corrections. The production catalog itself is DB-backed;
-// this module exists for client-side demo utilities such as Scanner and for any
-// helper that still needs the local seed representation.
-export const PRODUCTS: Product[] = applyCatalogReleaseCorrections(BASE_PRODUCTS)
+// every evidence-backed factual correction in sequence. The production catalog
+// itself is DB-backed; this module keeps Scanner and local/demo helpers aligned
+// with that same effective catalog instead of silently reading stale seed facts.
+const BATCH1_PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
+const BATCH2_PRODUCTS = applyCatalogCorrectionsBatch2(BATCH1_PRODUCTS)
+export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch3(BATCH2_PRODUCTS)
 
 export { getRelatedProducts }
 
