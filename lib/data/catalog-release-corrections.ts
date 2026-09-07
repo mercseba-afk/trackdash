@@ -1,4 +1,5 @@
 import type { Product, ProductRelease } from "@/lib/types"
+import { applyCatalogCorrectionsBatch2 } from "./catalog-corrections-batch2"
 
 // Audited post-seed factual corrections for legacy release rows whose immutable
 // TrackDash identity (UUID) is valid but whose old Tamiya metadata was not.
@@ -17,12 +18,6 @@ type ReleaseCorrection = Partial<Omit<ProductRelease, "id" | "productId">>
 
 export const CATALOG_RELEASE_CORRECTIONS: Readonly<Record<string, ReleaseCorrection>> = {
   // Immutable identity: productSeedKey 18025 / releaseSeedKey 3.
-  // The legacy row called this a 2015 Super-II "Premium Black Special" and
-  // attached item 95359. The official Tamiya 95296 page instead documents
-  // Dash-1 Emperor (MS Chassis) Black Special. We intentionally model the
-  // documented 2023 reissue here because the current official image/page is
-  // attributable to that occurrence; the same page states the initial release
-  // only as February 2017, without a day. Do not invent a 2017 exact date/image.
   "96babc1a-f153-59fa-b840-7ff68fb50f38": {
     itemNumber: "95296",
     editionName: "Dash-1 Emperor (MS Chassis) Black Special",
@@ -94,7 +89,7 @@ export const CATALOG_RELEASE_CORRECTIONS: Readonly<Record<string, ReleaseCorrect
 }
 
 export function applyCatalogReleaseCorrections(products: Product[]): Product[] {
-  return products.map((product) => {
+  const batch1 = products.map((product) => {
     let changed = false
     const releases = product.releases.map((release) => {
       const correction = CATALOG_RELEASE_CORRECTIONS[release.id]
@@ -104,4 +99,6 @@ export function applyCatalogReleaseCorrections(products: Product[]): Product[] {
     })
     return changed ? { ...product, releases } : product
   })
+
+  return applyCatalogCorrectionsBatch2(batch1)
 }
