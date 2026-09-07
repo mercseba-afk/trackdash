@@ -1,6 +1,6 @@
-import { TAMIYA_IMAGES as TAMIYA_IMAGES_BASE } from "./tamiya-images.ts"
-import { TAMIYA_IMAGES_BATCH2 } from "./tamiya-images-batch2.ts"
-import { TAMIYA_IMAGES_BATCH3 } from "./tamiya-images-batch3.ts"
+import { TAMIYA_IMAGES as TAMIYA_IMAGES_BASE } from "./tamiya-images"
+import { TAMIYA_IMAGES_BATCH2 } from "./tamiya-images-batch2"
+import { TAMIYA_IMAGES_BATCH3 } from "./tamiya-images-batch3"
 
 // Canonical aggregate consumed by the image validator and SQL generator.
 // Keeping audit batches in small append-only data files makes future image
