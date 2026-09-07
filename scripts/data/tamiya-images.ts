@@ -708,4 +708,25 @@ export const TAMIYA_IMAGES: TamiyaImageEntry[] = [
     sourceType: "official_manufacturer",
     note: "Mirrors the release_images row already committed in migration 0017 (id e0a6c73f-54bd-5bbf-af45-bd917de6b4bf). Official Tamiya CloudFront-served asset -- confirmed runtime-safe, never needed the 0018 fix.",
   },
+
+  // ---------------------------------------------------------------------
+  // Image Audit: DASH-X1 Proto-Emperor Premium Black Special (95450).
+  // Exact release image is attached ONLY to releaseSeedKey "2". The
+  // official Tamiya product page confirms the exact item/name/date/chassis
+  // and black body + yellow chassis/tires specification. RCJaz is used as
+  // an independent trusted-secondary corroboration of this exact variant.
+  // The official item-scoped image asset below was verified live through
+  // TrackDash's production Next Image optimizer (HTTP 200, image/jpeg),
+  // so no new image host or resolver change is required.
+  // ---------------------------------------------------------------------
+  {
+    productSeedKey: "dash-x1-proto-emperor",
+    releaseSeedKey: "2",
+    imageUrl: "https://www.tamiya.com/japan_contents/img/usr/item/9/95450/95450_1.jpg",
+    tamiyaItemNumber: "95450",
+    sourcePageUrl: "https://www.tamiya.com/japan/products/95450/index.html",
+    sourceDomain: "tamiya.com",
+    sourceType: "official_manufacturer",
+    note: "Official Tamiya page confirms the exact 95450 Black Special identity/specification; the official item-scoped asset was verified live through TrackDash production Next Image optimizer (HTTP 200, image/jpeg). RCJaz independently corroborates the black body / yellow chassis-and-tires variant. Scoped only to this release; never a sibling fallback.",
+  },
 ]
