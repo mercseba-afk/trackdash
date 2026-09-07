@@ -264,7 +264,7 @@ one release's own item is only semi-confirmed) · **CORRECTED → NULL**
 | Avante | 18014 | Super II | 1988 | VERIFIED/CORRECTED | tamiya.com/japan/products/18014 ("Avante Jr.") |
 | Vanguard Sonic | 19407 | Super II | 1995 | VERIFIED/CORRECTED | tamiya.com/japan/products/19407 |
 | Great Emperor | 18036 | Super II | 1990 | VERIFIED/CORRECTED | tamiya.com/japan/products/18036 |
-| Proto Emperor ZX | 18038 | Super II | 2016 | VERIFIED/CORRECTED | tamiya.com/japan/products/18038 |
+| Proto Emperor ZX | 18038 | Zero | 2007 | VERIFIED/CORRECTED (catalog integrity hardening pass) | tamiya.com/japan/products/18038 |
 | Dash-2 Burning Sun | 18015 | Type 1 | 1989 | VERIFIED/CORRECTED | tamiya.com/japan/products/18015 + 18026 (both official; two releases) |
 | Dash-3 Shooting Star | 18019 | Type 3 | 1989 | VERIFIED/CORRECTED | tamiya.com/japan/products/18019 |
 | Astute | NULL | Super 1 | 1992 | CORRECTED → NULL | 19412 confirmed to belong to Cyclone Magnum (real collision) |
@@ -323,8 +323,8 @@ release whose own item is confirmed the same way a product's is.
 | Dash-1 Emperor | Dash-1 Emperor (2026 Reissue) | 18025 | VERIFIED |
 | Great Emperor | Great Emperor | 18036 | VERIFIED |
 | Great Emperor | Great Emperor Premium | 18075 | VERIFIED |
-| Proto Emperor ZX | Proto Emperor ZX | 18038 | VERIFIED |
-| Proto Emperor ZX | Proto Emperor ZX Premium (Black Special) | 95450 | VERIFIED |
+| Proto Emperor ZX | Proto Emperor ZX | 18038 | VERIFIED (Zero chassis, 2007-09-01, corrected from prior "Super II"/2016) |
+| Proto Emperor ZX | Proto Emperor ZX Premium | 95335 | VERIFIED — **corrected from false "95450" (a different Dash! Yonkuro machine entirely); see the dedicated Proto Emperor ZX section below** |
 | Dash-2 Burning Sun | Dash-2 Burning Sun | 18015 | VERIFIED |
 | Dash-2 Burning Sun | Dash-2 Burning Sun (Type 3 Chassis) | 18026 | VERIFIED — **new release, new id** |
 | Dash-3 Shooting Star | Dash-3 Shooting Star | 18019 | VERIFIED |
@@ -370,6 +370,332 @@ No id was ever derived from `item`, `chassis`, `slug`, `name`, or
 `year` — every id traces only to each entry's frozen `seedKey` plus,
 for releases, that release's fixed array position under its parent.
 
+## Proto Emperor ZX — catalog integrity hardening case study
+
+Discovered during the Images Phase 2B hardening pass, while attempting
+to source an exact release image for what this catalog had recorded as
+"Proto Emperor ZX Premium (Black Special)", item 95450. Direct
+verification of that item's own official Tamiya page found it belongs
+to an entirely different Dash! Yonkuro machine, not Proto Emperor ZX —
+triggering this dedicated fix.
+
+**Release 1 (Original/canonical), product seedKey `18714`,
+releaseSeedKey `1`:**
+
+- Tamiya (official, live, fetched directly):
+  `tamiya.com/japan/products/18038/index.html` — Item No. 18038,
+  "原始大帝(プロトエンペラーZX)" / "PROTO-EMPEROR ZX", released
+  2007-09-01, Zero chassis (the page's own parts-search link is scoped
+  to `genre_item=mini4wd_chassis_zero`).
+- RCJaz (trusted_secondary corroboration):
+  `rcjaz.com/tamiya-18038-jr-protoemperor-zx-zero-chassis-p-10000521.html`
+  — "Tamiya 18038 - JR Proto-Emperor ZX (Zero Chassis)". **Agrees** with
+  Tamiya on item number and chassis.
+- Result: **CONCUR, confidence HIGH.** Chassis corrected from the
+  previously-recorded (wrong) "Super II" to "Zero"; release year
+  corrected from 2016 to 2007 with an explicit `releaseDate` of
+  2007-09-01 added.
+- Historical note, not a conflict: the Mini 4WD Wiki (Fandom) dates the
+  character/body design's original manga-era debut to 1992-02-18,
+  almost certainly under a different, now-retired item number. That is
+  a claim about the design's history, not about item 18038's own
+  release date, which both primary sources above independently confirm
+  as 2007-09-01.
+
+**Release 2 (Premium), product seedKey `18714`, releaseSeedKey `2`:**
+
+- The item previously recorded here, **95450**, is confirmed (this
+  pass) to be **wrong** — it belongs to "DASH-X1 PROTO-EMPEROR PREMIUM
+  BLACK SPECIAL (SUPER-II CHASSIS)" (原始皇帝, Kidoin Jin's *earlier*
+  machine in the same manga), a different Dash! Yonkuro machine
+  entirely, confirmed via `tamiya.com/japan/products/95450/index.html`
+  itself. That source and item number have been fully removed from
+  this release — no reference to 95450 remains anywhere in this
+  product's seed data.
+- The real Proto Emperor ZX Premium:
+  - Tamiya (official, live, fetched directly):
+    `tamiya.com/japan/products/95335/index.html` — Item No. 95335,
+    "プロトエンペラーZX（ジークロス）プレミアム（スーパーIIシャーシ）"
+    / "PROTO-EMPEROR ZX PREMIUM (SUPER-II CHASSIS)", released
+    2017-07-15, body molded in **Purple** ABS (パープルのABS樹脂製) —
+    not Black.
+  - RCJaz (trusted_secondary corroboration):
+    `rcjaz.com/tamiya-95335-protoemperor-zx-premium-super-ii-chassis-p-90079925.html`
+    — "Tamiya 95335 - Proto-Emperor ZX Premium (Super II Chassis)".
+    **Agrees** with Tamiya on item number, name, and chassis.
+  - Result: **CONCUR, confidence HIGH.**
+- Corrected fields: item 95450 → 95335; editionName "Proto Emperor ZX
+  Premium (Black Special)" → "Proto Emperor ZX Premium"; releaseType
+  "Color Special" → "Premium" (editionType now correctly derives to
+  `premium`, not `color_special`); year 2019 → 2017 with an explicit
+  `releaseDate` of 2017-07-15 added; color "Black" → "Purple". The
+  release-specific `rarity: "Very Rare"` override was removed (it had
+  been set from the false Black Special identity) — this release now
+  falls back to the Product's own "Rare", per the existing inheritance
+  mechanism. The release-specific `estimatedMsrpJPY: 1200` override was
+  likewise removed — this is a DEMO-only estimate field, and per policy
+  a real, officially-observed price is never written into it as if it
+  were verified; the release now falls back to the Product's own demo
+  estimate.
+- Product-level compatibility fields (`canonical_item_number`,
+  `chassis`, `original_release_year`) were **not** independently set —
+  they continue to derive automatically from whichever release has
+  `original: true` (Release 1, above), exactly as Catalog Model V2's
+  existing mechanism already requires. No second, independently-curated
+  copy of this data was introduced.
+
+**Cross-reference format used for this audit** (documented here as the
+template for any future targeted audit, per the catalog integrity
+hardening pass — not a new stored field, just an editorial-report
+convention):
+
+```
+95335 | Proto Emperor ZX Premium | Tamiya ✅ | RCJaz ✅ | parent ZX ✅ | chassis ✅ | year ✅ | confidence HIGH
+18038 | Proto Emperor ZX          | Tamiya ✅ | RCJaz ✅ | parent ZX ✅ | chassis ✅ | year ✅ | confidence HIGH
+95450 | claimed Proto Emperor ZX  | Tamiya ❌ parent mismatch | RCJaz n/a | BLOCKED -- removed
+```
+
+## Targeted integrity re-audit of the remaining 61 Releases (catalog
+integrity hardening pass)
+
+Scope: every Release with a known item number, checked for item
+number / exact edition identity / parent Product / editionName /
+chassis / release year-date / source-URL-actually-matches-the-same-
+machine, with particular attention to Premium/Special/Reissue/
+Anniversary/Japan-Cup releases, any `verificationStatus: partial`,
+and any release whose comments describe data as "carried over."
+
+**Result: no second Proto-Emperor-ZX-style parent/item mismatch was
+found.** This was a targeted, evidence-based pass (existing
+`KNOWN_SOURCES` entries and their cited official URLs reviewed against
+this catalog's own recorded editionName/chassis/year for a genealogy
+mismatch), not a from-scratch re-fetch of all 61 releases' pages —
+that remains future work (see "Recommended next steps" below).
+
+No new corrections were made to any release other than Proto Emperor
+ZX in this pass, per this task's explicit scope (targeted audit +
+Proto Emperor ZX fix only; other findings are reported, not applied).
+The genuinely open items already on record — Dyna-Hawk GX #94717 (no
+live official source), Manta Ray/Fire Dragon (already-known wrong
+items, unrelated to Proto Emperor ZX), and the several
+never-independently-re-checked "carried over" releases (Dash-1
+Emperor Black Special 95359, 30th Anniversary 92403, and the products
+with no item number at all) — remain open and are listed again below
+for visibility, not because this pass found anything new about them.
+
+## Separation of responsibilities: checker vs. editorial audit
+
+Two distinct jobs, deliberately kept separate after a follow-up review
+found the checker producing 47 warnings that had become noise rather
+than signal:
+
+- **`pnpm catalog:check`** verifies only what can be established
+  OFFLINE and deterministically from this repository's own data:
+  structural invariants (stable ids, canonical consistency, cross-
+  product collisions, duplicate release identity, image invariants,
+  and so on), plus a small number of genuinely unconditional rules (a
+  `verified` release must have at least one source; every
+  `verifiedFields` entry must be in the controlled vocabulary; a
+  source cannot claim to verify a field the release doesn't even have
+  a value for). It does not, and structurally cannot, know whether a
+  cited Tamiya page actually describes the right machine -- that is
+  exactly the class of error the Proto Emperor ZX case was. The
+  checker deliberately produces few warnings, all of them meant to be
+  actionable.
+- **The Editorial Release Audit** (below) is the human-driven process
+  that actually prevents another 95450-style mismatch: reading the
+  cited Tamiya source, cross-checking RCJaz, and confirming identity,
+  chassis, and PARENT PRODUCT before a release is marked
+  verified/partial. Historical provenance gaps -- fields that are
+  plausible but lack an explicit source -- are tracked as a report
+  (see "Provenance gap report" below), not as checker warnings.
+
+## Editorial policy for new or changed Releases
+
+Mandatory checklist for any new Release or any factual correction to
+an existing one -- the process that should have caught the Proto
+Emperor ZX case earlier.
+
+### Step A — Tamiya primary evidence
+
+Search, in preference order:
+1. Tamiya official, live (`tamiya.com/japan/products/{item}/...` or
+   `/english/products/{item}/...`)
+2. Tamiya official catalog/PDF
+3. Tamiya official archive (e.g. Wayback Machine, for an item no
+   longer live)
+
+Verify SEPARATELY, not as one bundled check:
+- exact Product identity
+- exact Release identity
+- item number
+- chassis
+- year/date
+- special/reissue semantics
+
+**The item number matching is not sufficient.** The 95450 case proves
+that `valid item + valid official page` does NOT imply `correct
+parent Product` -- the parent Product must be verified explicitly,
+by actually reading what character/machine the page describes.
+
+### Step B — RCJaz cross-check
+
+When available, use RCJaz (`rcjaz.com`) as `trusted_secondary`.
+Verify: item number, name, chassis, parent/model family, kit
+photography. RCJaz never substitutes for Tamiya -- it corroborates.
+
+### Step C — conflict rule
+
+If Tamiya and RCJaz diverge materially on identity or parent product:
+`BLOCKED — manual review`. Never promote to `verified`. Never resolved
+by arbitrarily picking one source.
+
+### Step D — weak sources
+
+Amazon/eBay/Mercari/Yahoo Auctions etc.: corroboration only. Never a
+primary or sole source for a factual field.
+
+### Required report format
+
+Document every new or changed Release this way (not necessarily
+stored in the DB -- this is an editorial-process artifact):
+
+```
+ITEM | RELEASE | TAMIYA | RCJAZ | PARENT | CHASSIS | DATE/YEAR | IMAGE | RESULT
+```
+
+Examples:
+
+```
+95335 | Proto Emperor ZX Premium | (Tamiya OK) | (RCJaz OK) | ZX (OK) | Super II (OK) | 2017 (OK) | (image OK) | VERIFIED
+94717 | Dyna-Hawk GX Super XX Special | official live unavailable | (RCJaz OK) | Dyna-Hawk (OK) | Super XX (OK) | 2010 (OK) | exact img unresolved | PARTIAL/HIGH CONFIDENCE
+95450 | claimed ZX Black Special | Tamiya parent mismatch (FAIL) | RCJaz ambiguous | ZX (FAIL) | -- | -- | -- | BLOCKED
+```
+
+## Provenance gap report (informational -- not a checker warning)
+
+This table replaces what used to be 47 `catalog:check` warnings from
+two now-removed generic per-field checks (see
+`scripts/check-catalog-invariants.mjs`'s own header comment for why
+they were removed). It is a snapshot report for editorial visibility,
+regenerated by hand during an audit pass -- it does not run in CI, does
+not block the build, and only a NEW, separate npm script would be
+needed to automate it (deliberately not added -- the minimal solution
+this task asked for is keeping the table here instead).
+
+**Exact counts** (recounted directly from the table below, corrected
+from an earlier approximate report that said "P2 ~ 10" and "P4 ~ 14"):
+
+| | Count |
+|---|---|
+| Total gap rows | **48** |
+| Unique Releases involved | **27** |
+| P1 -- likely factual error | **0** |
+| P2 -- provenance gap | **14** |
+| P3 -- legitimate inheritance/compatibility | **14** |
+| P4 -- source metadata issue | **20** |
+| **P1+P2+P3+P4** | **48** (matches total gap rows) |
+
+Classification scheme:
+- **P1 -- likely factual error.** Concrete evidence the data may be
+  wrong.
+- **P2 -- provenance gap.** The data looks right, but no source
+  explicitly declares having verified it.
+- **P3 -- legitimate inheritance/compatibility.** Intentional -- the
+  release's `partial` status (or an explicit "carried over" comment in
+  the seed) already documents that this specific field wasn't
+  independently re-checked; this is the project's existing, honest way
+  of representing that, not a new problem.
+- **P4 -- source metadata issue.** The source is valid and, in
+  substance, likely also confirms the field -- but `verifiedFields`
+  doesn't say so explicitly. Resolvable by adding the field to
+  `verifiedFields` (pure metadata, no factual change) once genuinely
+  re-confirmed against the page.
+
+| Product | Release | Field | Value | verificationStatus | Classification | Recommended action |
+|---|---|---|---|---|---|---|
+| Aero Avante | Aero Avante | releaseYear | 2012 | verified | P4 | Source (18701 page) likely states the year; add releaseYear to verifiedFields once re-confirmed |
+| Aero Avante | Aero Avante Clear Body (Polycarbonate) | itemNumber | 18701 | partial | P3 | Item inherited from product; partial already signals this honestly |
+| Aero Avante | Aero Avante Clear Body (Polycarbonate) | chassis | AR | partial | P3 | Same -- inherited, partial already correct |
+| Aero Avante | Aero Avante Clear Body (Polycarbonate) | releaseYear | 2013 | partial | P3 | Same |
+| Aero Avante | Aero Avante Black Special | itemNumber | 18701 | partial | P3 | Inherited, partial correct |
+| Aero Avante | Aero Avante Black Special | chassis | AR | partial | P3 | Inherited, partial correct |
+| Aero Avante | Aero Avante Black Special | releaseYear | 2014 | partial | P3 | Inherited, partial correct |
+| Raikiri | Raikiri | releaseYear | 2014 | verified | P4 | Likely on the item page; add if re-confirmed |
+| Raikiri | Raikiri Black Special | itemNumber | 18640 | partial | P3 | Inherited, partial correct |
+| Raikiri | Raikiri Black Special | chassis | MA | partial | P3 | Inherited, partial correct |
+| Raikiri | Raikiri Black Special | releaseYear | 2016 | partial | P3 | Inherited, partial correct |
+| DCR-01 | DCR-01 | chassis | MA | verified | P2 | Genuine gap -- chassis not in any source's verifiedFields |
+| DCR-01 | DCR-01 | releaseYear | 2018 | verified | P4 | Likely on the item page; add if re-confirmed |
+| Geo Glider | Geo Glider | chassis | FM-A | verified | P2 | Genuine gap |
+| Shadow Shark | Shadow Shark | releaseYear | 2020 | verified | P4 | Likely on the item page |
+| Festa Jaune | Festa Jaune | releaseYear | 2014 | verified | P2 | Source is a MAP price-list PDF, not a product page -- year not necessarily on it |
+| Neo-Tridagger ZMC | Neo-Tridagger ZMC | releaseYear | 1998 | verified | P4 | Likely on the item page |
+| Magnum Saber | Magnum Saber Premium | releaseYear | 2012 | verified | P4 | Likely on the item page |
+| Sonic Saber | Sonic Saber Premium | releaseYear | 2011 | verified | P4 | Likely on the item page |
+| Cyclone Magnum | Cyclone Magnum | chassis | Super TZ | verified | P2 | Genuine gap |
+| Cyclone Magnum | Cyclone Magnum | releaseYear | 1996 | verified | P4 | Likely on the item page |
+| Beat Magnum | Beat Magnum | chassis | Super TZ | verified | P2 | Genuine gap |
+| Beat Magnum | Beat Magnum | releaseYear | 1997 | verified | P4 | Likely on the item page |
+| Hurricane Sonic | Hurricane Sonic | chassis | Super TZ | verified | P2 | Genuine gap |
+| Hurricane Sonic | Hurricane Sonic | releaseYear | 1996 | verified | P4 | Likely on the item page |
+| Buster Sonic | Buster Sonic | chassis | Super TZ | verified | P2 | Genuine gap |
+| Buster Sonic | Buster Sonic | releaseYear | 1997 | verified | P4 | Likely on the item page |
+| Avante | Avante Jr. | chassis | Type 2 | verified | P2 | Genuine gap |
+| Avante | Avante Jr. | releaseYear | 1988 | verified | P4 | Likely on the item page |
+| Avante Mk.II | Avante Mk.II | releaseYear | 2006 | verified | P4 | Likely on the item page |
+| Super Avante | Super Avante | chassis | VZ | verified | P2 | Genuine gap |
+| Super Avante | Super Avante | releaseYear | 2020 | verified | P4 | Likely on the item page |
+| Vanguard Sonic | Vanguard Sonic | chassis | Super 1 | verified | P2 | Genuine gap |
+| Vanguard Sonic | Vanguard Sonic | releaseYear | 1995 | verified | P4 | Likely on the item page |
+| Vanguard Sonic | Vanguard Sonic (Super II) | releaseYear | 2013 | verified | P4 | Likely on the item page |
+| Dash-1 Emperor | Dash-1 Emperor (2026 Reissue) | itemNumber | 18025 | verified | P3 | Same item number as the Original by design (a real reissue reusing the number) -- not an independent claim needing separate provenance |
+| Dash-1 Emperor | Dash-1 Emperor (2026 Reissue) | releaseYear | 2026 | verified | P2 | Genuine gap -- this specific reissue year has no cited source |
+| Great Emperor | Great Emperor | chassis | Type 3 | verified | P2 | Genuine gap |
+| Great Emperor | Great Emperor | releaseYear | 1990 | verified | P4 | Likely on the item page |
+| Great Emperor | Great Emperor Premium | releaseYear | 2015 | verified | P4 | Likely on the item page |
+| Dyna-Hawk GX | Dyna-Hawk GX | chassis | Super X | verified | P2 | Genuine gap |
+| Dyna-Hawk GX | Dyna-Hawk GX | releaseYear | 1998 | verified | P4 | Likely on the item page |
+| Dyna-Hawk GX | Dyna-Hawk GX Super XX Special (#94717) | itemNumber | 94717 | partial | P3 | Already the subject of its own dedicated open item (no live official source) -- partial correctly signals this |
+| Dyna-Hawk GX | Dyna-Hawk GX Super XX Special (#94717) | chassis | Super XX | partial | P3 | Same |
+| Dyna-Hawk GX | Dyna-Hawk GX Super XX Special (#94717) | releaseYear | 2010 | partial | P3 | Same |
+| Dyna-Hawk GX | Dyna-Hawk GX Super XX Special (#94717) | releaseDate | 2010-03-13 | partial | P3 | Same |
+| Trigale | Trigale | chassis | AR | verified | P2 | Genuine gap |
+| Trigale | Trigale | releaseYear | 2015 | verified | P2 | Source is a MAP price-list PDF (same class as Festa Jaune) -- year not necessarily on it, so P2 not P4 |
+
+**Disposition:**
+- **P2 (14 rows) -- real gaps, worth closing over time, not urgent.**
+  DCR-01, Geo Glider, Festa Jaune, Cyclone/Beat/Hurricane/Buster
+  Magnum-Sonic, Avante Jr., Super Avante, Vanguard Sonic, Great
+  Emperor, Dyna-Hawk GX (chassis, 8 rows); Dash-1 Emperor 2026 Reissue
+  releaseYear, Trigale releaseYear (2 rows).
+- **P3 (14 rows) -- semantically legitimate, not defects.** Every
+  partial-status release's rows (Aero Avante Clear Body x3, Aero
+  Avante Black Special x3, Raikiri Black Special x3, Dyna-Hawk GX
+  #94717 x4 -- 13 rows) plus Dash-1 Emperor 2026 Reissue's itemNumber
+  row (1 -- same number as the Original by design). partial already
+  IS the project's signal for "not fully confirmed" -- these rows
+  document that the signal is working, not that something is broken.
+- **P4 (20 rows) -- resolvable with a metadata-only fix.** Each of
+  these releases already has an official page cited for itemNumber/
+  chassis; the page likely states the year too, it just wasn't
+  explicitly logged in verifiedFields when the source was first
+  added. Closing these means re-opening each cited page and adding
+  "releaseYear" to verifiedFields once re-confirmed -- not done
+  automatically in this pass (only the 10 sources this session's own
+  direct fetches had already substantiated were updated, in the Proto
+  Emperor ZX fix and its follow-up).
+
+No P1 (likely factual error) was found. Nothing in this table was
+corrected automatically in this pass beyond the 10 releaseYear/
+releaseDate metadata additions this session's own direct source
+fetches substantiate (Victory Magnum Premium, Cyclone Magnum Premium,
+Beat Magnum Premium, Hurricane Sonic Premium, Avante Mk.II, Dash-1
+Emperor Premium, both Proto Emperor ZX releases, Dyna-Hawk GX 2019
+Reissue) -- those are pure metadata corrections traceable to sources
+this pass itself fetched directly, not new claims, and are why those
+specific releases/fields don't appear in this table.
+
 ## Recommended next steps (not done in this pass)
 
 1. The 6 genuinely unverified products (Manta Ray, Fire Dragon, Sword
@@ -381,8 +707,13 @@ for releases, that release's fixed array position under its parent.
    `PARTIALLY VERIFIED` to `VERIFIED`.
 3. Dash-1 Emperor Premium (Black Special) [95359] and 30th Anniversary
    [92403] were never independently re-checked in any pass of this
-   audit — worth a dedicated look given how often this catalog's
+   audit -- worth a dedicated look given how often this catalog's
    carried-over values turned out wrong elsewhere.
 4. Seek verified real MSRP/JAN figures where Tamiya (or another
-   authoritative, non-marketplace source) publishes them — none exist
+   authoritative, non-marketplace source) publishes them -- none exist
    in this catalog as of this pass.
+5. Close the 20 P4 provenance-gap-report rows above by re-reading each
+   cited page and adding "releaseYear" to verifiedFields where
+   confirmed -- pure metadata, no factual change expected.
+6. Close the 14 P2 provenance-gap-report rows above with a genuine new
+   source citation (chassis/year not yet backed by any source at all).

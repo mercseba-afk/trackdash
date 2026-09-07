@@ -752,37 +752,64 @@ const SEEDS: Seed[] = [
   },
   {
     seedKey: "18714", // frozen identity anchor -- see file header. NEVER change this once assigned.
-    // CORRECTED (catalog integrity pass, live-verified against
-    // tamiya.com, see docs/CATALOG_AUDIT.md): official Japanese page
+    // CATALOG INTEGRITY HARDENING PASS -- both releases directly
+    // re-verified against tamiya.com (fetched live), and cross-checked
+    // against RCJaz (trusted_secondary corroboration -- see
+    // docs/CATALOG_AUDIT.md). Both concur on item/chassis for both
+    // releases; see docs/CATALOG_AUDIT.md's dedicated Proto Emperor ZX
+    // section for the full audit trail, including how this was
+    // discovered (Images Phase 2B hardening flagged that Release 2's
+    // recorded item, 95450, actually belongs to a different Dash!
+    // Yonkuro machine entirely).
+    //
+    // Release 1 (canonical/original): official page
     // https://www.tamiya.com/japan/products/18038/index.html confirms
-    // "原始皇帝(プロトエンペラーZX)" (PROTO-EMPEROR ZX), Item No.
-    // 18038, released 2007-09-01. This catalog's previous item 18714
-    // belongs to a different product ("Mach Frame", Mini 4WD REV
-    // series). Chassis "Super II" carried over, not independently
-    // re-verified against this specific page's own detail text --
-    // PARTIALLY VERIFIED for chassis/year only, item number is fully
-    // confirmed official.
+    // "原始大帝(プロトエンペラーZX)" / "PROTO-EMPEROR ZX", Item No. 18038,
+    // released 2007-09-01, Zero chassis (page's own parts-search link is
+    // scoped to genre_item=mini4wd_chassis_zero). RCJaz
+    // (rcjaz.com/tamiya-18038-jr-protoemperor-zx-zero-chassis) agrees on
+    // both item number and Zero chassis -- CONCUR, confidence HIGH.
+    // Chassis was previously (wrongly) recorded as "Super II" -- now
+    // corrected. Historical note: the Mini 4WD Wiki (Fandom) attributes
+    // the character/body design's ORIGINAL debut to Feb 18, 1992 (likely
+    // under a different, earlier item number no longer used) -- this is
+    // not a conflict with the 2007-09-01 date on THIS item number's own
+    // official page, which is what item 18038 itself represents.
     item: "18038",
     code: "95114",
     name: "Proto Emperor ZX",
     jp: "プロトエンペラー ZX",
     series: "Dash! Yonkuro",
-    chassis: "Super II",
-    originalYear: 2016,
+    chassis: "Zero",
+    originalYear: 2007,
     rarity: "Rare",
     estimatedMsrpJPY: 1000,
     desc: "The prototype Emperor, a fan-favourite variant of the Emperor bloodline.",
     releases: [
-      { releaseSeedKey: "1", type: "Original", year: 2016, original: true },
-      // CORRECTED: official page
-      // https://www.tamiya.com/japan/products/95450/index.html confirms
-      // "ダッシュX1・原始皇帝（プロトエンペラー）プレミアム ブラック
-      // スペシャル（スーパーIIシャーシ）" -- an exact name match for
-      // this release, Item No. 95450, Super-II chassis (confirmed by
-      // the page's own title). Year 2019 carried over, not
-      // independently re-confirmed on this page -- PARTIALLY VERIFIED
-      // for year only.
-      { releaseSeedKey: "2", type: "Color Special", name: "Proto Emperor ZX Premium (Black Special)", year: 2019, item: "95450", chassis: "Super II", color: "Black", rarity: "Very Rare", estimatedMsrpJPY: 1200 },
+      { releaseSeedKey: "1", type: "Original", year: 2007, releaseDate: "2007-09-01", original: true },
+      // Release 2: CORRECTED. The previously recorded item, 95450, was
+      // found (this hardening pass) to belong to a DIFFERENT machine --
+      // "DASH-X1 PROTO-EMPEROR PREMIUM BLACK SPECIAL (SUPER-II CHASSIS)"
+      // (原始皇帝, Kidoin Jin's earlier machine, not Proto Emperor ZX) --
+      // per https://www.tamiya.com/japan/products/95450/index.html. That
+      // item/source is REMOVED from this release entirely (see
+      // KNOWN_SOURCES below); no reference to 95450 remains anywhere in
+      // this Product's data.
+      //
+      // The real Proto Emperor ZX Premium is confirmed via official page
+      // https://www.tamiya.com/japan/products/95335/index.html: Item No.
+      // 95335, "プロトエンペラーZX（ジークロス）プレミアム（スーパーII
+      // シャーシ）" / "PROTO-EMPEROR ZX PREMIUM (SUPER-II CHASSIS)",
+      // released 2017-07-15, body molded in Purple ABS (パープルの
+      // ABS樹脂製) -- NOT Black. RCJaz
+      // (rcjaz.com/tamiya-95335-protoemperor-zx-premium-super-ii-chassis)
+      // agrees on item number, name, and chassis -- CONCUR, confidence
+      // HIGH. `rarity` override removed (it was set from the false
+      // Black Special identity) -- falls back to the Product's own
+      // "Rare". `estimatedMsrpJPY` override also removed (was set from
+      // the false identity) -- falls back to the Product's demo
+      // estimate, which is not a factual MSRP either way.
+      { releaseSeedKey: "2", type: "Premium", name: "Proto Emperor ZX Premium", year: 2017, releaseDate: "2017-07-15", item: "95335", chassis: "Super II", color: "Purple" },
     ],
   },
   {
@@ -1200,8 +1227,8 @@ function inferEditionType(type: ReleaseType, isOriginal: boolean): EditionType {
 const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
   "18626:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18701/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
   "19404:2": [
-    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19434/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" },
-    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19434/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" },
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19434/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" },
+    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19434/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" },
   ],
   "19402:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19432/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
   "18641:1": [
@@ -1212,29 +1239,29 @@ const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
   "18725:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19407/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
   "18725:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/19435/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
   "19425:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19412/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
-  "19425:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19440/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "19425:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19440/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" }],
   "19426:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19421/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
-  "19426:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19444/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "19426:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19444/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" }],
   "19424:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19415/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
-  "19424:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19441/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "19424:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19441/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" }],
   "19430:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19423/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
   "18709:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18014/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
-  "18710:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18614/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-03" }],
+  "18710:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18614/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-03" }],
   "18716:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18101/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-03" }],
   "18713:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18036/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
   "18713:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18075/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
   "18025:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18025/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
-  "18025:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18069/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
+  "18025:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18069/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" }],
   "18025:5": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18025/index.html", verifiedFields: ["chassis"], checkedAt: "2026-06-24", notes: "Page explicitly dated 'current as of June 24, 2026'; confirms the 2026 reissue is still Type 3 chassis, not Super-II." }],
-  "18714:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18038/index.html", verifiedFields: ["itemNumber", "releaseDate"], checkedAt: "2026-09-04" }],
-  "18714:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95450/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-04" }],
+  "18714:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18038/index.html", verifiedFields: ["itemNumber", "releaseDate", "chassis", "releaseYear"], checkedAt: "2026-09-06" }],
+  "18714:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95335/index.html", verifiedFields: ["itemNumber", "releaseDate", "chassis", "releaseYear"], checkedAt: "2026-09-06" }],
   "18702:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18015/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
   "18702:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18026/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
   "18703:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18019/index.html", verifiedFields: ["itemNumber", "chassis", "releaseYear"], checkedAt: "2026-09-04" }],
   "18660:1": [{ sourceType: "official_catalog_pdf", sourceUrl: "https://www.tamiyausa.com/media/files/map-price-list-jan-2019-969-c5cb.pdf", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04", notes: "'Tri Gale' consistently listed as item 18638 across multiple official Tamiya America MAP price list PDFs." }],
   "19601:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/19201/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04" }],
-  "19601:3": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95467/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate"], checkedAt: "2026-09-04" }],
-  "18615:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18615/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-04", notes: "Confirms item 18615 is really Manta Ray Mk.II, not this product -- source for why the item was cleared to NULL." }],
+  "19601:3": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95467/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear"], checkedAt: "2026-09-04" }],
+  "18615:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18615/index.html", verifiedFields: [], checkedAt: "2026-09-04", notes: "Confirms item 18615 is really Manta Ray Mk.II, not this product -- source for why the item was cleared to NULL. verifiedFields deliberately empty: this source proves EXCLUSION (this item does NOT belong to this release), not a positive verification of any of this release's own field values." }],
   "18646:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18640/index.html", verifiedFields: ["itemNumber", "chassis"], checkedAt: "2026-09-03" }],
   "18647:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18646/index.html", verifiedFields: ["itemNumber"], checkedAt: "2026-09-03" }],
   "18093:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/english/products/18716/index.html", verifiedFields: ["itemNumber", "releaseYear"], checkedAt: "2026-09-03" }],

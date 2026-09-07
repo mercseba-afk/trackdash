@@ -166,6 +166,7 @@ const VALID_VERIFIED_FIELDS = new Set([
   "msrpJPY",
   "msrpEUR",
   "countryMarket",
+  "productionStatus",
 ])
 for (const p of PRODUCTS) {
   for (const r of p.releases) {
@@ -202,6 +203,95 @@ for (const p of PRODUCTS) {
     }
   }
 }
+
+// -----------------------------------------------------------------------
+// Catalog integrity hardening pass -- preventive rules added after the
+// Proto Emperor ZX incident (item 95450 was recorded as this product's
+// Premium release, but actually belongs to an entirely different Dash!
+// Yonkuro machine; see docs/CATALOG_AUDIT.md's dedicated section).
+//
+// Revised TWICE after follow-up review. First revision: removed a
+// "source URL must contain the item number" hard-fail (not semantically
+// valid -- an official catalog PDF, an archive URL, or a retailer page
+// slug can genuinely verify an item without the number appearing in the
+// URL). Second revision (this one): removed four generic "field X is set
+// but no source specifically verifies X" WARNINGS entirely. Those
+// checks were well-intentioned but produced 47 warnings across this
+// catalog's existing, honestly-documented state -- intentional
+// inheritance, `partial` releases, and incomplete historical metadata
+// that isn't a structural defect. A warning nobody can act on trains
+// people to ignore ALL warnings, which defeats the actual purpose of
+// having them. That responsibility now belongs to the separate,
+// human-driven Editorial Release Audit process (see "Editorial policy
+// for new or changed Releases" in docs/CATALOG_AUDIT.md), not to this
+// offline, deterministic build checker -- no heuristic here can safely
+// tell "field's parent Product/genealogy is right" from "field's parent
+// Product/genealogy is wrong" (that is exactly the Proto Emperor ZX
+// failure mode), so this checker no longer tries.
+//
+// What replaces those four warnings is ONE new, fully deterministic HARD
+// FAIL: a source cannot claim to have verified a field the release
+// doesn't even have a value for. This is not a judgment call about
+// genealogy or completeness -- it's checking the repository's own data
+// against itself. If `verifiedFields` includes "chassis" but
+// `release.chassis` is null/undefined, that source's own claim is
+// self-contradictory, independent of whether the underlying Tamiya page
+// was read correctly. Checked for every field in VALID_VERIFIED_FIELDS
+// that has a corresponding release property.
+// -----------------------------------------------------------------------
+const FIELD_ACCESSORS = {
+  itemNumber: (r) => r.itemNumber,
+  chassis: (r) => r.chassis,
+  releaseYear: (r) => r.releaseYear,
+  releaseDate: (r) => r.releaseDate,
+  editionName: (r) => r.editionName,
+  color: (r) => r.color,
+  barcodeJAN: (r) => r.barcodeJAN,
+  msrpJPY: (r) => r.msrpJPY,
+  msrpEUR: (r) => r.msrpEUR,
+  countryMarket: (r) => r.countryMarket,
+  productionStatus: (r) => r.productionStatus,
+}
+for (const p of PRODUCTS) {
+  for (const r of p.releases) {
+    for (const s of r.sources) {
+      for (const f of s.verifiedFields) {
+        const accessor = FIELD_ACCESSORS[f]
+        if (!accessor) continue // unknown fields are already caught by the vocabulary check above
+        const value = accessor(r)
+        if (value === undefined || value === null) {
+          fail(
+            `${p.name} / ${r.editionName}: a source claims to verify "${f}", but this release's own "${f}" is ${value === null ? "null" : "undefined"} -- a source cannot verify a value that doesn't exist`,
+          )
+        }
+      }
+    }
+  }
+}
+
+// NOT automated (editorial requirement instead -- see "Editorial policy
+// for new or changed Releases" in docs/CATALOG_AUDIT.md for the full,
+// short policy this implements): for any Special/Premium/Reissue/
+// Anniversary/Japan-Cup release, or any factual correction, the human
+// making the change must actually fetch/read the cited Tamiya source
+// and, where available, cross-check RCJaz (trusted_secondary) --
+// confirming exact item number, exact model/release name, chassis, and
+// PARENT PRODUCT -- before setting verificationStatus to "verified" or
+// "partial". This is what the Proto Emperor ZX case actually needed (the
+// URL and the recorded item number DID match numerically; the source
+// page just turned out to describe a different character's machine) --
+// no static, offline check over this repository's own data can safely
+// replace that human judgment call without either fragile scraping/
+// live-fetching (which this checker deliberately never does -- it must
+// stay deterministic, offline, fast, and reproducible) or an
+// unacceptable rate of false negatives. If Tamiya and RCJaz diverge on
+// identity or parent product, the release is BLOCKED from being marked
+// verified/partial until a human resolves it -- never resolved by
+// arbitrarily picking one source. Historical provenance gaps (a field
+// that's plausible but has no source explicitly backing it) are tracked
+// in docs/CATALOG_AUDIT.md's "Provenance gap report" section, not here
+// -- that is deliberately a report, not a checker warning, per the
+// separation of responsibilities this section documents.
 
 // -----------------------------------------------------------------------
 // 12-13. No literal fake placeholders in factual columns.
