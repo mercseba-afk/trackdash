@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 // Generates the catalog-image seed SQL from the audited Tamiya image manifest,
-// resolving each entry's IMMUTABLE seed keys (productSeedKey +
-// releaseSeedKey) against lib/data/products.ts's real (stable,
-// deterministic) UUIDs -- the same pattern scripts/generate-catalog-seed.mjs
-// uses for the catalog itself, extended to cover
-// product_images/release_images. Tamiya item numbers are NEVER used for
-// identity (see scripts/data/tamiya-image-manifest.ts and docs/IMAGES_MVP.md).
+// resolving each entry's IMMUTABLE seed keys (productSeedKey + releaseSeedKey)
+// against the effective corrected catalog. Tamiya item numbers are NEVER used
+// for identity (see scripts/data/tamiya-image-manifest.ts and docs/IMAGES_MVP.md).
 //
 // Usage:
 //   node --experimental-strip-types scripts/seed-images.mjs
@@ -15,9 +12,6 @@
 // the audited manifest data:
 //   node --experimental-strip-types scripts/seed-images.mjs \
 //     > supabase/migrations/0008_seed_catalog_images.sql
-//
-// Runs last in the migration sequence (0008) since it references
-// product/release rows created/normalized by 0006/0007.
 //
 // Every statement is ON CONFLICT (id) DO NOTHING (each image row's id is
 // itself a stableUuid() derived from its natural key), so re-running this
@@ -29,7 +23,7 @@ import { register } from "node:module"
 
 register("./ts-extension-loader.mjs", import.meta.url)
 
-const { PRODUCTS } = await import("../lib/data/products.ts")
+const { PRODUCTS } = await import("../lib/data/corrected-products.ts")
 const { stableUuid } = await import("../lib/data/stable-id.ts")
 const { TAMIYA_IMAGES } = await import("./data/tamiya-image-manifest.ts")
 
@@ -60,16 +54,13 @@ const productImageRows = []
 const releaseImageRows = []
 const skipped = []
 
-// Catalog Model V2 hardening (point 9): resolve each image entry by
-// TrackDash's immutable seedKey/releaseSeedKey -- NOT by Tamiya item
-// number. This mirrors how lib/data/products.ts derives every product/
-// release UUID, so the image attaches to the right row no matter how the
-// item number is later corrected. Each image row's OWN id is likewise
-// derived from the immutable seedKey, never the item number.
+// Resolve each image entry against the effective audited catalog. This keeps
+// image generation aligned with post-seed Product/Release corrections and with
+// newly added releases while retaining the frozen seed-key identity rule.
 for (const entry of TAMIYA_IMAGES) {
   const product = PRODUCTS.find((p) => p.seedKey === entry.productSeedKey)
   if (!product) {
-    skipped.push(`productSeedKey ${entry.productSeedKey}: no matching product in lib/data/products.ts`)
+    skipped.push(`productSeedKey ${entry.productSeedKey}: no matching product in corrected catalog`)
     continue
   }
 
