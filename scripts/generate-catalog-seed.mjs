@@ -1,29 +1,25 @@
 #!/usr/bin/env node
-// Generates the catalog seed SQL from lib/data/products.ts plus the audited
-// post-seed correction layer in lib/data/catalog-release-corrections.ts.
-// The correction layer preserves immutable product/release UUIDs while ensuring
-// factual item/chassis/date corrections are not reintroduced by a future seed
-// regeneration.
+// Generates the catalog seed SQL from the effective audited catalog exposed by
+// lib/data/corrected-products.ts. That module chains every post-seed correction
+// overlay while preserving immutable Product/Release UUIDs.
 //
 // Usage:
 //   node --experimental-strip-types scripts/generate-catalog-seed.mjs
 //
 // Prints SQL to stdout. To regenerate the checked-in seed migration after
-// adding new entries to SEEDS in lib/data/products.ts:
+// adding new catalog entries:
 //   node --experimental-strip-types scripts/generate-catalog-seed.mjs \
 //     > supabase/migrations/0003_seed_initial_catalog.sql
 //
 // Every statement is ON CONFLICT (id) DO NOTHING, so re-running this
-// after adding a handful of new SEEDS entries is safe — existing rows are
-// left untouched, only the new ones get inserted. Deployed factual corrections
-// are handled by their own forward migrations.
+// after adding new rows is safe — existing rows are left untouched. Deployed
+// factual corrections remain handled by their own forward migrations.
 import { register } from "node:module"
 
 register("./ts-extension-loader.mjs", import.meta.url)
 
-const { PRODUCTS: BASE_PRODUCTS, TAMIYA_BRAND_ID, MINI4WD_CATEGORY_ID } = await import("../lib/data/products.ts")
-const { applyCatalogReleaseCorrections } = await import("../lib/data/catalog-release-corrections.ts")
-const PRODUCTS = applyCatalogReleaseCorrections(BASE_PRODUCTS)
+const { TAMIYA_BRAND_ID, MINI4WD_CATEGORY_ID } = await import("../lib/data/products.ts")
+const { PRODUCTS } = await import("../lib/data/corrected-products.ts")
 
 function sqlStr(value) {
   if (value === undefined || value === null || value === "") return "NULL"
@@ -49,10 +45,7 @@ function slugify(name, seedKey) {
   // Uses seedKey (a frozen, internal identity anchor -- see
   // lib/data/products.ts's file header), not itemNumber, specifically so
   // correcting a wrong item number during a future audit never changes
-  // an already-deployed product's slug. slug isn't used for id
-  // generation (already safe) or for any current route/lookup
-  // (getProductBySlug exists but nothing calls it yet) -- this is a
-  // forward-looking correctness fix, not a response to an active bug.
+  // an already-deployed product's identity anchor.
   return `${base}-${seedKey}`
 }
 
@@ -61,14 +54,14 @@ const lines = []
 lines.push("-- Seed migration: TrackDash's first real catalog dataset.")
 lines.push("--")
 lines.push("-- NOT throwaway/disposable demo data: this is the same curated set of")
-lines.push("-- real, recognizable Tamiya Mini 4WD models previously hardcoded only in")
-lines.push("-- lib/data/products.ts, now also persisted as real rows so that")
+lines.push("-- real, recognizable Tamiya Mini 4WD models exposed by the effective")
+lines.push("-- corrected catalog, now persisted as real rows so that")
 lines.push("-- collection_items/wishlist_items (which have NOT NULL foreign keys into")
 lines.push("-- products/product_releases) have real catalog rows to reference.")
 lines.push("--")
-lines.push("-- Generated FROM lib/data/products.ts plus the audited factual correction")
-lines.push("-- overlay, so immutable ids remain byte-for-byte identical while corrected")
-lines.push("-- release facts are carried into any future clean seed generation.")
+lines.push("-- Generated FROM lib/data/corrected-products.ts, so immutable ids remain")
+lines.push("-- stable while audited factual corrections are carried into any future")
+lines.push("-- clean seed generation.")
 lines.push("--")
 lines.push("-- Every INSERT is ON CONFLICT (id) DO NOTHING, so this migration is safe")
 lines.push("-- to re-run (e.g. against a project that already has these rows).")
@@ -98,17 +91,8 @@ lines.push("")
 lines.push(
   "insert into product_releases (id, product_id, item_number, release_type, edition_name, release_year, release_date, chassis, barcode_jan, color, country_market, msrp_jpy, msrp_eur, notes, discontinued, is_original, rarity, data_source) values",
 )
-// SAFE BY CONSTRUCTION (see docs/CATALOG_AUDIT.md "Final Fixes" +
-// lib/data/products.ts's file header): r.msrpJPY / r.msrpEUR here are
-// ProductRelease's FACTUAL, verified-only fields -- buildReleases() in
-// lib/data/products.ts populates them exclusively from
-// verifiedMsrpJPY, never from estimatedMsrpJPY. A future developer
-// regenerating this seed for a NEW product cannot accidentally write an
-// estimate into these DB columns by using this script as-is; doing so
-// would require deliberately reading r.estimatedMsrpJPY/EUR here
-// instead, which this script does not do on purpose. Do not "fix" a
-// future undefined/NULL msrp_jpy by wiring in the estimate here --
-// that's the exact mistake this whole audit corrected.
+// SAFE BY CONSTRUCTION: r.msrpJPY / r.msrpEUR are ProductRelease's FACTUAL,
+// verified-only fields. Never wire estimatedMsrpJPY/EUR into these DB columns.
 const releaseRows = []
 for (const p of PRODUCTS) {
   for (const r of p.releases) {
