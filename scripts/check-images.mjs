@@ -29,22 +29,16 @@ register("./ts-extension-loader.mjs", import.meta.url)
 
 const { PRODUCTS } = await import("../lib/data/products.ts")
 const { stableUuid } = await import("../lib/data/stable-id.ts")
-const { TAMIYA_IMAGES } = await import("./data/tamiya-images.ts")
+const { TAMIYA_IMAGES } = await import("./data/tamiya-image-manifest.ts")
 
-// Set true if every entry must carry a sourcePageUrl. Kept configurable so
-// a future non-source-tracked image set (e.g. our own hosted photos) can
-// opt out without weakening the check for the current source-tracked set.
 const REQUIRE_SOURCE_URL = true
 
 const errors = []
 const fail = (msg) => errors.push(msg)
 
 const productBySeedKey = new Map(PRODUCTS.map((p) => [p.seedKey, p]))
-
-// Track the resolved TARGET id of each entry to catch duplicate mappings
-// and two entries hitting the same exact release.
-const seenTargetIds = new Map() // targetId -> first entry index
-const seenExactMapping = new Set() // `${targetId}|${url}` -> duplicate-identical detection
+const seenTargetIds = new Map()
+const seenExactMapping = new Set()
 
 function isValidHttpUrl(u) {
   if (typeof u !== "string" || u.trim() === "") return false
@@ -59,12 +53,10 @@ function isValidHttpUrl(u) {
 TAMIYA_IMAGES.forEach((entry, i) => {
   const where = `entry #${i + 1} (productSeedKey "${entry.productSeedKey}"${entry.releaseSeedKey ? `, releaseSeedKey "${entry.releaseSeedKey}"` : ""})`
 
-  // --- URL validity ---
   if (!isValidHttpUrl(entry.imageUrl)) {
     fail(`${where}: imageUrl is empty or malformed ("${entry.imageUrl}")`)
   }
 
-  // --- source URL required (when configured) ---
   if (REQUIRE_SOURCE_URL && (!entry.sourcePageUrl || String(entry.sourcePageUrl).trim() === "")) {
     fail(`${where}: sourcePageUrl is required but missing`)
   }
@@ -72,12 +64,6 @@ TAMIYA_IMAGES.forEach((entry, i) => {
     fail(`${where}: sourcePageUrl is set but malformed ("${entry.sourcePageUrl}")`)
   }
 
-  // --- sourceType vocabulary (Phase 2B hardening) ---
-  // Kept in sync with the sourceType union in scripts/data/tamiya-images.ts.
-  // `trusted_secondary` may appear on identity/evidence notes but must never
-  // back an actual imageUrl -- a non-official source is never used as a
-  // photo provenance (see docs/IMAGES_MVP.md's #94717 case: identity only,
-  // no image entry was created for it).
   const VALID_SOURCE_TYPES = new Set(["official_manufacturer", "official_catalog_pdf", "official_archive", "trusted_secondary", "other"])
   if (entry.sourceType !== undefined && !VALID_SOURCE_TYPES.has(entry.sourceType)) {
     fail(`${where}: sourceType "${entry.sourceType}" is not a recognized value (expected one of: ${[...VALID_SOURCE_TYPES].join(", ")})`)
@@ -86,19 +72,14 @@ TAMIYA_IMAGES.forEach((entry, i) => {
     fail(`${where}: sourceType "trusted_secondary" must never back an actual image entry -- it is for identity/evidence notes only, never a photo source`)
   }
 
-  // --- identity must not be item-number-derived ---
-  // The manifest interface has no productItem/releaseItem field, and item
-  // number is optional metadata only. Defensive: if a future edit ever
-  // reintroduces an item-number-shaped identity field, catch it.
   if ("productItem" in entry || "releaseItem" in entry || "itemNumber" in entry) {
     fail(`${where}: uses an item-number-shaped identity field -- image identity must derive from seed keys only`)
   }
 
-  // --- product must exist ---
   const product = productBySeedKey.get(entry.productSeedKey)
   if (!product) {
     fail(`${where}: no product has seedKey "${entry.productSeedKey}"`)
-    return // can't resolve target id without a product
+    return
   }
 
   let targetId
@@ -109,16 +90,12 @@ TAMIYA_IMAGES.forEach((entry, i) => {
       fail(`${where}: product "${product.name}" has no release with releaseSeedKey "${entry.releaseSeedKey}"`)
       return
     }
-    // Ownership: the resolved release must actually belong to this product.
-    // (stableUuid derivation ties them together, but assert it explicitly so
-    // a mismatch can never slip through silently.)
     if (release.productId !== product.id) {
       fail(`${where}: resolved release belongs to a different product (ownership violation)`)
       return
     }
     targetId = stableUuid(`release-image:${entry.productSeedKey}:${entry.releaseSeedKey}:0`)
 
-    // A given exact release must not be targeted by more than one entry.
     const releaseKey = `release:${release.id}`
     if (seenTargetIds.has(releaseKey)) {
       fail(`${where}: release "${release.editionName}" is already targeted by entry #${seenTargetIds.get(releaseKey) + 1} -- a release can have at most one seeded primary image`)
@@ -135,7 +112,6 @@ TAMIYA_IMAGES.forEach((entry, i) => {
     }
   }
 
-  // --- duplicate identical mapping (same target row + same URL) ---
   const exactKey = `${targetId}|${entry.imageUrl}`
   if (seenExactMapping.has(exactKey)) {
     fail(`${where}: duplicate identical mapping (same target image row and URL as an earlier entry)`)
@@ -144,9 +120,6 @@ TAMIYA_IMAGES.forEach((entry, i) => {
   }
 })
 
-// -----------------------------------------------------------------------
-// Summary
-// -----------------------------------------------------------------------
 const productEntries = TAMIYA_IMAGES.filter((e) => !e.releaseSeedKey).length
 const releaseEntries = TAMIYA_IMAGES.filter((e) => e.releaseSeedKey).length
 console.log("=== IMAGE MANIFEST CHECK ===")
