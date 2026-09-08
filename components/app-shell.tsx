@@ -117,11 +117,11 @@ function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push("/profile")}>
+          <DropdownMenuItem onClick={() => window.location.assign("/profile")}>
             <UserIcon />
             {t("menu.profile")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/settings")}>
+          <DropdownMenuItem onClick={() => window.location.assign("/settings")}>
             <Settings />
             {t("menu.settings")}
           </DropdownMenuItem>
