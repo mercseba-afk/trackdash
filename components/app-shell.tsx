@@ -25,7 +25,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -113,10 +112,13 @@ function UserMenu() {
         }
       />
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuLabel className="flex flex-col">
-          <span className="truncate font-medium">{user.username}</span>
+        {/* This is intentionally plain markup rather than DropdownMenuLabel.
+            In Base UI, GroupLabel requires a Menu.Group context; using it
+            directly under Menu.Popup throws production error #31. */}
+        <div className="flex flex-col px-1.5 py-1 text-xs font-medium text-muted-foreground">
+          <span className="truncate font-medium text-foreground">{user.username}</span>
           <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
         <div className="flex flex-col gap-0.5" role="group">
           {/* Deliberately plain HTML anchors: these do not use Next Link,
