@@ -11,3 +11,26 @@ export type Profile = InferSelectModel<typeof profiles>
 export async function getProfileById(userId: string, dbClient: Database = defaultDb) {
   return dbClient.query.profiles.findFirst({ where: eq(profiles.id, userId) })
 }
+
+export async function updateProfile(
+  userId: string,
+  patch: Partial<{
+    username: string
+    country: string | null
+    preferredCurrency: string
+  }>,
+  dbClient: Database = defaultDb,
+) {
+  const [row] = await dbClient
+    .update(profiles)
+    .set({
+      ...(patch.username !== undefined ? { username: patch.username } : {}),
+      ...(patch.country !== undefined ? { country: patch.country } : {}),
+      ...(patch.preferredCurrency !== undefined ? { preferredCurrency: patch.preferredCurrency } : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(profiles.id, userId))
+    .returning()
+
+  return row
+}

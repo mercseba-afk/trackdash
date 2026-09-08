@@ -40,6 +40,28 @@ export async function upsertCollectorProfile(
   return row
 }
 
+// Profile edits must keep an already-public collector projection in sync, but
+// must NOT create a discoverable public profile for a user who has never shared
+// anything. An UPDATE-only query preserves that privacy boundary.
+export async function syncCollectorProfileIfPresent(
+  userId: string,
+  profile: { username: string; country?: string | null; avatarUrl?: string | null },
+  dbClient: Database = defaultDb,
+) {
+  const [row] = await dbClient
+    .update(collectorProfiles)
+    .set({
+      username: profile.username,
+      country: profile.country ?? null,
+      avatarUrl: profile.avatarUrl ?? null,
+      updatedAt: new Date(),
+    })
+    .where(eq(collectorProfiles.userId, userId))
+    .returning()
+
+  return row
+}
+
 export async function upsertCollectionShare(
   userId: string,
   collectionItemId: string,
