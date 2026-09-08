@@ -24,7 +24,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -86,6 +85,9 @@ function ThemeToggle() {
   )
 }
 
+const ACCOUNT_LINK_CLASS =
+  "flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+
 function UserMenu() {
   const { user, logout } = useStore()
   const { t } = useI18n()
@@ -116,18 +118,27 @@ function UserMenu() {
           <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          {/* Native anchors intentionally bypass Next.js client routing so these
-              account destinations always perform a fresh document request. */}
-          <DropdownMenuItem render={<a href="/profile" />}>
+        <div className="flex flex-col gap-0.5" role="group">
+          {/* Deliberately plain HTML anchors: these do not use Next Link,
+              router.push, window.location handlers, or Base UI MenuItem's
+              render machinery. A tap therefore becomes a browser-level GET. */}
+          <a
+            href="https://trackdash-dusky.vercel.app/profile"
+            className={ACCOUNT_LINK_CLASS}
+            role="menuitem"
+          >
             <UserIcon />
             {t("menu.profile")}
-          </DropdownMenuItem>
-          <DropdownMenuItem render={<a href="/settings" />}>
+          </a>
+          <a
+            href="https://trackdash-dusky.vercel.app/settings"
+            className={ACCOUNT_LINK_CLASS}
+            role="menuitem"
+          >
             <Settings />
             {t("menu.settings")}
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+          </a>
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
