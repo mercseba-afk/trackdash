@@ -1,11 +1,28 @@
+"use client"
+
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react"
 import type { MarketEstimate, Rarity } from "@/lib/types"
+import { useI18n } from "@/lib/i18n"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { RARITY_STYLE, formatMoney, formatPercent } from "@/lib/format"
 
+function rarityLabel(rarity: Rarity, it: boolean): string {
+  if (!it) return rarity
+  const labels: Record<Rarity, string> = {
+    Common: "Comune",
+    Uncommon: "Non comune",
+    Rare: "Raro",
+    "Very Rare": "Molto raro",
+    Grail: "Grail",
+  }
+  return labels[rarity]
+}
+
 export function RarityBadge({ rarity, className }: { rarity: Rarity; className?: string }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
   return (
     <span
       className={cn(
@@ -14,7 +31,7 @@ export function RarityBadge({ rarity, className }: { rarity: Rarity; className?:
         className,
       )}
     >
-      {rarity}
+      {rarityLabel(rarity, it)}
     </span>
   )
 }
@@ -53,6 +70,14 @@ const CONFIDENCE_STYLE: Record<MarketEstimate["confidence"], string> = {
   Insufficient: "bg-muted text-muted-foreground",
 }
 
+function confidenceLabel(confidence: MarketEstimate["confidence"], it: boolean): string {
+  if (!it) return `${confidence} confidence`
+  if (confidence === "High") return "Affidabilità alta"
+  if (confidence === "Medium") return "Affidabilità media"
+  if (confidence === "Low") return "Affidabilità bassa"
+  return "Dati insufficienti"
+}
+
 export function ConfidenceBadge({
   estimate,
   confidence,
@@ -60,29 +85,38 @@ export function ConfidenceBadge({
   estimate?: MarketEstimate
   confidence?: MarketEstimate["confidence"]
 }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
   const c = confidence ?? estimate?.confidence ?? "Insufficient"
   return (
     <Badge variant="secondary" className={cn("gap-1", CONFIDENCE_STYLE[c])}>
-      {c} confidence
+      {confidenceLabel(c, it)}
     </Badge>
   )
 }
 
-// A full market-value card for a specific estimate (release- or model-level).
 export function MarketEstimateCard({
   estimate,
-  title = "Estimated market value",
+  title,
   msrp,
 }: {
   estimate: MarketEstimate
   title?: string
   msrp?: number
 }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
+  const resolvedTitle = title ?? (it ? "Valore di mercato stimato" : "Estimated market value")
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
-        <ConfidenceBadge estimate={estimate} />
+        <CardTitle className="text-sm text-muted-foreground">{resolvedTitle}</CardTitle>
+        {estimate.isDemo ? (
+          <Badge variant="secondary">{it ? "Stima demo" : "Demo estimate"}</Badge>
+        ) : (
+          <ConfidenceBadge estimate={estimate} />
+        )}
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-end justify-between gap-3">
@@ -92,18 +126,19 @@ export function MarketEstimateCard({
           </div>
           <div className="text-right text-xs text-muted-foreground">
             {msrp != null && <div>MSRP {formatMoney(msrp)}</div>}
-            <div className="tabular-nums">{estimate.sampleSize} data points</div>
+            {!estimate.isDemo && <div className="tabular-nums">{estimate.sampleSize} {it ? "dati osservati" : "data points"}</div>}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 border-t pt-3 text-center">
-          <RangeStat label="Low" value={formatMoney(estimate.low)} />
-          <RangeStat label="Average" value={formatMoney(estimate.average)} accent />
-          <RangeStat label="High" value={formatMoney(estimate.high)} />
+          <RangeStat label={it ? "Minimo" : "Low"} value={formatMoney(estimate.low)} />
+          <RangeStat label={it ? "Media" : "Average"} value={formatMoney(estimate.average)} accent />
+          <RangeStat label={it ? "Massimo" : "High"} value={formatMoney(estimate.high)} />
         </div>
         {estimate.isDemo && (
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Indicative demo estimate derived from this edition&apos;s rarity, age and reference pricing — not an
-            appraisal. Production values come from real sold listings. Updated {estimate.lastUpdated}.
+            {it
+              ? `Stima demo indicativa derivata da rarità, età e prezzi di riferimento dell'edizione — non è una perizia. I valori reali saranno basati su osservazioni di mercato. Aggiornata ${estimate.lastUpdated}.`
+              : `Indicative demo estimate derived from this edition's rarity, age and reference pricing — not an appraisal. Real values will be based on market observations. Updated ${estimate.lastUpdated}.`}
           </p>
         )}
       </CardContent>
