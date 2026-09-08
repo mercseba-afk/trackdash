@@ -30,6 +30,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getUnreadMessagingCountAction } from "@/lib/actions/messaging"
+import { createClient } from "@/lib/supabase/client"
 import { useStore } from "@/lib/store"
 import { initials } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -47,6 +49,21 @@ const NAV = [
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/"
   return pathname === href || pathname.startsWith(href + "/")
+}
+
+function UnreadBadge({ count, compact = false }: { count: number; compact?: boolean }) {
+  if (count <= 0) return null
+  return (
+    <span
+      aria-label={`${count} unread message${count === 1 ? "" : "s"}`}
+      className={cn(
+        "flex items-center justify-center rounded-full bg-destructive font-semibold leading-none text-white shadow-sm",
+        compact ? "absolute -right-2 -top-2 min-w-4 h-4 px-1 text-[9px]" : "ml-auto min-w-5 h-5 px-1.5 text-[10px]",
+      )}
+    >
+      {count > 9 ? "9+" : count}
+    </span>
+  )
 }
 
 function ThemeToggle() {
@@ -123,6 +140,55 @@ function UserMenu() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { user } = useStore()
+  const [unreadMessages, setUnreadMessages] = React.useState(0)
+
+  const refreshUnread = React.useCallback(async () => {
+    if (!user) {
+      setUnreadMessages(0)
+      return
+    }
+    try {
+      setUnreadMessages(await getUnreadMessagingCountAction())
+    } catch {
+      // A notification badge should never make the app shell fail. Keep the
+      // previous count and retry on the next Realtime/focus event.
+    }
+  }, [user])
+
+  React.useEffect(() => {
+    if (!user) {
+      setUnreadMessages(0)
+      return
+    }
+
+    void refreshUnread()
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`messaging-badge:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        () => void refreshUnread(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "conversations" },
+        () => void refreshUnread(),
+      )
+      .subscribe()
+
+    const refreshOnFocus = () => void refreshUnread()
+    const refreshOnRead = () => void refreshUnread()
+    window.addEventListener("focus", refreshOnFocus)
+    window.addEventListener("trackdash:messaging-read", refreshOnRead)
+
+    return () => {
+      window.removeEventListener("focus", refreshOnFocus)
+      window.removeEventListener("trackdash:messaging-read", refreshOnRead)
+      void supabase.removeChannel(channel)
+    }
+  }, [refreshUnread, user])
 
   return (
     <div className="min-h-svh bg-background">
@@ -136,6 +202,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="flex flex-1 flex-col gap-1 px-3 py-2">
           {NAV.map((item) => {
             const active = isActive(pathname, item.href)
+            const isMessages = item.href === "/messages"
             return (
               <Link
                 key={item.href}
@@ -149,6 +216,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <item.icon className="size-4" />
                 {item.label}
+                {isMessages ? <UnreadBadge count={unreadMessages} /> : null}
               </Link>
             )
           })}
@@ -180,6 +248,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-border bg-background/95 backdrop-blur lg:hidden">
         {NAV.map((item) => {
           const active = isActive(pathname, item.href)
+          const isMessages = item.href === "/messages"
           return (
             <Link
               key={item.href}
@@ -189,7 +258,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 active ? "text-brand" : "text-muted-foreground",
               )}
             >
-              <item.icon className="size-5" />
+              <span className="relative">
+                <item.icon className="size-5" />
+                {isMessages ? <UnreadBadge count={unreadMessages} compact /> : null}
+              </span>
               {item.label}
             </Link>
           )
