@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Boxes, Handshake, ImageIcon, Loader2, UserRound } from "lucide-react"
 import { getSharedCollectionByUsernameAction } from "@/lib/actions/sharing"
+import { useI18n } from "@/lib/i18n"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
@@ -17,7 +18,21 @@ import {
 
 type SharedCollection = Awaited<ReturnType<typeof getSharedCollectionByUsernameAction>>
 
+function conditionLabel(value: string, it: boolean) {
+  if (!it) return value
+  const labels: Record<string, string> = {
+    Sealed: "Sigillato",
+    "New / Opened": "Nuovo / Aperto",
+    Built: "Montato",
+    Used: "Usato",
+    Incomplete: "Incompleto",
+  }
+  return labels[value] ?? value
+}
+
 export function SharedCollectionScreen({ username }: { username: string }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
   const [data, setData] = React.useState<SharedCollection>(null)
   const [loading, setLoading] = React.useState(true)
 
@@ -41,7 +56,7 @@ export function SharedCollectionScreen({ username }: { username: string }) {
   if (loading) {
     return (
       <div className="flex min-h-64 items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Loading shared collection…
+        <Loader2 className="size-4 animate-spin" /> {it ? "Caricamento collezione condivisa…" : "Loading shared collection…"}
       </div>
     )
   }
@@ -53,9 +68,9 @@ export function SharedCollectionScreen({ username }: { username: string }) {
           <EmptyMedia variant="icon">
             <UserRound />
           </EmptyMedia>
-          <EmptyTitle>Shared collection not found</EmptyTitle>
+          <EmptyTitle>{it ? "Collezione condivisa non trovata" : "Shared collection not found"}</EmptyTitle>
           <EmptyDescription>
-            This collector has no items shared right now, or the showcase is no longer available.
+            {it ? "Questo collezionista non ha modelli condivisi al momento oppure la vetrina non è più disponibile." : "This collector has no items shared right now, or the showcase is no longer available."}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -71,19 +86,21 @@ export function SharedCollectionScreen({ username }: { username: string }) {
           {data.profile.username.slice(0, 1)}
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-semibold tracking-tight">{data.profile.username}&apos;s collection</h1>
+          <h1 className="truncate text-2xl font-semibold tracking-tight">
+            {it ? `Collezione di ${data.profile.username}` : `${data.profile.username}'s collection`}
+          </h1>
           <p className="text-sm text-muted-foreground">
             {data.profile.country ? `${data.profile.country} · ` : ""}
-            Only items this collector explicitly chose to share are visible here.
+            {it ? "Qui sono visibili solo i modelli che questo collezionista ha scelto esplicitamente di condividere." : "Only items this collector explicitly chose to share are visible here."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="gap-1.5">
-            <Boxes className="size-3.5" /> {data.shares.length} shared
+            <Boxes className="size-3.5" /> {data.shares.length} {it ? "condivisi" : "shared"}
           </Badge>
           {openToOffers > 0 ? (
             <Badge variant="secondary" className="gap-1.5 bg-brand/15 text-brand">
-              <Handshake className="size-3.5" /> {openToOffers} open to offers
+              <Handshake className="size-3.5" /> {openToOffers} {it ? "accettano offerte" : "open to offers"}
             </Badge>
           ) : null}
         </div>
@@ -99,13 +116,13 @@ export function SharedCollectionScreen({ username }: { username: string }) {
               />
               <div className="flex flex-1 flex-col gap-2 p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">{share.condition}</Badge>
+                  <Badge variant="outline">{conditionLabel(share.condition, it)}</Badge>
                   {share.shareMode === "open_to_offers" ? (
                     <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
-                      <Handshake className="size-3" /> Open to offers
+                      <Handshake className="size-3" /> {it ? "Accetta offerte" : "Open to offers"}
                     </Badge>
                   ) : (
-                    <Badge variant="secondary">Shared</Badge>
+                    <Badge variant="secondary">{it ? "Condiviso" : "Shared"}</Badge>
                   )}
                 </div>
                 <div>
