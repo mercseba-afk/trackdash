@@ -10,6 +10,7 @@ import {
   Heart,
   ScanLine,
   TrendingUp,
+  MessageCircle,
   Moon,
   Sun,
   LogOut,
@@ -38,6 +39,7 @@ const NAV = [
   { href: "/catalog", label: "Catalog", icon: LibraryBig },
   { href: "/collection", label: "Collection", icon: Boxes },
   { href: "/wishlist", label: "Wishlist", icon: Heart },
+  { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/scanner", label: "Scanner", icon: ScanLine },
   { href: "/market", label: "Market", icon: TrendingUp },
 ]
