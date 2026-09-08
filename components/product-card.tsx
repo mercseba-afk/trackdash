@@ -34,7 +34,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
         {product.hasMultipleReleases && (
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
-            <RefreshCw className="size-3" /> {product.releases.length} {product.releases.length === 1 ? "release" : "release"}
+            <RefreshCw className="size-3" /> {product.releases.length} release
           </span>
         )}
       </Link>
@@ -43,7 +43,7 @@ export function ProductCard({ product }: { product: Product }) {
           <Link href={`/catalog/${product.id}`} className="min-w-0">
             <p className="truncate text-sm font-semibold leading-tight hover:text-brand">{product.name}</p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {product.chassis ?? "—"} · {it ? "orig." : "orig."} {product.originalReleaseYear ?? "—"}
+              {product.chassis ?? "—"} · orig. {product.originalReleaseYear ?? "—"}
             </p>
           </Link>
           <RarityBadge rarity={product.rarity} />
