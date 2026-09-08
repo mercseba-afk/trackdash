@@ -8,6 +8,7 @@ import {
   deleteCollectionShare,
   getCollectorsForRelease,
   getMyCollectionShares,
+  getReleaseCommunityCounts,
   getSharedCollectionForUsername,
   pruneCollectorProfileIfEmpty,
   upsertCollectionShare,
@@ -181,6 +182,18 @@ export async function getReleaseCollectorsAction(releaseId: string) {
     collectionItemId: row.collectionItemId,
     condition: row.condition,
     shareMode: row.shareMode as ShareMode,
+  }))
+}
+
+export async function getReleaseCommunityCountsAction(productId: string) {
+  const user = await getCurrentUser()
+  if (!user) return []
+
+  const rows = await withUserContext(user.id, (tx) => getReleaseCommunityCounts(productId, tx))
+  return rows.map((row) => ({
+    releaseId: row.releaseId,
+    collectors: Number(row.collectors),
+    openToOffers: Number(row.openToOffers),
   }))
 }
 
