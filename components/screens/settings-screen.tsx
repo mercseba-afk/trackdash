@@ -7,6 +7,7 @@ import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { getMyProfileAction, updateMyProfileAction } from "@/lib/actions/profile"
 import { useStore } from "@/lib/store"
+import { useI18n, type AppLocale } from "@/lib/i18n"
 import { CURRENCIES, type Currency } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,11 +18,13 @@ import { toast } from "sonner"
 
 export function SettingsScreen() {
   const { user, logout } = useStore()
+  const { locale, setLocale, t } = useI18n()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [currency, setCurrency] = React.useState<Currency>("EUR")
   const [loadingProfile, setLoadingProfile] = React.useState(true)
   const [savingCurrency, setSavingCurrency] = React.useState(false)
+  const [savingLocale, setSavingLocale] = React.useState(false)
 
   React.useEffect(() => {
     let cancelled = false
@@ -32,10 +35,7 @@ export function SettingsScreen() {
           setCurrency(profile.preferredCurrency as Currency)
         }
       })
-      .catch(() => {
-        // Settings should remain usable even if the optional profile preference
-        // cannot be loaded; EUR is the safe display default in the current app.
-      })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) setLoadingProfile(false)
       })
@@ -50,11 +50,26 @@ export function SettingsScreen() {
     setSavingCurrency(true)
     try {
       await updateMyProfileAction({ preferredCurrency: next })
-      toast.success("Preferred currency saved")
+      toast.success(t("settings.currencySaved"))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't save your currency")
+      toast.error(error instanceof Error ? error.message : t("settings.currencyError"))
     } finally {
       setSavingCurrency(false)
+    }
+  }
+
+  async function saveLocale(next: AppLocale) {
+    const previous = locale
+    setLocale(next)
+    setSavingLocale(true)
+    try {
+      await updateMyProfileAction({ preferredLocale: next })
+      toast.success(t("settings.languageSaved"))
+    } catch (error) {
+      setLocale(previous)
+      toast.error(error instanceof Error ? error.message : t("settings.languageError"))
+    } finally {
+      setSavingLocale(false)
     }
   }
 
@@ -66,26 +81,24 @@ export function SettingsScreen() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Appearance, preferences and account settings.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <MonitorCog className="size-4 text-muted-foreground" /> Appearance
+            <MonitorCog className="size-4 text-muted-foreground" /> {t("settings.appearance")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col">
-          <SettingRow label="Theme" description="Choose light, dark or follow your device.">
+          <SettingRow label={t("settings.theme")} description={t("settings.themeDesc")}>
             <Select value={theme ?? "system"} onValueChange={(v) => v && setTheme(v as string)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                <SelectItem value="light">{t("settings.light")}</SelectItem>
+                <SelectItem value="dark">{t("settings.dark")}</SelectItem>
+                <SelectItem value="system">{t("settings.system")}</SelectItem>
               </SelectContent>
             </Select>
           </SettingRow>
@@ -95,36 +108,26 @@ export function SettingsScreen() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Globe2 className="size-4 text-muted-foreground" /> Language &amp; region
+            <Globe2 className="size-4 text-muted-foreground" /> {t("settings.languageRegion")}
           </CardTitle>
-          <CardDescription>Regional preferences for your TrackDash experience.</CardDescription>
+          <CardDescription>{t("settings.languageRegionDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col">
-          <SettingRow label="Language" description="English is active now. Italian is the next implementation step.">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">English</Badge>
-              <Badge variant="secondary">Italiano next</Badge>
-            </div>
+          <SettingRow label={t("settings.language")} description={t("settings.languageDesc")}>
+            <Select value={locale} disabled={savingLocale} onValueChange={(v) => v && void saveLocale(v as AppLocale)}>
+              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">🇬🇧 {t("settings.english")}</SelectItem>
+                <SelectItem value="it">🇮🇹 {t("settings.italian")}</SelectItem>
+              </SelectContent>
+            </Select>
           </SettingRow>
           <Separator />
-          <SettingRow
-            label="Preferred currency"
-            description="Saved to your account. Market calculations currently remain EUR-based until conversion is enabled."
-          >
-            <Select
-              value={currency}
-              disabled={loadingProfile || savingCurrency}
-              onValueChange={(v) => v && void saveCurrency(v as Currency)}
-            >
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
+          <SettingRow label={t("settings.currency")} description={t("settings.currencyDesc")}>
+            <Select value={currency} disabled={loadingProfile || savingCurrency} onValueChange={(v) => v && void saveCurrency(v as Currency)}>
+              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {CURRENCIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
+                {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
           </SettingRow>
@@ -134,49 +137,46 @@ export function SettingsScreen() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Bell className="size-4 text-muted-foreground" /> Notifications
+            <Bell className="size-4 text-muted-foreground" /> {t("settings.notifications")}
           </CardTitle>
-          <CardDescription>Only settings backed by a real notification flow should be presented as active.</CardDescription>
+          <CardDescription>{t("settings.notificationsDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col">
-          <ComingSoonRow label="Price movement alerts" description="Alert when a tracked release moves significantly." />
+          <ComingSoonRow label={t("settings.priceAlerts")} description={t("settings.priceAlertsDesc")} text={t("settings.comingSoon")} />
           <Separator />
-          <ComingSoonRow label="Wishlist target alerts" description="Alert when real market data reaches your target price." />
+          <ComingSoonRow label={t("settings.wishlistAlerts")} description={t("settings.wishlistAlertsDesc")} text={t("settings.comingSoon")} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <UserRound className="size-4 text-muted-foreground" /> Account
+            <UserRound className="size-4 text-muted-foreground" /> {t("settings.account")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
-          <Link
-            href="/profile"
-            className="flex items-center justify-between gap-4 rounded-lg px-1 py-3 text-sm hover:bg-muted/50"
-          >
+          <Link href="/profile" className="flex items-center justify-between gap-4 rounded-lg px-1 py-3 text-sm hover:bg-muted/50">
             <div>
-              <p className="font-medium">Profile</p>
-              <p className="text-xs text-muted-foreground">Edit username, country and view collector activity.</p>
+              <p className="font-medium">{t("settings.profile")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings.profileDesc")}</p>
             </div>
             <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
           <Separator />
           <div className="flex items-center justify-between gap-4 py-3">
             <div className="min-w-0">
-              <p className="text-sm font-medium">Email</p>
+              <p className="text-sm font-medium">{t("settings.email")}</p>
               <p className="truncate text-xs text-muted-foreground">{user?.email || "—"}</p>
             </div>
           </div>
           <Separator />
           <div className="flex items-center justify-between gap-4 py-3">
             <div>
-              <p className="text-sm font-medium">Sign out</p>
-              <p className="text-xs text-muted-foreground">End this TrackDash session on this device.</p>
+              <p className="text-sm font-medium">{t("menu.signOut")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings.signOutDesc")}</p>
             </div>
             <Button variant="outline" onClick={handleLogout}>
-              <LogOut data-icon="inline-start" /> Sign out
+              <LogOut data-icon="inline-start" /> {t("menu.signOut")}
             </Button>
           </div>
         </CardContent>
@@ -185,25 +185,14 @@ export function SettingsScreen() {
       <Card className="border-dashed">
         <CardContent className="flex items-start gap-3 py-4 text-sm text-muted-foreground">
           <WalletCards className="mt-0.5 size-4 shrink-0" />
-          <p>
-            TrackDash currently uses indicative demo market values. Currency conversion, real price alerts and marketplace
-            transactions will only be activated when backed by real market data.
-          </p>
+          <p>{t("settings.demoNotice")}</p>
         </CardContent>
       </Card>
     </div>
   )
 }
 
-function SettingRow({
-  label,
-  description,
-  children,
-}: {
-  label: string
-  description: string
-  children: React.ReactNode
-}) {
+function SettingRow({ label, description, children }: { label: string; description: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex min-w-0 flex-col gap-0.5">
@@ -215,10 +204,6 @@ function SettingRow({
   )
 }
 
-function ComingSoonRow({ label, description }: { label: string; description: string }) {
-  return (
-    <SettingRow label={label} description={description}>
-      <Badge variant="secondary">Coming soon</Badge>
-    </SettingRow>
-  )
+function ComingSoonRow({ label, description, text }: { label: string; description: string; text: string }) {
+  return <SettingRow label={label} description={description}><Badge variant="secondary">{text}</Badge></SettingRow>
 }
