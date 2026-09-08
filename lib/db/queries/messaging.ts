@@ -60,8 +60,24 @@ export async function createConversationRequest(
       requestMessage: requestMessage.trim(),
       status: "pending",
     })
+    // The database unique index remains the source of truth under concurrent
+    // double submits. If another request wins the race, treat this operation
+    // as idempotent and return the row that now exists instead of surfacing a
+    // raw unique-constraint error to the UI.
+    .onConflictDoNothing()
     .returning()
-  return row
+
+  if (row) return row
+
+  const concurrentExisting = await dbClient.query.conversations.findFirst({
+    where: and(
+      eq(conversations.collectionShareId, collectionShareId),
+      eq(conversations.requesterId, userId),
+    ),
+  })
+  if (concurrentExisting) return concurrentExisting
+
+  throw new Error("Couldn't create this message request")
 }
 
 export async function getConversationsForUser(userId: string, dbClient: Database = defaultDb) {
