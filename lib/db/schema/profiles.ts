@@ -5,7 +5,7 @@
 // profile/preferences data.
 
 import { relations, sql } from "drizzle-orm"
-import { pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { check, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase"
 import { collectionItems } from "./collection"
 import { wishlistItems } from "./wishlist"
@@ -26,6 +26,7 @@ export const profiles = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    check("profiles_preferred_locale_check", sql`${table.preferredLocale} in ('en', 'it')`),
     pgPolicy("profiles_select_own", {
       for: "select",
       to: authenticatedRole,
