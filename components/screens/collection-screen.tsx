@@ -254,13 +254,18 @@ export function CollectionScreen() {
               setShares((current) => current.filter((share) => share.collectionItemId !== id))
             }
 
-            // The business mutation above is already committed atomically.
-            // This existing store method is now used only to refresh the
-            // client cache from the DB; an empty patch changes no user data.
-            await updateCollectionItem(id, {})
-
             setEditing(null)
-            toast.success(visibility === "private" ? "Collection updated" : "Collection and sharing updated")
+
+            // The business mutation above has already committed atomically.
+            // Refreshing the store is a separate cache concern: if it fails,
+            // tell the user the save succeeded instead of reporting a false
+            // "couldn't save" error.
+            try {
+              await updateCollectionItem(id, {})
+              toast.success(visibility === "private" ? "Collection updated" : "Collection and sharing updated")
+            } catch {
+              toast.warning("Saved successfully, but the collection view couldn't refresh. Reload the page to see the latest data.")
+            }
           } catch (error) {
             toast.error(error instanceof Error ? error.message : "Couldn't save changes")
           }
