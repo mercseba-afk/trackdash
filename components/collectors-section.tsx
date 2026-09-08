@@ -7,6 +7,7 @@ import { Handshake, Loader2, MessageCircle, Users } from "lucide-react"
 import { getReleaseCollectorsAction } from "@/lib/actions/sharing"
 import { createConversationRequestAction } from "@/lib/actions/messaging"
 import { useStore } from "@/lib/store"
+import { useI18n } from "@/lib/i18n"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,8 +24,22 @@ import { toast } from "sonner"
 
 type CollectorRow = Awaited<ReturnType<typeof getReleaseCollectorsAction>>[number]
 
+function conditionLabel(value: string, it: boolean): string {
+  if (!it) return value
+  const labels: Record<string, string> = {
+    Sealed: "Sigillato",
+    "New / Opened": "Nuovo / Aperto",
+    Built: "Montato",
+    Used: "Usato",
+    Incomplete: "Incompleto",
+  }
+  return labels[value] ?? value
+}
+
 export function CollectorsSection({ releaseId }: { releaseId: string }) {
   const { user } = useStore()
+  const { locale } = useI18n()
+  const it = locale === "it"
   const router = useRouter()
   const [rows, setRows] = React.useState<CollectorRow[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -82,22 +97,26 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="size-4 text-muted-foreground" />
-            Collectors
+            {it ? "Collezionisti" : "Collectors"}
             {!loading ? <Badge variant="secondary">{collectors.length}</Badge> : null}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Loading shared collectors…
+              <Loader2 className="size-4 animate-spin" /> {it ? "Caricamento collezionisti…" : "Loading shared collectors…"}
             </div>
           ) : !user ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Sign in to see collectors who shared this release and contact owners who are open to offers.
+              {it
+                ? "Accedi per vedere i collezionisti che hanno condiviso questa release e contattare chi accetta offerte."
+                : "Sign in to see collectors who shared this release and contact owners who are open to offers."}
             </div>
           ) : collectors.length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              No collector has shared this release yet. Collection items stay private unless their owner explicitly shares them.
+              {it
+                ? "Nessun collezionista ha ancora condiviso questa release. I modelli restano privati finché il proprietario non decide esplicitamente di condividerli."
+                : "No collector has shared this release yet. Collection items stay private unless their owner explicitly shares them."}
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -116,17 +135,17 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span className="truncate text-sm font-medium">
-                          {collector.username}{collector.userId === user.id ? " (you)" : ""}
+                          {collector.username}{collector.userId === user.id ? (it ? " (tu)" : " (you)") : ""}
                         </span>
                         {collector.openToOffers ? (
                           <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
-                            <Handshake className="size-3" /> Open to offers
+                            <Handshake className="size-3" /> {it ? "Accetta offerte" : "Open to offers"}
                           </Badge>
                         ) : null}
                       </div>
                       <p className="truncate text-xs text-muted-foreground">
-                        {[...collector.conditions].join(" / ")}
-                        {collector.copies > 1 ? ` · ${collector.copies} shared copies` : ""}
+                        {[...collector.conditions].map((condition) => conditionLabel(condition, it)).join(" / ")}
+                        {collector.copies > 1 ? ` · ${collector.copies} ${it ? "copie condivise" : "shared copies"}` : ""}
                         {collector.country ? ` · ${collector.country}` : ""}
                       </p>
                     </div>
@@ -141,7 +160,7 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
                         setRequestText("")
                       }}
                     >
-                      <MessageCircle className="size-3.5" /> Message
+                      <MessageCircle className="size-3.5" /> {it ? "Messaggio" : "Message"}
                     </Button>
                   ) : null}
                 </div>
@@ -154,20 +173,22 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
       <Dialog open={Boolean(requestTarget)} onOpenChange={(open) => !open && setRequestTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contact {requestTarget?.username}</DialogTitle>
+            <DialogTitle>{it ? "Contatta" : "Contact"} {requestTarget?.username}</DialogTitle>
             <DialogDescription>
-              Send an initial request about this exact release. The collector must accept before a chat opens.
+              {it
+                ? "Invia una richiesta iniziale per questa release esatta. Il collezionista dovrà accettarla prima che si apra la chat."
+                : "Send an initial request about this exact release. The collector must accept before a chat opens."}
             </DialogDescription>
           </DialogHeader>
           <Input
             value={requestText}
             maxLength={1000}
-            placeholder="Hi, I saw you're open to offers for this release…"
+            placeholder={it ? "Ciao, ho visto che accetti offerte per questa release…" : "Hi, I saw you're open to offers for this release…"}
             onChange={(event) => setRequestText(event.target.value)}
           />
           <p className="text-xs text-muted-foreground">{requestText.trim().length}/1000</p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRequestTarget(null)} disabled={sending}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRequestTarget(null)} disabled={sending}>{it ? "Annulla" : "Cancel"}</Button>
             <Button
               disabled={sending || !requestText.trim() || !requestTarget}
               onClick={async () => {
@@ -175,18 +196,18 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
                 setSending(true)
                 try {
                   const conversation = await createConversationRequestAction(requestTarget.shareId, requestText)
-                  toast.success("Request sent")
+                  toast.success(it ? "Richiesta inviata" : "Request sent")
                   setRequestTarget(null)
                   router.push(`/messages?conversation=${conversation.id}`)
                 } catch (error) {
-                  toast.error(error instanceof Error ? error.message : "Couldn't send request")
+                  toast.error(error instanceof Error ? error.message : it ? "Impossibile inviare la richiesta" : "Couldn't send request")
                 } finally {
                   setSending(false)
                 }
               }}
             >
               {sending ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
-              Send request
+              {it ? "Invia richiesta" : "Send request"}
             </Button>
           </DialogFooter>
         </DialogContent>
