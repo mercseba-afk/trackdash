@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, Check, Handshake, Heart, Info, Plus, RefreshCw, UsersRound } from "lucide-react"
+import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Info, Plus, UsersRound } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseEstimate } from "@/lib/data/market"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
@@ -26,6 +26,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
   const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
 
   const primary = primaryRelease(product)
+  const sortedReleases = React.useMemo(() => sortReleasesForDisplay(product.releases), [product.releases])
   const owned = enrichCollection(collection)
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
@@ -65,15 +66,20 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{product.series}</Badge>
               <RarityBadge rarity={product.rarity} />
-              {product.hasMultipleReleases && (
-                <Badge variant="outline" className="gap-1">
-                  <RefreshCw className="size-3" /> {product.releases.length} releases
-                </Badge>
-              )}
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{product.name}</h1>
             {product.japaneseName && <p className="-mt-1 text-sm text-muted-foreground">{product.japaneseName}</p>}
             <p className="leading-relaxed text-muted-foreground text-pretty">{product.description}</p>
+
+            <Link
+              href="#releases"
+              className="group inline-flex w-fit items-center gap-2 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-brand/10"
+              aria-label={`View ${product.releases.length} ${product.releases.length === 1 ? "release" : "releases and editions"}`}
+            >
+              <span className="font-semibold text-brand">{product.releases.length}</span>
+              <span>{product.releases.length === 1 ? "Release" : "Releases & editions"}</span>
+              <ChevronDown className="size-4 text-brand transition-transform group-hover:translate-y-0.5" />
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
@@ -105,29 +111,28 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            Releases &amp; editions
-            <Badge variant="secondary">{product.releases.length}</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground">
-            The same model is often re-released over the years — each edition has its own item number, box art and
-            market value. Add the exact one you own.
-          </p>
-          {product.releases.map((r) => (
-            <ReleaseRow
-              key={r.id}
-              product={product}
-              release={r}
-              owned={mine.some((m) => m.release.id === r.id)}
-              community={communityByRelease.get(r.id)}
-            />
-          ))}
-        </CardContent>
-      </Card>
+      <section id="releases" className="scroll-mt-20">
+        <Card>
+          <CardHeader className="gap-1.5">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              Releases &amp; editions
+              <Badge variant="secondary">{product.releases.length}</Badge>
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Choose the exact edition you&apos;re looking for.</p>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {sortedReleases.map((r) => (
+              <ReleaseRow
+                key={r.id}
+                product={product}
+                release={r}
+                owned={mine.some((m) => m.release.id === r.id)}
+                community={communityByRelease.get(r.id)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      </section>
 
       {mine.length > 0 && (
         <Card>
@@ -232,8 +237,12 @@ function ReleaseRow({
 
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}
-            {release.notes ? ` · ${release.notes}` : ""}
           </p>
+          {release.notes ? (
+            <p className="mt-1 hidden truncate text-xs text-muted-foreground sm:block" title={release.notes}>
+              {release.notes}
+            </p>
+          ) : null}
 
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {release.isOriginal ? (
@@ -313,6 +322,22 @@ function ReleaseRow({
       </div>
     </div>
   )
+}
+
+function sortReleasesForDisplay(releases: ProductRelease[]): ProductRelease[] {
+  return [...releases].sort((a, b) => {
+    if (a.isOriginal !== b.isOriginal) return a.isOriginal ? -1 : 1
+
+    const yearA = a.releaseYear ?? Number.MAX_SAFE_INTEGER
+    const yearB = b.releaseYear ?? Number.MAX_SAFE_INTEGER
+    if (yearA !== yearB) return yearA - yearB
+
+    const dateA = a.releaseDate ?? "9999-12-31"
+    const dateB = b.releaseDate ?? "9999-12-31"
+    if (dateA !== dateB) return dateA.localeCompare(dateB)
+
+    return a.editionName.localeCompare(b.editionName)
+  })
 }
 
 function Spec({ label, value }: { label: string; value: string }) {
