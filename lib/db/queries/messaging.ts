@@ -67,7 +67,7 @@ export async function createConversationRequest(
 export async function getConversationsForUser(userId: string, dbClient: Database = defaultDb) {
   return dbClient.query.conversations.findMany({
     where: or(eq(conversations.ownerId, userId), eq(conversations.requesterId, userId)),
-    with: { product: true, release: true },
+    with: { product: true, release: true, collectionShare: true },
     orderBy: (fields) => [desc(fields.updatedAt)],
   })
 }
@@ -82,7 +82,7 @@ export async function getConversationForUser(
       eq(conversations.id, conversationId),
       or(eq(conversations.ownerId, userId), eq(conversations.requesterId, userId)),
     ),
-    with: { product: true, release: true },
+    with: { product: true, release: true, collectionShare: true },
   })
 }
 
