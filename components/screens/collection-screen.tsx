@@ -15,7 +15,7 @@ import {
 } from "@/lib/actions/sharing"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
-import { RarityBadge, TrendIndicator } from "@/components/market-bits"
+import { TrendIndicator } from "@/components/market-bits"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -228,77 +228,133 @@ export function CollectionScreen() {
           const visibility: Visibility = share?.shareMode ?? "private"
           return (
             <Card key={e.item.id} className="overflow-hidden py-0">
-              <div className="flex items-stretch gap-3 p-3 sm:gap-4">
-                <Link href={`/catalog/${e.product.id}`} className="shrink-0">
-                  <ProductImage product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" />
-                </Link>
-                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <Link href={`/catalog/${e.product.id}`} className="truncate font-medium hover:text-brand">
-                        {e.product.name}
-                      </Link>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {e.label} · {e.release.chassis ?? "—"} · #{e.release.itemNumber ?? "—"}
-                      </p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        Model originally released {e.product.originalReleaseYear ?? "—"}
-                      </p>
+              <div className="p-3 sm:p-4">
+                <div className="flex gap-3 sm:gap-4">
+                  <Link href={`/catalog/${e.product.id}`} className="shrink-0">
+                    <ProductImage
+                      product={e.product}
+                      release={e.release}
+                      size="sm"
+                      className="h-20 w-28 sm:h-24 sm:w-36"
+                    />
+                  </Link>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link
+                          href={`/catalog/${e.product.id}`}
+                          className="block truncate font-medium hover:text-brand"
+                        >
+                          {e.product.name}
+                        </Link>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {e.label} · {e.release.chassis ?? "—"} · #{e.release.itemNumber ?? "—"}
+                        </p>
+                        <p className="truncate text-[11px] text-muted-foreground">
+                          Model originally released {e.product.originalReleaseYear ?? "—"}
+                        </p>
+                      </div>
+
+                      <div className="hidden shrink-0 sm:block">
+                        <VisibilitySelect
+                          value={visibility}
+                          disabled={visibilityBusyId === e.item.id}
+                          onChange={(next) => void changeVisibility(e.item.id, next)}
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      <VisibilitySelect
-                        value={visibility}
-                        disabled={visibilityBusyId === e.item.id}
-                        onChange={(next) => void changeVisibility(e.item.id, next)}
-                      />
-                      <RarityBadge rarity={e.release.rarity ?? e.product.rarity} />
+
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <span>
+                        Condition <span className="font-medium text-foreground">{e.item.condition}</span>
+                      </span>
+                      <span>
+                        Paid{" "}
+                        <span className="font-medium text-foreground">
+                          {formatMoney(e.item.acquisitionPrice, e.item.acquisitionCurrency)}
+                        </span>
+                      </span>
+                      <span className="hidden sm:inline">Added {formatDate(e.item.acquisitionDate)}</span>
                     </div>
                   </div>
-                  <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span>
-                      Condition <span className="font-medium text-foreground">{e.item.condition}</span>
-                    </span>
-                    <span>
-                      Paid{" "}
-                      <span className="font-medium text-foreground">
-                        {formatMoney(e.item.acquisitionPrice, e.item.acquisitionCurrency)}
-                      </span>
-                    </span>
-                    <span className="hidden sm:inline">Added {formatDate(e.item.acquisitionDate)}</span>
+
+                  <div className="hidden shrink-0 flex-col items-end justify-between border-l border-border pl-4 sm:flex">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p>
+                      <TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" />
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        aria-label="Edit"
+                        onClick={() => setEditing(e)}
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-destructive"
+                        aria-label="Remove"
+                        onClick={async () => {
+                          try {
+                            await removeFromCollection(e.item.id)
+                            setShares((current) => current.filter((item) => item.collectionItemId !== e.item.id))
+                            toast.success(`Removed ${e.product.name}`)
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
+                          }
+                        }}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-end justify-between border-l border-border pl-3 sm:pl-4">
-                  <div className="text-right">
-                    <p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p>
-                    <TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" />
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8"
-                      aria-label="Edit"
-                      onClick={() => setEditing(e)}
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-muted-foreground hover:text-destructive"
-                      aria-label="Remove"
-                      onClick={async () => {
-                        try {
-                          await removeFromCollection(e.item.id)
-                          setShares((current) => current.filter((item) => item.collectionItemId !== e.item.id))
-                          toast.success(`Removed ${e.product.name}`)
-                        } catch (error) {
-                          toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
-                        }
-                      }}
-                    >
-                      <Trash2 />
-                    </Button>
+
+                <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 sm:hidden">
+                  <VisibilitySelect
+                    value={visibility}
+                    disabled={visibilityBusyId === e.item.id}
+                    onChange={(next) => void changeVisibility(e.item.id, next)}
+                  />
+
+                  <div className="ml-auto flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p>
+                      <TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" />
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        aria-label="Edit"
+                        onClick={() => setEditing(e)}
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-destructive"
+                        aria-label="Remove"
+                        onClick={async () => {
+                          try {
+                            await removeFromCollection(e.item.id)
+                            setShares((current) => current.filter((item) => item.collectionItemId !== e.item.id))
+                            toast.success(`Removed ${e.product.name}`)
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : "Couldn't remove this item")
+                          }
+                        }}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
