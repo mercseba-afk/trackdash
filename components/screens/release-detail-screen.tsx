@@ -107,7 +107,9 @@ export function ReleaseDetailScreen({ product, release }: { product: Product; re
         </div>
       </div>
 
-      <CollectorsSection releaseId={release.id} />
+      <div id="collectors" className="scroll-mt-24">
+        <CollectorsSection releaseId={release.id} />
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MarketEstimateCard estimate={estimate} title="Market value — this release" msrp={release.msrpEUR} />

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { ProductCard } from "@/components/product-card"
-import { MarketEstimateCard, RarityBadge, TrendIndicator, ConfidenceBadge } from "@/components/market-bits"
+import { MarketEstimateCard, RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
@@ -56,14 +56,10 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
       </Button>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-        {/* Identity + primary art */}
         <div className="flex flex-col gap-4">
-          {/* Product-level hero — generic to the model, never tied to a
-              specific release (no `release` prop passed to ProductImage). */}
           <ProductImage product={product} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
         </div>
 
-        {/* Header + actions */}
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -109,7 +105,6 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
         </div>
       </div>
 
-      {/* Releases & editions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -134,7 +129,6 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
         </CardContent>
       </Card>
 
-      {/* Your copies */}
       {mine.length > 0 && (
         <Card>
           <CardHeader>
@@ -165,7 +159,6 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
         </Card>
       )}
 
-      {/* Market — headline (primary release) */}
       <div className="grid gap-4 lg:grid-cols-2">
         <MarketEstimateCard
           estimate={getReleaseEstimate(product, primary)}
@@ -218,6 +211,7 @@ function ReleaseRow({
 }) {
   const estimate = getReleaseEstimate(product, release)
   const releaseHref = `/catalog/${product.id}/releases/${release.id}`
+  const collectorsHref = `${releaseHref}#collectors`
 
   return (
     <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
@@ -262,31 +256,37 @@ function ReleaseRow({
             >
               {release.rarity ?? product.rarity}
             </span>
-            <ConfidenceBadge confidence={estimate.confidence} />
           </div>
 
           {community && community.collectors > 0 ? (
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Collectors</span>
+              <Link
+                href={collectorsHref}
+                className="w-fit text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              >
+                Collectors
+              </Link>
               <div className="flex flex-wrap items-center gap-1.5">
-                <span
+                <Link
+                  href={collectorsHref}
                   title={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
-                  aria-label={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
-                  className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 text-xs font-medium text-foreground"
+                  aria-label={`View ${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
+                  className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
                 >
                   <UsersRound className="size-3.5" />
                   {community.collectors}
-                </span>
+                </Link>
 
                 {community.openToOffers > 0 ? (
-                  <span
-                    title={`${community.openToOffers} open to offers`}
-                    aria-label={`${community.openToOffers} collector${community.openToOffers === 1 ? "" : "s"} open to offers`}
-                    className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand/25 bg-brand/10 px-2 text-xs font-semibold text-brand"
+                  <Link
+                    href={collectorsHref}
+                    title={`${community.openToOffers} collector${community.openToOffers === 1 ? "" : "s"} accepting offers`}
+                    aria-label={`View ${community.openToOffers} collector${community.openToOffers === 1 ? "" : "s"} accepting offers`}
+                    className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand/25 bg-brand/10 px-2 text-xs font-semibold text-brand transition-colors hover:bg-brand/15"
                   >
                     <Handshake className="size-3.5" />
-                    {community.openToOffers} open
-                  </span>
+                    {community.openToOffers} accepting offers
+                  </Link>
                 ) : null}
               </div>
             </div>
@@ -300,7 +300,7 @@ function ReleaseRow({
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" render={<Link href={releaseHref} />}>
-              Details
+              View release
             </Button>
             <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
               <Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">
