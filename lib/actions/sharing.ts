@@ -173,6 +173,7 @@ export async function getReleaseCollectorsAction(releaseId: string) {
 
   const rows = await withUserContext(user.id, (tx) => getCollectorsForRelease(releaseId, tx))
   return rows.map((row) => ({
+    id: row.id,
     userId: row.userId,
     username: row.collector.username,
     country: row.collector.country ?? undefined,
