@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, count, eq, sql } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 import { db as defaultDb } from "../index"
 import { collectionItems, collectionShares, collectorProfiles } from "../schema"
 import type { Database } from "../types"
@@ -112,12 +112,15 @@ export async function getCollectorsForRelease(releaseId: string, dbClient: Datab
 // Product-page release cards only need tiny aggregate signals. This query is
 // deliberately based on collection_shares, never private collection_items, so
 // the counts reveal only collectors who explicitly opted into Shared/Offers.
+// Count DISTINCT users: a collector sharing two physical copies is still one
+// collector in the UI, while the release-detail page can continue listing the
+// individual copies themselves.
 export async function getReleaseCommunityCounts(productId: string, dbClient: Database = defaultDb) {
   return dbClient
     .select({
       releaseId: collectionShares.releaseId,
-      collectors: count(collectionShares.id),
-      openToOffers: sql<number>`count(*) filter (where ${collectionShares.shareMode} = 'open_to_offers')::int`,
+      collectors: sql<number>`count(distinct ${collectionShares.userId})::int`,
+      openToOffers: sql<number>`count(distinct ${collectionShares.userId}) filter (where ${collectionShares.shareMode} = 'open_to_offers')::int`,
     })
     .from(collectionShares)
     .where(eq(collectionShares.productId, productId))
