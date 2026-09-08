@@ -247,44 +247,55 @@ export function MessagesScreen() {
 
               {selected.status === "pending" ? (
                 selected.isOwner ? (
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      className="gap-1"
-                      disabled={busy || selected.blockedByMe || selected.blockedByThem}
-                      onClick={async () => {
-                        setBusy(true)
-                        try {
-                          await respondConversationAction(selected.id, "accepted")
-                          await refreshConversations()
-                          toast.success("Request accepted — the chat is now open")
-                        } catch (error) {
-                          toast.error(error instanceof Error ? error.message : "Couldn't accept request")
-                        } finally {
-                          setBusy(false)
-                        }
-                      }}
-                    >
-                      <Check className="size-4" /> Accept
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="gap-1"
-                      disabled={busy}
-                      onClick={async () => {
-                        setBusy(true)
-                        try {
-                          await respondConversationAction(selected.id, "declined")
-                          await refreshConversations()
-                          toast.success("Request declined")
-                        } catch (error) {
-                          toast.error(error instanceof Error ? error.message : "Couldn't decline request")
-                        } finally {
-                          setBusy(false)
-                        }
-                      }}
-                    >
-                      <X className="size-4" /> Decline
-                    </Button>
+                  <div className="flex flex-col gap-2">
+                    {!selected.offerStillOpen ? (
+                      <p className="text-sm text-muted-foreground">
+                        This item is no longer Open to offers, so this pending request cannot be accepted. You can still decline it.
+                      </p>
+                    ) : selected.blockedByMe || selected.blockedByThem ? (
+                      <p className="text-sm text-muted-foreground">
+                        This request cannot be accepted while messaging is blocked between these collectors.
+                      </p>
+                    ) : null}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        className="gap-1"
+                        disabled={busy || !selected.canAccept}
+                        onClick={async () => {
+                          setBusy(true)
+                          try {
+                            await respondConversationAction(selected.id, "accepted")
+                            await refreshConversations()
+                            toast.success("Request accepted — the chat is now open")
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : "Couldn't accept request")
+                          } finally {
+                            setBusy(false)
+                          }
+                        }}
+                      >
+                        <Check className="size-4" /> Accept
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="gap-1"
+                        disabled={busy}
+                        onClick={async () => {
+                          setBusy(true)
+                          try {
+                            await respondConversationAction(selected.id, "declined")
+                            await refreshConversations()
+                            toast.success("Request declined")
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : "Couldn't decline request")
+                          } finally {
+                            setBusy(false)
+                          }
+                        }}
+                      >
+                        <X className="size-4" /> Decline
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">Waiting for the owner to accept or decline your request.</p>
