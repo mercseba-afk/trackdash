@@ -22,6 +22,18 @@ function cleanMessage(value: string, max: number) {
   return body
 }
 
+function hasBlockBetween(
+  userId: string,
+  otherUserId: string,
+  blocks: Awaited<ReturnType<typeof getBlocksForUser>>,
+) {
+  return blocks.some(
+    (block) =>
+      (block.blockerId === userId && block.blockedId === otherUserId) ||
+      (block.blockerId === otherUserId && block.blockedId === userId),
+  )
+}
+
 export async function createConversationRequestAction(collectionShareId: string, message: string) {
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
@@ -109,19 +121,46 @@ export async function sendMessageAction(conversationId: string, message: string)
   if (!user) throw new Error("Not authenticated")
   const body = cleanMessage(message, 2000)
 
-  return withUserContext(user.id, async (tx) => {
-    const conversation = await getConversationForUser(user.id, conversationId, tx)
-    if (!conversation || conversation.status !== "accepted") {
-      throw new Error("This conversation is not open for messages")
-    }
-    const row = await insertMessage(user.id, conversationId, body, tx)
-    return {
-      id: row.id,
-      senderId: row.senderId,
-      body: row.body,
-      createdAt: row.createdAt.toISOString(),
-    }
-  })
+  try {
+    return await withUserContext(user.id, async (tx) => {
+      const conversation = await getConversationForUser(user.id, conversationId, tx)
+      if (!conversation || conversation.status !== "accepted") {
+        return { ok: false as const, reason: "closed" as const }
+      }
+
+      const otherUserId = conversation.ownerId === user.id ? conversation.requesterId : conversation.ownerId
+      const blocks = await getBlocksForUser(user.id, tx)
+      if (hasBlockBetween(user.id, otherUserId, blocks)) {
+        return { ok: false as const, reason: "blocked" as const }
+      }
+
+      const row = await insertMessage(user.id, conversationId, body, tx)
+      return {
+        ok: true as const,
+        message: {
+          id: row.id,
+          senderId: row.senderId,
+          body: row.body,
+          createdAt: row.createdAt.toISOString(),
+        },
+      }
+    })
+  } catch (error) {
+    // A block can be created between the pre-check and INSERT. RLS correctly
+    // rejects that INSERT; convert only that newly-valid business state into
+    // a controlled response instead of leaking a production Server Action error.
+    const state = await withUserContext(user.id, async (tx) => {
+      const conversation = await getConversationForUser(user.id, conversationId, tx)
+      if (!conversation || conversation.status !== "accepted") return "closed" as const
+
+      const otherUserId = conversation.ownerId === user.id ? conversation.requesterId : conversation.ownerId
+      const blocks = await getBlocksForUser(user.id, tx)
+      return hasBlockBetween(user.id, otherUserId, blocks) ? ("blocked" as const) : null
+    })
+
+    if (state) return { ok: false as const, reason: state }
+    throw error
+  }
 }
 
 export async function blockCollectorAction(otherUserId: string) {

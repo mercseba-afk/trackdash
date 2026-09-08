@@ -82,6 +82,23 @@ export function MessagesScreen() {
     }
   }, [requestedConversationId])
 
+  React.useEffect(() => {
+    const refreshOnReturn = () => {
+      if (document.visibilityState === "visible") {
+        void refreshConversations().catch(() => {
+          // Keep the current inbox state if a background refresh fails.
+        })
+      }
+    }
+
+    window.addEventListener("focus", refreshOnReturn)
+    document.addEventListener("visibilitychange", refreshOnReturn)
+    return () => {
+      window.removeEventListener("focus", refreshOnReturn)
+      document.removeEventListener("visibilitychange", refreshOnReturn)
+    }
+  }, [refreshConversations])
+
   const refreshMessages = React.useCallback(async (conversationId: string) => {
     setLoadingMessages(true)
     try {
@@ -118,6 +135,32 @@ export function MessagesScreen() {
     setDraft("")
     router.replace(`/messages?conversation=${id}`)
   }
+
+  const submitMessage = React.useCallback(async () => {
+    if (!selected || !draft.trim() || busy) return
+
+    setBusy(true)
+    try {
+      const result = await sendMessageAction(selected.id, draft)
+      if (!result.ok) {
+        setDraft("")
+        await refreshConversations()
+        toast.error(
+          result.reason === "blocked"
+            ? "Messaging is disabled because one collector has blocked the other."
+            : "This conversation is not open for messages.",
+        )
+        return
+      }
+
+      setDraft("")
+      await refreshMessages(selected.id)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't send message")
+    } finally {
+      setBusy(false)
+    }
+  }, [busy, draft, refreshConversations, refreshMessages, selected])
 
   if (loading) {
     return (
@@ -347,19 +390,7 @@ export function MessagesScreen() {
                         onKeyDown={(event) => {
                           if (event.key === "Enter" && !event.shiftKey && draft.trim() && !busy) {
                             event.preventDefault()
-                            const send = async () => {
-                              setBusy(true)
-                              try {
-                                await sendMessageAction(selected.id, draft)
-                                setDraft("")
-                                await refreshMessages(selected.id)
-                              } catch (error) {
-                                toast.error(error instanceof Error ? error.message : "Couldn't send message")
-                              } finally {
-                                setBusy(false)
-                              }
-                            }
-                            void send()
+                            void submitMessage()
                           }
                         }}
                       />
@@ -367,18 +398,7 @@ export function MessagesScreen() {
                         size="icon"
                         aria-label="Send message"
                         disabled={busy || !draft.trim()}
-                        onClick={async () => {
-                          setBusy(true)
-                          try {
-                            await sendMessageAction(selected.id, draft)
-                            setDraft("")
-                            await refreshMessages(selected.id)
-                          } catch (error) {
-                            toast.error(error instanceof Error ? error.message : "Couldn't send message")
-                          } finally {
-                            setBusy(false)
-                          }
-                        }}
+                        onClick={() => void submitMessage()}
                       >
                         {busy ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                       </Button>
