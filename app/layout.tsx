@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { StoreProvider } from "@/lib/store"
+import { I18nProvider } from "@/lib/i18n"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
@@ -35,8 +36,10 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <StoreProvider>
-            <TooltipProvider>{children}</TooltipProvider>
-            <Toaster position="top-center" />
+            <I18nProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+              <Toaster position="top-center" />
+            </I18nProvider>
           </StoreProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
