@@ -8,6 +8,8 @@ import {
   getCollectionForUser,
   updateCollectionItem,
 } from "@/lib/db/queries/collection"
+import { getProfileById } from "@/lib/db/queries/profiles"
+import { upsertCollectionShare, upsertCollectorProfile, type ShareMode } from "@/lib/db/queries/sharing"
 import type { Condition, Currency } from "@/lib/types"
 import { mapCollectionRow } from "./mappers"
 
@@ -20,6 +22,14 @@ import { mapCollectionRow } from "./mappers"
 // policy on collection_items actually apply to these queries — not just
 // the explicit userId filter already inside lib/db/queries/collection.ts.
 
+export type InitialCollectionVisibility = "private" | ShareMode
+
+function assertInitialVisibility(value: string): asserts value is InitialCollectionVisibility {
+  if (value !== "private" && value !== "showcase" && value !== "open_to_offers") {
+    throw new Error("Invalid collection visibility")
+  }
+}
+
 export interface AddCollectionActionInput {
   productId: string
   releaseId: string
@@ -29,6 +39,7 @@ export interface AddCollectionActionInput {
   acquisitionCurrency: Currency
   releaseYearOverride?: number
   notes?: string
+  visibility?: InitialCollectionVisibility
 }
 
 export async function getMyCollectionAction() {
@@ -41,8 +52,12 @@ export async function getMyCollectionAction() {
 export async function addCollectionItemAction(input: AddCollectionActionInput) {
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
-  const row = await withUserContext(user.id, (tx) =>
-    createCollectionItem(
+
+  const visibility = input.visibility ?? "private"
+  assertInitialVisibility(visibility)
+
+  const row = await withUserContext(user.id, async (tx) => {
+    const created = await createCollectionItem(
       user.id,
       {
         productId: input.productId,
@@ -58,8 +73,30 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
         notes: input.notes ?? null,
       },
       tx,
-    ),
-  )
+    )
+
+    // Sharing is opt-in and created in the SAME transaction as the private
+    // collection item. A failure cannot leave behind a half-created public
+    // projection, and Private remains the default when visibility is omitted.
+    if (visibility !== "private") {
+      const profile = await getProfileById(user.id, tx)
+      if (!profile) throw new Error("Collector profile not found")
+
+      await upsertCollectorProfile(
+        user.id,
+        {
+          username: profile.username,
+          country: profile.country,
+          avatarUrl: profile.avatarUrl,
+        },
+        tx,
+      )
+      await upsertCollectionShare(user.id, created.id, visibility, tx)
+    }
+
+    return created
+  })
+
   return mapCollectionRow({ ...row, photos: [] })
 }
 

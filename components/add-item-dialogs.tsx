@@ -33,6 +33,7 @@ import { ProductImage } from "@/components/catalog/product-image"
 const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Incomplete"]
 const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
+type CollectionVisibility = "private" | "showcase" | "open_to_offers"
 
 function releaseOptionLabel(r: ProductRelease): string {
   return `${r.releaseYear ?? "—"} · ${r.releaseType}${r.color ? ` (${r.color})` : ""} · #${r.itemNumber ?? "—"}`
@@ -96,6 +97,7 @@ export function AddToCollectionDialog({
   const [year, setYear] = React.useState(initialRelease.releaseYear ? String(initialRelease.releaseYear) : "")
   const [currency, setCurrency] = React.useState<Currency>("EUR")
   const [notes, setNotes] = React.useState("")
+  const [visibility, setVisibility] = React.useState<CollectionVisibility>("private")
 
   const selectedRelease = resolveRelease(product, releaseId)
   const estimate = getReleaseEstimate(product, selectedRelease, condition)
@@ -110,6 +112,7 @@ export function AddToCollectionDialog({
     setCondition("New / Opened")
     setPrice(String(getReleaseEstimate(product, r, "New / Opened").value))
     setNotes("")
+    setVisibility("private")
     setDate(new Date().toISOString().slice(0, 10))
   }, [open, product, defaultReleaseId])
 
@@ -127,6 +130,9 @@ export function AddToCollectionDialog({
       Number.isFinite(parsedYear) && parsedYear !== selectedRelease.releaseYear ? parsedYear : undefined
     setPending(true)
     try {
+      // The store forwards the complete object to the server action. Visibility
+      // is intentionally additive here so older store consumers remain source-
+      // compatible while the server keeps Private as the default.
       await addToCollection({
         productId: product.id,
         releaseId: selectedRelease.id,
@@ -136,7 +142,8 @@ export function AddToCollectionDialog({
         acquisitionCurrency: currency,
         releaseYearOverride,
         notes: notes.trim() || undefined,
-      })
+        visibility,
+      } as Parameters<typeof addToCollection>[0] & { visibility: CollectionVisibility })
       toast.success("Added to collection", {
         description: `${selectedRelease.editionName} · ${year} ${selectedRelease.releaseType}`,
       })
@@ -233,6 +240,22 @@ export function AddToCollectionDialog({
               />
               <p className="text-[11px] text-muted-foreground">
                 Demo estimate for this release &amp; condition: {formatMoney(estimate.value)}
+              </p>
+            </Field>
+            <Field>
+              <FieldLabel>Visibility</FieldLabel>
+              <Select value={visibility} onValueChange={(v) => setVisibility(v as CollectionVisibility)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Private — only you</SelectItem>
+                  <SelectItem value="showcase">Shared — collector showcase</SelectItem>
+                  <SelectItem value="open_to_offers">Open to offers</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Private is the default. Sharing exposes only the model, exact release and condition.
               </p>
             </Field>
             <Field>

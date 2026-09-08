@@ -8,6 +8,7 @@ import {
   blockCollectorAction,
   getConversationMessagesAction,
   getMyConversationsAction,
+  markConversationReadAction,
   respondConversationAction,
   sendMessageAction,
   unblockCollectorAction,
@@ -91,6 +92,23 @@ export function MessagesScreen() {
     }
   }, [])
 
+  const markRead = React.useCallback(async (conversationId: string) => {
+    try {
+      await markConversationReadAction(conversationId)
+      // AppShell owns the global badge. Tell it to recalculate immediately
+      // instead of waiting for focus or another database event.
+      window.dispatchEvent(new Event("trackdash:messaging-read"))
+    } catch {
+      // Reading a conversation should never be blocked by a cosmetic badge
+      // update. The next focus/realtime event will retry the count.
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!selectedId || document.visibilityState !== "visible") return
+    void markRead(selectedId)
+  }, [markRead, selectedId])
+
   React.useEffect(() => {
     const refreshOnReturn = () => {
       if (document.visibilityState !== "visible") return
@@ -98,6 +116,9 @@ export function MessagesScreen() {
       void refreshConversations().catch(() => {
         // Keep the current inbox state if a background refresh fails.
       })
+      if (selectedId) {
+        void markRead(selectedId)
+      }
       if (selectedId && selected?.status === "accepted") {
         void refreshMessages(selectedId).catch(() => {
           // Realtime will keep listening even if this catch-up refresh fails.
@@ -111,7 +132,7 @@ export function MessagesScreen() {
       window.removeEventListener("focus", refreshOnReturn)
       document.removeEventListener("visibilitychange", refreshOnReturn)
     }
-  }, [refreshConversations, refreshMessages, selectedId, selected?.status])
+  }, [markRead, refreshConversations, refreshMessages, selectedId, selected?.status])
 
   React.useEffect(() => {
     if (!selectedId || selected?.status !== "accepted") {
@@ -121,23 +142,28 @@ export function MessagesScreen() {
 
     void refreshMessages(selectedId)
     const supabase = createClient()
+    const refreshVisibleConversation = async () => {
+      await refreshMessages(selectedId)
+      if (document.visibilityState === "visible") await markRead(selectedId)
+    }
+
     const channel = supabase
       .channel(`conversation:${selectedId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedId}` },
-        () => void refreshMessages(selectedId),
+        () => void refreshVisibleConversation(),
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          void refreshMessages(selectedId)
+          void refreshVisibleConversation()
         }
       })
 
     return () => {
       void supabase.removeChannel(channel)
     }
-  }, [selectedId, selected?.status, selected?.blockedByMe, selected?.blockedByThem, refreshMessages])
+  }, [selectedId, selected?.status, selected?.blockedByMe, selected?.blockedByThem, refreshMessages, markRead])
 
   function selectConversation(id: string) {
     setSelectedId(id)
@@ -164,12 +190,13 @@ export function MessagesScreen() {
 
       setDraft("")
       await refreshMessages(selected.id)
+      await markRead(selected.id)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Couldn't send message")
     } finally {
       setBusy(false)
     }
-  }, [busy, draft, refreshConversations, refreshMessages, selected])
+  }, [busy, draft, markRead, refreshConversations, refreshMessages, selected])
 
   if (loading) {
     return (

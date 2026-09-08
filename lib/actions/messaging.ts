@@ -9,7 +9,9 @@ import {
   getConversationForUser,
   getConversationsForUser,
   getMessagesForConversation,
+  getUnreadMessagingCount,
   insertMessage,
+  markConversationRead,
   respondToConversation,
   unblockCollector,
   type ConversationDecision,
@@ -84,6 +86,23 @@ export async function getMyConversationsAction() {
         updatedAt: row.updatedAt.toISOString(),
       }
     })
+  })
+}
+
+export async function getUnreadMessagingCountAction() {
+  const user = await getCurrentUser()
+  if (!user) return 0
+  return withUserContext(user.id, (tx) => getUnreadMessagingCount(user.id, tx))
+}
+
+export async function markConversationReadAction(conversationId: string) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+
+  await withUserContext(user.id, async (tx) => {
+    const conversation = await getConversationForUser(user.id, conversationId, tx)
+    if (!conversation) throw new Error("Conversation not found")
+    await markConversationRead(user.id, conversationId, tx)
   })
 }
 

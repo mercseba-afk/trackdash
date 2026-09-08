@@ -6,7 +6,7 @@ import type {
   WishlistItem,
 } from "@/lib/types"
 import { getProductEstimate, getReleaseEstimate } from "@/lib/data/market"
-import { getProductById, resolveRelease } from "@/lib/data/products"
+import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
 // Respects a per-item release-year override without mutating shared data.
