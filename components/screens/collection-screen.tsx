@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Boxes, Coins, Globe2, Handshake, Layers, Pencil, Trash2, TrendingUp } from "lucide-react"
+import { Boxes, Coins, Globe2, Handshake, Layers, LockKeyhole, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { breakdownBy, enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatDate, formatMoney } from "@/lib/format"
@@ -41,17 +41,71 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
 type SortKey = "recent" | "value-desc" | "value-asc" | "name"
 type MyShare = Awaited<ReturnType<typeof getMyCollectionSharesAction>>[number]
 type Visibility = CollectionVisibility
 
+function visibilityLabel(value: Visibility) {
+  if (value === "open_to_offers") return "Offers"
+  if (value === "showcase") return "Shared"
+  return "Private"
+}
+
+function visibilityLongLabel(value: Visibility) {
+  if (value === "open_to_offers") return "Open to offers"
+  if (value === "showcase") return "Shared in collector showcase"
+  return "Private"
+}
+
+function VisibilityIcon({ value }: { value: Visibility }) {
+  if (value === "open_to_offers") return <Handshake className="size-3" />
+  if (value === "showcase") return <Globe2 className="size-3" />
+  return <LockKeyhole className="size-3" />
+}
+
+function VisibilitySelect({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: Visibility
+  disabled?: boolean
+  onChange: (value: Visibility) => void
+}) {
+  return (
+    <Select value={value} onValueChange={(next) => onChange(next as Visibility)} disabled={disabled}>
+      <SelectTrigger
+        size="sm"
+        aria-label={`Collection visibility: ${visibilityLongLabel(value)}`}
+        title={`Visibility: ${visibilityLongLabel(value)}`}
+        className={cn(
+          "h-6 rounded-full border px-2 text-[10px] font-medium",
+          value === "open_to_offers" && "border-brand/30 bg-brand/10 text-brand",
+          value === "showcase" && "bg-muted text-foreground",
+          value === "private" && "text-muted-foreground",
+        )}
+      >
+        <VisibilityIcon value={value} />
+        <span>{visibilityLabel(value)}</span>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="private">Private — only you can see it</SelectItem>
+        <SelectItem value="showcase">Shared — collector showcase</SelectItem>
+        <SelectItem value="open_to_offers">Open to offers</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+}
+
 export function CollectionScreen() {
   const { collection, updateCollectionItem, removeFromCollection } = useStore()
   const [sort, setSort] = React.useState<SortKey>("recent")
   const [editing, setEditing] = React.useState<EnrichedCollectionItem | null>(null)
   const [shares, setShares] = React.useState<MyShare[]>([])
+  const [visibilityBusyId, setVisibilityBusyId] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     let cancelled = false
@@ -84,6 +138,26 @@ export function CollectionScreen() {
         return list.sort((a, b) => +new Date(b.item.createdAt) - +new Date(a.item.createdAt))
     }
   }, [enriched, sort])
+
+  function applySavedShare(id: string, share: MyShare | null) {
+    setShares((current) => {
+      const withoutCurrent = current.filter((item) => item.collectionItemId !== id)
+      return share ? [...withoutCurrent, share] : withoutCurrent
+    })
+  }
+
+  async function changeVisibility(id: string, visibility: Visibility) {
+    setVisibilityBusyId(id)
+    try {
+      const result = await saveCollectionItemAndShareAction(id, {}, visibility)
+      applySavedShare(id, result.share)
+      toast.success(`Visibility changed to ${visibilityLongLabel(visibility)}`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't change visibility")
+    } finally {
+      setVisibilityBusyId(null)
+    }
+  }
 
   if (collection.length === 0) {
     return (
@@ -151,6 +225,7 @@ export function CollectionScreen() {
       <div className="grid gap-3">
         {sorted.map((e) => {
           const share = shareByCollectionItem.get(e.item.id)
+          const visibility: Visibility = share?.shareMode ?? "private"
           return (
             <Card key={e.item.id} className="overflow-hidden py-0">
               <div className="flex items-stretch gap-3 p-3 sm:gap-4">
@@ -170,16 +245,12 @@ export function CollectionScreen() {
                         Model originally released {e.product.originalReleaseYear ?? "—"}
                       </p>
                     </div>
-                    <div className="flex flex-wrap justify-end gap-1.5">
-                      {share?.shareMode === "open_to_offers" ? (
-                        <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
-                          <Handshake className="size-3" /> Open to offers
-                        </Badge>
-                      ) : share ? (
-                        <Badge variant="secondary" className="gap-1">
-                          <Globe2 className="size-3" /> Shared
-                        </Badge>
-                      ) : null}
+                    <div className="flex flex-wrap items-center justify-end gap-1.5">
+                      <VisibilitySelect
+                        value={visibility}
+                        disabled={visibilityBusyId === e.item.id}
+                        onChange={(next) => void changeVisibility(e.item.id, next)}
+                      />
                       <RarityBadge rarity={e.release.rarity ?? e.product.rarity} />
                     </div>
                   </div>
@@ -243,17 +314,7 @@ export function CollectionScreen() {
         onSave={async (id, patch, visibility) => {
           try {
             const result = await saveCollectionItemAndShareAction(id, patch, visibility)
-
-            if (result.share) {
-              const savedShare = result.share
-              setShares((current) => {
-                const withoutCurrent = current.filter((share) => share.collectionItemId !== id)
-                return [...withoutCurrent, savedShare]
-              })
-            } else {
-              setShares((current) => current.filter((share) => share.collectionItemId !== id))
-            }
-
+            applySavedShare(id, result.share)
             setEditing(null)
 
             // The business mutation above has already committed atomically.
