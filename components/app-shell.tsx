@@ -117,11 +117,13 @@ function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => window.location.assign("/profile")}>
+          {/* Native anchors intentionally bypass Next.js client routing so these
+              account destinations always perform a fresh document request. */}
+          <DropdownMenuItem render={<a href="/profile" />}>
             <UserIcon />
             {t("menu.profile")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.location.assign("/settings")}>
+          <DropdownMenuItem render={<a href="/settings" />}>
             <Settings />
             {t("menu.settings")}
           </DropdownMenuItem>
