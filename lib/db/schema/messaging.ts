@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm"
-import { check, index, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { check, index, pgPolicy, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 import { authenticatedRole, authUid } from "drizzle-orm/supabase"
 import { products, productReleases } from "./catalog"
 import { profiles } from "./profiles"
@@ -143,6 +143,59 @@ export const conversations = pgTable(
   ],
 ).enableRLS()
 
+export const conversationReads = pgTable(
+  "conversation_reads",
+  {
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    lastReadAt: timestamp("last_read_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.userId] }),
+    index("idx_conversation_reads_user").on(table.userId, table.lastReadAt),
+    pgPolicy("conversation_reads_owner_select", {
+      for: "select",
+      to: authenticatedRole,
+      using: sql`${table.userId} = ${authUid}
+        and exists (
+          select 1 from ${conversations} c
+          where c.id = ${table.conversationId}
+            and (c.owner_id = ${authUid} or c.requester_id = ${authUid})
+        )`,
+    }),
+    pgPolicy("conversation_reads_owner_insert", {
+      for: "insert",
+      to: authenticatedRole,
+      withCheck: sql`${table.userId} = ${authUid}
+        and exists (
+          select 1 from ${conversations} c
+          where c.id = ${table.conversationId}
+            and (c.owner_id = ${authUid} or c.requester_id = ${authUid})
+        )`,
+    }),
+    pgPolicy("conversation_reads_owner_update", {
+      for: "update",
+      to: authenticatedRole,
+      using: sql`${table.userId} = ${authUid}
+        and exists (
+          select 1 from ${conversations} c
+          where c.id = ${table.conversationId}
+            and (c.owner_id = ${authUid} or c.requester_id = ${authUid})
+        )`,
+      withCheck: sql`${table.userId} = ${authUid}
+        and exists (
+          select 1 from ${conversations} c
+          where c.id = ${table.conversationId}
+            and (c.owner_id = ${authUid} or c.requester_id = ${authUid})
+        )`,
+    }),
+  ],
+).enableRLS()
+
 export const messages = pgTable(
   "messages",
   {
@@ -196,6 +249,15 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
   product: one(products, { fields: [conversations.productId], references: [products.id] }),
   release: one(productReleases, { fields: [conversations.releaseId], references: [productReleases.id] }),
   messages: many(messages),
+  reads: many(conversationReads),
+}))
+
+export const conversationReadsRelations = relations(conversationReads, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationReads.conversationId],
+    references: [conversations.id],
+  }),
+  user: one(profiles, { fields: [conversationReads.userId], references: [profiles.id] }),
 }))
 
 export const messagesRelations = relations(messages, ({ one }) => ({
