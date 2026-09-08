@@ -7,17 +7,9 @@ import { syncCollectorProfileIfPresent } from "@/lib/db/queries/sharing"
 import type { Currency } from "@/lib/types"
 
 const ALLOWED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
+const ALLOWED_LOCALES = new Set(["en", "it"] as const)
 const USERNAME_RE = /^[A-Za-z0-9._-]+$/
 
-// The only reason this needs to be a Server Action rather than a plain
-// client-side call: lib/db/* is server-only (Drizzle, DATABASE_URL). The
-// session/identity itself (id, email) is already available client-side via
-// the Supabase browser client (lib/supabase/client.ts) — this action only
-// supplies the extra profile fields that live in our own `profiles` table.
-//
-// Deliberately takes no userId parameter: it always resolves the caller's
-// own session server-side via getCurrentUser(), so there is no way to ask
-// for someone else's private profile through this action.
 export async function getMyProfileAction() {
   const user = await getCurrentUser()
   if (!user) return null
@@ -29,6 +21,7 @@ export async function updateMyProfileAction(
     username: string
     country: string
     preferredCurrency: Currency
+    preferredLocale: "en" | "it"
   }>,
 ) {
   const user = await getCurrentUser()
@@ -38,6 +31,7 @@ export async function updateMyProfileAction(
     username: string
     country: string | null
     preferredCurrency: Currency
+    preferredLocale: "en" | "it"
   }> = {}
 
   if (patch.username !== undefined) {
@@ -62,6 +56,11 @@ export async function updateMyProfileAction(
     clean.preferredCurrency = patch.preferredCurrency
   }
 
+  if (patch.preferredLocale !== undefined) {
+    if (!ALLOWED_LOCALES.has(patch.preferredLocale)) throw new Error("Invalid language")
+    clean.preferredLocale = patch.preferredLocale
+  }
+
   if (Object.keys(clean).length === 0) {
     return (await withUserContext(user.id, (tx) => getProfileById(user.id, tx))) ?? null
   }
@@ -71,8 +70,6 @@ export async function updateMyProfileAction(
       const updated = await updateProfile(user.id, clean, tx)
       if (!updated) throw new Error("Collector profile not found")
 
-      // Keep an existing public showcase identity aligned with the private
-      // profile edit, but do not create a public profile for private users.
       await syncCollectorProfileIfPresent(
         user.id,
         {
