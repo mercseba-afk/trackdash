@@ -245,9 +245,10 @@ export function CollectionScreen() {
             const result = await saveCollectionItemAndShareAction(id, patch, visibility)
 
             if (result.share) {
+              const savedShare = result.share
               setShares((current) => {
                 const withoutCurrent = current.filter((share) => share.collectionItemId !== id)
-                return [...withoutCurrent, result.share]
+                return [...withoutCurrent, savedShare]
               })
             } else {
               setShares((current) => current.filter((share) => share.collectionItemId !== id))
