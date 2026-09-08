@@ -52,7 +52,7 @@ function conditionLabel(value: Condition, it: boolean) {
     "New / Opened": "Nuovo / Aperto",
     "Built": "Montato",
     "Used": "Usato",
-    "Parts only": "Solo parti",
+    "Incomplete": "Incompleto",
   }
   return labels[value] ?? value
 }
