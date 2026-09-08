@@ -69,6 +69,8 @@ export async function setCollectionShareAction(collectionItemId: string, shareMo
     const profile = await getProfileById(user.id, tx)
     if (!profile) throw new Error("Collector profile not found")
 
+    // Creating the public-safe profile projection and the share in the same
+    // transaction avoids a visible profile with no corresponding shared item.
     await upsertCollectorProfile(
       user.id,
       {
@@ -89,10 +91,15 @@ export async function removeCollectionShareAction(collectionItemId: string) {
 
   await withUserContext(user.id, async (tx) => {
     await deleteCollectionShare(user.id, collectionItemId, tx)
+    // No shared rows left = no reason to keep a discoverable public profile.
     await pruneCollectorProfileIfEmpty(user.id, tx)
   })
 }
 
+// Atomic edit used by My Collection. The private item mutation and its public
+// sharing state are deliberately one PostgreSQL transaction: a failure in
+// either half rolls the whole save back, so the UI can never end up with a
+// newly-edited private item but an old sharing mode (or vice versa).
 export async function saveCollectionItemAndShareAction(
   id: string,
   patch: Partial<{
@@ -147,6 +154,9 @@ export async function saveCollectionItemAndShareAction(
       share = mapShare(await upsertCollectionShare(user.id, id, visibility, tx))
     }
 
+    // Return the fully-hydrated private row so the client store can update
+    // itself without a second write or a second round-trip that could fail
+    // after the transaction has already committed.
     const hydratedItem = await getCollectionItemById(user.id, id, tx)
     if (!hydratedItem) throw new Error("Collection item not found after save")
 
