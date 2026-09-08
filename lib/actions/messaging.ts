@@ -48,6 +48,7 @@ export async function getMyConversationsAction() {
       const otherUserId = isOwner ? row.requesterId : row.ownerId
       const blockedByMe = blocks.some((block) => block.blockerId === user.id && block.blockedId === otherUserId)
       const blockedByThem = blocks.some((block) => block.blockerId === otherUserId && block.blockedId === user.id)
+      const offerStillOpen = row.collectionShare?.shareMode === "open_to_offers"
 
       return {
         id: row.id,
@@ -58,6 +59,8 @@ export async function getMyConversationsAction() {
         requestMessage: row.requestMessage,
         blockedByMe,
         blockedByThem,
+        canAccept: isOwner && row.status === "pending" && offerStillOpen && !blockedByMe && !blockedByThem,
+        offerStillOpen,
         product: { id: row.product.id, name: row.product.name },
         release: {
           id: row.release.id,
