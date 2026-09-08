@@ -114,6 +114,10 @@ export async function getSharedCollectionForUsername(username: string, dbClient:
     where: eq(collectorProfiles.username, username),
     with: {
       shares: {
+        with: {
+          product: { with: { images: true } },
+          release: { with: { images: true } },
+        },
         orderBy: (fields, { desc }) => [desc(fields.updatedAt)],
       },
     },
