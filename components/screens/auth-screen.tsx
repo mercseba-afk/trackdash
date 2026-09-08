@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Boxes, Heart, ScanLine, TrendingUp } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { useI18n } from "@/lib/i18n"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,25 +21,46 @@ import { toast } from "sonner"
 
 const COUNTRIES = ["Japan", "United States", "Germany", "France", "United Kingdom", "Italy", "Spain", "Other"]
 
-const HIGHLIGHTS = [
-  { icon: Boxes, label: "Catalog every model you own" },
-  { icon: TrendingUp, label: "Track honest market value" },
-  { icon: Heart, label: "Build a wishlist with targets" },
-  { icon: ScanLine, label: "Scan boxes to identify" },
-]
+function countryLabel(country: string, it: boolean) {
+  if (!it) return country
+  const labels: Record<string, string> = {
+    Japan: "Giappone",
+    "United States": "Stati Uniti",
+    Germany: "Germania",
+    France: "Francia",
+    "United Kingdom": "Regno Unito",
+    Italy: "Italia",
+    Spain: "Spagna",
+    Other: "Altro",
+  }
+  return labels[country] ?? country
+}
 
 export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
+  const { locale, setLocale } = useI18n()
+  const it = locale === "it"
+  const highlights = [
+    { icon: Boxes, label: it ? "Cataloga tutti i modelli che possiedi" : "Catalog every model you own" },
+    { icon: TrendingUp, label: it ? "Tieni sotto controllo il valore di mercato" : "Track honest market value" },
+    { icon: Heart, label: it ? "Crea una lista desideri con prezzi obiettivo" : "Build a wishlist with targets" },
+    { icon: ScanLine, label: it ? "Identifica i modelli dalla scatola" : "Scan boxes to identify" },
+  ]
+
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      {/* Brand / marketing panel */}
+    <div className="relative grid min-h-svh lg:grid-cols-2">
+      <div className="absolute right-4 top-4 z-20 flex items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur">
+        <Button size="sm" variant={locale === "en" ? "secondary" : "ghost"} onClick={() => setLocale("en")}>EN</Button>
+        <Button size="sm" variant={locale === "it" ? "secondary" : "ghost"} onClick={() => setLocale("it")}>IT</Button>
+      </div>
+
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-foreground p-10 text-background lg:flex">
         <BrandMark tone="invert" />
         <div className="flex flex-col gap-6">
           <h2 className="max-w-sm text-3xl font-semibold leading-tight text-balance">
-            The collector&apos;s database for Tamiya Mini 4WD.
+            {it ? "Il database per collezionisti di Tamiya Mini 4WD." : "The collector's database for Tamiya Mini 4WD."}
           </h2>
           <ul className="flex flex-col gap-3">
-            {HIGHLIGHTS.map((h) => (
+            {highlights.map((h) => (
               <li key={h.label} className="flex items-center gap-3 text-sm text-background/80">
                 <span className="grid size-9 place-items-center rounded-lg bg-brand/15 text-brand">
                   <h.icon className="size-4" />
@@ -49,7 +71,7 @@ export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
           </ul>
         </div>
         <p className="text-xs text-background/50">
-          Market values shown are indicative demo estimates, not appraisals.
+          {it ? "I valori di mercato mostrati sono stime demo indicative, non perizie." : "Market values shown are indicative demo estimates, not appraisals."}
         </p>
         <div
           aria-hidden
@@ -57,7 +79,6 @@ export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
         />
       </aside>
 
-      {/* Form panel */}
       <main className="flex flex-col items-center justify-center px-5 py-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
@@ -72,6 +93,8 @@ export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
 
 function LoginForm() {
   const router = useRouter()
+  const { locale } = useI18n()
+  const it = locale === "it"
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [pending, setPending] = React.useState(false)
@@ -79,7 +102,7 @@ function LoginForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.includes("@")) {
-      toast.error("Enter a valid email")
+      toast.error(it ? "Inserisci un'email valida" : "Enter a valid email")
       return
     }
     setPending(true)
@@ -90,7 +113,7 @@ function LoginForm() {
       toast.error(error.message)
       return
     }
-    toast.success("Welcome back")
+    toast.success(it ? "Bentornato" : "Welcome back")
     router.push("/")
     router.refresh()
   }
@@ -98,8 +121,8 @@ function LoginForm() {
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-        <p className="text-sm text-muted-foreground">Continue to your garage.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{it ? "Accedi" : "Sign in"}</h1>
+        <p className="text-sm text-muted-foreground">{it ? "Continua nel tuo garage." : "Continue to your garage."}</p>
       </div>
       <FieldGroup>
         <Field>
@@ -116,7 +139,7 @@ function LoginForm() {
           <div className="flex items-center justify-between">
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <Link href="/forgot-password" className="text-xs font-medium text-brand hover:underline">
-              Forgot password?
+              {it ? "Password dimenticata?" : "Forgot password?"}
             </Link>
           </div>
           <Input
@@ -129,12 +152,12 @@ function LoginForm() {
         </Field>
       </FieldGroup>
       <Button type="submit" size="lg" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? (it ? "Accesso…" : "Signing in…") : it ? "Accedi" : "Sign in"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        New here?{" "}
+        {it ? "Non hai ancora un account?" : "New here?"}{" "}
         <Link href="/signup" className="font-medium text-brand hover:underline">
-          Create an account
+          {it ? "Crea un account" : "Create an account"}
         </Link>
       </p>
     </form>
@@ -143,6 +166,8 @@ function LoginForm() {
 
 function SignupForm() {
   const router = useRouter()
+  const { locale } = useI18n()
+  const it = locale === "it"
   const [email, setEmail] = React.useState("")
   const [username, setUsername] = React.useState("")
   const [country, setCountry] = React.useState("Japan")
@@ -152,9 +177,9 @@ function SignupForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.includes("@")) return toast.error("Enter a valid email")
-    if (username.trim().length < 2) return toast.error("Choose a username")
-    if (password.length < 6) return toast.error("Password must be at least 6 characters")
+    if (!email.includes("@")) return toast.error(it ? "Inserisci un'email valida" : "Enter a valid email")
+    if (username.trim().length < 2) return toast.error(it ? "Scegli uno username" : "Choose a username")
+    if (password.length < 6) return toast.error(it ? "La password deve avere almeno 6 caratteri" : "Password must be at least 6 characters")
 
     setPending(true)
     const supabase = createClient()
@@ -171,18 +196,12 @@ function SignupForm() {
     }
 
     if (data.session) {
-      // Auto-confirmed (e.g. email confirmation disabled on this project) —
-      // already signed in, proceed straight to onboarding as before.
-      toast.success("Account created")
+      toast.success(it ? "Account creato" : "Account created")
       router.push("/onboarding")
       router.refresh()
       return
     }
 
-    // Email confirmation is required: there's no session yet, so there's
-    // nothing to redirect into — /onboarding is a protected route. Show a
-    // persistent message instead of a toast, since this matters more than
-    // a toast's few seconds on screen.
     setConfirmationSent(true)
   }
 
@@ -190,14 +209,14 @@ function SignupForm() {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1>
           <p className="text-sm text-muted-foreground text-pretty">
-            We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Follow it to
-            finish creating your account, then sign in.
+            {it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"}{" "}
+            <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per completare la creazione dell'account, poi accedi." : "Follow it to finish creating your account, then sign in."}
           </p>
         </div>
         <Button variant="outline" render={<Link href="/login" />}>
-          Back to sign in
+          {it ? "Torna all'accesso" : "Back to sign in"}
         </Button>
       </div>
     )
@@ -206,8 +225,8 @@ function SignupForm() {
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
-        <p className="text-sm text-muted-foreground">Start cataloguing your Mini 4WD collection.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{it ? "Crea il tuo account" : "Create your account"}</h1>
+        <p className="text-sm text-muted-foreground">{it ? "Inizia a catalogare la tua collezione Mini 4WD." : "Start cataloguing your Mini 4WD collection."}</p>
       </div>
       <FieldGroup>
         <Field>
@@ -232,7 +251,7 @@ function SignupForm() {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="country">Country</FieldLabel>
+          <FieldLabel htmlFor="country">{it ? "Paese" : "Country"}</FieldLabel>
           <Select value={country} onValueChange={(v) => setCountry(v as string)}>
             <SelectTrigger id="country" className="w-full">
               <SelectValue />
@@ -240,7 +259,7 @@ function SignupForm() {
             <SelectContent>
               {COUNTRIES.map((c) => (
                 <SelectItem key={c} value={c}>
-                  {c}
+                  {countryLabel(c, it)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -255,16 +274,16 @@ function SignupForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <FieldDescription>At least 6 characters.</FieldDescription>
+          <FieldDescription>{it ? "Almeno 6 caratteri." : "At least 6 characters."}</FieldDescription>
         </Field>
       </FieldGroup>
       <Button type="submit" size="lg" disabled={pending}>
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? (it ? "Creazione account…" : "Creating account…") : it ? "Crea account" : "Create account"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {it ? "Hai già un account?" : "Already have an account?"}{" "}
         <Link href="/login" className="font-medium text-brand hover:underline">
-          Sign in
+          {it ? "Accedi" : "Sign in"}
         </Link>
       </p>
     </form>
