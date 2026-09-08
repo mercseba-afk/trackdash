@@ -17,8 +17,16 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
 
   React.useEffect(() => {
     let cancelled = false
-    setLoading(true)
 
+    if (!user) {
+      setRows([])
+      setLoading(false)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    setLoading(true)
     getReleaseCollectorsAction(releaseId)
       .then((result) => {
         if (!cancelled) setRows(result)
@@ -30,7 +38,7 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
     return () => {
       cancelled = true
     }
-  }, [releaseId])
+  }, [releaseId, user])
 
   const collectors = React.useMemo(() => {
     const grouped = new Map<
@@ -63,11 +71,15 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
         <CardTitle className="flex items-center gap-2 text-base">
           <Users className="size-4 text-muted-foreground" />
           Collectors
-          {!loading ? <Badge variant="secondary">{collectors.length}</Badge> : null}
+          {!loading && user ? <Badge variant="secondary">{collectors.length}</Badge> : null}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {!user ? (
+          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+            Sign in to see collectors who have shared this release.
+          </div>
+        ) : loading ? (
           <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" /> Loading shared collectors…
           </div>
@@ -89,7 +101,7 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="truncate text-sm font-medium">
-                      {collector.username}{collector.userId === user?.id ? " (you)" : ""}
+                      {collector.username}{collector.userId === user.id ? " (you)" : ""}
                     </span>
                     {collector.openToOffers ? (
                       <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
