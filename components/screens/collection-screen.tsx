@@ -10,13 +10,13 @@ import type { CollectionItem, Condition } from "@/lib/types"
 import { CONDITIONS } from "@/lib/types"
 import {
   getMyCollectionSharesAction,
-  removeCollectionShareAction,
-  setCollectionShareAction,
+  saveCollectionItemAndShareAction,
+  type CollectionVisibility,
 } from "@/lib/actions/sharing"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -45,7 +45,7 @@ import { toast } from "sonner"
 
 type SortKey = "recent" | "value-desc" | "value-asc" | "name"
 type MyShare = Awaited<ReturnType<typeof getMyCollectionSharesAction>>[number]
-type Visibility = "private" | MyShare["shareMode"]
+type Visibility = CollectionVisibility
 
 export function CollectionScreen() {
   const { collection, updateCollectionItem, removeFromCollection } = useStore()
@@ -242,18 +242,21 @@ export function CollectionScreen() {
         onClose={() => setEditing(null)}
         onSave={async (id, patch, visibility) => {
           try {
-            await updateCollectionItem(id, patch)
+            const result = await saveCollectionItemAndShareAction(id, patch, visibility)
 
-            if (visibility === "private") {
-              await removeCollectionShareAction(id)
-              setShares((current) => current.filter((share) => share.collectionItemId !== id))
-            } else {
-              const savedShare = await setCollectionShareAction(id, visibility)
+            if (result.share) {
               setShares((current) => {
                 const withoutCurrent = current.filter((share) => share.collectionItemId !== id)
-                return [...withoutCurrent, savedShare]
+                return [...withoutCurrent, result.share]
               })
+            } else {
+              setShares((current) => current.filter((share) => share.collectionItemId !== id))
             }
+
+            // The business mutation above is already committed atomically.
+            // This existing store method is now used only to refresh the
+            // client cache from the DB; an empty patch changes no user data.
+            await updateCollectionItem(id, {})
 
             setEditing(null)
             toast.success(visibility === "private" ? "Collection updated" : "Collection and sharing updated")
