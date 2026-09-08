@@ -1,10 +1,11 @@
 import "server-only"
 
-import { and, asc, desc, eq, or } from "drizzle-orm"
+import { and, asc, desc, eq, or, sql } from "drizzle-orm"
 import { db as defaultDb } from "../index"
 import {
   collectionShares,
   collectorBlocks,
+  conversationReads,
   conversations,
   messages,
   profiles,
@@ -144,6 +145,53 @@ export async function insertMessage(
     .values({ conversationId, senderId, body: body.trim() })
     .returning()
   return row
+}
+
+// Badge count = unread incoming chat messages + unseen pending requests owned
+// by this collector. Counting events (rather than conversations) gives the
+// familiar 1, 2, 3… badge while keeping a pending request worth exactly one.
+export async function getUnreadMessagingCount(userId: string, dbClient: Database = defaultDb) {
+  const rows = await dbClient.execute(sql<{ unread_count: number }>`
+    with incoming_messages as (
+      select m.id
+      from public.messages m
+      join public.conversations c on c.id = m.conversation_id
+      left join public.conversation_reads cr
+        on cr.conversation_id = c.id and cr.user_id = ${userId}::uuid
+      where (c.owner_id = ${userId}::uuid or c.requester_id = ${userId}::uuid)
+        and m.sender_id <> ${userId}::uuid
+        and m.created_at > coalesce(cr.last_read_at, '-infinity'::timestamptz)
+    ),
+    unseen_requests as (
+      select c.id
+      from public.conversations c
+      left join public.conversation_reads cr
+        on cr.conversation_id = c.id and cr.user_id = ${userId}::uuid
+      where c.owner_id = ${userId}::uuid
+        and c.status = 'pending'
+        and c.created_at > coalesce(cr.last_read_at, '-infinity'::timestamptz)
+    )
+    select (
+      (select count(*) from incoming_messages) +
+      (select count(*) from unseen_requests)
+    )::int as unread_count
+  `)
+
+  return Number(rows[0]?.unread_count ?? 0)
+}
+
+export async function markConversationRead(
+  userId: string,
+  conversationId: string,
+  dbClient: Database = defaultDb,
+) {
+  await dbClient
+    .insert(conversationReads)
+    .values({ conversationId, userId, lastReadAt: new Date() })
+    .onConflictDoUpdate({
+      target: [conversationReads.conversationId, conversationReads.userId],
+      set: { lastReadAt: new Date() },
+    })
 }
 
 export async function getBlocksForUser(userId: string, dbClient: Database = defaultDb) {
