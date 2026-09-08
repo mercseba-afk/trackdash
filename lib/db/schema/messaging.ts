@@ -3,7 +3,7 @@ import { check, index, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } f
 import { authenticatedRole, authUid } from "drizzle-orm/supabase"
 import { products, productReleases } from "./catalog"
 import { profiles } from "./profiles"
-import { collectionShares } from "./sharing"
+import { collectionShares, collectorProfiles } from "./sharing"
 
 export const collectorBlocks = pgTable(
   "collector_blocks",
@@ -102,6 +102,10 @@ export const conversations = pgTable(
           select 1 from ${profiles} p
           where p.id = ${authUid} and p.username = ${table.requesterUsername}
         )
+        and exists (
+          select 1 from ${collectorProfiles} cp
+          where cp.user_id = ${table.ownerId} and cp.username = ${table.ownerUsername}
+        )
         and not exists (
           select 1 from ${collectorBlocks} b
           where (b.blocker_id = ${table.requesterId} and b.blocked_id = ${table.ownerId})
@@ -121,6 +125,8 @@ export const conversations = pgTable(
               select 1 from ${collectionShares} s
               where s.id = ${table.collectionShareId}
                 and s.user_id = ${table.ownerId}
+                and s.product_id = ${table.productId}
+                and s.release_id = ${table.releaseId}
                 and s.share_mode = 'open_to_offers'
             )
             and not exists (
