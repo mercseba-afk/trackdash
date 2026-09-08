@@ -1,11 +1,22 @@
 "use client"
 
 import * as React from "react"
-import { useTheme } from "next-themes"
-import { CalendarDays, Globe, LogOut, Trophy } from "lucide-react"
+import Link from "next/link"
+import {
+  Boxes,
+  CalendarDays,
+  ExternalLink,
+  Globe,
+  Handshake,
+  Heart,
+  Settings,
+  Trophy,
+} from "lucide-react"
 import { useStore } from "@/lib/store"
 import { enrichCollection, portfolioSummary } from "@/lib/analytics"
-import { formatMoney, collectorLevel } from "@/lib/format"
+import { collectorLevel, formatMoney } from "@/lib/format"
+import { getMyCollectionSharesAction } from "@/lib/actions/sharing"
+import { updateMyProfileAction } from "@/lib/actions/profile"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,234 +24,220 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { CURRENCIES } from "@/lib/types"
+
+type MyShare = Awaited<ReturnType<typeof getMyCollectionSharesAction>>[number]
 
 export function ProfileScreen() {
-  const { user, collection, wishlist, updateUser, logout } = useStore()
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
-
+  const { user, collection, wishlist, updateUser } = useStore()
   const enriched = React.useMemo(() => enrichCollection(collection), [collection])
   const summary = React.useMemo(() => portfolioSummary(enriched), [enriched])
   const level = collectorLevel(summary.uniqueProducts)
 
+  const [shares, setShares] = React.useState<MyShare[]>([])
   const [username, setUsername] = React.useState(user?.username ?? "")
   const [country, setCountry] = React.useState(user?.country ?? "")
-  const [currency, setCurrency] = React.useState("EUR")
-  const [priceAlerts, setPriceAlerts] = React.useState(true)
-  const [wishlistAlerts, setWishlistAlerts] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
 
   React.useEffect(() => {
     setUsername(user?.username ?? "")
     setCountry(user?.country ?? "")
   }, [user])
 
-  function saveProfile(e: React.FormEvent) {
-    e.preventDefault()
-    updateUser({ username: username.trim() || user?.username, country })
-    toast.success("Profile updated")
-  }
+  React.useEffect(() => {
+    let cancelled = false
+    getMyCollectionSharesAction()
+      .then((rows) => {
+        if (!cancelled) setShares(rows)
+      })
+      .catch(() => {
+        // Public sharing stats are supplemental. Profile identity and private
+        // collection data must remain usable even if this aggregate fails.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-  async function handleLogout() {
-    await logout()
-    router.push("/login")
-  }
-
+  const offers = shares.filter((share) => share.shareMode === "open_to_offers").length
   const joined = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : "—"
 
+  async function saveProfile(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const updated = await updateMyProfileAction({ username, country })
+      if (!updated) throw new Error("Collector profile not found")
+
+      // Store is a client cache; the server/database update above is the source
+      // of truth. Keep the header/menu in sync immediately after the save.
+      updateUser({
+        username: updated.username,
+        country: updated.country ?? "",
+        avatarUrl: updated.avatarUrl ?? undefined,
+      })
+      setUsername(updated.username)
+      setCountry(updated.country ?? "")
+      toast.success("Profile updated")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't update your profile")
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Identity header */}
       <Card>
         <CardContent className="flex flex-col gap-5 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="size-16">
+          <div className="flex min-w-0 items-center gap-4">
+            <Avatar className="size-16 shrink-0">
               <AvatarImage src={user?.avatarUrl} alt="" />
               <AvatarFallback className="bg-brand/10 text-lg font-semibold text-brand">
                 {(user?.username ?? "MG").slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold">{user?.username ?? "Collector"}</h1>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate text-2xl font-semibold tracking-tight">{user?.username ?? "Collector"}</h1>
                 <Badge variant="secondary" className="gap-1">
-                  <Trophy className="size-3" />
-                  {level.level}
+                  <Trophy className="size-3" /> {level.level}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Globe className="size-3" />
-                  {user?.country || "Unknown"}
+                  <Globe className="size-3" /> {user?.country || "Country not set"}
                 </span>
                 <span className="flex items-center gap-1">
-                  <CalendarDays className="size-3" />
-                  Joined {joined}
+                  <CalendarDays className="size-3" /> Joined {joined}
                 </span>
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-center sm:gap-6">
-            <Stat label="Models" value={String(summary.uniqueProducts)} />
-            <Stat label="Items" value={String(summary.count)} />
-            <Stat label="Value" value={formatMoney(summary.marketValue, "EUR")} />
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Collector level progress */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Collector level</CardTitle>
-          <CardDescription>
-            {level.level} · {summary.uniqueProducts} unique models catalogued
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Progress value={level.progress} />
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{level.level}</span>
-            {level.next ? (
-              <span>
-                {level.toNext} more to {level.next}
-              </span>
+          <div className="flex flex-wrap gap-2">
+            {shares.length > 0 && user?.username ? (
+              <Button variant="outline" render={<Link href={`/collectors/${encodeURIComponent(user.username)}`} />}>
+                <ExternalLink data-icon="inline-start" />
+                View public profile
+              </Button>
             ) : (
-              <span>Top level reached</span>
+              <Button variant="outline" render={<Link href="/collection" />}>
+                <Boxes data-icon="inline-start" />
+                Share an item
+              </Button>
             )}
+            <Button variant="outline" render={<Link href="/settings" />}>
+              <Settings data-icon="inline-start" />
+              Settings
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Profile form */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <ProfileStat label="Models" value={String(summary.uniqueProducts)} icon={Boxes} />
+        <ProfileStat label="Items" value={String(summary.count)} icon={Boxes} />
+        <ProfileStat label="Shared" value={String(shares.length)} icon={Globe} />
+        <ProfileStat label="Offers" value={String(offers)} icon={Handshake} />
+        <ProfileStat label="Wishlist" value={String(wishlist.length)} icon={Heart} />
+        <ProfileStat label="Est. value" value={formatMoney(summary.marketValue)} icon={Trophy} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Profile</CardTitle>
-            <CardDescription>How you appear in the app.</CardDescription>
+            <CardTitle className="text-base">Edit profile</CardTitle>
+            <CardDescription>Your collector identity. Changes are saved to your TrackDash account.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={saveProfile} className="flex flex-col gap-5">
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="p-username">Username</FieldLabel>
-                  <Input id="p-username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                  <Input
+                    id="p-username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    minLength={3}
+                    maxLength={30}
+                    autoComplete="username"
+                  />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="p-country">Country</FieldLabel>
-                  <Input id="p-country" value={country} onChange={(e) => setCountry(e.target.value)} />
+                  <Input
+                    id="p-country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    maxLength={80}
+                    placeholder="e.g. Italy"
+                  />
                 </Field>
               </FieldGroup>
               <div>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving…" : "Save changes"}
+                </Button>
               </div>
             </form>
           </CardContent>
         </Card>
 
-        {/* Settings */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Preferences</CardTitle>
-            <CardDescription>Display and notification settings.</CardDescription>
+            <CardTitle className="text-base">Collector level</CardTitle>
+            <CardDescription>
+              {level.level} · {summary.uniqueProducts} unique models catalogued
+            </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-1">
-            <SettingRow label="Theme" description="Light or dark appearance">
-              <Select value={theme ?? "system"} onValueChange={(v) => setTheme(v as string)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
-            </SettingRow>
-            <Separator />
-            <SettingRow label="Display currency" description="For values and targets">
-              <Select value={currency} onValueChange={(v) => setCurrency(v as string)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </SettingRow>
-            <Separator />
-            <SettingRow label="Price movement alerts" description="Notify on big market swings">
-              <Switch checked={priceAlerts} onCheckedChange={setPriceAlerts} />
-            </SettingRow>
-            <Separator />
-            <SettingRow label="Wishlist target alerts" description="Notify when items hit target">
-              <Switch checked={wishlistAlerts} onCheckedChange={setWishlistAlerts} />
-            </SettingRow>
+          <CardContent className="flex flex-col gap-4">
+            <Progress value={level.progress} />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{level.level}</span>
+              {level.next ? <span>{level.toNext} more to {level.next}</span> : <span>Top level reached</span>}
+            </div>
+            <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
+              {shares.length > 0 ? (
+                <>
+                  Your public showcase currently contains <span className="font-medium text-foreground">{shares.length}</span>{" "}
+                  shared {shares.length === 1 ? "item" : "items"}, with <span className="font-medium text-foreground">{offers}</span>{" "}
+                  accepting offers.
+                </>
+              ) : (
+                <>Your collection is private. Share individual items from My Collection when you want them visible to other collectors.</>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Account */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Account</CardTitle>
-          <CardDescription>
-            {collection.length} collection entries · {wishlist.length} wishlist entries
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut data-icon="inline-start" />
-            Sign out
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-lg font-semibold tabular-nums">{value}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-  )
-}
-
-function SettingRow({
+function ProfileStat({
   label,
-  description,
-  children,
+  value,
+  icon: Icon,
 }: {
   label: string
-  description: string
-  children: React.ReactNode
+  value: string
+  icon: React.ComponentType<{ className?: string }>
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium">{label}</span>
-        <span className="text-xs text-muted-foreground">{description}</span>
-      </div>
-      {children}
-    </div>
+    <Card className="py-0">
+      <CardContent className="flex items-center gap-3 px-3 py-3">
+        <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-xs text-muted-foreground">{label}</p>
+          <p className="truncate font-semibold tabular-nums">{value}</p>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
