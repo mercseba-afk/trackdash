@@ -82,11 +82,25 @@ export function MessagesScreen() {
     }
   }, [requestedConversationId])
 
+  const refreshMessages = React.useCallback(async (conversationId: string) => {
+    setLoadingMessages(true)
+    try {
+      setMessages(await getConversationMessagesAction(conversationId))
+    } finally {
+      setLoadingMessages(false)
+    }
+  }, [])
+
   React.useEffect(() => {
     const refreshOnReturn = () => {
-      if (document.visibilityState === "visible") {
-        void refreshConversations().catch(() => {
-          // Keep the current inbox state if a background refresh fails.
+      if (document.visibilityState !== "visible") return
+
+      void refreshConversations().catch(() => {
+        // Keep the current inbox state if a background refresh fails.
+      })
+      if (selectedId && selected?.status === "accepted") {
+        void refreshMessages(selectedId).catch(() => {
+          // Realtime will keep listening even if this catch-up refresh fails.
         })
       }
     }
@@ -97,16 +111,7 @@ export function MessagesScreen() {
       window.removeEventListener("focus", refreshOnReturn)
       document.removeEventListener("visibilitychange", refreshOnReturn)
     }
-  }, [refreshConversations])
-
-  const refreshMessages = React.useCallback(async (conversationId: string) => {
-    setLoadingMessages(true)
-    try {
-      setMessages(await getConversationMessagesAction(conversationId))
-    } finally {
-      setLoadingMessages(false)
-    }
-  }, [])
+  }, [refreshConversations, refreshMessages, selectedId, selected?.status])
 
   React.useEffect(() => {
     if (!selectedId || selected?.status !== "accepted") {
@@ -123,12 +128,16 @@ export function MessagesScreen() {
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedId}` },
         () => void refreshMessages(selectedId),
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          void refreshMessages(selectedId)
+        }
+      })
 
     return () => {
       void supabase.removeChannel(channel)
     }
-  }, [selectedId, selected?.status, refreshMessages])
+  }, [selectedId, selected?.status, selected?.blockedByMe, selected?.blockedByThem, refreshMessages])
 
   function selectConversation(id: string) {
     setSelectedId(id)
