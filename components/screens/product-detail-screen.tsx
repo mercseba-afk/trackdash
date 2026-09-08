@@ -221,21 +221,27 @@ function ReleaseRow({
 
   return (
     <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Link href={releaseHref} className="block shrink-0">
+      <div className="grid grid-cols-[minmax(112px,36%)_minmax(0,1fr)] gap-x-3 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-4">
+        <Link href={releaseHref} className="block shrink-0 sm:row-span-2">
           <ProductImage
             product={product}
             release={release}
-            className="h-40 w-full rounded-lg sm:h-24 sm:w-32"
+            className="aspect-[4/3] h-full min-h-24 w-full max-h-32 rounded-lg sm:h-24 sm:min-h-0 sm:w-32"
             size="md"
           />
         </Link>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Link href={releaseHref} className="font-medium leading-snug hover:text-brand hover:underline">
-              {release.editionName}
-            </Link>
+        <div className="min-w-0 sm:self-start sm:pt-0.5">
+          <Link href={releaseHref} className="font-medium leading-snug hover:text-brand hover:underline">
+            {release.editionName}
+          </Link>
+
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}
+            {release.notes ? ` · ${release.notes}` : ""}
+          </p>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {release.isOriginal ? (
               <Badge variant="outline">Original</Badge>
             ) : (
@@ -244,13 +250,10 @@ function ReleaseRow({
               </Badge>
             )}
           </div>
+        </div>
 
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            {release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}
-            {release.notes ? ` · ${release.notes}` : ""}
-          </p>
-
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <div className="col-span-2 flex flex-col gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span
               className={cn(
                 "rounded px-1.5 py-0.5 text-[10px] font-medium",
@@ -260,32 +263,37 @@ function ReleaseRow({
               {release.rarity ?? product.rarity}
             </span>
             <ConfidenceBadge confidence={estimate.confidence} />
-
-            {community && community.collectors > 0 ? (
-              <span
-                title={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
-                aria-label={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
-                className="inline-flex h-5 items-center gap-1 rounded-full border border-border px-1.5 text-[10px] font-medium text-muted-foreground"
-              >
-                <UsersRound className="size-3" />
-                {community.collectors}
-              </span>
-            ) : null}
-
-            {community && community.openToOffers > 0 ? (
-              <span
-                title={`${community.openToOffers} open to offers`}
-                aria-label={`${community.openToOffers} collector${community.openToOffers === 1 ? "" : "s"} open to offers`}
-                className="inline-flex h-5 items-center gap-1 rounded-full bg-brand/10 px-1.5 text-[10px] font-medium text-brand"
-              >
-                <Handshake className="size-3" />
-                {community.openToOffers}
-              </span>
-            ) : null}
           </div>
+
+          {community && community.collectors > 0 ? (
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Collectors</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span
+                  title={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
+                  aria-label={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
+                  className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 text-xs font-medium text-foreground"
+                >
+                  <UsersRound className="size-3.5" />
+                  {community.collectors}
+                </span>
+
+                {community.openToOffers > 0 ? (
+                  <span
+                    title={`${community.openToOffers} open to offers`}
+                    aria-label={`${community.openToOffers} collector${community.openToOffers === 1 ? "" : "s"} open to offers`}
+                    className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand/25 bg-brand/10 px-2 text-xs font-semibold text-brand"
+                  >
+                    <Handshake className="size-3.5" />
+                    {community.openToOffers} open
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-3 sm:ml-auto sm:flex-col sm:items-end sm:justify-center sm:border-0 sm:pt-0">
+        <div className="col-span-2 flex items-center justify-between gap-3 border-t border-border pt-3 sm:col-span-1 sm:col-start-3 sm:row-span-2 sm:row-start-1 sm:ml-auto sm:flex-col sm:items-end sm:justify-center sm:border-0 sm:pt-0">
           <div className="text-left sm:text-right">
             <p className="font-semibold tabular-nums">{formatMoney(estimate.value)}</p>
             <TrendIndicator value={estimate.trend90d} className="text-xs sm:justify-end" />
