@@ -1,9 +1,11 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, Check, Heart, Info, Plus, RefreshCw } from "lucide-react"
+import { ArrowLeft, Check, Handshake, Heart, Info, Plus, RefreshCw, UsersRound } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseEstimate } from "@/lib/data/market"
+import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
 import { enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatMoney, formatDate, RARITY_STYLE } from "@/lib/format"
@@ -17,13 +19,34 @@ import { MarketEstimateCard, RarityBadge, TrendIndicator, ConfidenceBadge } from
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
+type CommunityCount = { collectors: number; openToOffers: number }
+
 export function ProductDetailScreen({ product, related }: { product: Product; related: Product[] }) {
   const { collection, isInWishlist } = useStore()
+  const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
 
   const primary = primaryRelease(product)
   const owned = enrichCollection(collection)
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
+
+  React.useEffect(() => {
+    let cancelled = false
+    getReleaseCommunityCountsAction(product.id)
+      .then((rows) => {
+        if (cancelled) return
+        setCommunityByRelease(
+          new Map(rows.map((row) => [row.releaseId, { collectors: row.collectors, openToOffers: row.openToOffers }])),
+        )
+      })
+      .catch(() => {
+        // Community activity is supplemental; the product page remains usable
+        // if this lightweight aggregate cannot be loaded.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [product.id])
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,14 +59,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
         {/* Identity + primary art */}
         <div className="flex flex-col gap-4">
           {/* Product-level hero — generic to the model, never tied to a
-              specific release (no `release` prop passed to ProductImage).
-              Exact edition photos live in "Releases & editions" below,
-              which is the correct place for them per the image resolver's
-              own release-vs-product distinction (lib/images/resolve.ts) —
-              a thumbnail grid here duplicated whichever release image
-              existed (or, for releases without one, just repeated this
-              same product image), so it was removed rather than kept in
-              sync with that section. */}
+              specific release (no `release` prop passed to ProductImage). */}
           <ProductImage product={product} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
         </div>
 
@@ -107,7 +123,13 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
             market value. Add the exact one you own.
           </p>
           {product.releases.map((r) => (
-            <ReleaseRow key={r.id} product={product} release={r} owned={mine.some((m) => m.release.id === r.id)} />
+            <ReleaseRow
+              key={r.id}
+              product={product}
+              release={r}
+              owned={mine.some((m) => m.release.id === r.id)}
+              community={communityByRelease.get(r.id)}
+            />
           ))}
         </CardContent>
       </Card>
@@ -183,24 +205,35 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
   )
 }
 
-function ReleaseRow({ product, release, owned }: { product: Product; release: ProductRelease; owned: boolean }) {
+function ReleaseRow({
+  product,
+  release,
+  owned,
+  community,
+}: {
+  product: Product
+  release: ProductRelease
+  owned: boolean
+  community?: CommunityCount
+}) {
   const estimate = getReleaseEstimate(product, release)
   const releaseHref = `/catalog/${product.id}/releases/${release.id}`
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3">
-        <Link href={releaseHref} className="shrink-0">
+    <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Link href={releaseHref} className="block shrink-0">
           <ProductImage
             product={product}
             release={release}
-            className="h-20 w-28 rounded-md sm:h-24 sm:w-32"
+            className="h-40 w-full rounded-lg sm:h-24 sm:w-32"
             size="md"
           />
         </Link>
-        <div className="min-w-0">
+
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <Link href={releaseHref} className="font-medium hover:text-brand hover:underline">
+            <Link href={releaseHref} className="font-medium leading-snug hover:text-brand hover:underline">
               {release.editionName}
             </Link>
             {release.isOriginal ? (
@@ -211,11 +244,13 @@ function ReleaseRow({ product, release, owned }: { product: Product; release: Pr
               </Badge>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}
             {release.notes ? ` · ${release.notes}` : ""}
           </p>
-          <div className="mt-1 flex items-center gap-2">
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <span
               className={cn(
                 "rounded px-1.5 py-0.5 text-[10px] font-medium",
@@ -225,24 +260,47 @@ function ReleaseRow({ product, release, owned }: { product: Product; release: Pr
               {release.rarity ?? product.rarity}
             </span>
             <ConfidenceBadge confidence={estimate.confidence} />
+
+            {community && community.collectors > 0 ? (
+              <span
+                title={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
+                aria-label={`${community.collectors} collector${community.collectors === 1 ? "" : "s"} sharing this release`}
+                className="inline-flex h-5 items-center gap-1 rounded-full border border-border px-1.5 text-[10px] font-medium text-muted-foreground"
+              >
+                <UsersRound className="size-3" />
+                {community.collectors}
+              </span>
+            ) : null}
+
+            {community && community.openToOffers > 0 ? (
+              <span
+                title={`${community.openToOffers} open to offers`}
+                aria-label={`${community.openToOffers} collector${community.openToOffers === 1 ? "" : "s"} open to offers`}
+                className="inline-flex h-5 items-center gap-1 rounded-full bg-brand/10 px-1.5 text-[10px] font-medium text-brand"
+              >
+                <Handshake className="size-3" />
+                {community.openToOffers}
+              </span>
+            ) : null}
           </div>
         </div>
-      </div>
-      <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
-        <div className="text-right">
-          <p className="font-semibold tabular-nums">{formatMoney(estimate.value)}</p>
-          <TrendIndicator value={estimate.trend90d} className="justify-end text-xs" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" render={<Link href={releaseHref} />}>
-            Details
-          </Button>
-          <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-            <Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">
-              {owned ? <Check className="size-4" /> : <Plus className="size-4" />}
-              {owned ? "Add another" : "Add this"}
+
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-3 sm:ml-auto sm:flex-col sm:items-end sm:justify-center sm:border-0 sm:pt-0">
+          <div className="text-left sm:text-right">
+            <p className="font-semibold tabular-nums">{formatMoney(estimate.value)}</p>
+            <TrendIndicator value={estimate.trend90d} className="text-xs sm:justify-end" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" render={<Link href={releaseHref} />}>
+              Details
             </Button>
-          </AddToCollectionDialog>
+            <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+              <Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">
+                {owned ? <Check className="size-4" /> : <Plus className="size-4" />}
+                {owned ? "Add another" : "Add this"}
+              </Button>
+            </AddToCollectionDialog>
+          </div>
         </div>
       </div>
     </div>
