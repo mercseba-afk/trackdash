@@ -33,17 +33,18 @@ import {
 import { getUnreadMessagingCountAction } from "@/lib/actions/messaging"
 import { createClient } from "@/lib/supabase/client"
 import { useStore } from "@/lib/store"
+import { useI18n } from "@/lib/i18n"
 import { initials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/catalog", label: "Catalog", icon: LibraryBig },
-  { href: "/collection", label: "Collection", icon: Boxes },
-  { href: "/wishlist", label: "Wishlist", icon: Heart },
-  { href: "/messages", label: "Messages", icon: MessageCircle },
-  { href: "/scanner", label: "Scanner", icon: ScanLine },
-  { href: "/market", label: "Market", icon: TrendingUp },
+  { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/catalog", labelKey: "nav.catalog", icon: LibraryBig },
+  { href: "/collection", labelKey: "nav.collection", icon: Boxes },
+  { href: "/wishlist", labelKey: "nav.wishlist", icon: Heart },
+  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
+  { href: "/scanner", labelKey: "nav.scanner", icon: ScanLine },
+  { href: "/market", labelKey: "nav.market", icon: TrendingUp },
 ]
 
 function isActive(pathname: string, href: string) {
@@ -52,10 +53,11 @@ function isActive(pathname: string, href: string) {
 }
 
 function UnreadBadge({ count, compact = false }: { count: number; compact?: boolean }) {
+  const { locale } = useI18n()
   if (count <= 0) return null
   return (
     <span
-      aria-label={`${count} unread message${count === 1 ? "" : "s"}`}
+      aria-label={locale === "it" ? `${count} messaggi non letti` : `${count} unread message${count === 1 ? "" : "s"}`}
       className={cn(
         "flex items-center justify-center rounded-full bg-destructive font-semibold leading-none text-white shadow-sm",
         compact ? "absolute -right-2 -top-2 min-w-4 h-4 px-1 text-[9px]" : "ml-auto min-w-5 h-5 px-1.5 text-[10px]",
@@ -68,6 +70,7 @@ function UnreadBadge({ count, compact = false }: { count: number; compact?: bool
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
+  const { locale } = useI18n()
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
   const dark = resolvedTheme === "dark"
@@ -75,7 +78,7 @@ function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Toggle theme"
+      aria-label={locale === "it" ? "Cambia tema" : "Toggle theme"}
       onClick={() => setTheme(dark ? "light" : "dark")}
     >
       {mounted && dark ? <Sun /> : <Moon />}
@@ -85,11 +88,12 @@ function ThemeToggle() {
 
 function UserMenu() {
   const { user, logout } = useStore()
+  const { t } = useI18n()
   const router = useRouter()
   if (!user) {
     return (
       <Button size="sm" onClick={() => router.push("/login")}>
-        Sign in
+        {t("menu.signIn")}
       </Button>
     )
   }
@@ -115,11 +119,11 @@ function UserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push("/profile")}>
             <UserIcon />
-            Profile
+            {t("menu.profile")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/settings")}>
             <Settings />
-            Settings
+            {t("menu.settings")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -131,7 +135,7 @@ function UserMenu() {
           }}
         >
           <LogOut />
-          Sign out
+          {t("menu.signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -141,6 +145,7 @@ function UserMenu() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user } = useStore()
+  const { t } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
 
   const refreshUnread = React.useCallback(async () => {
@@ -151,8 +156,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     try {
       setUnreadMessages(await getUnreadMessagingCountAction())
     } catch {
-      // A notification badge should never make the app shell fail. Keep the
-      // previous count and retry on the next Realtime/focus event.
+      // A notification badge should never make the app shell fail.
     }
   }, [user])
 
@@ -166,16 +170,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const supabase = createClient()
     const channel = supabase
       .channel(`messaging-badge:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        () => void refreshUnread(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "conversations" },
-        () => void refreshUnread(),
-      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => void refreshUnread())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "conversations" }, () => void refreshUnread())
       .subscribe()
 
     const refreshOnFocus = () => void refreshUnread()
@@ -192,7 +188,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-svh bg-background">
-      {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center px-5">
           <Link href="/" aria-label="Mini 4WD Collector home">
@@ -209,31 +204,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-brand/10 text-brand"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  active ? "bg-brand/10 text-brand" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 <item.icon className="size-4" />
-                {item.label}
+                {t(item.labelKey)}
                 {isMessages ? <UnreadBadge count={unreadMessages} /> : null}
               </Link>
             )
           })}
         </nav>
         <div className="border-t border-border p-3 text-[10px] leading-relaxed text-muted-foreground">
-          Market values are indicative demo estimates, not appraisals.
+          {t("shell.demoNotice")}
         </div>
       </aside>
 
-      {/* Main column */}
       <div className="lg:pl-60">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
           <Link href="/" className="lg:hidden" aria-label="Mini 4WD Collector home">
             <BrandMark showText={false} />
           </Link>
           <div className="hidden text-sm text-muted-foreground lg:block">
-            {NAV.find((n) => isActive(pathname, n.href))?.label ?? ""}
+            {(() => {
+              const active = NAV.find((n) => isActive(pathname, n.href))
+              return active ? t(active.labelKey) : ""
+            })()}
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
@@ -244,7 +239,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 md:px-6 lg:pb-10">{children}</main>
       </div>
 
-      {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-border bg-background/95 backdrop-blur lg:hidden">
         {NAV.map((item) => {
           const active = isActive(pathname, item.href)
@@ -262,7 +256,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <item.icon className="size-5" />
                 {isMessages ? <UnreadBadge count={unreadMessages} compact /> : null}
               </span>
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           )
         })}

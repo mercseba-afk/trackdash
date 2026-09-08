@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Check, Heart, Plus, RefreshCw } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { useStore } from "@/lib/store"
+import { useI18n } from "@/lib/i18n"
 import { getProductEstimate } from "@/lib/data/market"
 import { primaryRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
@@ -15,6 +16,8 @@ import { cn } from "@/lib/utils"
 
 export function ProductCard({ product }: { product: Product }) {
   const { isInCollection, isInWishlist } = useStore()
+  const { locale } = useI18n()
+  const it = locale === "it"
   const estimate = getProductEstimate(product)
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
@@ -26,12 +29,12 @@ export function ProductCard({ product }: { product: Product }) {
         <ProductImage product={product} release={release} className="aspect-[4/3] w-full" />
         {owned && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded bg-success px-1.5 py-0.5 text-[10px] font-semibold text-white">
-            <Check className="size-3" /> Owned
+            <Check className="size-3" /> {it ? "Posseduto" : "Owned"}
           </span>
         )}
         {product.hasMultipleReleases && (
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
-            <RefreshCw className="size-3" /> {product.releases.length} releases
+            <RefreshCw className="size-3" /> {product.releases.length} release
           </span>
         )}
       </Link>
@@ -55,14 +58,14 @@ export function ProductCard({ product }: { product: Product }) {
               <Button
                 variant="outline"
                 size="icon-sm"
-                aria-label="Add to wishlist"
+                aria-label={it ? "Aggiungi ai desideri" : "Add to wishlist"}
                 className={cn(wished && "border-brand text-brand")}
               >
                 <Heart className={cn(wished && "fill-brand")} />
               </Button>
             </AddToWishlistDialog>
             <AddToCollectionDialog product={product}>
-              <Button size="icon-sm" aria-label="Add to collection">
+              <Button size="icon-sm" aria-label={it ? "Aggiungi alla collezione" : "Add to collection"}>
                 <Plus />
               </Button>
             </AddToCollectionDialog>

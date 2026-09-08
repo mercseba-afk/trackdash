@@ -1,9 +1,12 @@
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
+import { cookies } from "next/headers"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { I18nBootstrap } from "@/components/i18n-bootstrap"
 import { StoreProvider } from "@/lib/store"
+import { I18nProvider, type AppLocale } from "@/lib/i18n"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
@@ -25,18 +28,27 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const cookieLocale = cookieStore.get("trackdash.locale")?.value
+  const hasLocaleCookie = cookieLocale === "en" || cookieLocale === "it"
+  const initialLocale: AppLocale = cookieLocale === "it" ? "it" : "en"
+
   return (
-    <html lang="en" suppressHydrationWarning className="bg-background">
+    <html lang={initialLocale} suppressHydrationWarning className="bg-background">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <StoreProvider>
-            <TooltipProvider>{children}</TooltipProvider>
-            <Toaster position="top-center" />
+            <I18nProvider>
+              <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
+                <TooltipProvider>{children}</TooltipProvider>
+                <Toaster position="top-center" />
+              </I18nBootstrap>
+            </I18nProvider>
           </StoreProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}

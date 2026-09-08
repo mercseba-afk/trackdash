@@ -4,6 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import type { Condition, Currency, Product, ProductRelease, WishlistPriority } from "@/lib/types"
 import { useStore } from "@/lib/store"
+import { useI18n } from "@/lib/i18n"
 import { getReleaseEstimate, getProductEstimate } from "@/lib/data/market"
 import { primaryRelease, resolveRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
@@ -35,8 +36,45 @@ const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
 type CollectionVisibility = "private" | "showcase" | "open_to_offers"
 
-function releaseOptionLabel(r: ProductRelease): string {
-  return `${r.releaseYear ?? "—"} · ${r.releaseType}${r.color ? ` (${r.color})` : ""} · #${r.itemNumber ?? "—"}`
+function conditionLabel(value: Condition, it: boolean): string {
+  if (!it) return value
+  const labels: Record<Condition, string> = {
+    Sealed: "Sigillato",
+    "New / Opened": "Nuovo / Aperto",
+    Built: "Montato",
+    Used: "Usato",
+    Incomplete: "Incompleto",
+  }
+  return labels[value]
+}
+
+function priorityLabel(value: WishlistPriority, it: boolean): string {
+  if (!it) return value
+  if (value === "High") return "Alta"
+  if (value === "Low") return "Bassa"
+  return "Media"
+}
+
+function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
+  if (!it) return value
+  const labels: Partial<Record<ProductRelease["releaseType"], string>> = {
+    Original: "Originale",
+    Reissue: "Riedizione",
+    "Special Edition": "Edizione speciale",
+    "Limited Edition": "Edizione limitata",
+    "Anniversary Edition": "Edizione anniversario",
+    "Japan Cup Edition": "Edizione Japan Cup",
+    "Color Special": "Color Special",
+    "Clear Body": "Carrozzeria trasparente",
+    Premium: "Premium",
+    "Chassis Variant": "Variante chassis",
+    Other: "Altro",
+  }
+  return labels[value] ?? value
+}
+
+function releaseOptionLabel(r: ProductRelease, it: boolean): string {
+  return `${r.releaseYear ?? "—"} · ${releaseTypeLabel(r.releaseType, it)}${r.color ? ` (${r.color})` : ""} · #${r.itemNumber ?? "—"}`
 }
 
 function ReleaseSelect({
@@ -50,25 +88,27 @@ function ReleaseSelect({
   onChange: (v: string) => void
   allowAny?: boolean
 }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
   if (product.releases.length <= 1 && !allowAny) return null
   return (
     <Field>
-      <FieldLabel htmlFor="release">Release / edition</FieldLabel>
+      <FieldLabel htmlFor="release">{it ? "Release / edizione" : "Release / edition"}</FieldLabel>
       <Select value={value} onValueChange={(v) => onChange(v as string)}>
         <SelectTrigger id="release" className="w-full">
-          <SelectValue placeholder="Select release">
+          <SelectValue placeholder={it ? "Seleziona release" : "Select release"}>
             {(v: string) => {
-              if (v === "any") return "Any edition"
+              if (v === "any") return it ? "Qualsiasi edizione" : "Any edition"
               const r = product.releases.find((x) => x.id === v)
-              return r ? releaseOptionLabel(r) : "Select release"
+              return r ? releaseOptionLabel(r, it) : it ? "Seleziona release" : "Select release"
             }}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {allowAny ? <SelectItem value="any">Any edition</SelectItem> : null}
+          {allowAny ? <SelectItem value="any">{it ? "Qualsiasi edizione" : "Any edition"}</SelectItem> : null}
           {product.releases.map((r) => (
             <SelectItem key={r.id} value={r.id}>
-              {releaseOptionLabel(r)}
+              {releaseOptionLabel(r, it)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -87,6 +127,8 @@ export function AddToCollectionDialog({
   children: React.ReactNode
 }) {
   const { addToCollection } = useStore()
+  const { locale } = useI18n()
+  const it = locale === "it"
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState(false)
 
@@ -103,7 +145,6 @@ export function AddToCollectionDialog({
   const estimate = getReleaseEstimate(product, selectedRelease, condition)
   const [price, setPrice] = React.useState(String(estimate.value))
 
-  // When the dialog opens, reset to a clean default keyed to the chosen release.
   React.useEffect(() => {
     if (!open) return
     const r = resolveRelease(product, defaultReleaseId)
@@ -116,7 +157,6 @@ export function AddToCollectionDialog({
     setDate(new Date().toISOString().slice(0, 10))
   }, [open, product, defaultReleaseId])
 
-  // Keep the year field in sync when the collector switches release.
   function handleReleaseChange(id: string) {
     setReleaseId(id)
     const r = resolveRelease(product, id)
@@ -130,9 +170,6 @@ export function AddToCollectionDialog({
       Number.isFinite(parsedYear) && parsedYear !== selectedRelease.releaseYear ? parsedYear : undefined
     setPending(true)
     try {
-      // The store forwards the complete object to the server action. Visibility
-      // is intentionally additive here so older store consumers remain source-
-      // compatible while the server keeps Private as the default.
       await addToCollection({
         productId: product.id,
         releaseId: selectedRelease.id,
@@ -144,12 +181,12 @@ export function AddToCollectionDialog({
         notes: notes.trim() || undefined,
         visibility,
       } as Parameters<typeof addToCollection>[0] & { visibility: CollectionVisibility })
-      toast.success("Added to collection", {
-        description: `${selectedRelease.editionName} · ${year} ${selectedRelease.releaseType}`,
+      toast.success(it ? "Aggiunto alla collezione" : "Added to collection", {
+        description: `${selectedRelease.editionName} · ${year} ${releaseTypeLabel(selectedRelease.releaseType, it)}`,
       })
       setOpen(false)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't add this item")
+      toast.error(error instanceof Error ? error.message : it ? "Impossibile aggiungere questo modello" : "Couldn't add this item")
     } finally {
       setPending(false)
     }
@@ -160,15 +197,19 @@ export function AddToCollectionDialog({
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add to collection</DialogTitle>
-          <DialogDescription>Log the exact release you own, its condition and what you paid.</DialogDescription>
+          <DialogTitle>{it ? "Aggiungi alla collezione" : "Add to collection"}</DialogTitle>
+          <DialogDescription>
+            {it
+              ? "Registra la release esatta che possiedi, le sue condizioni e quanto l'hai pagata."
+              : "Log the exact release you own, its condition and what you paid."}
+          </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
           <ProductImage product={product} release={selectedRelease} size="sm" className="h-14 w-20" />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
-              #{selectedRelease.itemNumber ?? "—"} · {selectedRelease.chassis ?? "—"} · original {product.originalReleaseYear ?? "—"}
+              #{selectedRelease.itemNumber ?? "—"} · {selectedRelease.chassis ?? "—"} · {it ? "originale" : "original"} {product.originalReleaseYear ?? "—"}
             </p>
           </div>
         </div>
@@ -177,7 +218,7 @@ export function AddToCollectionDialog({
             <ReleaseSelect product={product} value={releaseId} onChange={handleReleaseChange} />
             <div className="grid grid-cols-2 gap-3">
               <Field>
-                <FieldLabel htmlFor="condition">Condition</FieldLabel>
+                <FieldLabel htmlFor="condition">{it ? "Condizione" : "Condition"}</FieldLabel>
                 <Select value={condition} onValueChange={(v) => setCondition(v as Condition)}>
                   <SelectTrigger id="condition" className="w-full">
                     <SelectValue />
@@ -185,14 +226,14 @@ export function AddToCollectionDialog({
                   <SelectContent>
                     {CONDITIONS.map((c) => (
                       <SelectItem key={c} value={c}>
-                        {c}
+                        {conditionLabel(c, it)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="year">Release year</FieldLabel>
+                <FieldLabel htmlFor="year">{it ? "Anno release" : "Release year"}</FieldLabel>
                 <Input
                   id="year"
                   type="number"
@@ -205,15 +246,15 @@ export function AddToCollectionDialog({
               </Field>
             </div>
             <p className="-mt-1 text-[11px] text-muted-foreground">
-              Original model release: {product.originalReleaseYear ?? "—"}. Adjust the year above to match your exact kit.
+              {it ? "Prima uscita del modello" : "Original model release"}: {product.originalReleaseYear ?? "—"}. {it ? "Modifica l'anno sopra per indicare il tuo kit esatto." : "Adjust the year above to match your exact kit."}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <Field>
-                <FieldLabel htmlFor="date">Acquired</FieldLabel>
+                <FieldLabel htmlFor="date">{it ? "Acquistato il" : "Acquired"}</FieldLabel>
                 <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </Field>
               <Field>
-                <FieldLabel htmlFor="currency">Currency</FieldLabel>
+                <FieldLabel htmlFor="currency">{it ? "Valuta" : "Currency"}</FieldLabel>
                 <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
                   <SelectTrigger id="currency" className="w-full">
                     <SelectValue />
@@ -229,7 +270,7 @@ export function AddToCollectionDialog({
               </Field>
             </div>
             <Field>
-              <FieldLabel htmlFor="price">Paid ({currency})</FieldLabel>
+              <FieldLabel htmlFor="price">{it ? "Pagato" : "Paid"} ({currency})</FieldLabel>
               <Input
                 id="price"
                 type="number"
@@ -239,40 +280,42 @@ export function AddToCollectionDialog({
                 onChange={(e) => setPrice(e.target.value)}
               />
               <p className="text-[11px] text-muted-foreground">
-                Demo estimate for this release &amp; condition: {formatMoney(estimate.value)}
+                {it ? "Stima demo per questa release e condizione" : "Demo estimate for this release & condition"}: {formatMoney(estimate.value)}
               </p>
             </Field>
             <Field>
-              <FieldLabel>Visibility</FieldLabel>
+              <FieldLabel>{it ? "Visibilità" : "Visibility"}</FieldLabel>
               <Select value={visibility} onValueChange={(v) => setVisibility(v as CollectionVisibility)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="private">Private — only you</SelectItem>
-                  <SelectItem value="showcase">Shared — collector showcase</SelectItem>
-                  <SelectItem value="open_to_offers">Open to offers</SelectItem>
+                  <SelectItem value="private">{it ? "Privato — solo tu" : "Private — only you"}</SelectItem>
+                  <SelectItem value="showcase">{it ? "Condiviso — vetrina collezionista" : "Shared — collector showcase"}</SelectItem>
+                  <SelectItem value="open_to_offers">{it ? "Aperto a offerte" : "Open to offers"}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-[11px] text-muted-foreground">
-                Private is the default. Sharing exposes only the model, exact release and condition.
+                {it
+                  ? "Privato è l'impostazione predefinita. La condivisione mostra solo modello, release esatta e condizione."
+                  : "Private is the default. Sharing exposes only the model, exact release and condition."}
               </p>
             </Field>
             <Field>
-              <FieldLabel htmlFor="notes">Notes</FieldLabel>
+              <FieldLabel htmlFor="notes">Note</FieldLabel>
               <Textarea
                 id="notes"
                 rows={2}
-                placeholder="Optional — provenance, box condition, etc."
+                placeholder={it ? "Opzionale — provenienza, condizioni scatola, ecc." : "Optional — provenance, box condition, etc."}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Field>
           </FieldGroup>
           <DialogFooter className="mt-4">
-            <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
+            <DialogClose render={<Button type="button" variant="outline" />}>{it ? "Annulla" : "Cancel"}</DialogClose>
             <Button type="submit" disabled={pending}>
-              {pending ? "Adding…" : "Add item"}
+              {pending ? (it ? "Aggiunta…" : "Adding…") : it ? "Aggiungi modello" : "Add item"}
             </Button>
           </DialogFooter>
         </form>
@@ -291,6 +334,8 @@ export function AddToWishlistDialog({
   children: React.ReactNode
 }) {
   const { addToWishlist } = useStore()
+  const { locale } = useI18n()
+  const it = locale === "it"
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState(false)
   const estimate = getProductEstimate(product)
@@ -316,10 +361,10 @@ export function AddToWishlistDialog({
         targetPrice: target ? Number(target) : undefined,
         notes: notes.trim() || undefined,
       })
-      toast.success("Added to wishlist", { description: product.name })
+      toast.success(it ? "Aggiunto ai desideri" : "Added to wishlist", { description: product.name })
       setOpen(false)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't add this item")
+      toast.error(error instanceof Error ? error.message : it ? "Impossibile aggiungere questo modello" : "Couldn't add this item")
     } finally {
       setPending(false)
     }
@@ -330,9 +375,11 @@ export function AddToWishlistDialog({
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add to wishlist</DialogTitle>
+          <DialogTitle>{it ? "Aggiungi ai desideri" : "Add to wishlist"}</DialogTitle>
           <DialogDescription>
-            Track a model you want. We&apos;ll flag it when the market estimate drops to your target.
+            {it
+              ? "Salva un modello che stai cercando e imposta un prezzo obiettivo. Gli alert automatici saranno attivati quando avremo dati di mercato reali."
+              : "Save a model you're looking for and set a target price. Automatic alerts will be enabled when real market data is available."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
@@ -340,7 +387,7 @@ export function AddToWishlistDialog({
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{product.name}</p>
             <p className="text-xs text-muted-foreground">
-              Est. {formatMoney(displayEstimate.value)} · demo
+              {it ? "Stima" : "Est."} {formatMoney(displayEstimate.value)} · demo
             </p>
           </div>
         </div>
@@ -348,7 +395,7 @@ export function AddToWishlistDialog({
           <FieldGroup>
             <ReleaseSelect product={product} value={releaseId} onChange={setReleaseId} allowAny />
             <Field>
-              <FieldLabel htmlFor="priority">Priority</FieldLabel>
+              <FieldLabel htmlFor="priority">{it ? "Priorità" : "Priority"}</FieldLabel>
               <Select value={priority} onValueChange={(v) => setPriority(v as WishlistPriority)}>
                 <SelectTrigger id="priority" className="w-full">
                   <SelectValue />
@@ -356,14 +403,14 @@ export function AddToWishlistDialog({
                 <SelectContent>
                   {PRIORITIES.map((p) => (
                     <SelectItem key={p} value={p}>
-                      {p}
+                      {priorityLabel(p, it)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
             <Field>
-              <FieldLabel htmlFor="target">Target price (EUR)</FieldLabel>
+              <FieldLabel htmlFor="target">{it ? "Prezzo obiettivo" : "Target price"} (EUR)</FieldLabel>
               <Input
                 id="target"
                 type="number"
@@ -374,20 +421,20 @@ export function AddToWishlistDialog({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="wnotes">Notes</FieldLabel>
+              <FieldLabel htmlFor="wnotes">Note</FieldLabel>
               <Textarea
                 id="wnotes"
                 rows={2}
-                placeholder="Optional"
+                placeholder={it ? "Opzionale" : "Optional"}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Field>
           </FieldGroup>
           <DialogFooter className="mt-4">
-            <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
+            <DialogClose render={<Button type="button" variant="outline" />}>{it ? "Annulla" : "Cancel"}</DialogClose>
             <Button type="submit" disabled={pending}>
-              {pending ? "Adding…" : "Add to wishlist"}
+              {pending ? (it ? "Aggiunta…" : "Adding…") : it ? "Aggiungi ai desideri" : "Add to wishlist"}
             </Button>
           </DialogFooter>
         </form>

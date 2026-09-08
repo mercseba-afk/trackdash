@@ -18,6 +18,7 @@ export async function updateProfile(
     username: string
     country: string | null
     preferredCurrency: string
+    preferredLocale: string
   }>,
   dbClient: Database = defaultDb,
 ) {
@@ -27,6 +28,7 @@ export async function updateProfile(
       ...(patch.username !== undefined ? { username: patch.username } : {}),
       ...(patch.country !== undefined ? { country: patch.country } : {}),
       ...(patch.preferredCurrency !== undefined ? { preferredCurrency: patch.preferredCurrency } : {}),
+      ...(patch.preferredLocale !== undefined ? { preferredLocale: patch.preferredLocale } : {}),
       updatedAt: new Date(),
     })
     .where(eq(profiles.id, userId))
