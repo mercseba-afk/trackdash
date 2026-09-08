@@ -2,8 +2,8 @@
 
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { withUserContext } from "@/lib/db/rls"
-import { getCollectionItemById, updateCollectionItem } from "@/lib/db/queries/collection"
 import { getProfileById } from "@/lib/db/queries/profiles"
+import { getCollectionItemById, updateCollectionItem } from "@/lib/db/queries/collection"
 import {
   deleteCollectionShare,
   getCollectorsForRelease,
@@ -14,10 +14,8 @@ import {
   upsertCollectorProfile,
   type ShareMode,
 } from "@/lib/db/queries/sharing"
-import type { Condition, Currency } from "@/lib/types"
+import type { CollectionItem, Condition, Currency } from "@/lib/types"
 import { mapCollectionRow } from "./mappers"
-
-export type CollectionVisibility = "private" | ShareMode
 
 function assertShareMode(value: string): asserts value is ShareMode {
   if (value !== "showcase" && value !== "open_to_offers") {
@@ -25,20 +23,7 @@ function assertShareMode(value: string): asserts value is ShareMode {
   }
 }
 
-function assertVisibility(value: string): asserts value is CollectionVisibility {
-  if (value !== "private") assertShareMode(value)
-}
-
-function mapShare(row: {
-  id: string
-  collectionItemId: string
-  productId: string
-  releaseId: string
-  condition: string
-  shareMode: string
-  createdAt: Date
-  updatedAt: Date
-}) {
+function mapShare(row: Awaited<ReturnType<typeof upsertCollectionShare>>) {
   return {
     id: row.id,
     collectionItemId: row.collectionItemId,
@@ -56,7 +41,16 @@ export async function getMyCollectionSharesAction() {
   if (!user) return []
 
   const rows = await withUserContext(user.id, (tx) => getMyCollectionShares(user.id, tx))
-  return rows.map(mapShare)
+  return rows.map((row) => ({
+    id: row.id,
+    collectionItemId: row.collectionItemId,
+    productId: row.productId,
+    releaseId: row.releaseId,
+    condition: row.condition,
+    shareMode: row.shareMode as ShareMode,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }))
 }
 
 export async function setCollectionShareAction(collectionItemId: string, shareMode: string) {
@@ -69,8 +63,6 @@ export async function setCollectionShareAction(collectionItemId: string, shareMo
     const profile = await getProfileById(user.id, tx)
     if (!profile) throw new Error("Collector profile not found")
 
-    // Creating the public-safe profile projection and the share in the same
-    // transaction avoids a visible profile with no corresponding shared item.
     await upsertCollectorProfile(
       user.id,
       {
@@ -91,57 +83,41 @@ export async function removeCollectionShareAction(collectionItemId: string) {
 
   await withUserContext(user.id, async (tx) => {
     await deleteCollectionShare(user.id, collectionItemId, tx)
-    // No shared rows left = no reason to keep a discoverable public profile.
     await pruneCollectorProfileIfEmpty(user.id, tx)
   })
 }
 
-// Atomic edit used by My Collection. The private item mutation and its public
-// sharing state are deliberately one PostgreSQL transaction: a failure in
-// either half rolls the whole save back, so the UI can never end up with a
-// newly-edited private item but an old sharing mode (or vice versa).
 export async function saveCollectionItemAndShareAction(
   id: string,
-  patch: Partial<{
-    condition: Condition
-    acquisitionDate: string
-    acquisitionPrice: number
-    acquisitionCurrency: Currency
-    releaseYearOverride: number
-    notes: string
-  }>,
-  visibility: string,
+  patch: Partial<CollectionItem>,
+  visibility: "private" | ShareMode,
 ) {
-  assertVisibility(visibility)
-
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
+  if (visibility !== "private") assertShareMode(visibility)
 
   return withUserContext(user.id, async (tx) => {
-    const updated = await updateCollectionItem(
+    await updateCollectionItem(
       user.id,
       id,
       {
-        ...(patch.condition !== undefined ? { condition: patch.condition } : {}),
+        ...(patch.condition !== undefined ? { condition: patch.condition as Condition } : {}),
         ...(patch.acquisitionDate !== undefined ? { acquisitionDate: patch.acquisitionDate.slice(0, 10) } : {}),
         ...(patch.acquisitionPrice !== undefined ? { acquisitionPrice: patch.acquisitionPrice.toString() } : {}),
-        ...(patch.acquisitionCurrency !== undefined ? { acquisitionCurrency: patch.acquisitionCurrency } : {}),
+        ...(patch.acquisitionCurrency !== undefined ? { acquisitionCurrency: patch.acquisitionCurrency as Currency } : {}),
         ...(patch.releaseYearOverride !== undefined ? { releaseYearOverride: patch.releaseYearOverride } : {}),
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
       },
       tx,
     )
-    if (!updated) throw new Error("Collection item not found")
 
     let share: ReturnType<typeof mapShare> | null = null
-
     if (visibility === "private") {
       await deleteCollectionShare(user.id, id, tx)
       await pruneCollectorProfileIfEmpty(user.id, tx)
     } else {
       const profile = await getProfileById(user.id, tx)
       if (!profile) throw new Error("Collector profile not found")
-
       await upsertCollectorProfile(
         user.id,
         {
@@ -154,9 +130,6 @@ export async function saveCollectionItemAndShareAction(
       share = mapShare(await upsertCollectionShare(user.id, id, visibility, tx))
     }
 
-    // Return the fully-hydrated private row so the client store can update
-    // itself without a second write or a second round-trip that could fail
-    // after the transaction has already committed.
     const hydratedItem = await getCollectionItemById(user.id, id, tx)
     if (!hydratedItem) throw new Error("Collection item not found after save")
 
@@ -173,6 +146,7 @@ export async function getReleaseCollectorsAction(releaseId: string) {
 
   const rows = await withUserContext(user.id, (tx) => getCollectorsForRelease(releaseId, tx))
   return rows.map((row) => ({
+    id: row.id,
     userId: row.userId,
     username: row.collector.username,
     country: row.collector.country ?? undefined,
