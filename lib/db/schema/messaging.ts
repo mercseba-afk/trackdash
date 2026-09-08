@@ -72,6 +72,9 @@ export const conversations = pgTable(
     uniqueIndex("conversations_share_requester_unique")
       .on(table.collectionShareId, table.requesterId)
       .where(sql`${table.collectionShareId} is not null`),
+    index("idx_conversations_share").on(table.collectionShareId),
+    index("idx_conversations_product").on(table.productId),
+    index("idx_conversations_release").on(table.releaseId),
     index("idx_conversations_owner_status").on(table.ownerId, table.status, table.updatedAt),
     index("idx_conversations_requester_status").on(table.requesterId, table.status, table.updatedAt),
     check("conversations_participants_distinct_check", sql`${table.ownerId} <> ${table.requesterId}`),
@@ -155,6 +158,7 @@ export const messages = pgTable(
   },
   (table) => [
     index("idx_messages_conversation_created").on(table.conversationId, table.createdAt),
+    index("idx_messages_sender").on(table.senderId),
     check("messages_body_check", sql`char_length(btrim(${table.body})) between 1 and 2000`),
     pgPolicy("messages_participant_read", {
       for: "select",
