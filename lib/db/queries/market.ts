@@ -3,37 +3,53 @@ import "server-only"
 import { and, eq } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
-import { marketEstimates, pricePoints } from "../schema"
+import { marketEstimates, marketValueHistory, pricePoints } from "../schema"
+
+export const COLLECTOR_VALUE_CONDITION = "new_complete_unbuilt"
 
 export type PricePoint = InferSelectModel<typeof pricePoints>
 export type MarketEstimate = InferSelectModel<typeof marketEstimates>
+export type MarketValueHistoryPoint = InferSelectModel<typeof marketValueHistory>
 
-// Raw observed data points for a release (sales, listings, manual entries,
-// MSRP — see lib/db/schema/market.ts). No source integration exists yet;
-// this just reads whatever is in the table, however it got there.
+// Normalized completed-sale observations only. Candidate/raw listing evidence stays
+// behind the service-only market_candidates boundary.
 export async function getPricePointsForRelease(releaseId: string, limit = 50) {
   return db.query.pricePoints.findMany({
-    where: eq(pricePoints.releaseId, releaseId),
+    where: and(eq(pricePoints.releaseId, releaseId), eq(pricePoints.status, "active")),
     with: { source: true },
-    orderBy: (fields, { desc }) => [desc(fields.createdAt)],
+    orderBy: (fields, { desc }) => [desc(fields.soldOn), desc(fields.soldAt), desc(fields.createdAt)],
     limit,
   })
 }
 
-// Cached aggregate for a release, optionally narrowed to one condition.
-// Returns undefined if no market_estimates row has been computed yet for
-// that (release, condition) pair — there is no fallback/demo value
-// generated here, unlike the current prototype's lib/data/market.ts.
-export async function getMarketEstimateForRelease(releaseId: string, condition?: string) {
+// No row means zero independent eligible evidence groups. The principal Collector
+// Value defaults explicitly to New / Unused + Complete + Unbuilt.
+export async function getMarketEstimateForRelease(
+  releaseId: string,
+  condition = COLLECTOR_VALUE_CONDITION,
+) {
   return db.query.marketEstimates.findFirst({
-    where: condition
-      ? and(eq(marketEstimates.releaseId, releaseId), eq(marketEstimates.condition, condition))
-      : eq(marketEstimates.releaseId, releaseId),
+    where: and(eq(marketEstimates.releaseId, releaseId), eq(marketEstimates.condition, condition)),
   })
 }
 
 export async function listMarketEstimatesForRelease(releaseId: string) {
   return db.query.marketEstimates.findMany({
     where: eq(marketEstimates.releaseId, releaseId),
+  })
+}
+
+export async function getMarketValueHistoryForRelease(
+  releaseId: string,
+  condition = COLLECTOR_VALUE_CONDITION,
+  limit = 104,
+) {
+  return db.query.marketValueHistory.findMany({
+    where: and(
+      eq(marketValueHistory.releaseId, releaseId),
+      eq(marketValueHistory.condition, condition),
+    ),
+    orderBy: (fields, { desc }) => [desc(fields.snapshotPeriod)],
+    limit,
   })
 }
