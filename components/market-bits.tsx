@@ -2,11 +2,12 @@
 
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react"
 import type { MarketEstimate, Rarity } from "@/lib/types"
+import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { useI18n } from "@/lib/i18n"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { RARITY_STYLE, formatMoney, formatPercent } from "@/lib/format"
+import { RARITY_STYLE, formatDate, formatMoney, formatPercent } from "@/lib/format"
 
 function rarityLabel(rarity: Rarity, it: boolean): string {
   if (!it) return rarity
@@ -92,6 +93,78 @@ export function ConfidenceBadge({
     <Badge variant="secondary" className={cn("gap-1", CONFIDENCE_STYLE[c])}>
       {confidenceLabel(c, it)}
     </Badge>
+  )
+}
+
+function signalConfidence(signal: ReleaseMarketSignalView): MarketEstimate["confidence"] {
+  if (signal.confidenceLabel === "high") return "High"
+  if (signal.confidenceLabel === "medium") return "Medium"
+  return "Low"
+}
+
+function regimeLabel(signal: ReleaseMarketSignalView, it: boolean): string {
+  if (signal.marketRegime === "retail_driven") return it ? "Retail attivo" : "Retail-driven"
+  if (signal.marketRegime === "mixed_scarce") return it ? "Mercato misto / scarso" : "Mixed / scarce"
+  if (signal.marketRegime === "secondary_market_driven") return it ? "Mercato secondario" : "Secondary-market driven"
+  return it ? "Dati insufficienti" : "Insufficient data"
+}
+
+export function MarketSignalCard({
+  signal,
+  title,
+  msrp,
+}: {
+  signal: ReleaseMarketSignalView
+  title?: string
+  msrp?: number
+}) {
+  const { locale } = useI18n()
+  const it = locale === "it"
+  const resolvedTitle = title ?? (it ? "Valore di mercato" : "Market value")
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardTitle className="text-sm text-muted-foreground">{resolvedTitle}</CardTitle>
+        <ConfidenceBadge confidence={signalConfidence(signal)} />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-semibold tabular-nums">{formatMoney(signal.valueEUR)}</span>
+            {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} className="text-sm" /> : null}
+          </div>
+          <div className="text-right text-xs text-muted-foreground">
+            <div>{regimeLabel(signal, it)}</div>
+            <div className="tabular-nums">{signal.confidenceScore}/100</div>
+            {msrp != null && <div>MSRP {formatMoney(msrp)}</div>}
+          </div>
+        </div>
+
+        {signal.lowEUR != null && signal.highEUR != null ? (
+          <div className="grid grid-cols-3 gap-3 border-t pt-3 text-center">
+            <RangeStat label={it ? "Minimo" : "Low"} value={formatMoney(signal.lowEUR)} />
+            <RangeStat label={it ? "Valore" : "Value"} value={formatMoney(signal.valueEUR)} accent />
+            <RangeStat label={it ? "Massimo" : "High"} value={formatMoney(signal.highEUR)} />
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-1 border-t pt-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {signal.retailAnchorEUR != null ? <span>{it ? "Retail" : "Retail"}: {formatMoney(signal.retailAnchorEUR)}</span> : null}
+            {signal.activeAnchorEUR != null ? <span>{it ? "Marketplace attivo" : "Active marketplace"}: {formatMoney(signal.activeAnchorEUR)}</span> : null}
+            {signal.soldAnchorEUR != null ? <span>{it ? "Venduto" : "Sold"}: {formatMoney(signal.soldAnchorEUR)}</span> : null}
+          </div>
+          <div>
+            {signal.currentOfferCount} {it ? "offerte correnti" : "current offers"} · {signal.soldUnits} {it ? "unità vendute osservate" : "sold units observed"}
+          </div>
+          {signal.startingItemPriceEUR != null ? (
+            <div>{it ? "Da" : "From"} {formatMoney(signal.startingItemPriceEUR)}</div>
+          ) : null}
+          <div>{it ? "Aggiornato" : "Updated"} {formatDate(signal.computedAt)}</div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
