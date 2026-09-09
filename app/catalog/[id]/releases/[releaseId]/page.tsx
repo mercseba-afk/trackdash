@@ -13,7 +13,7 @@ function numberOrNull(value: string | number | null | undefined): number | null 
   return Number.isFinite(numeric) ? numeric : null
 }
 
-function toMarketSignalView(signal: Awaited<ReturnType<typeof getMarketSignalForRelease>>): ReleaseMarketSignalView | null {
+function toMarketSignalView(signal: Awaited<ReturnType<typeof getMarketSignalForRelease>> | null): ReleaseMarketSignalView | null {
   if (!signal) return null
   const valueEUR = numberOrNull(signal.marketValueEUR)
   if (valueEUR == null || valueEUR <= 0) return null
