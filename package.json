@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "pnpm verify && next build",
     "start": "next start",
-    "verify": "pnpm typecheck && pnpm catalog:check && pnpm images:check && pnpm images:parity && pnpm images:test && pnpm market:pipeline:test && pnpm market:runner:test && pnpm market:edge:test",
+    "verify": "pnpm typecheck && pnpm catalog:check && pnpm images:check && pnpm images:parity && pnpm images:test && pnpm market:pipeline:test && pnpm market:runner:test && pnpm market:edge:test && pnpm market:r3:test",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -19,7 +19,8 @@
     "images:test": "node --experimental-strip-types scripts/test-image-resolver.mjs",
     "market:pipeline:test": "node --experimental-strip-types scripts/test-market-pipeline.mjs",
     "market:runner:test": "node --experimental-strip-types scripts/test-market-runner.mjs",
-    "market:edge:test": "node --experimental-strip-types scripts/test-market-edge-cases.mjs"
+    "market:edge:test": "node --experimental-strip-types scripts/test-market-edge-cases.mjs",
+    "market:r3:test": "node --experimental-strip-types scripts/test-market-r3.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
