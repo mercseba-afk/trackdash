@@ -20,6 +20,8 @@ type CatalogCopyRow = {
  * catalog identity mapper. `products.description` remains the English
  * compatibility field, while these newer columns let the public UI choose
  * the correct language without reusing provenance/audit notes as copy.
+ * Missing localized copy stays NULL so the UI can fall back explicitly;
+ * this query never fabricates or machine-translates catalog facts at runtime.
  */
 export async function getCatalogLocalizedCopy(productId: string): Promise<CatalogLocalizedCopy> {
   const result = await db.execute(sql`
