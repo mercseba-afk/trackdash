@@ -74,7 +74,7 @@ ok("out-of-stock retail is historical only and cannot anchor current value", () 
   assert.equal(signal.startingOffer.itemPriceEUR, 39)
 })
 
-ok("shipping affects acquisition ranking but not public Market Value", () => {
+ok("starting price is lowest current item price while shipping stays separate", () => {
   const signal = computeCurrentMarketSignal({
     offers: [
       { stableId: "rcjaz", sourceId: "rcjaz", channel: "retail", availability: "in_stock", itemPriceEUR: 13, shippingEUR: 9, observedAt: "2026-09-09T10:00:00Z" },
@@ -86,8 +86,10 @@ ok("shipping affects acquisition ranking but not public Market Value", () => {
 
   assert.equal(signal.retailAnchorEUR, 15.5)
   assert.equal(signal.marketValueEUR, 15.5)
-  assert.equal(signal.startingOffer.sourceId, "local")
-  assert.equal(signal.startingOffer.effectiveCostEUR, 18)
+  assert.equal(signal.startingOffer.sourceId, "rcjaz")
+  assert.equal(signal.startingOffer.itemPriceEUR, 13)
+  assert.equal(signal.startingOffer.shippingEUR, 9)
+  assert.equal(signal.startingOffer.effectiveCostEUR, 22)
   assert.equal(signal.marketRegime, "retail_driven")
 })
 
