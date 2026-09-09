@@ -1,4 +1,4 @@
-import type { EstimateInputPoint, MarketEstimateDraft } from "./types"
+import type { EstimateInputPoint, EvidenceQualityMix, MarketEstimateDraft } from "./types"
 
 const DAY_MS = 86_400_000
 
@@ -137,6 +137,12 @@ function computeTrend(groups: EvidenceGroupStat[], asOfDate: string): { percent:
   return { percent: null, window: null }
 }
 
+function qualityMix(verified: number, indicative: number): EvidenceQualityMix {
+  if (verified > 0 && indicative === 0) return "verified_only"
+  if (verified > 0 && indicative > 0) return "mixed"
+  return "indicative_only"
+}
+
 export function computeMarketEstimate(points: EstimateInputPoint[], asOfDate: string): MarketEstimateDraft | null {
   const asOfMs = dateMs(asOfDate)
   const valid = points.filter((point) => {
@@ -161,19 +167,30 @@ export function computeMarketEstimate(points: EstimateInputPoint[], asOfDate: st
   const count = reps.length
   const sortedReps = [...reps].sort((a, b) => a - b)
   const center = round2(median(sortedReps))
-  const sampleSize = chosen.groups.reduce((sum, group) => sum + group.points.length, 0)
+  const chosenPoints = chosen.groups.flatMap((group) => group.points)
+  const sampleSize = chosenPoints.length
+  const verifiedObservationCount = chosenPoints.filter((point) => point.evidenceGrade === "verified").length
+  const indicativeObservationCount = sampleSize - verifiedObservationCount
+  const sourceCount = new Set(chosenPoints.map((point) => point.sourceId)).size
 
   const base = {
     currency: "EUR" as const,
     sampleSize,
     independentEvidenceCount: count,
+    verifiedObservationCount,
+    indicativeObservationCount,
+    sourceCount,
+    qualityMix: qualityMix(verifiedObservationCount, indicativeObservationCount),
     windowDays: chosen.windowDays,
+    // Legacy DB column name kept for compatibility. In R2 this is the latest
+    // usable market sale and may be indicative; evidence composition says how
+    // strong the supporting data is.
     lastVerifiedSale: round2(latest.normalizedPriceEUR),
     lastVerifiedSaleOn: latest.soldOn,
     lastVerifiedSaleAt: latest.soldAt ?? null,
     trendPercent: trend.percent,
     trendWindowDays: trend.window,
-    algorithmVersion: "v1" as const,
+    algorithmVersion: "v2" as const,
   }
 
   if (count === 1) {
