@@ -256,12 +256,12 @@ function buildOfferRepresentatives(offers: CurrentOfferEvidence[]): {
 }
 
 function anchorForOffers(reps: OfferRepresentative[]): number | null {
-  return weightedMedian(
-    reps.map((rep) => ({
-      value: rep.effectiveCostEUR ?? rep.itemPriceEUR,
-      weight: rep.weight,
-    })),
-  )
+  // Market Value is the value of the collectible itself, not a destination-specific
+  // landed cost. Shipping remains stored and is used for acquisition ranking,
+  // starting-offer selection and confidence, but never gets added to the public
+  // retail/active market anchors.
+  if (!reps.length) return null
+  return round2(median(reps.map((rep) => rep.itemPriceEUR)))
 }
 
 function ageDays(periodEnd: string, asOfDate: string): number {
