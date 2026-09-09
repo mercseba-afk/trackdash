@@ -8,21 +8,30 @@ import { useI18n } from "@/lib/i18n"
 import { enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatDate, formatMoney } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
+import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/catalog/product-image"
-import { MarketEstimateCard, RarityBadge } from "@/components/market-bits"
+import { MarketEstimateCard, MarketSignalCard, RarityBadge } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { CollectorsSection } from "@/components/collectors-section"
 
-export function ReleaseDetailScreen({ product, release }: { product: Product; release: ProductRelease }) {
+export function ReleaseDetailScreen({
+  product,
+  release,
+  marketSignal,
+}: {
+  product: Product
+  release: ProductRelease
+  marketSignal?: ReleaseMarketSignalView | null
+}) {
   const { collection } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
   const owned = enrichCollection(collection)
   const mine = itemsForProduct(owned, product.id).filter((item) => item.release.id === release.id)
-  const estimate = getReleaseEstimate(product, release)
+  const demoEstimate = getReleaseEstimate(product, release)
   const hasExactImage = (release.images?.length ?? 0) > 0
 
   return (
@@ -75,12 +84,24 @@ export function ReleaseDetailScreen({ product, release }: { product: Product; re
       <div id="collectors" className="scroll-mt-24"><CollectorsSection releaseId={release.id} /></div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <MarketEstimateCard estimate={estimate} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
+        {marketSignal ? (
+          <MarketSignalCard signal={marketSignal} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
+        ) : (
+          <MarketEstimateCard estimate={demoEstimate} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
+        )}
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {it ? "Valutazione specifica della release" : "Release-specific valuation"}</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
             <p>{it ? "Questa stima è legata a questa specifica release commerciale, non solo al modello. Edizioni diverse possono avere rarità, età e valore di mercato differenti anche se condividono lo stesso Product." : "This estimate is tied to this exact commercial release, not just to the parent model. Different editions can have different rarity, age and market value even when they share the same Product."}</p>
-            <p>{it ? "I valori attuali sono stime demo indicative, non perizie." : "Current figures are indicative demo estimates, not appraisals."}</p>
+            <p>
+              {marketSignal
+                ? (it
+                    ? "Il valore R3 combina retail realmente disponibile, marketplace a prezzo fisso attivo e vendite concluse. I prezzi esauriti restano nello storico ma non entrano nel mercato corrente; la spedizione è conservata separatamente e non viene sommata al valore del modello."
+                    : "The R3 value combines genuinely available retail, active fixed-price marketplace offers, and completed sales. Out-of-stock prices remain historical only; shipping is stored separately and is not added to the collectible value.")
+                : (it
+                    ? "I dati reali di mercato per questa release non sono ancora sufficientemente collegati alla superficie pubblica. Nessuna stima demo viene mostrata come valore reale."
+                    : "Real market evidence for this release is not yet connected to the public surface. Demo estimates are never shown as real market value.")}
+            </p>
           </CardContent>
         </Card>
       </div>
