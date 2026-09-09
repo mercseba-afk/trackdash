@@ -138,7 +138,14 @@ export function CatalogScreen({
           <SlidersHorizontal className="size-4 text-muted-foreground" />
           <FilterSelect value={chassis} onChange={setChassis} placeholder="Chassis" options={chassisOptions} allLabel={t("catalog.allChassis")} />
           <FilterSelect value={series} onChange={setSeries} placeholder={it ? "Serie" : "Series"} options={seriesOptions} allLabel={t("catalog.allSeries")} />
-          <FilterSelect value={rarity} onChange={setRarity} placeholder={it ? "Rarità release" : "Release rarity"} options={["Common", "Uncommon", "Rare", "Very Rare", "Grail"]} allLabel={t("catalog.allRarity")} />
+          <FilterSelect
+            value={rarity}
+            onChange={setRarity}
+            placeholder={it ? "Rarità release" : "Release rarity"}
+            options={["Common", "Uncommon", "Rare", "Very Rare", "Grail"]}
+            optionLabels={it ? { Common: "Comune", Uncommon: "Non comune", Rare: "Rara", "Very Rare": "Molto rara", Grail: "Grail" } : undefined}
+            allLabel={t("catalog.allRarity")}
+          />
           <Button variant={ownedOnly ? "default" : "outline"} size="sm" onClick={() => setOwnedOnly((v) => !v)}>
             <Check /> {it ? "Posseduti" : "Owned"}
           </Button>
@@ -255,12 +262,14 @@ function FilterSelect({
   onChange,
   placeholder,
   options,
+  optionLabels,
   allLabel,
 }: {
   value: string
   onChange: (v: string) => void
   placeholder: string
   options: readonly string[]
+  optionLabels?: Readonly<Record<string, string>>
   allLabel: string
 }) {
   return (
@@ -270,7 +279,7 @@ function FilterSelect({
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">{allLabel}</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+        {options.map((o) => <SelectItem key={o} value={o}>{optionLabels?.[o] ?? o}</SelectItem>)}
       </SelectContent>
     </Select>
   )
