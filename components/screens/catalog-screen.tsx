@@ -52,12 +52,12 @@ export function CatalogScreen({
       if (chassis !== "all" && p.chassis !== chassis) return false
       if (series !== "all" && p.series !== series) return false
 
-      // Rarity is a RELEASE property for collector purposes. A Product matches
-      // when at least one of its concrete releases has the requested rarity;
-      // release.rarity falls back to the model fallback only when it is absent.
+      // Rarity filtering is strictly RELEASE-level. If a release has no
+      // release-specific rarity yet, it stays unknown instead of inheriting the
+      // Product compatibility/fallback rarity.
       if (
         rarity !== "all" &&
-        !p.releases.some((release) => (release.rarity ?? p.rarity) === rarity)
+        !p.releases.some((release) => release.rarity === rarity)
       ) {
         return false
       }
