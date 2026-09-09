@@ -1,6 +1,6 @@
 # TrackDash Price Intelligence v1
 
-Status: **REVISION 2 — implementation proposal for migration `0036_price_intelligence_v1`; not yet applied to Supabase production.**
+Status: **REVISION 2 — LIVE. Migration `price_intelligence_v1` applied to Supabase production as version `20260909094146` on 2026-09-09.**
 
 Baseline reviewed before this revision:
 - Catalog Foundation v1: 38 Product / 96 Release / 134 stable UUIDs.
