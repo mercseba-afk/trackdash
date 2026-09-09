@@ -432,6 +432,20 @@ function monthKey(date: string): string {
   return date.slice(0, 7)
 }
 
+function monthOrdinal(month: string): number {
+  const [year, monthNumber] = month.split("-").map(Number)
+  return year * 12 + monthNumber - 1
+}
+
+function monthEndMs(month: string): number {
+  const [year, monthNumber] = month.split("-").map(Number)
+  return Date.UTC(year, monthNumber, 0)
+}
+
+function monthsAreConsecutive(points: MonthlyTrendPoint[]): boolean {
+  return points.every((point, index) => index === 0 || monthOrdinal(point.month) === monthOrdinal(points[index - 1].month) + 1)
+}
+
 function isCompleteCalendarMonth(item: SoldMarketEvidence): boolean {
   if (item.grain !== "monthly") return false
   const start = new Date(`${item.periodStart}T00:00:00Z`)
@@ -472,20 +486,34 @@ function buildMonthlyTrend(evidence: SoldMarketEvidence[], asOfDate: string): {
       return [{ month, soldAnchorEUR: anchor, salesCount: bucket.reduce((sum, item) => sum + item.salesCount, 0) }]
     })
 
+  if (!points.length) return { points, percent: null, window: null }
+
+  // A current trend must be current. Old historical monthly research remains
+  // useful history, but it must not drive today's up/down indicator.
+  const latestPoint = points[points.length - 1]
+  const latestAgeDays = Math.max(0, (dateMs(asOfDate) - monthEndMs(latestPoint.month)) / DAY_MS)
+  if (latestAgeDays > 90) return { points, percent: null, window: null }
+
   if (points.length >= 6) {
-    const latest3 = points.slice(-3)
-    const previous3 = points.slice(-6, -3)
-    const recent = weightedAverage(latest3.map((point) => ({ value: point.soldAnchorEUR, weight: Math.sqrt(point.salesCount) })))
-    const previous = weightedAverage(previous3.map((point) => ({ value: point.soldAnchorEUR, weight: Math.sqrt(point.salesCount) })))
-    if (recent != null && previous != null && previous > 0) {
-      return { points, percent: round2(((recent - previous) / previous) * 100), window: 3 }
+    const latest6 = points.slice(-6)
+    if (monthsAreConsecutive(latest6)) {
+      const latest3 = latest6.slice(-3)
+      const previous3 = latest6.slice(0, 3)
+      const recent = weightedAverage(latest3.map((point) => ({ value: point.soldAnchorEUR, weight: Math.sqrt(point.salesCount) })))
+      const previous = weightedAverage(previous3.map((point) => ({ value: point.soldAnchorEUR, weight: Math.sqrt(point.salesCount) })))
+      if (recent != null && previous != null && previous > 0) {
+        return { points, percent: round2(((recent - previous) / previous) * 100), window: 3 }
+      }
     }
   }
 
   if (points.length >= 2) {
-    const latest = points[points.length - 1].soldAnchorEUR
-    const previous = points[points.length - 2].soldAnchorEUR
-    if (previous > 0) return { points, percent: round2(((latest - previous) / previous) * 100), window: 1 }
+    const latest2 = points.slice(-2)
+    if (monthsAreConsecutive(latest2)) {
+      const latest = latest2[1].soldAnchorEUR
+      const previous = latest2[0].soldAnchorEUR
+      if (previous > 0) return { points, percent: round2(((latest - previous) / previous) * 100), window: 1 }
+    }
   }
 
   return { points, percent: null, window: null }
