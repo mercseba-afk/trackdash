@@ -50,9 +50,9 @@ export function ReleaseDetailScreen({
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{product.series}</Badge>
-              <Badge variant="outline">{release.releaseType}</Badge>
+              <Badge variant="outline">{releaseTypeLabel(release.releaseType, it)}</Badge>
               {release.isOriginal ? <Badge variant="outline">{it ? "Release originale" : "Original release"}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{it ? "Riedizione / edizione" : "Reissue / edition"}</Badge>}
-              <RarityBadge rarity={release.rarity ?? product.rarity} />
+              {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline">{it ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{release.editionName}</h1>
             <p className="text-sm text-muted-foreground">{it ? "Release di" : "Release of"}{" "}<Link href={`/catalog/${product.id}`} className="font-medium text-foreground hover:text-brand hover:underline">{product.name}</Link></p>
@@ -63,11 +63,11 @@ export function ReleaseDetailScreen({
             <Spec label={it ? "Codice articolo" : "Item no."} value={release.itemNumber ? `#${release.itemNumber}` : "—"} />
             <Spec label={it ? "Data di uscita" : "Release date"} value={release.releaseDate ? formatDate(release.releaseDate) : release.releaseYear ? String(release.releaseYear) : "—"} />
             <Spec label="Chassis" value={release.chassis ?? "—"} />
-            <Spec label={it ? "Colore" : "Color"} value={release.color ?? "—"} />
-            <Spec label={it ? "Mercato" : "Market"} value={release.countryMarket ?? "—"} />
-            <Spec label={it ? "Tipo edizione" : "Edition type"} value={humanize(release.editionType)} />
-            <Spec label={it ? "Produzione" : "Production"} value={humanize(release.productionStatus)} />
-            <Spec label={it ? "Verifica" : "Verification"} value={humanize(release.verificationStatus)} />
+            <Spec label={it ? "Colore" : "Color"} value={colorLabel(release.color, it)} />
+            <Spec label={it ? "Mercato" : "Market"} value={marketLabel(release.countryMarket, it)} />
+            <Spec label={it ? "Tipo edizione" : "Edition type"} value={editionTypeLabel(release.editionType, it)} />
+            <Spec label={it ? "Produzione" : "Production"} value={productionStatusLabel(release.productionStatus, it)} />
+            <Spec label={it ? "Verifica" : "Verification"} value={verificationStatusLabel(release.verificationStatus, it)} />
             <Spec label="JAN barcode" value={release.barcodeJAN ?? "—"} />
             <Spec label="MSRP" value={formatReleaseMsrp(release)} />
           </div>
@@ -115,10 +115,10 @@ export function ReleaseDetailScreen({
             {release.sources.map((source) => (
               <div key={source.id} className="rounded-lg border border-border bg-background p-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{humanize(source.sourceType)}</Badge>{source.checkedAt ? <span className="text-xs text-muted-foreground">{it ? "Controllata" : "Checked"} {formatDate(source.checkedAt)}</span> : null}</div>
+                  <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{sourceTypeLabel(source.sourceType, it)}</Badge>{source.checkedAt ? <span className="text-xs text-muted-foreground">{it ? "Controllata" : "Checked"} {formatDate(source.checkedAt)}</span> : null}</div>
                   {source.sourceUrl ? <a href={source.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline">{it ? "Apri fonte" : "Open source"} <ExternalLink className="size-3" /></a> : null}
                 </div>
-                {source.verifiedFields.length > 0 ? <p className="mt-2 text-xs text-muted-foreground">{it ? "Verifica" : "Verifies"}: {source.verifiedFields.map(humanize).join(", ")}</p> : null}
+                {source.verifiedFields.length > 0 ? <p className="mt-2 text-xs text-muted-foreground">{it ? "Verifica" : "Verifies"}: {source.verifiedFields.map((field) => fieldLabel(field, it)).join(", ")}</p> : null}
                 {source.notes ? <p className="mt-1 text-xs text-muted-foreground">{source.notes}</p> : null}
               </div>
             ))}
@@ -130,5 +130,124 @@ export function ReleaseDetailScreen({
 }
 
 function Spec({ label, value }: { label: string; value: string }) { return <div className="flex flex-col gap-0.5"><span className="text-xs text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div> }
+
+function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
+  if (!it) return value
+  const labels: Record<ProductRelease["releaseType"], string> = {
+    Original: "Originale",
+    Reissue: "Riedizione",
+    "Special Edition": "Edizione speciale",
+    "Limited Edition": "Edizione limitata",
+    "Anniversary Edition": "Edizione anniversario",
+    "Japan Cup Edition": "Edizione Japan Cup",
+    "Color Special": "Edizione colore speciale",
+    "Clear Body": "Carrozzeria trasparente",
+    Premium: "Premium",
+    "Chassis Variant": "Variante chassis",
+    Other: "Altro",
+  }
+  return labels[value]
+}
+
+function editionTypeLabel(value: ProductRelease["editionType"], it: boolean): string {
+  if (!it) return humanize(value)
+  const labels: Record<ProductRelease["editionType"], string> = {
+    original: "Originale",
+    premium: "Premium",
+    color_special: "Edizione colore speciale",
+    limited: "Edizione limitata",
+    anniversary: "Edizione anniversario",
+    japan_cup: "Edizione Japan Cup",
+    reissue: "Riedizione",
+    special: "Edizione speciale",
+    other: "Altro",
+  }
+  return labels[value]
+}
+
+function productionStatusLabel(value: ProductRelease["productionStatus"], it: boolean): string {
+  if (!it) return humanize(value)
+  const labels: Record<ProductRelease["productionStatus"], string> = {
+    announced: "Annunciata",
+    active: "In produzione",
+    discontinued: "Fuori produzione",
+    unknown: "Da verificare",
+  }
+  return labels[value]
+}
+
+function verificationStatusLabel(value: ProductRelease["verificationStatus"], it: boolean): string {
+  if (!it) return humanize(value)
+  const labels: Record<ProductRelease["verificationStatus"], string> = {
+    verified: "Verificata",
+    partial: "Parzialmente verificata",
+    unverified: "Non verificata",
+  }
+  return labels[value]
+}
+
+function sourceTypeLabel(value: ProductRelease["sources"][number]["sourceType"], it: boolean): string {
+  if (!it) return humanize(value)
+  const labels: Record<ProductRelease["sources"][number]["sourceType"], string> = {
+    official_manufacturer: "Produttore ufficiale",
+    official_catalog_pdf: "Catalogo ufficiale PDF",
+    official_archive: "Archivio ufficiale",
+    trusted_secondary: "Fonte secondaria verificata",
+    other: "Altra fonte",
+  }
+  return labels[value]
+}
+
+function colorLabel(value: string | undefined, it: boolean): string {
+  if (!value) return "—"
+  if (!it) return value
+  const labels: Record<string, string> = {
+    Black: "Nero",
+    White: "Bianco",
+    Red: "Rosso",
+    Blue: "Blu",
+    Yellow: "Giallo",
+    Green: "Verde",
+    Purple: "Viola",
+    Orange: "Arancione",
+    Pink: "Rosa",
+    Silver: "Argento",
+    Gold: "Oro",
+    Clear: "Trasparente",
+  }
+  return labels[value] ?? value
+}
+
+function marketLabel(value: string | undefined, it: boolean): string {
+  if (!value) return "—"
+  if (!it) return value
+  const labels: Record<string, string> = {
+    Japan: "Giappone",
+    Europe: "Europa",
+    Global: "Globale",
+    USA: "USA",
+  }
+  return labels[value] ?? value
+}
+
+function fieldLabel(value: string, it: boolean): string {
+  if (!it) return humanize(value)
+  const labels: Record<string, string> = {
+    itemNumber: "Codice articolo",
+    chassis: "Chassis",
+    releaseDate: "Data di uscita",
+    releaseYear: "Anno di uscita",
+    editionName: "Nome edizione",
+    releaseType: "Tipo release",
+    barcodeJAN: "JAN barcode",
+    msrpJPY: "MSRP JPY",
+    msrpEUR: "MSRP EUR",
+    productionStatus: "Produzione",
+    countryMarket: "Mercato",
+    color: "Colore",
+  }
+  return labels[value] ?? humanize(value)
+}
+
 function humanize(value: string): string { return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase()) }
 function formatReleaseMsrp(release: ProductRelease): string { if (release.msrpEUR !== undefined) return formatMoney(release.msrpEUR, "EUR"); if (release.msrpJPY !== undefined) return formatMoney(release.msrpJPY, "JPY"); return "—" }
