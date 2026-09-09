@@ -178,12 +178,12 @@ export interface EvidenceGroupRepresentative {
 
 export interface EstimateInputPoint {
   stableId: string
-  sourceId: string
+  sourceId?: string
   soldOn: string
   soldAt?: string | null
   normalizedPriceEUR: number
   evidenceGroupKey: string
-  evidenceGrade: EvidenceGrade
+  evidenceGrade?: EvidenceGrade
 }
 
 export interface MarketEstimateDraft {
