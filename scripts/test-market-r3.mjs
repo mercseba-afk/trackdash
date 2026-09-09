@@ -33,8 +33,9 @@ ok("18069: broad eBay sold evidence defeats a one-off 300 JPY anomaly", () => {
   })
 
   assert.equal(signal.marketRegime, "retail_driven")
+  assert.equal(signal.retailAnchorEUR, 15.5)
   assert.equal(signal.soldAnchorEUR, 16.85)
-  assert.ok(signal.marketValueEUR > 16 && signal.marketValueEUR < 20)
+  assert.ok(signal.marketValueEUR > 15 && signal.marketValueEUR < 19)
   assert.notEqual(signal.marketValueEUR, 1.61)
 })
 
@@ -67,13 +68,13 @@ ok("out-of-stock retail is historical only and cannot anchor current value", () 
 
   assert.equal(signal.marketRegime, "secondary_market_driven")
   assert.equal(signal.retailAnchorEUR, null)
-  assert.equal(signal.activeAnchorEUR, 39)
+  assert.equal(signal.activeAnchorEUR, 40.5)
   assert.equal(signal.soldAnchorEUR, 38)
-  assert.ok(signal.marketValueEUR >= 38 && signal.marketValueEUR <= 40)
+  assert.ok(signal.marketValueEUR >= 38 && signal.marketValueEUR <= 41)
   assert.equal(signal.startingOffer.itemPriceEUR, 39)
 })
 
-ok("shipping-aware starting price prefers known delivered acquisition cost", () => {
+ok("shipping affects acquisition ranking but not public Market Value", () => {
   const signal = computeCurrentMarketSignal({
     offers: [
       { stableId: "rcjaz", sourceId: "rcjaz", channel: "retail", availability: "in_stock", itemPriceEUR: 13, shippingEUR: 9, observedAt: "2026-09-09T10:00:00Z" },
@@ -83,6 +84,8 @@ ok("shipping-aware starting price prefers known delivered acquisition cost", () 
     asOfDate: asOf,
   })
 
+  assert.equal(signal.retailAnchorEUR, 15.5)
+  assert.equal(signal.marketValueEUR, 15.5)
   assert.equal(signal.startingOffer.sourceId, "local")
   assert.equal(signal.startingOffer.effectiveCostEUR, 18)
   assert.equal(signal.marketRegime, "retail_driven")
