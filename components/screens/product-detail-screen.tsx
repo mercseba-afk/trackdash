@@ -9,7 +9,7 @@ import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { enrichCollection, itemsForProduct } from "@/lib/analytics"
-import { formatMoney, formatDate, RARITY_STYLE } from "@/lib/format"
+import { formatMoney, formatDate } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,7 +54,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
         <div className="flex flex-col gap-4"><ProductImage product={product} className="aspect-[4/3] w-full rounded-xl border" size="lg" /></div>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{product.series}</Badge><RarityBadge rarity={product.rarity} /></div>
+            <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{product.series}</Badge></div>
             <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{product.name}</h1>
             {product.japaneseName && <p className="-mt-1 text-sm text-muted-foreground">{product.japaneseName}</p>}
             <p className="leading-relaxed text-muted-foreground text-pretty">{product.description}</p>
@@ -136,7 +136,9 @@ function ReleaseRow({ product, release, owned, community }: { product: Product; 
           <div className="mt-2 flex flex-wrap items-center gap-1.5">{release.isOriginal ? <Badge variant="outline">{t("common.original")}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{t("common.reissue")}</Badge>}</div>
         </div>
         <div className="col-span-2 flex flex-col gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-2">
-          <div className="flex flex-wrap items-center gap-1.5"><span className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium", RARITY_STYLE[release.rarity ?? product.rarity])}>{release.rarity ?? product.rarity}</span></div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline" className="text-[10px] font-medium">{locale === "it" ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
+          </div>
           {community && community.collectors > 0 ? (
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
               <Link href={collectorsHref} className="w-fit text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">{t("common.collectors")}</Link>
