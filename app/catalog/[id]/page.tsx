@@ -3,6 +3,7 @@ import { AppPage } from "@/components/app-page"
 import { ProductDetailScreen } from "@/components/screens/product-detail-screen"
 import { fetchCatalogProductById, fetchCatalogProducts } from "@/lib/actions/catalog"
 import { getRelatedProducts } from "@/lib/data/products"
+import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
 
 // This route has no generateStaticParams(), so Next classifies it as fully
 // dynamic ("ƒ /catalog/[id]") by default — it already re-runs (including
@@ -19,10 +20,16 @@ export const revalidate = 45
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const product = await fetchCatalogProductById(id).catch((error) => {
-    console.error("Failed to load product from the database:", error)
-    return null
-  })
+  const [product, localizedCopy] = await Promise.all([
+    fetchCatalogProductById(id).catch((error) => {
+      console.error("Failed to load product from the database:", error)
+      return null
+    }),
+    getCatalogLocalizedCopy(id).catch((error) => {
+      console.error("Failed to load localized catalog copy:", error)
+      return null
+    }),
+  ])
   if (!product) return notFound()
 
   // Related products still need the rest of the catalog to score against;
@@ -36,7 +43,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <AppPage>
-      <ProductDetailScreen product={product} related={related} />
+      <ProductDetailScreen
+        product={product}
+        related={related}
+        descriptionIt={localizedCopy?.productDescriptionIt}
+      />
     </AppPage>
   )
 }
