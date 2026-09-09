@@ -57,6 +57,21 @@ const nextConfig = {
         hostname: "item-shopping.c.yimg.jp",
         pathname: "/i/n/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn11.bigcommerce.com",
+        pathname: "/s-hekrabusyi/**",
+      },
+      {
+        protocol: "https",
+        hostname: "down-id.img.susercontent.com",
+        pathname: "/file/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.amiami.jp",
+        pathname: "/images/product/**",
+      },
     ],
   },
 }
