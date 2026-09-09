@@ -62,7 +62,6 @@ class FakeMarketStore {
     row.observationType = candidate.observationType
     row.soldOn = candidate.soldOn
 
-    // Simulate migration 0036 BEFORE UPDATE trigger + composite FK cascade.
     if (releaseChanged) {
       row.needsRevalidation = true
       const point = this.points.get(row.id)
@@ -96,10 +95,13 @@ class FakeMarketStore {
         point.releaseId !== releaseId ||
         point.condition !== condition ||
         point.sourceId !== sourceId ||
-        !point.valuationEligible ||
         point.status !== "active" ||
-        point.needsRevalidation
+        point.needsRevalidation ||
+        point.marketPriceEUR == null
       ) return []
+
+      const isPendingOutlier = candidate.decision === "needs_review" && candidate.reasonCodes.includes("POSSIBLE_OUTLIER")
+      if (!point.valuationEligible && !isPendingOutlier) return []
       return [{ ...point, sourceRecordKey: candidate.sourceRecordKey, sellerFingerprint }]
     })
   }
@@ -134,6 +136,9 @@ class FakeMarketStore {
         releaseId: point.releaseId,
         condition: point.condition,
         normalizedPriceEUR: point.normalizedPriceEUR,
+        marketPriceEUR: point.marketPriceEUR,
+        evidenceGrade: point.evidenceGrade,
+        qualityFlags: [...point.qualityFlags],
         evidenceGroupKey: point.evidenceGroupKey,
         valuationEligible: point.valuationEligible,
         status: "active",
@@ -145,11 +150,13 @@ class FakeMarketStore {
       return row
     }
 
-    // Production upsert does not overwrite status or needsRevalidation.
     row.sourceId = sourceId
     row.releaseId = point.releaseId
     row.condition = point.condition
     row.normalizedPriceEUR = point.normalizedPriceEUR
+    row.marketPriceEUR = point.marketPriceEUR
+    row.evidenceGrade = point.evidenceGrade
+    row.qualityFlags = [...point.qualityFlags]
     row.evidenceGroupKey = point.evidenceGroupKey
     row.valuationEligible = point.valuationEligible
     row.soldOn = point.soldOn
@@ -165,16 +172,18 @@ class FakeMarketStore {
         !point.valuationEligible ||
         point.status !== "active" ||
         point.needsRevalidation ||
-        point.normalizedPriceEUR == null ||
+        point.marketPriceEUR == null ||
         !point.evidenceGroupKey
       ) return []
       const candidate = [...this.candidates.values()].find((row) => row.id === point.candidateId)
       return [{
         stableId: `${point.sourceId}|${candidate.sourceRecordKey}`,
+        sourceId: point.sourceId,
         soldOn: point.soldOn,
         soldAt: point.soldAt,
-        normalizedPriceEUR: point.normalizedPriceEUR,
+        normalizedPriceEUR: point.marketPriceEUR,
         evidenceGroupKey: point.evidenceGroupKey,
+        evidenceGrade: point.evidenceGrade,
       }]
     })
   }
@@ -196,6 +205,10 @@ class FakeMarketStore {
       rangeMethod: draft.rangeMethod,
       sampleSize: draft.sampleSize,
       independentEvidenceCount: draft.independentEvidenceCount,
+      verifiedObservationCount: draft.verifiedObservationCount,
+      indicativeObservationCount: draft.indicativeObservationCount,
+      sourceCount: draft.sourceCount,
+      qualityMix: draft.qualityMix,
       windowDays: draft.windowDays,
       lowestCurrentAsk: previous?.lowestCurrentAsk ?? null,
       lastVerifiedSale: draft.lastVerifiedSale,
@@ -205,6 +218,7 @@ class FakeMarketStore {
       trendWindowDays: draft.trendWindowDays,
       lastScannedAt: previous?.lastScannedAt ?? null,
       lastValuationChangeAt: materiallyChanged ? now : (previous?.lastValuationChangeAt ?? now),
+      algorithmVersion: draft.algorithmVersion,
       computedAt: now,
     })
   }
@@ -216,7 +230,17 @@ class FakeMarketStore {
   async recordHistorySnapshot() { return true }
 }
 
-function sale({ key, releaseId = "r1", seller, soldOn, price }) {
+function sale({
+  key,
+  releaseId = "r1",
+  seller = "seller-1",
+  soldOn,
+  price,
+  shippingBasis = "excluded",
+  isComplete = true,
+  condition = "new_complete_unbuilt",
+  quantity = 1,
+}) {
   return {
     sourceRecordKey: key,
     explicitReleaseId: releaseId,
@@ -225,11 +249,11 @@ function sale({ key, releaseId = "r1", seller, soldOn, price }) {
     observationType: "sold_confirmed",
     price,
     currency: "EUR",
-    shippingBasis: "excluded",
-    condition: "new_complete_unbuilt",
-    isComplete: true,
+    shippingBasis,
+    condition,
+    isComplete,
     isLot: false,
-    quantity: 1,
+    quantity,
     sellerFingerprint: seller,
     soldOn,
     observedAt: `${soldOn}T12:00:00.000Z`,
@@ -254,10 +278,12 @@ await test("manual sale promotes and creates a tier-1 estimate", async () => {
     new Date("2026-09-09T12:00:00Z"),
   )
   assert.equal(result.status, "promoted")
-  assert.equal(store.candidates.size, 1)
-  assert.equal(store.points.size, 1)
-  assert.equal([...store.points.values()][0].valuationEligible, true)
-  assert.equal(store.estimates.get("r1|new_complete_unbuilt").displayMode, "last_sale")
+  const point = [...store.points.values()][0]
+  const estimate = store.estimates.get("r1|new_complete_unbuilt")
+  assert.equal(point.valuationEligible, true)
+  assert.equal(point.evidenceGrade, "indicative")
+  assert.equal(estimate.displayMode, "last_sale")
+  assert.equal(estimate.qualityMix, "indicative_only")
 })
 
 await test("retrying the same source record is idempotent", async () => {
@@ -318,6 +344,49 @@ await test("outlier is compared with prior independent groups across different s
   assert.ok(candidate.reasonCodes.includes("POSSIBLE_OUTLIER"))
   assert.equal(point.valuationEligible, false)
   assert.equal(store.estimates.get("r1|new_complete_unbuilt").independentEvidenceCount, 3)
+})
+
+await test("unknown seller and unknown shipping still produce indicative market evidence", async () => {
+  const store = new FakeMarketStore()
+  const result = await ingestManualVerifiedSaleWithStore(
+    sale({
+      key: "broad-market",
+      seller: null,
+      soldOn: "2026-08-01",
+      price: 72,
+      shippingBasis: "unknown",
+      isComplete: null,
+    }),
+    store,
+    new Date("2026-09-09T12:00:00Z"),
+  )
+  const point = [...store.points.values()][0]
+  const estimate = store.estimates.get("r1|new_complete_unbuilt")
+  assert.equal(result.status, "promoted")
+  assert.equal(point.marketPriceEUR, 72)
+  assert.equal(point.evidenceGrade, "indicative")
+  assert.ok(point.qualityFlags.includes("seller_unknown"))
+  assert.ok(point.qualityFlags.includes("shipping_unknown"))
+  assert.ok(point.qualityFlags.includes("completeness_unconfirmed"))
+  assert.equal(point.valuationEligible, true)
+  assert.equal(estimate.value, 72)
+  assert.equal(estimate.indicativeObservationCount, 1)
+})
+
+await test("unknown-seller sales within seven days remain one conservative independent group", async () => {
+  const store = new FakeMarketStore()
+  const now = new Date("2026-09-09T12:00:00Z")
+  for (const input of [
+    { key: "u1", seller: null, soldOn: "2026-08-01", price: 50 },
+    { key: "u2", seller: null, soldOn: "2026-08-06", price: 60 },
+  ]) {
+    const result = await ingestManualVerifiedSaleWithStore(sale(input), store, now)
+    assert.equal(result.status, "promoted")
+  }
+  const estimate = store.estimates.get("r1|new_complete_unbuilt")
+  assert.equal(estimate.sampleSize, 2)
+  assert.equal(estimate.independentEvidenceCount, 1)
+  assert.equal(estimate.value, 60)
 })
 
 console.log("MARKET RUNNER TEST PASSED")
