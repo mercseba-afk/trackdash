@@ -76,15 +76,14 @@ export async function getMarketMonthlySignalsForRelease(
   })
 }
 
-// Product cards show the cheapest CURRENT PURCHASABLE Release offer only.
+// Product cards show the cheapest CURRENT PURCHASABLE Release item price only.
 // Sold evidence and out-of-stock retail can influence Market Value/trend but can
-// never masquerade as "A partire da". When shipping is known, compare delivered
-// cost; otherwise retain the item-only price (UI can label it "+ sped.").
+// never masquerade as "A partire da". Shipping remains separate provenance and
+// never gets folded into this clean item-price headline.
 export async function getCatalogStartingPrices(): Promise<Record<string, number>> {
   const rows = await db
     .select({
       productId: productReleases.productId,
-      startingEffectiveCostEUR: marketReleaseSignals.startingEffectiveCostEUR,
       startingItemPriceEUR: marketReleaseSignals.startingItemPriceEUR,
     })
     .from(marketReleaseSignals)
@@ -94,7 +93,7 @@ export async function getCatalogStartingPrices(): Promise<Record<string, number>
   const result: Record<string, number> = {}
 
   for (const row of rows) {
-    const raw = row.startingEffectiveCostEUR ?? row.startingItemPriceEUR
+    const raw = row.startingItemPriceEUR
     if (raw == null) continue
     const amount = Number(raw)
     if (!Number.isFinite(amount) || amount <= 0) continue
