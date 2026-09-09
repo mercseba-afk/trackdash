@@ -1,6 +1,7 @@
 import { AppPage } from "@/components/app-page"
 import { CatalogScreen } from "@/components/screens/catalog-screen"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
+import { getCatalogStartingPrices } from "@/lib/db/queries/market"
 import type { Product } from "@/lib/types"
 
 // Root cause (confirmed via a real production build, not assumed): with no
@@ -18,26 +19,27 @@ import type { Product } from "@/lib/types"
 // regenerates it (re-running this Server Component, including the DB
 // query) on the next request past that point — no rebuild/redeploy
 // required. 45s is comfortably inside the requested ~30–60s window: fast
-// enough that a newly-added product_image is visible well within a
-// minute, long enough that the catalog page isn't hitting the database on
-// every single request.
+// enough that newly-added catalog images or market estimates are visible
+// well within a minute, long enough that the catalog page isn't hitting
+// the database on every single request.
 export const revalidate = 45
 
 export default async function CatalogPage() {
-  // The DB read happens here, server-side, once per request — not in the
-  // (client) CatalogScreen itself, which just renders whatever it's given.
-  // Wrapped defensively: a DB outage should render the screen's existing
-  // empty state, not crash the whole page with an unhandled error.
   let products: Product[] = []
+  let startingPrices: Record<string, number> = {}
+
   try {
-    products = await fetchCatalogProducts()
+    ;[products, startingPrices] = await Promise.all([
+      fetchCatalogProducts(),
+      getCatalogStartingPrices(),
+    ])
   } catch (error) {
-    console.error("Failed to load catalog from the database:", error)
+    console.error("Failed to load catalog data from the database:", error)
   }
 
   return (
     <AppPage>
-      <CatalogScreen products={products} />
+      <CatalogScreen products={products} startingPrices={startingPrices} />
     </AppPage>
   )
 }
