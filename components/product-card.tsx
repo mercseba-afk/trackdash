@@ -57,7 +57,7 @@ export function ProductCard({
             {startingPrice != null ? (
               <>
                 <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {it ? "A partire da" : "Starting from"}
+                  {it ? "Da" : "From"}
                 </p>
                 <p className="text-sm font-semibold tabular-nums">{formatMoney(startingPrice)}</p>
               </>
