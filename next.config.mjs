@@ -69,6 +69,16 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "down-my.img.susercontent.com",
+        pathname: "/file/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cf.shopee.com.my",
+        pathname: "/file/**",
+      },
+      {
+        protocol: "https",
         hostname: "img.amiami.jp",
         pathname: "/images/product/**",
       },
