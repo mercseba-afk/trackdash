@@ -77,6 +77,14 @@ export interface StoredEstimate {
   computedAt: string
 }
 
+export interface ValuationPointRow {
+  stableId: string
+  soldOn: string
+  soldAt: string | null
+  normalizedPriceEUR: number
+  evidenceGroupKey: string
+}
+
 function n(value: unknown): number | null {
   if (value == null) return null
   const parsed = Number(value)
@@ -407,16 +415,10 @@ export class MarketPipelineRepository {
     return mapPoint(data)
   }
 
-  async listValuationPoints(releaseId: string, condition: MarketCondition): Promise<Array<{
-    stableId: string
-    soldOn: string
-    soldAt: string | null
-    normalizedPriceEUR: number
-    evidenceGroupKey: string
-  }>> {
+  async listValuationPoints(releaseId: string, condition: MarketCondition): Promise<ValuationPointRow[]> {
     const { data: pointRows, error: pointError } = await this.client
       .from("price_points")
-      .select("candidate_id,normalized_price_eur,evidence_group_key,sold_on,sold_at")
+      .select("candidate_id,source_id,normalized_price_eur,evidence_group_key,sold_on,sold_at")
       .eq("release_id", releaseId)
       .eq("condition", condition)
       .eq("valuation_eligible", true)
@@ -436,13 +438,16 @@ export class MarketPipelineRepository {
       .in("id", candidateIds)
     fail(candidateError, "load valuation stable identities")
 
-    const stableIds = new Map((candidateRows ?? []).map((row: any) => [row.id, row.source_record_key]))
+    const sourceRecordKeys = new Map((candidateRows ?? []).map((row: any) => [row.id, row.source_record_key]))
     return rows.flatMap((row: any) => {
-      const stableId = stableIds.get(row.candidate_id)
+      const sourceRecordKey = sourceRecordKeys.get(row.candidate_id)
       const normalized = n(row.normalized_price_eur)
-      if (!stableId || normalized == null || !row.evidence_group_key) return []
+      if (!sourceRecordKey || normalized == null || !row.evidence_group_key) return []
       return [{
-        stableId,
+        // source_record_key is unique only within one source. Include source_id
+        // so deterministic ordering/filtering remains collision-safe when more
+        // adapters are eventually enabled.
+        stableId: `${row.source_id}|${sourceRecordKey}`,
         soldOn: row.sold_on,
         soldAt: row.sold_at,
         normalizedPriceEUR: normalized,
@@ -567,3 +572,26 @@ export class MarketPipelineRepository {
     return true
   }
 }
+
+// Structural store contract used by the pure orchestrator and its in-memory
+// tests. Production still uses MarketPipelineRepository above.
+export type MarketPipelineStore = Pick<
+  MarketPipelineRepository,
+  | "listCatalogReleases"
+  | "ensureSource"
+  | "findCandidate"
+  | "findExactAcceptedDuplicate"
+  | "upsertCandidate"
+  | "patchCandidate"
+  | "getCandidatePoint"
+  | "listGroupingEvidence"
+  | "updateGroupingAssignment"
+  | "clearPointRevalidation"
+  | "disableCandidatePoint"
+  | "upsertPricePoint"
+  | "listValuationPoints"
+  | "getEstimate"
+  | "upsertEstimate"
+  | "deleteEstimate"
+  | "recordHistorySnapshot"
+>
