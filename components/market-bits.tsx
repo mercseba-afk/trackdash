@@ -159,7 +159,7 @@ export function MarketSignalCard({
             {signal.currentOfferCount} {it ? "offerte correnti" : "current offers"} · {signal.soldUnits} {it ? "unità vendute osservate" : "sold units observed"}
           </div>
           {signal.startingItemPriceEUR != null ? (
-            <div>{it ? "A partire da" : "From"} {formatMoney(signal.startingItemPriceEUR)}</div>
+            <div>{it ? "Da" : "From"} {formatMoney(signal.startingItemPriceEUR)}</div>
           ) : null}
           <div>{it ? "Aggiornato" : "Updated"} {formatDate(signal.computedAt)}</div>
         </div>
