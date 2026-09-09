@@ -13,6 +13,19 @@ export const MATCH_EVIDENCE_CODES = [
 
 export type MatchEvidence = (typeof MATCH_EVIDENCE_CODES)[number]
 
+export const MARKET_QUALITY_FLAGS = [
+  "seller_unknown",
+  "shipping_unknown",
+  "completeness_unconfirmed",
+  "condition_inferred",
+  "inner_bags_unknown",
+  "box_condition_unknown",
+] as const
+
+export type MarketQualityFlag = (typeof MARKET_QUALITY_FLAGS)[number]
+export type EvidenceGrade = "verified" | "indicative"
+export type EvidenceQualityMix = "verified_only" | "mixed" | "indicative_only"
+
 export type ObservationType =
   | "sold_confirmed"
   | "auction_awarded"
@@ -165,10 +178,12 @@ export interface EvidenceGroupRepresentative {
 
 export interface EstimateInputPoint {
   stableId: string
+  sourceId: string
   soldOn: string
   soldAt?: string | null
   normalizedPriceEUR: number
   evidenceGroupKey: string
+  evidenceGrade: EvidenceGrade
 }
 
 export interface MarketEstimateDraft {
@@ -181,13 +196,17 @@ export interface MarketEstimateDraft {
   rangeMethod: "cleaned_min_max" | "q1_q3" | null
   sampleSize: number
   independentEvidenceCount: number
+  verifiedObservationCount: number
+  indicativeObservationCount: number
+  sourceCount: number
+  qualityMix: EvidenceQualityMix
   windowDays: 365 | 730
   lastVerifiedSale: number
   lastVerifiedSaleOn: string
   lastVerifiedSaleAt: string | null
   trendPercent: number | null
   trendWindowDays: 90 | 365 | null
-  algorithmVersion: "v1"
+  algorithmVersion: "v2"
 }
 
 export interface PricePointDraft {
@@ -200,6 +219,8 @@ export interface PricePointDraft {
   shippingBasis: ShippingBasis
   valuationPrice: number | null
   normalizedPriceEUR: number | null
+  marketPriceEUR: number | null
+  marketPriceBasis: "shipping_adjusted" | "raw_sale" | null
   fxRateToEUR: number | null
   fxRateDate: string | null
   innerBagsSealed: "yes" | "no" | "unknown"
@@ -210,9 +231,33 @@ export interface PricePointDraft {
   matchConfidence: Extract<MatchConfidence, "exact" | "strong">
   matchEvidence: MatchEvidence[]
   evidenceGroupKey: string | null
+  evidenceGrade: EvidenceGrade
+  qualityFlags: MarketQualityFlag[]
   valuationEligible: boolean
   needsRevalidation: boolean
   soldAt: string | null
   soldOn: string
   observedAt: string
+}
+
+export interface MonthlySourceStatDraft {
+  releaseId: string
+  sourceId: string
+  month: string
+  condition: MarketCondition
+  queryKey: string
+  queryDescription?: string | null
+  salesCount: number
+  sellerCount?: number | null
+  averagePrice: number
+  lowPrice?: number | null
+  highPrice?: number | null
+  averageShipping?: number | null
+  currency: string
+  marketAverageEUR?: number | null
+  fxRateToEUR?: number | null
+  fxRateDate?: string | null
+  evidenceGrade: EvidenceGrade
+  provenanceUrl?: string | null
+  rawPayload?: unknown
 }
