@@ -108,15 +108,34 @@ export function MarketEstimateCard({
   const it = locale === "it"
   const resolvedTitle = title ?? (it ? "Valore di mercato stimato" : "Estimated market value")
 
+  // Legacy demo estimates may still be used internally by collection analytics,
+  // but R3 never exposes synthetic prices as market data. Until a real R3 signal
+  // is wired to this surface, show an explicit empty state instead of fake values.
+  if (estimate.isDemo) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-sm text-muted-foreground">{resolvedTitle}</CardTitle>
+          <ConfidenceBadge confidence="Insufficient" />
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <p className="text-lg font-semibold">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {it
+              ? "TrackDash mostrerà qui solo valori ricavati da evidenze reali della release: retail realmente disponibile, marketplace attivo e vendite concluse. Nessuna stima demo viene pubblicata."
+              : "TrackDash only publishes values backed by real release evidence here: genuinely available retail, active marketplace offers, and completed sales. Demo estimates are never published."}
+          </p>
+          {msrp != null && <p className="text-xs text-muted-foreground">MSRP {formatMoney(msrp)}</p>}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-sm text-muted-foreground">{resolvedTitle}</CardTitle>
-        {estimate.isDemo ? (
-          <Badge variant="secondary">{it ? "Stima demo" : "Demo estimate"}</Badge>
-        ) : (
-          <ConfidenceBadge estimate={estimate} />
-        )}
+        <ConfidenceBadge estimate={estimate} />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-end justify-between gap-3">
@@ -126,7 +145,7 @@ export function MarketEstimateCard({
           </div>
           <div className="text-right text-xs text-muted-foreground">
             {msrp != null && <div>MSRP {formatMoney(msrp)}</div>}
-            {!estimate.isDemo && <div className="tabular-nums">{estimate.sampleSize} {it ? "dati osservati" : "data points"}</div>}
+            <div className="tabular-nums">{estimate.sampleSize} {it ? "dati osservati" : "data points"}</div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 border-t pt-3 text-center">
@@ -134,13 +153,6 @@ export function MarketEstimateCard({
           <RangeStat label={it ? "Media" : "Average"} value={formatMoney(estimate.average)} accent />
           <RangeStat label={it ? "Massimo" : "High"} value={formatMoney(estimate.high)} />
         </div>
-        {estimate.isDemo && (
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            {it
-              ? `Stima demo indicativa derivata da rarità, età e prezzi di riferimento dell'edizione — non è una perizia. I valori reali saranno basati su osservazioni di mercato. Aggiornata ${estimate.lastUpdated}.`
-              : `Indicative demo estimate derived from this edition's rarity, age and reference pricing — not an appraisal. Real values will be based on market observations. Updated ${estimate.lastUpdated}.`}
-          </p>
-        )}
       </CardContent>
     </Card>
   )
