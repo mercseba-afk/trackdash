@@ -120,7 +120,7 @@ ok("no artificial minimum: one real current source can still produce a market si
   assert.equal(signal.marketRegime, "retail_driven")
 })
 
-ok("monthly sold trend uses complete months and 3-month smoothing when available", () => {
+ok("monthly sold trend uses complete recent consecutive months and 3-month smoothing", () => {
   const monthly = [
     ["2026-01-01", "2026-01-31", 25, 5],
     ["2026-02-01", "2026-02-28", 25, 5],
@@ -142,6 +142,27 @@ ok("monthly sold trend uses complete months and 3-month smoothing when available
   const signal = computeCurrentMarketSignal({ offers: [], soldEvidence: monthly, monthlySoldEvidence: monthly, asOfDate: asOf })
   assert.equal(signal.trendWindowMonths, 3)
   assert.equal(signal.trendPercent, 40)
+})
+
+ok("stale monthly research remains history but does not emit a current trend", () => {
+  const monthly = [
+    { stableId: "old-a", sourceId: "ebay-pr", averagePriceEUR: 25, salesCount: 1, periodStart: "2024-11-01", periodEnd: "2024-11-30", grain: "monthly", evidenceGrade: "indicative" },
+    { stableId: "old-b", sourceId: "ebay-pr", averagePriceEUR: 35, salesCount: 1, periodStart: "2024-12-01", periodEnd: "2024-12-31", grain: "monthly", evidenceGrade: "indicative" },
+  ]
+  const signal = computeCurrentMarketSignal({ offers: [], soldEvidence: monthly, monthlySoldEvidence: monthly, asOfDate: asOf })
+  assert.equal(signal.trendPercent, null)
+  assert.equal(signal.trendWindowMonths, null)
+  assert.equal(signal.monthlyTrend.length, 2)
+})
+
+ok("gapped monthly research does not pretend to be a one-month trend", () => {
+  const monthly = [
+    { stableId: "gap-a", sourceId: "ebay-pr", averagePriceEUR: 25, salesCount: 1, periodStart: "2026-06-01", periodEnd: "2026-06-30", grain: "monthly", evidenceGrade: "indicative" },
+    { stableId: "gap-b", sourceId: "ebay-pr", averagePriceEUR: 35, salesCount: 1, periodStart: "2026-08-01", periodEnd: "2026-08-31", grain: "monthly", evidenceGrade: "indicative" },
+  ]
+  const signal = computeCurrentMarketSignal({ offers: [], soldEvidence: monthly, monthlySoldEvidence: monthly, asOfDate: asOf })
+  assert.equal(signal.trendPercent, null)
+  assert.equal(signal.trendWindowMonths, null)
 })
 
 ok("aggregate Product Research supersedes granular rows from the same source", () => {
