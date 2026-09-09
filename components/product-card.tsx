@@ -5,20 +5,23 @@ import { Check, Heart, Plus, RefreshCw } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { getProductEstimate } from "@/lib/data/market"
 import { primaryRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { ProductImage } from "@/components/catalog/product-image"
-import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  startingPrice,
+}: {
+  product: Product
+  startingPrice?: number
+}) {
   const { isInCollection, isInWishlist } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
-  const estimate = getProductEstimate(product)
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
   const release = primaryRelease(product)
@@ -38,22 +41,34 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         )}
       </Link>
+
       <div className="flex flex-1 flex-col gap-2 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <Link href={`/catalog/${product.id}`} className="min-w-0">
-            <p className="truncate text-sm font-semibold leading-tight hover:text-brand">{product.name}</p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {product.chassis ?? "—"} · orig. {product.originalReleaseYear ?? "—"}
-            </p>
-          </Link>
-          <RarityBadge rarity={product.rarity} />
-        </div>
+        <Link href={`/catalog/${product.id}`} className="min-w-0">
+          <p className="line-clamp-2 min-h-9 text-sm font-semibold leading-[1.15rem] hover:text-brand">
+            {product.name}
+          </p>
+          <p className="mt-1 truncate text-xs text-muted-foreground">
+            {product.chassis ?? "—"} · orig. {product.originalReleaseYear ?? "—"}
+          </p>
+        </Link>
+
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
-          <div>
-            <p className="text-sm font-semibold tabular-nums">{formatMoney(estimate.value)}</p>
-            <TrendIndicator value={estimate.trend90d} className="text-xs" />
+          <div className="min-w-0">
+            {startingPrice != null ? (
+              <>
+                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {it ? "A partire da" : "Starting from"}
+                </p>
+                <p className="text-sm font-semibold tabular-nums">{formatMoney(startingPrice)}</p>
+              </>
+            ) : (
+              <p className="max-w-28 text-[11px] leading-tight text-muted-foreground">
+                {it ? "Dati mercato in arrivo" : "Market data coming soon"}
+              </p>
+            )}
           </div>
-          <div className="flex items-center gap-1">
+
+          <div className="flex shrink-0 items-center gap-1">
             <AddToWishlistDialog product={product}>
               <Button
                 variant="outline"
