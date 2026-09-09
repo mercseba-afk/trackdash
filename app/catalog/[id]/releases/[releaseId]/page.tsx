@@ -2,8 +2,39 @@ import { notFound } from "next/navigation"
 import { AppPage } from "@/components/app-page"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
 import { fetchCatalogProductById } from "@/lib/actions/catalog"
+import { getMarketSignalForRelease } from "@/lib/db/queries/market"
+import type { ReleaseMarketSignalView, ReleaseMarketRegime, ReleaseMarketConfidence } from "@/lib/market/view-types"
 
 export const revalidate = 45
+
+function numberOrNull(value: string | number | null | undefined): number | null {
+  if (value == null) return null
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : null
+}
+
+function toMarketSignalView(signal: Awaited<ReturnType<typeof getMarketSignalForRelease>>): ReleaseMarketSignalView | null {
+  if (!signal) return null
+  const valueEUR = numberOrNull(signal.marketValueEUR)
+  if (valueEUR == null || valueEUR <= 0) return null
+
+  return {
+    marketRegime: signal.marketRegime as ReleaseMarketRegime,
+    valueEUR,
+    lowEUR: numberOrNull(signal.lowEUR),
+    highEUR: numberOrNull(signal.highEUR),
+    confidenceScore: signal.confidenceScore,
+    confidenceLabel: signal.confidenceLabel as ReleaseMarketConfidence,
+    retailAnchorEUR: numberOrNull(signal.retailAnchorEUR),
+    activeAnchorEUR: numberOrNull(signal.activeAnchorEUR),
+    soldAnchorEUR: numberOrNull(signal.soldAnchorEUR),
+    startingItemPriceEUR: numberOrNull(signal.startingItemPriceEUR),
+    currentOfferCount: signal.currentOfferCount,
+    soldUnits: signal.soldUnits,
+    trendPercent: numberOrNull(signal.trendPercent),
+    computedAt: signal.computedAt instanceof Date ? signal.computedAt.toISOString() : String(signal.computedAt),
+  }
+}
 
 export default async function ReleasePage({
   params,
@@ -12,10 +43,17 @@ export default async function ReleasePage({
 }) {
   const { id, releaseId } = await params
 
-  const product = await fetchCatalogProductById(id).catch((error) => {
-    console.error("Failed to load product for release detail:", error)
-    return null
-  })
+  const [product, dbMarketSignal] = await Promise.all([
+    fetchCatalogProductById(id).catch((error) => {
+      console.error("Failed to load product for release detail:", error)
+      return null
+    }),
+    getMarketSignalForRelease(releaseId).catch((error) => {
+      console.error("Failed to load R3 market signal for release detail:", error)
+      return null
+    }),
+  ])
+
   if (!product) return notFound()
 
   const release = product.releases.find((candidate) => candidate.id === releaseId)
@@ -23,7 +61,11 @@ export default async function ReleasePage({
 
   return (
     <AppPage>
-      <ReleaseDetailScreen product={product} release={release} />
+      <ReleaseDetailScreen
+        product={product}
+        release={release}
+        marketSignal={toMarketSignalView(dbMarketSignal)}
+      />
     </AppPage>
   )
 }
