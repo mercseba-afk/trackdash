@@ -257,9 +257,8 @@ function buildOfferRepresentatives(offers: CurrentOfferEvidence[]): {
 
 function anchorForOffers(reps: OfferRepresentative[]): number | null {
   // Market Value is the value of the collectible itself, not a destination-specific
-  // landed cost. Shipping remains stored and is used for acquisition ranking,
-  // starting-offer selection and confidence, but never gets added to the public
-  // retail/active market anchors.
+  // landed cost. Shipping remains stored and is used for acquisition context and
+  // confidence, but never gets added to the public retail/active market anchors.
   if (!reps.length) return null
   return round2(median(reps.map((rep) => rep.itemPriceEUR)))
 }
@@ -362,11 +361,14 @@ function channelWeightedMarketValue(input: {
 
 function chooseStartingOffer(reps: OfferRepresentative[]): StartingOffer | null {
   if (!reps.length) return null
-  const delivered = reps.filter((rep) => rep.costBasis === "delivered")
-  const pool = delivered.length ? delivered : reps
-  const selected = [...pool].sort((a, b) => {
-    const aCost = a.effectiveCostEUR ?? a.itemPriceEUR
-    const bCost = b.effectiveCostEUR ?? b.itemPriceEUR
+
+  // "A partire da" means the lowest current purchasable ITEM price. Shipping is
+  // preserved on the chosen offer for provenance/details, but never replaces the
+  // item price in the headline just because another source has known delivery.
+  const selected = [...reps].sort((a, b) => {
+    if (a.itemPriceEUR !== b.itemPriceEUR) return a.itemPriceEUR - b.itemPriceEUR
+    const aCost = a.effectiveCostEUR ?? Number.POSITIVE_INFINITY
+    const bCost = b.effectiveCostEUR ?? Number.POSITIVE_INFINITY
     if (aCost !== bCost) return aCost - bCost
     return a.stableId.localeCompare(b.stableId)
   })[0]
