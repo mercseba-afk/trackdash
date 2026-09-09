@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 import type { EvidenceGroupRepresentative, EvidenceSale, MarketCondition } from "./types"
 
 const DAY_MS = 86_400_000
+export const UNKNOWN_SELLER_PARTITION = "__unknown_seller__"
 
 function isoDateToMs(value: string): number {
   const ms = Date.parse(`${value}T00:00:00Z`)
@@ -28,30 +29,34 @@ function compareSales(a: EvidenceSale, b: EvidenceSale): number {
   return a.stableId.localeCompare(b.stableId)
 }
 
+function sellerPartition(sellerFingerprint: string | null): string {
+  return sellerFingerprint ?? UNKNOWN_SELLER_PARTITION
+}
+
 export function evidencePartitionKey(input: {
   releaseId: string
   condition: MarketCondition
   sourceId: string
-  sellerFingerprint: string
+  sellerFingerprint: string | null
 }): string {
-  return [input.releaseId, input.condition, input.sourceId, input.sellerFingerprint].join("|")
+  return [input.releaseId, input.condition, input.sourceId, sellerPartition(input.sellerFingerprint)].join("|")
 }
 
 export function makeEvidenceGroupKey(input: {
   releaseId: string
   condition: MarketCondition
   sourceId: string
-  sellerFingerprint: string
+  sellerFingerprint: string | null
   anchorDate: string
 }): string {
   const raw = [
     input.releaseId,
     input.condition,
     input.sourceId,
-    input.sellerFingerprint,
+    sellerPartition(input.sellerFingerprint),
     input.anchorDate,
   ].join("|")
-  return `eg:v1:${createHash("sha256").update(raw).digest("hex")}`
+  return `eg:v2:${createHash("sha256").update(raw).digest("hex")}`
 }
 
 export function assignEvidenceGroups(sales: EvidenceSale[]): Map<string, string | null> {
@@ -59,11 +64,6 @@ export function assignEvidenceGroups(sales: EvidenceSale[]): Map<string, string 
   const partitions = new Map<string, EvidenceSale[]>()
 
   for (const sale of sales) {
-    if (!sale.sellerFingerprint) {
-      result.set(sale.stableId, null)
-      continue
-    }
-
     const partition = evidencePartitionKey({
       releaseId: sale.releaseId,
       condition: sale.condition,
@@ -90,7 +90,7 @@ export function assignEvidenceGroups(sales: EvidenceSale[]): Map<string, string 
           releaseId: sale.releaseId,
           condition: sale.condition,
           sourceId: sale.sourceId,
-          sellerFingerprint: sale.sellerFingerprint!,
+          sellerFingerprint: sale.sellerFingerprint,
           anchorDate,
         })
       }
@@ -120,7 +120,7 @@ export function buildEvidenceGroupRepresentatives(sales: EvidenceSale[]): Eviden
       releaseId: first.releaseId,
       condition: first.condition,
       sourceId: first.sourceId,
-      sellerFingerprint: first.sellerFingerprint!,
+      sellerFingerprint: sellerPartition(first.sellerFingerprint),
       anchorDate: first.soldOn,
       representativeEUR: median(sorted.map((row) => row.normalizedPriceEUR!)),
       saleCount: sorted.length,
