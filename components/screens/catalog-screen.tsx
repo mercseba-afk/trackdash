@@ -223,7 +223,7 @@ export function CatalogScreen({
                 <div className="w-28 shrink-0 text-right">
                   {startingPrice != null ? (
                     <>
-                      <p className="text-[10px] text-muted-foreground">{it ? "A partire da" : "Starting from"}</p>
+                      <p className="text-[10px] text-muted-foreground">{it ? "Da" : "From"}</p>
                       <p className="text-sm font-semibold tabular-nums">{formatMoney(startingPrice)}</p>
                     </>
                   ) : (
