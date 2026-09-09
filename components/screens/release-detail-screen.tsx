@@ -21,10 +21,12 @@ export function ReleaseDetailScreen({
   product,
   release,
   marketSignal,
+  localizedDescription,
 }: {
   product: Product
   release: ProductRelease
   marketSignal?: ReleaseMarketSignalView | null
+  localizedDescription?: { en: string | null; it: string | null }
 }) {
   const { collection } = useStore()
   const { locale } = useI18n()
@@ -33,6 +35,9 @@ export function ReleaseDetailScreen({
   const mine = itemsForProduct(owned, product.id).filter((item) => item.release.id === release.id)
   const demoEstimate = getReleaseEstimate(product, release)
   const hasExactImage = (release.images?.length ?? 0) > 0
+  const publicDescription = it
+    ? localizedDescription?.it ?? localizedDescription?.en ?? product.description
+    : localizedDescription?.en ?? product.description
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,10 +58,11 @@ export function ReleaseDetailScreen({
               <Badge variant="outline">{releaseTypeLabel(release.releaseType, it)}</Badge>
               {release.isOriginal ? <Badge variant="outline">{it ? "Release originale" : "Original release"}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{it ? "Riedizione / edizione" : "Reissue / edition"}</Badge>}
               {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline">{it ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
+              <ProductionBadge status={release.productionStatus} it={it} />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{release.editionName}</h1>
             <p className="text-sm text-muted-foreground">{it ? "Release di" : "Release of"}{" "}<Link href={`/catalog/${product.id}`} className="font-medium text-foreground hover:text-brand hover:underline">{product.name}</Link></p>
-            {product.description ? <p className="leading-relaxed text-muted-foreground text-pretty">{product.description}</p> : null}
+            {publicDescription ? <p className="leading-relaxed text-muted-foreground text-pretty">{publicDescription}</p> : null}
           </div>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
@@ -106,8 +112,6 @@ export function ReleaseDetailScreen({
         </Card>
       </div>
 
-      {release.notes ? <Card><CardHeader><CardTitle className="text-base">{it ? "Note sulla release" : "Release notes"}</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{release.notes}</CardContent></Card> : null}
-
       {release.sources.length > 0 ? (
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2 text-base">{it ? "Fonti e verifica" : "Sources & verification"}<Badge variant="secondary">{release.sources.length}</Badge></CardTitle></CardHeader>
@@ -119,7 +123,6 @@ export function ReleaseDetailScreen({
                   {source.sourceUrl ? <a href={source.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline">{it ? "Apri fonte" : "Open source"} <ExternalLink className="size-3" /></a> : null}
                 </div>
                 {source.verifiedFields.length > 0 ? <p className="mt-2 text-xs text-muted-foreground">{it ? "Verifica" : "Verifies"}: {source.verifiedFields.map((field) => fieldLabel(field, it)).join(", ")}</p> : null}
-                {source.notes ? <p className="mt-1 text-xs text-muted-foreground">{source.notes}</p> : null}
               </div>
             ))}
           </CardContent>
@@ -127,6 +130,13 @@ export function ReleaseDetailScreen({
       ) : null}
     </div>
   )
+}
+
+function ProductionBadge({ status, it }: { status: ProductRelease["productionStatus"]; it: boolean }) {
+  if (status === "unknown") return null
+  if (status === "discontinued") return <Badge variant="secondary">{it ? "Fuori produzione" : "Discontinued"}</Badge>
+  if (status === "active") return <Badge variant="outline">{it ? "In produzione" : "In production"}</Badge>
+  return <Badge variant="outline">{it ? "Annunciata" : "Announced"}</Badge>
 }
 
 function Spec({ label, value }: { label: string; value: string }) { return <div className="flex flex-col gap-0.5"><span className="text-xs text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div> }
@@ -166,13 +176,9 @@ function editionTypeLabel(value: ProductRelease["editionType"], it: boolean): st
 }
 
 function productionStatusLabel(value: ProductRelease["productionStatus"], it: boolean): string {
-  if (!it) return humanize(value)
-  const labels: Record<ProductRelease["productionStatus"], string> = {
-    announced: "Annunciata",
-    active: "In produzione",
-    discontinued: "Fuori produzione",
-    unknown: "Da verificare",
-  }
+  const labels = it
+    ? { announced: "Annunciata", active: "In produzione", discontinued: "Fuori produzione", unknown: "Da verificare" }
+    : { announced: "Announced", active: "In production", discontinued: "Discontinued", unknown: "Status to verify" }
   return labels[value]
 }
 
@@ -214,6 +220,8 @@ function colorLabel(value: string | undefined, it: boolean): string {
     Silver: "Argento",
     Gold: "Oro",
     Clear: "Trasparente",
+    "Smoke Black": "Nero smoke",
+    "Silver Plated": "Cromato argento",
   }
   return labels[value] ?? value
 }

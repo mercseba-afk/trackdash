@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { AppPage } from "@/components/app-page"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
 import { fetchCatalogProductById } from "@/lib/actions/catalog"
+import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
 import { getMarketSignalForRelease } from "@/lib/db/queries/market"
 import type { ReleaseMarketSignalView, ReleaseMarketRegime, ReleaseMarketConfidence } from "@/lib/market/view-types"
 
@@ -43,13 +44,17 @@ export default async function ReleasePage({
 }) {
   const { id, releaseId } = await params
 
-  const [product, dbMarketSignal] = await Promise.all([
+  const [product, dbMarketSignal, localizedCopy] = await Promise.all([
     fetchCatalogProductById(id).catch((error) => {
       console.error("Failed to load product for release detail:", error)
       return null
     }),
     getMarketSignalForRelease(releaseId).catch((error) => {
       console.error("Failed to load R3 market signal for release detail:", error)
+      return null
+    }),
+    getCatalogLocalizedCopy(id).catch((error) => {
+      console.error("Failed to load localized release copy:", error)
       return null
     }),
   ])
@@ -64,6 +69,7 @@ export default async function ReleasePage({
       <ReleaseDetailScreen
         product={product}
         release={release}
+        localizedDescription={localizedCopy?.releases[releaseId]}
         marketSignal={toMarketSignalView(dbMarketSignal)}
       />
     </AppPage>

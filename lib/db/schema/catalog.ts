@@ -74,6 +74,7 @@ export const products = pgTable(
     originalReleaseYear: integer("original_release_year"), // first-ever release year of the model
     rarity: text("rarity").notNull(), // fallback rarity when a release doesn't set its own
     description: text("description"),
+    descriptionIt: text("description_it"),
     // The release considered authoritative for this model's identity —
     // normally the original historical release. Nullable: UNKNOWN >
     // INVENTED, never force an arbitrary release to be canonical merely to
@@ -157,6 +158,8 @@ export const productReleases = pgTable(
     countryMarket: text("country_market"),
     msrpJpy: numeric("msrp_jpy", { precision: 10, scale: 2 }),
     msrpEur: numeric("msrp_eur", { precision: 10, scale: 2 }),
+    description: text("description"),
+    descriptionIt: text("description_it"),
     notes: text("notes"),
     // COMPATIBILITY field (Catalog Model V2) — kept in sync with
     // productionStatus below (discontinued === productionStatus ===

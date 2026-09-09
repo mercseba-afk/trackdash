@@ -22,7 +22,15 @@ import { cn } from "@/lib/utils"
 
 type CommunityCount = { collectors: number; openToOffers: number }
 
-export function ProductDetailScreen({ product, related }: { product: Product; related: Product[] }) {
+export function ProductDetailScreen({
+  product,
+  related,
+  descriptionIt,
+}: {
+  product: Product
+  related: Product[]
+  descriptionIt?: string | null
+}) {
   const { collection, isInWishlist } = useStore()
   const { locale, t } = useI18n()
   const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
@@ -32,6 +40,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
   const owned = enrichCollection(collection)
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
+  const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
 
   React.useEffect(() => {
     let cancelled = false
@@ -57,7 +66,7 @@ export function ProductDetailScreen({ product, related }: { product: Product; re
             <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{product.series}</Badge></div>
             <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{product.name}</h1>
             {product.japaneseName && <p className="-mt-1 text-sm text-muted-foreground">{product.japaneseName}</p>}
-            <p className="leading-relaxed text-muted-foreground text-pretty">{product.description}</p>
+            {publicDescription ? <p className="leading-relaxed text-muted-foreground text-pretty">{publicDescription}</p> : null}
             <Link href="#releases" className="group inline-flex w-fit items-center gap-2 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-brand/10">
               <span className="font-semibold text-brand">{product.releases.length}</span>
               <span>{locale === "it" ? "Release ed edizioni" : product.releases.length === 1 ? "Release" : "Releases & editions"}</span>
@@ -132,12 +141,12 @@ function ReleaseRow({ product, release, owned, community }: { product: Product; 
         <div className="min-w-0 sm:self-start sm:pt-0.5">
           <Link href={releaseHref} className="font-medium leading-snug hover:text-brand hover:underline">{release.editionName}</Link>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}</p>
-          {release.notes ? <p className="mt-1 hidden truncate text-xs text-muted-foreground sm:block" title={release.notes}>{release.notes}</p> : null}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">{release.isOriginal ? <Badge variant="outline">{t("common.original")}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{t("common.reissue")}</Badge>}</div>
         </div>
         <div className="col-span-2 flex flex-col gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-2">
           <div className="flex flex-wrap items-center gap-1.5">
             {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline" className="text-[10px] font-medium">{locale === "it" ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
+            <ProductionBadge release={release} locale={locale} />
           </div>
           {community && community.collectors > 0 ? (
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
@@ -156,6 +165,18 @@ function ReleaseRow({ product, release, owned, community }: { product: Product; 
       </div>
     </div>
   )
+}
+
+function ProductionBadge({ release, locale }: { release: ProductRelease; locale: string }) {
+  if (release.productionStatus === "unknown") return null
+  const it = locale === "it"
+  if (release.productionStatus === "discontinued") {
+    return <Badge variant="secondary" className="text-[10px] font-semibold">{it ? "Fuori produzione" : "Discontinued"}</Badge>
+  }
+  if (release.productionStatus === "active") {
+    return <Badge variant="outline" className="text-[10px] font-medium">{it ? "In produzione" : "In production"}</Badge>
+  }
+  return <Badge variant="outline" className="text-[10px] font-medium">{it ? "Annunciata" : "Announced"}</Badge>
 }
 
 function sortReleasesForDisplay(releases: ProductRelease[]): ProductRelease[] {
