@@ -81,9 +81,15 @@ test("ambiguous Japanese condition forces review", () => {
   assert.ok(result.reasonCodes.includes("AMBIGUOUS_CONDITION"))
 })
 
-test("unknown seller yields null evidence group", () => {
-  const map = assignEvidenceGroups([{ stableId: "x", releaseId: "r", condition: "new_complete_unbuilt", sourceId: "s", sellerFingerprint: null, soldOn: "2026-01-01" }])
-  assert.equal(map.get("x"), null)
+test("unknown seller is conservatively grouped instead of discarded", () => {
+  const map = assignEvidenceGroups([
+    { stableId: "x", releaseId: "r", condition: "unknown", sourceId: "s", sellerFingerprint: null, soldOn: "2026-01-01" },
+    { stableId: "y", releaseId: "r", condition: "unknown", sourceId: "s", sellerFingerprint: null, soldOn: "2026-01-05" },
+    { stableId: "z", releaseId: "r", condition: "unknown", sourceId: "s", sellerFingerprint: null, soldOn: "2026-01-08" },
+  ])
+  assert.ok(map.get("x"))
+  assert.equal(map.get("x"), map.get("y"))
+  assert.notEqual(map.get("x"), map.get("z"))
 })
 
 test("7-day fixed anchor is not rolling chain", () => {
@@ -97,7 +103,7 @@ test("7-day fixed anchor is not rolling chain", () => {
   assert.notEqual(map.get("a"), map.get("c"))
 })
 
-test("shipping unknown fails closed", () => {
+test("unknown shipping becomes indicative usable market evidence", () => {
   const candidate = classifyObservation({
     sourceRecordKey: "6",
     explicitReleaseId: "d-2010",
@@ -119,11 +125,65 @@ test("shipping unknown fails closed", () => {
   assert.equal(promotion.ok, true)
   if (promotion.ok) {
     assert.equal(promotion.point.valuationPrice, null)
-    assert.equal(promotion.point.valuationEligible, false)
+    assert.equal(promotion.point.marketPriceEUR, 40)
+    assert.equal(promotion.point.evidenceGrade, "indicative")
+    assert.ok(promotion.point.qualityFlags.includes("shipping_unknown"))
+    assert.equal(promotion.point.valuationEligible, true)
   }
 })
 
-test("non-EUR clean sale requires FX provenance", () => {
+test("unknown seller and completeness no longer block a real sale", () => {
+  const candidate = classifyObservation({
+    sourceRecordKey: "6b",
+    explicitReleaseId: "d-2010",
+    identityReviewed: true,
+    matchEvidence: ["manual_override"],
+    observationType: "auction_awarded",
+    price: 55,
+    currency: "EUR",
+    shippingBasis: "buyer_paid",
+    condition: "unknown",
+    isComplete: null,
+    isLot: false,
+    quantity: 1,
+    sellerFingerprint: null,
+    soldOn: "2026-01-02",
+  }, releases)
+  candidate.evidenceGroupKey = "eg2"
+  const promotion = buildPricePointDraft(candidate)
+  assert.equal(promotion.ok, true)
+  if (promotion.ok) {
+    assert.equal(promotion.point.marketPriceEUR, 55)
+    assert.equal(promotion.point.evidenceGrade, "indicative")
+    assert.ok(promotion.point.qualityFlags.includes("seller_unknown"))
+    assert.ok(promotion.point.qualityFlags.includes("completeness_unconfirmed"))
+    assert.ok(promotion.point.qualityFlags.includes("condition_inferred"))
+    assert.equal(promotion.point.valuationEligible, true)
+  }
+})
+
+test("known incomplete sale remains a hard blocker", () => {
+  const candidate = classifyObservation({
+    sourceRecordKey: "6c",
+    explicitReleaseId: "d-2010",
+    identityReviewed: true,
+    matchEvidence: ["manual_override"],
+    observationType: "sold_confirmed",
+    price: 25,
+    currency: "EUR",
+    shippingBasis: "excluded",
+    condition: "incomplete_parts_custom",
+    isComplete: false,
+    isLot: false,
+    quantity: 1,
+    soldOn: "2026-01-03",
+  }, releases)
+  candidate.evidenceGroupKey = "eg3"
+  const promotion = buildPricePointDraft(candidate)
+  assert.equal(promotion.ok, false)
+})
+
+test("non-EUR comparable sale requires FX provenance", () => {
   const candidate = classifyObservation({
     sourceRecordKey: "7",
     explicitReleaseId: "d-2010",
@@ -132,12 +192,12 @@ test("non-EUR clean sale requires FX provenance", () => {
     observationType: "sold_confirmed",
     price: 5000,
     currency: "JPY",
-    shippingBasis: "excluded",
-    condition: "new_complete_unbuilt",
-    isComplete: true,
+    shippingBasis: "unknown",
+    condition: "unknown",
+    isComplete: null,
     isLot: false,
     quantity: 1,
-    sellerFingerprint: "seller",
+    sellerFingerprint: null,
     soldOn: "2026-01-01",
   }, releases)
   candidate.evidenceGroupKey = "eg"
@@ -153,16 +213,20 @@ test("outlier requires at least three prior independent groups", () => {
 function points(count, startValue = 10) {
   return Array.from({ length: count }, (_, index) => ({
     stableId: `p-${index}`,
+    sourceId: index % 2 === 0 ? "source-a" : "source-b",
     soldOn: `2026-08-${String(index + 1).padStart(2, "0")}`,
     normalizedPriceEUR: startValue + index,
     evidenceGroupKey: `g-${index}`,
+    evidenceGrade: index < Math.ceil(count / 2) ? "verified" : "indicative",
   }))
 }
 
-test("valuation tier 1 = last verified sale", () => {
+test("valuation tier 1 = latest usable sale", () => {
   const estimate = computeMarketEstimate(points(1), "2026-09-01")
   assert.equal(estimate?.displayMode, "last_sale")
   assert.equal(estimate?.value, 10)
+  assert.equal(estimate?.verifiedObservationCount, 1)
+  assert.equal(estimate?.qualityMix, "verified_only")
 })
 
 test("valuation tier 2-4 = cleaned min/max range", () => {
@@ -171,6 +235,10 @@ test("valuation tier 2-4 = cleaned min/max range", () => {
   assert.equal(estimate?.low, 10)
   assert.equal(estimate?.high, 13)
   assert.equal(estimate?.value, null)
+  assert.equal(estimate?.verifiedObservationCount, 2)
+  assert.equal(estimate?.indicativeObservationCount, 2)
+  assert.equal(estimate?.sourceCount, 2)
+  assert.equal(estimate?.qualityMix, "mixed")
 })
 
 test("valuation tier 5-9 = median + cleaned min/max", () => {
@@ -186,6 +254,7 @@ test("valuation >=10 = median + percentile_cont Q1/Q3", () => {
   assert.equal(estimate?.value, 14.5)
   assert.equal(estimate?.low, 12.25)
   assert.equal(estimate?.high, 16.75)
+  assert.equal(estimate?.algorithmVersion, "v2")
 })
 
 console.log("MARKET PIPELINE TEST PASSED")

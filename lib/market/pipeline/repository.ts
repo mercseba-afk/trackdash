@@ -5,8 +5,12 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import type {
   CatalogReleaseIdentity,
   ClassifiedCandidate,
+  EvidenceGrade,
+  EvidenceQualityMix,
   MarketCondition,
   MarketEstimateDraft,
+  MarketQualityFlag,
+  MonthlySourceStatDraft,
   PricePointDraft,
 } from "./types"
 
@@ -41,6 +45,9 @@ export interface StoredPricePoint {
   sourceId: string
   condition: MarketCondition
   normalizedPriceEUR: number | null
+  marketPriceEUR: number | null
+  evidenceGrade: EvidenceGrade
+  qualityFlags: MarketQualityFlag[]
   evidenceGroupKey: string | null
   valuationEligible: boolean
   status: "active" | "excluded" | "reversed"
@@ -51,7 +58,7 @@ export interface StoredPricePoint {
 
 export interface GroupingEvidenceRow extends StoredPricePoint {
   sourceRecordKey: string
-  sellerFingerprint: string
+  sellerFingerprint: string | null
 }
 
 export interface StoredEstimate {
@@ -65,6 +72,10 @@ export interface StoredEstimate {
   rangeMethod: "cleaned_min_max" | "q1_q3" | null
   sampleSize: number
   independentEvidenceCount: number
+  verifiedObservationCount: number
+  indicativeObservationCount: number
+  sourceCount: number
+  qualityMix: EvidenceQualityMix
   windowDays: 365 | 730
   lowestCurrentAsk: number | null
   lastVerifiedSale: number | null
@@ -74,15 +85,18 @@ export interface StoredEstimate {
   trendWindowDays: 90 | 365 | null
   lastScannedAt: string | null
   lastValuationChangeAt: string | null
+  algorithmVersion: string
   computedAt: string
 }
 
 export interface ValuationPointRow {
   stableId: string
+  sourceId: string
   soldOn: string
   soldAt: string | null
   normalizedPriceEUR: number
   evidenceGroupKey: string
+  evidenceGrade: EvidenceGrade
 }
 
 function n(value: unknown): number | null {
@@ -120,6 +134,9 @@ function mapPoint(row: any): StoredPricePoint {
     sourceId: row.source_id,
     condition: row.condition,
     normalizedPriceEUR: n(row.normalized_price_eur),
+    marketPriceEUR: n(row.market_price_eur),
+    evidenceGrade: row.evidence_grade ?? "indicative",
+    qualityFlags: row.quality_flags ?? [],
     evidenceGroupKey: row.evidence_group_key,
     valuationEligible: row.valuation_eligible,
     status: row.status,
@@ -188,9 +205,6 @@ export class MarketPipelineRepository {
     originalRecordId: string
     excludeCandidateId?: string | null
   }): Promise<StoredCandidate | null> {
-    // Exact original-event identity is stronger than adapter identity. Check it
-    // across all candidates, including another manual row in the same source,
-    // so a mistaken alternate sourceRecordKey cannot double-count one sale.
     let query = this.client
       .from("market_candidates")
       .select("id,source_id,source_record_key,resolved_release_id,condition,seller_fingerprint,evidence_group_key,decision,reason_codes,needs_revalidation,observation_type,sold_on")
@@ -250,10 +264,6 @@ export class MarketPipelineRepository {
       updated_at: now,
     }
 
-    // Intentionally omit first_observed_at, review_notes, evidence_group_key and
-    // needs_revalidation. Defaults fill them on INSERT; on conflict the existing
-    // audit/review state survives, while the DB trigger remains the only authority
-    // that can automatically raise needs_revalidation after a Release correction.
     const { data, error } = await this.client
       .from("market_candidates")
       .upsert(payload, { onConflict: "source_id,source_record_key" })
@@ -291,7 +301,7 @@ export class MarketPipelineRepository {
   async getCandidatePoint(candidateId: string): Promise<StoredPricePoint | null> {
     const { data, error } = await this.client
       .from("price_points")
-      .select("id,candidate_id,release_id,source_id,condition,normalized_price_eur,evidence_group_key,valuation_eligible,status,needs_revalidation,sold_on,sold_at")
+      .select("id,candidate_id,release_id,source_id,condition,normalized_price_eur,market_price_eur,evidence_grade,quality_flags,evidence_group_key,valuation_eligible,status,needs_revalidation,sold_on,sold_at")
       .eq("candidate_id", candidateId)
       .maybeSingle()
     fail(error, "load candidate price point")
@@ -302,46 +312,51 @@ export class MarketPipelineRepository {
     releaseId: string
     condition: MarketCondition
     sourceId: string
-    sellerFingerprint: string
+    sellerFingerprint: string | null
   }): Promise<GroupingEvidenceRow[]> {
     const { data: pointRows, error: pointError } = await this.client
       .from("price_points")
-      .select("id,candidate_id,release_id,source_id,condition,normalized_price_eur,evidence_group_key,valuation_eligible,status,needs_revalidation,sold_on,sold_at")
+      .select("id,candidate_id,release_id,source_id,condition,normalized_price_eur,market_price_eur,evidence_grade,quality_flags,evidence_group_key,valuation_eligible,status,needs_revalidation,sold_on,sold_at")
       .eq("release_id", input.releaseId)
       .eq("condition", input.condition)
       .eq("source_id", input.sourceId)
       .eq("status", "active")
       .eq("needs_revalidation", false)
-      .not("normalized_price_eur", "is", null)
+      .not("market_price_eur", "is", null)
     fail(pointError, "load grouping price points")
 
     const points = (pointRows ?? []).map(mapPoint)
     if (!points.length) return []
 
     const candidateIds = points.map((row) => row.candidateId)
-    const { data: candidateRows, error: candidateError } = await this.client
+    let candidateQuery = this.client
       .from("market_candidates")
       .select("id,source_record_key,seller_fingerprint,decision,reason_codes")
       .in("id", candidateIds)
-      .eq("seller_fingerprint", input.sellerFingerprint)
+
+    candidateQuery = input.sellerFingerprint == null
+      ? candidateQuery.is("seller_fingerprint", null)
+      : candidateQuery.eq("seller_fingerprint", input.sellerFingerprint)
+
+    const { data: candidateRows, error: candidateError } = await candidateQuery
     fail(candidateError, "load grouping candidate identities")
 
     const candidates = new Map((candidateRows ?? []).map((row: any) => [row.id, row]))
     return points.flatMap((point) => {
       const candidate: any = candidates.get(point.candidateId)
-      if (!candidate?.seller_fingerprint) return []
+      if (!candidate) return []
 
-      // A flagged outlier stays outside valuation, but it still belongs to the
-      // seller's fixed-anchor temporal partition. Otherwise a later sale could
-      // create a fake extra independent group simply because the anchor was in
-      // review. Other disabled/review states do not participate.
       const isPendingOutlier =
         candidate.decision === "needs_review" &&
         Array.isArray(candidate.reason_codes) &&
         candidate.reason_codes.includes("POSSIBLE_OUTLIER")
       if (!point.valuationEligible && !isPendingOutlier) return []
 
-      return [{ ...point, sourceRecordKey: candidate.source_record_key, sellerFingerprint: candidate.seller_fingerprint }]
+      return [{
+        ...point,
+        sourceRecordKey: candidate.source_record_key,
+        sellerFingerprint: candidate.seller_fingerprint ?? null,
+      }]
     })
   }
 
@@ -398,6 +413,8 @@ export class MarketPipelineRepository {
       shipping_basis: p.shippingBasis,
       valuation_price: p.valuationPrice,
       normalized_price_eur: p.normalizedPriceEUR,
+      market_price_eur: p.marketPriceEUR,
+      market_price_basis: p.marketPriceBasis,
       fx_rate_to_eur: p.fxRateToEUR,
       fx_rate_date: p.fxRateDate,
       inner_bags_sealed: p.innerBagsSealed,
@@ -408,6 +425,8 @@ export class MarketPipelineRepository {
       match_confidence: p.matchConfidence,
       match_evidence: p.matchEvidence,
       evidence_group_key: p.evidenceGroupKey,
+      evidence_grade: p.evidenceGrade,
+      quality_flags: p.qualityFlags,
       valuation_eligible: p.valuationEligible,
       sold_at: p.soldAt,
       sold_on: p.soldOn,
@@ -415,13 +434,10 @@ export class MarketPipelineRepository {
       updated_at: new Date().toISOString(),
     }
 
-    // status and needs_revalidation are intentionally not overwritten on
-    // conflict. A reversed/excluded point cannot be silently reactivated, and
-    // a Release-correction trigger cannot be bypassed by a routine upsert.
     const { data, error } = await this.client
       .from("price_points")
       .upsert(payload, { onConflict: "candidate_id" })
-      .select("id,candidate_id,release_id,source_id,condition,normalized_price_eur,evidence_group_key,valuation_eligible,status,needs_revalidation,sold_on,sold_at")
+      .select("id,candidate_id,release_id,source_id,condition,normalized_price_eur,market_price_eur,evidence_grade,quality_flags,evidence_group_key,valuation_eligible,status,needs_revalidation,sold_on,sold_at")
       .single()
     fail(error, "upsert price point")
     return mapPoint(data)
@@ -430,13 +446,13 @@ export class MarketPipelineRepository {
   async listValuationPoints(releaseId: string, condition: MarketCondition): Promise<ValuationPointRow[]> {
     const { data: pointRows, error: pointError } = await this.client
       .from("price_points")
-      .select("candidate_id,source_id,normalized_price_eur,evidence_group_key,sold_on,sold_at")
+      .select("candidate_id,source_id,market_price_eur,evidence_grade,evidence_group_key,sold_on,sold_at")
       .eq("release_id", releaseId)
       .eq("condition", condition)
       .eq("valuation_eligible", true)
       .eq("status", "active")
       .eq("needs_revalidation", false)
-      .not("normalized_price_eur", "is", null)
+      .not("market_price_eur", "is", null)
       .not("evidence_group_key", "is", null)
     fail(pointError, "load valuation points")
 
@@ -453,17 +469,16 @@ export class MarketPipelineRepository {
     const sourceRecordKeys = new Map((candidateRows ?? []).map((row: any) => [row.id, row.source_record_key]))
     return rows.flatMap((row: any) => {
       const sourceRecordKey = sourceRecordKeys.get(row.candidate_id)
-      const normalized = n(row.normalized_price_eur)
-      if (!sourceRecordKey || normalized == null || !row.evidence_group_key) return []
+      const marketPrice = n(row.market_price_eur)
+      if (!sourceRecordKey || marketPrice == null || !row.evidence_group_key) return []
       return [{
-        // source_record_key is unique only within one source. Include source_id
-        // so deterministic ordering/filtering remains collision-safe when more
-        // adapters are eventually enabled.
         stableId: `${row.source_id}|${sourceRecordKey}`,
+        sourceId: row.source_id,
         soldOn: row.sold_on,
         soldAt: row.sold_at,
-        normalizedPriceEUR: normalized,
+        normalizedPriceEUR: marketPrice,
         evidenceGroupKey: row.evidence_group_key,
+        evidenceGrade: row.evidence_grade ?? "indicative",
       }]
     })
   }
@@ -471,7 +486,7 @@ export class MarketPipelineRepository {
   async getEstimate(releaseId: string, condition: MarketCondition): Promise<StoredEstimate | null> {
     const { data, error } = await this.client
       .from("market_estimates")
-      .select("release_id,condition,display_mode,value,low,high,median,range_method,sample_size,independent_evidence_count,window_days,lowest_current_ask,last_verified_sale,last_verified_sale_at,last_verified_sale_on,trend_percent,trend_window_days,last_scanned_at,last_valuation_change_at,computed_at")
+      .select("release_id,condition,display_mode,value,low,high,median,range_method,sample_size,independent_evidence_count,verified_observation_count,indicative_observation_count,source_count,quality_mix,window_days,lowest_current_ask,last_verified_sale,last_verified_sale_at,last_verified_sale_on,trend_percent,trend_window_days,last_scanned_at,last_valuation_change_at,algorithm_version,computed_at")
       .eq("release_id", releaseId)
       .eq("condition", condition)
       .maybeSingle()
@@ -489,6 +504,10 @@ export class MarketPipelineRepository {
       rangeMethod: data.range_method,
       sampleSize: data.sample_size,
       independentEvidenceCount: data.independent_evidence_count,
+      verifiedObservationCount: data.verified_observation_count,
+      indicativeObservationCount: data.indicative_observation_count,
+      sourceCount: data.source_count,
+      qualityMix: data.quality_mix,
       windowDays: data.window_days,
       lowestCurrentAsk: n(data.lowest_current_ask),
       lastVerifiedSale: n(data.last_verified_sale),
@@ -498,6 +517,7 @@ export class MarketPipelineRepository {
       trendWindowDays: data.trend_window_days,
       lastScannedAt: data.last_scanned_at,
       lastValuationChangeAt: data.last_valuation_change_at,
+      algorithmVersion: data.algorithm_version,
       computedAt: data.computed_at,
     }
   }
@@ -523,6 +543,10 @@ export class MarketPipelineRepository {
       range_method: d.rangeMethod,
       sample_size: d.sampleSize,
       independent_evidence_count: d.independentEvidenceCount,
+      verified_observation_count: d.verifiedObservationCount,
+      indicative_observation_count: d.indicativeObservationCount,
+      source_count: d.sourceCount,
+      quality_mix: d.qualityMix,
       window_days: d.windowDays,
       lowest_current_ask: input.previous?.lowestCurrentAsk ?? null,
       last_verified_sale: d.lastVerifiedSale,
@@ -573,9 +597,14 @@ export class MarketPipelineRepository {
         median: estimate.median,
         range_method: estimate.rangeMethod,
         currency: "EUR",
+        sample_size: estimate.sampleSize,
         independent_evidence_count: estimate.independentEvidenceCount,
+        verified_observation_count: estimate.verifiedObservationCount,
+        indicative_observation_count: estimate.indicativeObservationCount,
+        source_count: estimate.sourceCount,
+        quality_mix: estimate.qualityMix,
         window_days: estimate.windowDays,
-        algorithm_version: "v1",
+        algorithm_version: estimate.algorithmVersion,
         recorded_at: new Date().toISOString(),
       },
       { onConflict: "release_id,condition,snapshot_period" },
@@ -583,10 +612,38 @@ export class MarketPipelineRepository {
     fail(error, "record market value snapshot")
     return true
   }
+
+  async upsertMonthlySourceStat(draft: MonthlySourceStatDraft): Promise<void> {
+    const { error } = await this.client.from("market_monthly_source_stats").upsert(
+      {
+        release_id: draft.releaseId,
+        source_id: draft.sourceId,
+        month: draft.month,
+        condition: draft.condition,
+        query_key: draft.queryKey,
+        query_description: draft.queryDescription ?? null,
+        sales_count: draft.salesCount,
+        seller_count: draft.sellerCount ?? null,
+        average_price: draft.averagePrice,
+        low_price: draft.lowPrice ?? null,
+        high_price: draft.highPrice ?? null,
+        average_shipping: draft.averageShipping ?? null,
+        currency: draft.currency.toUpperCase(),
+        market_average_eur: draft.marketAverageEUR ?? null,
+        fx_rate_to_eur: draft.fxRateToEUR ?? null,
+        fx_rate_date: draft.fxRateDate ?? null,
+        evidence_grade: draft.evidenceGrade,
+        provenance_url: draft.provenanceUrl ?? null,
+        raw_payload: draft.rawPayload ?? null,
+        captured_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "release_id,source_id,month,condition,query_key" },
+    )
+    fail(error, "upsert monthly source statistics")
+  }
 }
 
-// Structural store contract used by the pure orchestrator and its in-memory
-// tests. Production still uses MarketPipelineRepository above.
 export type MarketPipelineStore = Pick<
   MarketPipelineRepository,
   | "listCatalogReleases"

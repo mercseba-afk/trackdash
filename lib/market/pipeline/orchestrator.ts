@@ -26,8 +26,6 @@ import { computeMarketEstimate } from "./valuation"
 export const MANUAL_VERIFIED_SOURCE = {
   slug: "manual_verified_sales",
   name: "Manual verified sales",
-  // Compatibility descriptor only; source_type intentionally has no frozen v1
-  // vocabulary. ingestion_mode/observation_type carry the actual semantics.
   sourceType: "manual",
   origin: "external_market" as const,
   ingestionMode: "manual" as const,
@@ -69,19 +67,16 @@ export function candidateStateHash(candidate: ClassifiedCandidate): string {
   return createHash("sha256").update(JSON.stringify(stableValue(state))).digest("hex")
 }
 
+// R2 keeps Release identity strict but treats missing secondary metadata as a
+// quality downgrade. buildPricePointDraft has already rejected known lots,
+// multi-quantity, built/incomplete items and missing FX provenance. If it has a
+// positive comparable market amount and a sale date, it may enter grouping.
 function otherwiseGroupingEligible(candidate: ClassifiedCandidate, point: PricePointDraft): boolean {
   return Boolean(
-    candidate.condition === "new_complete_unbuilt" &&
-      candidate.isComplete === true &&
-      candidate.isLot === false &&
-      candidate.quantity === 1 &&
-      candidate.sellerFingerprint &&
-      ["excluded", "included_exact", "buyer_paid"].includes(candidate.shippingBasis) &&
-      point.valuationPrice != null &&
-      point.valuationPrice > 0 &&
-      point.normalizedPriceEUR != null &&
-      point.normalizedPriceEUR > 0 &&
-      candidate.soldOn,
+    candidate.soldOn &&
+      !candidate.needsRevalidation &&
+      point.marketPriceEUR != null &&
+      point.marketPriceEUR > 0,
   )
 }
 
@@ -94,7 +89,9 @@ function toEvidenceSale(row: GroupingEvidenceRow): EvidenceSale {
     sellerFingerprint: row.sellerFingerprint,
     soldOn: row.soldOn,
     soldAt: row.soldAt,
-    normalizedPriceEUR: row.normalizedPriceEUR,
+    // EvidenceSale keeps the legacy field name for compatibility, but R2 feeds
+    // it the broader comparable market amount rather than strict normalized price.
+    normalizedPriceEUR: row.marketPriceEUR,
     evidenceGroupKey: row.evidenceGroupKey,
   }
 }
@@ -112,9 +109,6 @@ interface ComparableGroup {
   anchorDate: string
 }
 
-// Outliers are evaluated against all prior independent evidence groups for the
-// comparable Release+condition set. Group construction itself still remains
-// Release+condition+source+seller+fixed-anchor-7-days.
 function comparableGroups(points: ValuationPointRow[]): ComparableGroup[] {
   const buckets = new Map<string, { values: number[]; anchorDate: string }>()
 
@@ -149,12 +143,17 @@ function materialEstimateChanged(previous: StoredEstimate | null, next: MarketEs
     previous.rangeMethod !== next.rangeMethod ||
     previous.sampleSize !== next.sampleSize ||
     previous.independentEvidenceCount !== next.independentEvidenceCount ||
+    previous.verifiedObservationCount !== next.verifiedObservationCount ||
+    previous.indicativeObservationCount !== next.indicativeObservationCount ||
+    previous.sourceCount !== next.sourceCount ||
+    previous.qualityMix !== next.qualityMix ||
     previous.windowDays !== next.windowDays ||
     previous.lastVerifiedSale !== next.lastVerifiedSale ||
     previous.lastVerifiedSaleOn !== next.lastVerifiedSaleOn ||
     previous.lastVerifiedSaleAt !== next.lastVerifiedSaleAt ||
     previous.trendPercent !== next.trendPercent ||
-    previous.trendWindowDays !== next.trendWindowDays
+    previous.trendWindowDays !== next.trendWindowDays ||
+    previous.algorithmVersion !== next.algorithmVersion
   )
 }
 
@@ -171,7 +170,6 @@ async function regroupExistingPartition(
     sellerFingerprint: string | null
   },
 ): Promise<void> {
-  if (!input.sellerFingerprint) return
   const existing = await repo.listGroupingEvidence({
     releaseId: input.releaseId,
     condition: input.condition,
@@ -276,10 +274,6 @@ export async function ingestManualVerifiedSaleWithStore(
   addAffected(affected, stored.resolvedReleaseId, stored.condition)
   const existingPoint = await repo.getCandidatePoint(stored.id)
 
-  // Human-review state is sticky. Re-importing the same source record may
-  // refresh its observed facts, but it must never silently approve an outlier
-  // that was already routed to review. Only an explicit review action may clear
-  // POSSIBLE_OUTLIER. Exact duplicates/rejections still take precedence.
   const pendingOutlierReview = Boolean(
     previous?.decision === "needs_review" &&
       previous.reasonCodes.includes("POSSIBLE_OUTLIER") &&
@@ -294,7 +288,7 @@ export async function ingestManualVerifiedSaleWithStore(
     })
     if (existingPoint) await repo.disableCandidatePoint(stored.id)
 
-    if (previous?.resolvedReleaseId && previous.sellerFingerprint) {
+    if (previous?.resolvedReleaseId) {
       await regroupExistingPartition(repo, {
         releaseId: previous.resolvedReleaseId,
         condition: previous.condition,
@@ -316,7 +310,7 @@ export async function ingestManualVerifiedSaleWithStore(
   if (candidate.decision !== "accepted") {
     if (existingPoint) await repo.disableCandidatePoint(stored.id)
 
-    if (previous?.resolvedReleaseId && previous.sellerFingerprint) {
+    if (previous?.resolvedReleaseId) {
       await regroupExistingPartition(repo, {
         releaseId: previous.resolvedReleaseId,
         condition: previous.condition,
@@ -379,11 +373,7 @@ export async function ingestManualVerifiedSaleWithStore(
   let evidenceGroupKey: string | null = null
   let possibleOutlier = false
 
-  if (
-    stored.resolvedReleaseId &&
-    candidate.sellerFingerprint &&
-    otherwiseGroupingEligible(candidate, provisional.point)
-  ) {
+  if (stored.resolvedReleaseId && otherwiseGroupingEligible(candidate, provisional.point)) {
     const existing = (await repo.listGroupingEvidence({
       releaseId: stored.resolvedReleaseId,
       condition: candidate.condition,
@@ -399,7 +389,7 @@ export async function ingestManualVerifiedSaleWithStore(
       sellerFingerprint: candidate.sellerFingerprint,
       soldOn: candidate.soldOn!,
       soldAt: candidate.soldAt,
-      normalizedPriceEUR: provisional.point.normalizedPriceEUR,
+      normalizedPriceEUR: provisional.point.marketPriceEUR,
     }
 
     const allSales = [...existing.map(toEvidenceSale), newSale]
@@ -443,9 +433,6 @@ export async function ingestManualVerifiedSaleWithStore(
   }
 
   if (stored.needsRevalidation && canCompleteRevalidation) {
-    // The Release-change trigger already failed the linked point closed. Clear
-    // candidate/point revalidation only after the reviewed identity and current
-    // normalization/grouping rules have completed successfully.
     stored = await repo.patchCandidate(stored.id, {
       evidenceGroupKey,
       needsRevalidation: false,
@@ -479,12 +466,8 @@ export async function ingestManualVerifiedSaleWithStore(
     point: pointDraft,
   })
 
-  // If this UPSERT corrected Release/condition/seller partition membership,
-  // rebuild the old partition as well. Removing an early sale may shift every
-  // fixed-anchor 7-day key that follows it.
   if (
     previous?.resolvedReleaseId &&
-    previous.sellerFingerprint &&
     (
       previous.resolvedReleaseId !== stored.resolvedReleaseId ||
       previous.condition !== stored.condition ||

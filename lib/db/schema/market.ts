@@ -1,17 +1,8 @@
-// Price Intelligence v1 schema.
+// Price Intelligence R2 schema.
 //
-// Storage layers:
-//   price_sources              — source registry; automation disabled until verified.
-//   market_scan_runs/targets   — service-only scanner audit/scheduling state.
-//   market_candidates          — service-only CURRENT source records + review/audit evidence.
-//   price_points               — normalized completed-sale observations; never hard-deleted.
-//   market_estimates           — current sanitized derived cache, fully recomputable.
-//   market_value_history       — sanitized derived snapshots.
-//   market_review_digests      — thin service-only send-log.
-//
-// Core benchmark: New / Unused + Complete + Unbuilt.
-// UNKNOWN > INVENTED: ambiguous identity, condition, sale timing, seller independence,
-// shipping, or FX never becomes valuation-eligible automatically.
+// Release identity remains strict. Completed-sale evidence may be verified or
+// indicative; missing secondary metadata lowers evidence quality instead of
+// discarding otherwise useful market observations.
 
 import { relations, sql } from "drizzle-orm"
 import {
@@ -188,10 +179,7 @@ export const marketCandidates = pgTable(
     check("market_candidates_shipping_cost_check", sql`${table.shippingCost} is null or ${table.shippingCost} >= 0`),
     check("market_candidates_quantity_check", sql`${table.quantity} is null or ${table.quantity} >= 1`),
     check("market_candidates_observation_time_check", sql`${table.lastObservedAt} >= ${table.firstObservedAt}`),
-    check(
-      "market_candidates_shipping_basis_check",
-      sql`${table.shippingBasis} in ('excluded', 'included_exact', 'included_unknown', 'buyer_paid', 'unknown')`,
-    ),
+    check("market_candidates_shipping_basis_check", sql`${table.shippingBasis} in ('excluded', 'included_exact', 'included_unknown', 'buyer_paid', 'unknown')`),
     check(
       "market_candidates_observation_type_check",
       sql`${table.observationType} in (
@@ -200,16 +188,10 @@ export const marketCandidates = pgTable(
         'msrp_reference', 'unknown'
       )`,
     ),
-    check(
-      "market_candidates_condition_check",
-      sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`,
-    ),
+    check("market_candidates_condition_check", sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`),
     check("market_candidates_inner_bags_check", sql`${table.innerBagsSealed} in ('yes', 'no', 'unknown')`),
     check("market_candidates_box_condition_check", sql`${table.boxCondition} in ('normal', 'significantly_damaged', 'unknown')`),
-    check(
-      "market_candidates_match_confidence_check",
-      sql`${table.matchConfidence} is null or ${table.matchConfidence} in ('exact', 'strong', 'ambiguous', 'rejected')`,
-    ),
+    check("market_candidates_match_confidence_check", sql`${table.matchConfidence} is null or ${table.matchConfidence} in ('exact', 'strong', 'ambiguous', 'rejected')`),
     check("market_candidates_decision_check", sql`${table.decision} in ('accepted', 'needs_review', 'rejected', 'duplicate')`),
     check(
       "market_candidates_match_evidence_check",
@@ -252,6 +234,10 @@ export const pricePoints = pgTable(
     shippingBasis: text("shipping_basis").notNull(),
     valuationPrice: numeric("valuation_price", { precision: 12, scale: 2 }),
     normalizedPriceEUR: numeric("normalized_price_eur", { precision: 12, scale: 2 }),
+    evidenceGrade: text("evidence_grade").notNull().default("indicative"),
+    qualityFlags: text("quality_flags").array().notNull().default(sql`'{}'::text[]`),
+    marketPriceEUR: numeric("market_price_eur", { precision: 12, scale: 2 }),
+    marketPriceBasis: text("market_price_basis"),
     fxRateToEUR: numeric("fx_rate_to_eur", { precision: 18, scale: 8 }),
     fxRateDate: date("fx_rate_date"),
     innerBagsSealed: text("inner_bags_sealed").notNull().default("unknown"),
@@ -292,18 +278,13 @@ export const pricePoints = pgTable(
       table.soldAt,
     ),
     index("idx_price_points_evidence_group").on(table.releaseId, table.condition, table.evidenceGroupKey),
+    index("idx_price_points_market_quality").on(table.releaseId, table.condition, table.valuationEligible, table.evidenceGrade, table.soldOn.desc()),
     check("price_points_price_check", sql`${table.price} >= 0`),
     check("price_points_shipping_cost_check", sql`${table.shippingCost} is null or ${table.shippingCost} >= 0`),
     check("price_points_quantity_check", sql`${table.quantity} is null or ${table.quantity} >= 1`),
     check("price_points_observation_type_check", sql`${table.observationType} in ('sold_confirmed', 'auction_awarded', 'marketplace_sold')`),
-    check(
-      "price_points_condition_check",
-      sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`,
-    ),
-    check(
-      "price_points_shipping_basis_check",
-      sql`${table.shippingBasis} in ('excluded', 'included_exact', 'included_unknown', 'buyer_paid', 'unknown')`,
-    ),
+    check("price_points_condition_check", sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`),
+    check("price_points_shipping_basis_check", sql`${table.shippingBasis} in ('excluded', 'included_exact', 'included_unknown', 'buyer_paid', 'unknown')`),
     check("price_points_inner_bags_check", sql`${table.innerBagsSealed} in ('yes', 'no', 'unknown')`),
     check("price_points_box_condition_check", sql`${table.boxCondition} in ('normal', 'significantly_damaged', 'unknown')`),
     check("price_points_match_confidence_check", sql`${table.matchConfidence} in ('exact', 'strong')`),
@@ -316,14 +297,26 @@ export const pricePoints = pgTable(
       ]::text[]`,
     ),
     check("price_points_status_check", sql`${table.status} in ('active', 'excluded', 'reversed')`),
+    check("price_points_evidence_grade_check", sql`${table.evidenceGrade} in ('verified', 'indicative')`),
+    check(
+      "price_points_quality_flags_check",
+      sql`${table.qualityFlags} <@ array[
+        'seller_unknown', 'shipping_unknown', 'completeness_unconfirmed',
+        'condition_inferred', 'inner_bags_unknown', 'box_condition_unknown'
+      ]::text[]`,
+    ),
+    check("price_points_market_price_basis_check", sql`${table.marketPriceBasis} is null or ${table.marketPriceBasis} in ('shipping_adjusted', 'raw_sale')`),
+    check(
+      "price_points_market_price_check",
+      sql`(${table.marketPriceEUR} is null and ${table.marketPriceBasis} is null)
+        or (${table.marketPriceEUR} is not null and ${table.marketPriceEUR} > 0 and ${table.marketPriceBasis} is not null)`,
+    ),
     check(
       "price_points_shipping_value_check",
       sql`(
         ${table.shippingBasis} in ('included_unknown', 'unknown')
         and ${table.valuationPrice} is null
         and ${table.normalizedPriceEUR} is null
-        and ${table.fxRateToEUR} is null
-        and ${table.fxRateDate} is null
       ) or (
         ${table.shippingBasis} in ('excluded', 'buyer_paid')
         and ${table.valuationPrice} = ${table.price}
@@ -350,22 +343,49 @@ export const pricePoints = pgTable(
       )`,
     ),
     check(
+      "price_points_market_fx_check",
+      sql`${table.marketPriceEUR} is null or (
+        ${table.currency} = 'EUR'
+        and ${table.fxRateToEUR} is null
+        and ${table.fxRateDate} is null
+        and ${table.marketPriceEUR} = round(
+          case
+            when ${table.marketPriceBasis} = 'shipping_adjusted' and ${table.shippingBasis} = 'included_exact'
+              then ${table.price} - ${table.shippingCost}
+            else ${table.price}
+          end,
+          2
+        )
+      ) or (
+        ${table.currency} <> 'EUR'
+        and ${table.fxRateToEUR} is not null
+        and ${table.fxRateToEUR} > 0
+        and ${table.fxRateDate} is not null
+        and ${table.marketPriceEUR} = round((
+          case
+            when ${table.marketPriceBasis} = 'shipping_adjusted' and ${table.shippingBasis} = 'included_exact'
+              then ${table.price} - ${table.shippingCost}
+            else ${table.price}
+          end
+        ) * ${table.fxRateToEUR}, 2)
+      )`,
+    ),
+    check(
       "price_points_valuation_eligibility_check",
       sql`${table.valuationEligible} = false or (
         ${table.status} = 'active'
         and ${table.needsRevalidation} = false
         and ${table.observationType} in ('sold_confirmed', 'auction_awarded', 'marketplace_sold')
-        and ${table.condition} = 'new_complete_unbuilt'
+        and ${table.condition} not in ('built_complete', 'incomplete_parts_custom')
         and ${table.matchConfidence} in ('exact', 'strong')
         and cardinality(${table.matchEvidence}) > 0
-        and ${table.isComplete} is true
-        and ${table.isLot} is false
-        and ${table.quantity} = 1
+        and ${table.isComplete} is distinct from false
+        and ${table.isLot} is distinct from true
+        and (${table.quantity} is null or ${table.quantity} = 1)
         and ${table.evidenceGroupKey} is not null
-        and ${table.shippingBasis} in ('excluded', 'included_exact', 'buyer_paid')
-        and ${table.valuationPrice} is not null and ${table.valuationPrice} > 0
-        and ${table.normalizedPriceEUR} is not null and ${table.normalizedPriceEUR} > 0
+        and ${table.marketPriceEUR} is not null and ${table.marketPriceEUR} > 0
         and ${table.soldOn} is not null
+        and ${table.evidenceGrade} in ('verified', 'indicative')
       )`,
     ),
     pgPolicy("price_points_authenticated_read", {
@@ -393,6 +413,10 @@ export const marketEstimates = pgTable(
     rangeMethod: text("range_method"),
     sampleSize: integer("sample_size").notNull(),
     independentEvidenceCount: integer("independent_evidence_count").notNull(),
+    verifiedObservationCount: integer("verified_observation_count").notNull().default(0),
+    indicativeObservationCount: integer("indicative_observation_count").notNull().default(0),
+    sourceCount: integer("source_count").notNull().default(1),
+    qualityMix: text("quality_mix").notNull().default("indicative_only"),
     windowDays: integer("window_days").notNull().default(365),
     lowestCurrentAsk: numeric("lowest_current_ask", { precision: 12, scale: 2 }),
     lastVerifiedSale: numeric("last_verified_sale", { precision: 12, scale: 2 }),
@@ -408,16 +432,10 @@ export const marketEstimates = pgTable(
   (table) => [
     unique("market_estimates_release_condition_unique").on(table.releaseId, table.condition),
     index("idx_market_estimates_release").on(table.releaseId),
-    check(
-      "market_estimates_condition_check",
-      sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`,
-    ),
+    check("market_estimates_condition_check", sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`),
     check("market_estimates_currency_check", sql`${table.currency} = 'EUR'`),
     check("market_estimates_display_mode_check", sql`${table.displayMode} in ('last_sale', 'range', 'value')`),
-    check(
-      "market_estimates_range_method_check",
-      sql`${table.rangeMethod} is null or ${table.rangeMethod} in ('cleaned_min_max', 'q1_q3')`,
-    ),
+    check("market_estimates_range_method_check", sql`${table.rangeMethod} is null or ${table.rangeMethod} in ('cleaned_min_max', 'q1_q3')`),
     check(
       "market_estimates_counts_check",
       sql`${table.sampleSize} >= ${table.independentEvidenceCount}
@@ -425,15 +443,21 @@ export const marketEstimates = pgTable(
         and ${table.windowDays} in (365, 730)`,
     ),
     check(
-      "market_estimates_range_check",
-      sql`(${table.low} is null and ${table.high} is null)
-        or (${table.low} is not null and ${table.high} is not null and ${table.low} <= ${table.high})`,
+      "market_estimates_quality_counts_check",
+      sql`${table.verifiedObservationCount} >= 0
+        and ${table.indicativeObservationCount} >= 0
+        and ${table.verifiedObservationCount} + ${table.indicativeObservationCount} = ${table.sampleSize}
+        and ${table.sourceCount} >= 1`,
     ),
     check(
-      "market_estimates_last_sale_check",
-      sql`(${table.lastVerifiedSale} is null and ${table.lastVerifiedSaleAt} is null and ${table.lastVerifiedSaleOn} is null)
-        or (${table.lastVerifiedSale} is not null and ${table.lastVerifiedSaleOn} is not null)`,
+      "market_estimates_quality_mix_check",
+      sql`${table.qualityMix} in ('verified_only', 'mixed', 'indicative_only')
+        and (${table.qualityMix} <> 'verified_only' or (${table.verifiedObservationCount} > 0 and ${table.indicativeObservationCount} = 0))
+        and (${table.qualityMix} <> 'mixed' or (${table.verifiedObservationCount} > 0 and ${table.indicativeObservationCount} > 0))
+        and (${table.qualityMix} <> 'indicative_only' or (${table.verifiedObservationCount} = 0 and ${table.indicativeObservationCount} > 0))`,
     ),
+    check("market_estimates_range_check", sql`(${table.low} is null and ${table.high} is null) or (${table.low} is not null and ${table.high} is not null and ${table.low} <= ${table.high})`),
+    check("market_estimates_last_sale_check", sql`(${table.lastVerifiedSale} is null and ${table.lastVerifiedSaleAt} is null and ${table.lastVerifiedSaleOn} is null) or (${table.lastVerifiedSale} is not null and ${table.lastVerifiedSaleOn} is not null)`),
     check(
       "market_estimates_value_check",
       sql`(${table.value} is null or ${table.value} >= 0)
@@ -443,11 +467,7 @@ export const marketEstimates = pgTable(
         and (${table.lowestCurrentAsk} is null or ${table.lowestCurrentAsk} >= 0)
         and (${table.lastVerifiedSale} is null or ${table.lastVerifiedSale} > 0)`,
     ),
-    check(
-      "market_estimates_trend_check",
-      sql`(${table.trendPercent} is null and ${table.trendWindowDays} is null)
-        or (${table.trendPercent} is not null and ${table.trendWindowDays} in (90, 365))`,
-    ),
+    check("market_estimates_trend_check", sql`(${table.trendPercent} is null and ${table.trendWindowDays} is null) or (${table.trendPercent} is not null and ${table.trendWindowDays} in (90, 365))`),
     check(
       "market_estimates_tier_check",
       sql`(
@@ -505,37 +525,40 @@ export const marketValueHistory = pgTable(
     median: numeric("median", { precision: 12, scale: 2 }),
     rangeMethod: text("range_method"),
     currency: text("currency").notNull().default("EUR"),
+    sampleSize: integer("sample_size").notNull().default(1),
     independentEvidenceCount: integer("independent_evidence_count").notNull(),
+    verifiedObservationCount: integer("verified_observation_count").notNull().default(0),
+    indicativeObservationCount: integer("indicative_observation_count").notNull().default(1),
+    sourceCount: integer("source_count").notNull().default(1),
+    qualityMix: text("quality_mix").notNull().default("indicative_only"),
     windowDays: integer("window_days").notNull(),
     algorithmVersion: text("algorithm_version").notNull().default("v1"),
     recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    unique("market_value_history_release_condition_period_unique").on(
-      table.releaseId,
-      table.condition,
-      table.snapshotPeriod,
-    ),
+    unique("market_value_history_release_condition_period_unique").on(table.releaseId, table.condition, table.snapshotPeriod),
     index("idx_market_value_history_release_period").on(table.releaseId, table.condition, table.snapshotPeriod.desc()),
-    check(
-      "market_value_history_condition_check",
-      sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`,
-    ),
+    check("market_value_history_condition_check", sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`),
     check("market_value_history_currency_check", sql`${table.currency} = 'EUR'`),
     check("market_value_history_display_mode_check", sql`${table.displayMode} in ('last_sale', 'range', 'value')`),
+    check("market_value_history_range_method_check", sql`${table.rangeMethod} is null or ${table.rangeMethod} in ('cleaned_min_max', 'q1_q3')`),
+    check("market_value_history_counts_check", sql`${table.independentEvidenceCount} >= 1 and ${table.windowDays} in (365, 730)`),
     check(
-      "market_value_history_range_method_check",
-      sql`${table.rangeMethod} is null or ${table.rangeMethod} in ('cleaned_min_max', 'q1_q3')`,
+      "market_value_history_quality_counts_check",
+      sql`${table.sampleSize} >= ${table.independentEvidenceCount}
+        and ${table.verifiedObservationCount} >= 0
+        and ${table.indicativeObservationCount} >= 0
+        and ${table.verifiedObservationCount} + ${table.indicativeObservationCount} = ${table.sampleSize}
+        and ${table.sourceCount} >= 1`,
     ),
     check(
-      "market_value_history_counts_check",
-      sql`${table.independentEvidenceCount} >= 1 and ${table.windowDays} in (365, 730)`,
+      "market_value_history_quality_mix_check",
+      sql`${table.qualityMix} in ('verified_only', 'mixed', 'indicative_only')
+        and (${table.qualityMix} <> 'verified_only' or (${table.verifiedObservationCount} > 0 and ${table.indicativeObservationCount} = 0))
+        and (${table.qualityMix} <> 'mixed' or (${table.verifiedObservationCount} > 0 and ${table.indicativeObservationCount} > 0))
+        and (${table.qualityMix} <> 'indicative_only' or (${table.verifiedObservationCount} = 0 and ${table.indicativeObservationCount} > 0))`,
     ),
-    check(
-      "market_value_history_range_check",
-      sql`(${table.low} is null and ${table.high} is null)
-        or (${table.low} is not null and ${table.high} is not null and ${table.low} <= ${table.high})`,
-    ),
+    check("market_value_history_range_check", sql`(${table.low} is null and ${table.high} is null) or (${table.low} is not null and ${table.high} is not null and ${table.low} <= ${table.high})`),
     check(
       "market_value_history_value_check",
       sql`(${table.value} is null or ${table.value} >= 0)
@@ -583,6 +606,66 @@ export const marketValueHistory = pgTable(
   ],
 ).enableRLS()
 
+export const marketMonthlySourceStats = pgTable(
+  "market_monthly_source_stats",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    releaseId: uuid("release_id")
+      .notNull()
+      .references(() => productReleases.id, { onDelete: "restrict" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => priceSources.id, { onDelete: "restrict" }),
+    month: date("month").notNull(),
+    condition: text("condition").notNull().default("unknown"),
+    queryKey: text("query_key").notNull(),
+    queryDescription: text("query_description"),
+    salesCount: integer("sales_count").notNull(),
+    sellerCount: integer("seller_count"),
+    averagePrice: numeric("average_price", { precision: 12, scale: 2 }).notNull(),
+    lowPrice: numeric("low_price", { precision: 12, scale: 2 }),
+    highPrice: numeric("high_price", { precision: 12, scale: 2 }),
+    averageShipping: numeric("average_shipping", { precision: 12, scale: 2 }),
+    currency: text("currency").notNull(),
+    marketAverageEUR: numeric("market_average_eur", { precision: 12, scale: 2 }),
+    fxRateToEUR: numeric("fx_rate_to_eur", { precision: 18, scale: 8 }),
+    fxRateDate: date("fx_rate_date"),
+    evidenceGrade: text("evidence_grade").notNull().default("indicative"),
+    provenanceUrl: text("provenance_url"),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
+    rawPayload: jsonb("raw_payload"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("market_monthly_source_stats_unique").on(table.releaseId, table.sourceId, table.month, table.condition, table.queryKey),
+    index("idx_market_monthly_source_stats_release_month").on(table.releaseId, table.condition, table.month.desc()),
+    index("idx_market_monthly_source_stats_source_month").on(table.sourceId, table.month.desc()),
+    check("market_monthly_source_stats_month_check", sql`${table.month} = date_trunc('month', ${table.month})::date`),
+    check("market_monthly_source_stats_condition_check", sql`${table.condition} in ('new_complete_unbuilt', 'built_complete', 'incomplete_parts_custom', 'unknown')`),
+    check("market_monthly_source_stats_counts_check", sql`${table.salesCount} >= 1 and (${table.sellerCount} is null or (${table.sellerCount} >= 1 and ${table.sellerCount} <= ${table.salesCount}))`),
+    check(
+      "market_monthly_source_stats_price_check",
+      sql`${table.averagePrice} > 0
+        and (${table.lowPrice} is null or ${table.lowPrice} >= 0)
+        and (${table.highPrice} is null or ${table.highPrice} >= 0)
+        and ((${table.lowPrice} is null and ${table.highPrice} is null) or (${table.lowPrice} is not null and ${table.highPrice} is not null and ${table.lowPrice} <= ${table.averagePrice} and ${table.averagePrice} <= ${table.highPrice}))
+        and (${table.averageShipping} is null or ${table.averageShipping} >= 0)`,
+    ),
+    check("market_monthly_source_stats_grade_check", sql`${table.evidenceGrade} in ('verified', 'indicative')`),
+    check(
+      "market_monthly_source_stats_fx_check",
+      sql`${table.marketAverageEUR} is null or (
+        ${table.marketAverageEUR} > 0 and (
+          (${table.currency} = 'EUR' and ${table.marketAverageEUR} = ${table.averagePrice} and ${table.fxRateToEUR} is null and ${table.fxRateDate} is null)
+          or
+          (${table.currency} <> 'EUR' and ${table.fxRateToEUR} is not null and ${table.fxRateToEUR} > 0 and ${table.fxRateDate} is not null and ${table.marketAverageEUR} = round(${table.averagePrice} * ${table.fxRateToEUR}, 2))
+        )
+      )`,
+    ),
+  ],
+).enableRLS()
+
 export const marketReviewDigests = pgTable(
   "market_review_digests",
   {
@@ -609,6 +692,7 @@ export const priceSourcesRelations = relations(priceSources, ({ many }) => ({
   pricePoints: many(pricePoints),
   scanTargets: many(marketScanTargets),
   candidates: many(marketCandidates),
+  monthlyStats: many(marketMonthlySourceStats),
 }))
 
 export const marketScanRunsRelations = relations(marketScanRuns, ({ many }) => ({
@@ -642,4 +726,9 @@ export const marketEstimatesRelations = relations(marketEstimates, ({ one }) => 
 
 export const marketValueHistoryRelations = relations(marketValueHistory, ({ one }) => ({
   release: one(productReleases, { fields: [marketValueHistory.releaseId], references: [productReleases.id] }),
+}))
+
+export const marketMonthlySourceStatsRelations = relations(marketMonthlySourceStats, ({ one }) => ({
+  release: one(productReleases, { fields: [marketMonthlySourceStats.releaseId], references: [productReleases.id] }),
+  source: one(priceSources, { fields: [marketMonthlySourceStats.sourceId], references: [priceSources.id] }),
 }))
