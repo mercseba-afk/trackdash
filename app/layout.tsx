@@ -7,6 +7,9 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { I18nBootstrap } from "@/components/i18n-bootstrap"
 import { StoreProvider } from "@/lib/store"
 import { I18nProvider, type AppLocale } from "@/lib/i18n"
+import { MarketSignalsProvider } from "@/lib/market/context"
+import { getPublicMarketSignalMap } from "@/lib/market/public"
+import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
@@ -37,18 +40,27 @@ export default async function RootLayout({
   const cookieLocale = cookieStore.get("trackdash.locale")?.value
   const hasLocaleCookie = cookieLocale === "en" || cookieLocale === "it"
   const initialLocale: AppLocale = cookieLocale === "it" ? "it" : "en"
+  let initialMarketSignals: ReleaseMarketSignalMap = {}
+
+  try {
+    initialMarketSignals = await getPublicMarketSignalMap()
+  } catch (error) {
+    console.error("Failed to bootstrap public R3 market signals:", error)
+  }
 
   return (
     <html lang={initialLocale} suppressHydrationWarning className="bg-background">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <StoreProvider>
-            <I18nProvider>
-              <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
-                <TooltipProvider>{children}</TooltipProvider>
-                <Toaster position="top-center" />
-              </I18nBootstrap>
-            </I18nProvider>
+            <MarketSignalsProvider initialSignals={initialMarketSignals}>
+              <I18nProvider>
+                <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
+                  <TooltipProvider>{children}</TooltipProvider>
+                  <Toaster position="top-center" />
+                </I18nBootstrap>
+              </I18nProvider>
+            </MarketSignalsProvider>
           </StoreProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
