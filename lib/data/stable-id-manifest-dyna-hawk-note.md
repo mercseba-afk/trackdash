@@ -1,0 +1,1 @@
+Temporary audit note: UUID 67423b20-d880-5e54-a83f-dc06dcba6f75 is the confirmed stable Release ID for Dyna-Hawk GX Black Special (95000). The canonical stable-id manifest remains append-only and should absorb this row in the next manifest maintenance pass.
