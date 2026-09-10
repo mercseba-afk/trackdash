@@ -128,7 +128,7 @@ export function AddToCollectionDialog({
   children: React.ReactNode
 }) {
   const { addToCollection } = useStore()
-  const { marketSignals } = useMarketSignals()
+  const marketSignals = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
   const [open, setOpen] = React.useState(false)
@@ -335,7 +335,7 @@ export function AddToWishlistDialog({
   children: React.ReactNode
 }) {
   const { addToWishlist } = useStore()
-  const { marketSignals } = useMarketSignals()
+  const marketSignals = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
   const [open, setOpen] = React.useState(false)
