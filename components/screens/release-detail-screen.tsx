@@ -2,10 +2,8 @@
 
 import Link from "next/link"
 import { ArrowLeft, Check, ExternalLink, Heart, Info, Plus } from "lucide-react"
-import { getReleaseEstimate } from "@/lib/data/market"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatDate, formatMoney } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
@@ -13,7 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/catalog/product-image"
-import { MarketEstimateCard, MarketSignalCard, RarityBadge } from "@/components/market-bits"
+import { MarketSignalCard, RarityBadge } from "@/components/market-bits"
+import { MarketDataEmptyCard } from "@/components/market-data-empty-card"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { CollectorsSection } from "@/components/collectors-section"
 
@@ -31,9 +30,7 @@ export function ReleaseDetailScreen({
   const { collection } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
-  const owned = enrichCollection(collection)
-  const mine = itemsForProduct(owned, product.id).filter((item) => item.release.id === release.id)
-  const demoEstimate = getReleaseEstimate(product, release)
+  const mine = collection.filter((item) => item.productId === product.id && item.releaseId === release.id)
   const hasExactImage = (release.images?.length ?? 0) > 0
   const publicDescription = it
     ? localizedDescription?.it ?? localizedDescription?.en ?? product.description
@@ -93,7 +90,7 @@ export function ReleaseDetailScreen({
         {marketSignal ? (
           <MarketSignalCard signal={marketSignal} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
         ) : (
-          <MarketEstimateCard estimate={demoEstimate} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
+          <MarketDataEmptyCard title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
         )}
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {it ? "Come leggere il mercato" : "How to read the market"}</CardTitle></CardHeader>
@@ -105,8 +102,8 @@ export function ReleaseDetailScreen({
                     ? "Sul mercato secondario il Valore di mercato privilegia le vendite concluse: ciò che i collezionisti hanno realmente pagato. Le richieste dei venditori vengono mostrate separatamente per capire dove si sta posizionando oggi l'offerta, ma non possono gonfiare il valore. Per release ancora reperibili retail, TrackDash considera anche prezzi realmente disponibili. Un vero trend ↑/↓ compare solo quando esiste una serie temporale sufficiente di vendite concluse. Prezzi esauriti e offerte non più verificabili restano nello storico e non entrano nel mercato corrente."
                     : "On the secondary market, Market Value prioritizes completed sales: what collectors actually paid. Seller asking prices are shown separately to indicate where current supply is positioned, but they cannot inflate the value. For releases still genuinely available at retail, TrackDash also considers verified in-stock retail prices. A true ↑/↓ trend appears only when there is enough completed-sale history. Sold-out or stale offers remain historical and do not enter the current market.")
                 : (it
-                    ? "I dati reali di mercato per questa release non sono ancora sufficienti. Nessuna stima demo viene mostrata come valore reale."
-                    : "Real market evidence for this release is not yet sufficient. Demo estimates are never shown as real market value.")}
+                    ? "I dati reali di mercato per questa release non sono ancora sufficienti. Nessun prezzo o trend sintetico viene pubblicato."
+                    : "Real market evidence for this release is not yet sufficient. No synthetic price or trend is published.")}
             </p>
           </CardContent>
         </Card>
