@@ -7,7 +7,6 @@ import type { Product } from "@/lib/types"
 import { primaryRelease } from "@/lib/data/products"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { formatMoney } from "@/lib/format"
 import { ProductCard } from "@/components/product-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
@@ -19,16 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
 
-type SortKey = "name" | "year-desc" | "year-asc" | "value-desc" | "value-asc"
+type SortKey = "name" | "year-desc" | "year-asc"
 type View = "grid" | "list"
 
-export function CatalogScreen({
-  products,
-  startingPrices = {},
-}: {
-  products: Product[]
-  startingPrices?: Record<string, number>
-}) {
+export function CatalogScreen({ products }: { products: Product[] }) {
   const { isInCollection, isInWishlist } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
@@ -36,7 +29,7 @@ export function CatalogScreen({
   const [chassis, setChassis] = React.useState<string>("all")
   const [series, setSeries] = React.useState<string>("all")
   const [rarity, setRarity] = React.useState<string>("all")
-  const [sort, setSort] = React.useState<SortKey>("value-desc")
+  const [sort, setSort] = React.useState<SortKey>("year-desc")
   const [view, setView] = React.useState<View>("grid")
   const [ownedOnly, setOwnedOnly] = React.useState(false)
 
@@ -80,26 +73,10 @@ export function CatalogScreen({
           return (b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)
         case "year-asc":
           return (a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)
-        case "value-desc": {
-          const aValue = startingPrices[a.id]
-          const bValue = startingPrices[b.id]
-          if (aValue == null && bValue == null) return a.name.localeCompare(b.name)
-          if (aValue == null) return 1
-          if (bValue == null) return -1
-          return bValue - aValue || a.name.localeCompare(b.name)
-        }
-        case "value-asc": {
-          const aValue = startingPrices[a.id]
-          const bValue = startingPrices[b.id]
-          if (aValue == null && bValue == null) return a.name.localeCompare(b.name)
-          if (aValue == null) return 1
-          if (bValue == null) return -1
-          return aValue - bValue || a.name.localeCompare(b.name)
-        }
       }
     })
     return items
-  }, [products, startingPrices, query, chassis, series, rarity, sort, ownedOnly, isInCollection])
+  }, [products, query, chassis, series, rarity, sort, ownedOnly, isInCollection])
 
   const hasFilters = chassis !== "all" || series !== "all" || rarity !== "all" || ownedOnly || query.trim()
 
@@ -159,8 +136,6 @@ export function CatalogScreen({
             <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
               <SelectTrigger size="sm" className="w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="value-desc">{it ? "Prezzo iniziale: alto → basso" : "Starting price: high to low"}</SelectItem>
-                <SelectItem value="value-asc">{it ? "Prezzo iniziale: basso → alto" : "Starting price: low to high"}</SelectItem>
                 <SelectItem value="year-desc">{it ? "Più recenti" : "Newest"}</SelectItem>
                 <SelectItem value="year-asc">{it ? "Più vecchi" : "Oldest"}</SelectItem>
                 <SelectItem value="name">{it ? "Nome A–Z" : "Name A–Z"}</SelectItem>
@@ -198,7 +173,7 @@ export function CatalogScreen({
       ) : view === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {results.map((p) => (
-            <ProductCard key={p.id} product={p} startingPrice={startingPrices[p.id]} />
+            <ProductCard key={p.id} product={p} />
           ))}
         </div>
       ) : (
@@ -207,7 +182,6 @@ export function CatalogScreen({
             const owned = isInCollection(p.id)
             const wished = isInWishlist(p.id)
             const primary = primaryRelease(p)
-            const startingPrice = startingPrices[p.id]
 
             return (
               <div key={p.id} className="flex items-center gap-3 bg-card p-2.5">
@@ -226,17 +200,6 @@ export function CatalogScreen({
                     {primary.itemNumber ? `#${primary.itemNumber}` : "—"} · {p.chassis ?? "—"} · orig. {p.originalReleaseYear ?? "—"}
                   </p>
                 </Link>
-
-                <div className="w-28 shrink-0 text-right">
-                  {startingPrice != null ? (
-                    <>
-                      <p className="text-[10px] text-muted-foreground">{it ? "Da" : "From"}</p>
-                      <p className="text-sm font-semibold tabular-nums">{formatMoney(startingPrice)}</p>
-                    </>
-                  ) : (
-                    <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
-                  )}
-                </div>
 
                 <div className="flex items-center gap-1">
                   <AddToWishlistDialog product={p}>
