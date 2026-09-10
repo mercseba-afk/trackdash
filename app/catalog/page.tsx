@@ -1,7 +1,6 @@
 import { AppPage } from "@/components/app-page"
 import { CatalogScreen } from "@/components/screens/catalog-screen"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
-import { getCatalogStartingPrices } from "@/lib/db/queries/market"
 import type { Product } from "@/lib/types"
 
 // Root cause (confirmed via a real production build, not assumed): with no
@@ -26,20 +25,16 @@ export const revalidate = 45
 
 export default async function CatalogPage() {
   let products: Product[] = []
-  let startingPrices: Record<string, number> = {}
 
   try {
-    ;[products, startingPrices] = await Promise.all([
-      fetchCatalogProducts(),
-      getCatalogStartingPrices(),
-    ])
+    products = await fetchCatalogProducts()
   } catch (error) {
     console.error("Failed to load catalog data from the database:", error)
   }
 
   return (
     <AppPage>
-      <CatalogScreen products={products} startingPrices={startingPrices} />
+      <CatalogScreen products={products} />
     </AppPage>
   )
 }
