@@ -3,16 +3,7 @@
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
-import { ConfidenceBadge, TrendIndicator } from "@/components/market-bits"
-
-export function signalConfidence(
-  signal: ReleaseMarketSignalView,
-): "High" | "Medium" | "Low" | "Insufficient" {
-  if (signal.valueEUR == null || signal.valueEUR <= 0) return "Insufficient"
-  if (signal.confidenceLabel === "high") return "High"
-  if (signal.confidenceLabel === "medium") return "Medium"
-  return "Low"
-}
+import { TrendIndicator } from "@/components/market-bits"
 
 export function MarketSignalInline({
   signal,
@@ -25,7 +16,7 @@ export function MarketSignalInline({
   const it = locale === "it"
 
   if (!signal) {
-    return <span className="text-xs text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</span>
+    return <span className="text-xs text-muted-foreground">{it ? "Valore in elaborazione" : "Value being calculated"}</span>
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
@@ -36,13 +27,9 @@ export function MarketSignalInline({
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-lg font-semibold tabular-nums">{formatMoney(signal.valueEUR!)}</span>
           {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} /> : null}
-          <ConfidenceBadge confidence={signalConfidence(signal)} />
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-foreground">{it ? "Valore non consolidato" : "Value not consolidated"}</span>
-          <ConfidenceBadge confidence="Insufficient" />
-        </div>
+        <span className="text-xs font-medium text-muted-foreground">{it ? "Valore in elaborazione" : "Value being calculated"}</span>
       )}
       {showStartingPrice && signal.startingItemPriceEUR != null ? (
         <span className="text-xs text-muted-foreground">

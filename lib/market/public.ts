@@ -53,6 +53,7 @@ export function toPublicMarketSignalView(
     currentOfferCount: signal.currentOfferCount,
     soldUnits: signal.soldUnits,
     trendPercent: numberOrNull(signal.trendPercent),
+    trendWindowMonths: signal.trendWindowMonths === 1 || signal.trendWindowMonths === 3 ? signal.trendWindowMonths : null,
     computedAt: signal.computedAt instanceof Date ? signal.computedAt.toISOString() : String(signal.computedAt),
   }
 }
