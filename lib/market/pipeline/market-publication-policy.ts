@@ -71,8 +71,8 @@ function soldQualityPoints(evidence: SoldMarketEvidence[]): { points: number; ha
   }
 }
 
-// Confidence shown next to a sold-based Market Value must describe the evidence
-// behind THAT value, not the amount of retail/asking-price activity around it.
+// Confidence shown next to a sold-based Market Value describes the evidence
+// behind THAT value, not the amount of asking-price activity around it.
 // Indicative-only title-matched Product Research can reach Medium, but never High.
 export function publicSoldConfidence(
   signal: MarketSignalDraft,
@@ -92,22 +92,65 @@ export function publicSoldConfidence(
   return { score, label: confidenceLabel(score) }
 }
 
-// Public v1 has one deliberately simple definition across every Release:
+// A retail-based headline is allowed only when at least two independent current
+// retail sources agree that the Release is genuinely purchasable. One shop can be
+// useful evidence, but it is too fragile to define the public value on its own.
+// Completed sales can strengthen confidence when they broadly corroborate retail;
+// active marketplace asks never increase headline confidence.
+export function publicRetailConfidence(
+  signal: MarketSignalDraft,
+  soldEvidence: SoldMarketEvidence[],
+  asOfDate: string,
+): { score: number; label: MarketSignalDraft["confidenceLabel"] } {
+  const retailSources = Math.min(60, signal.retailSourceCount * 25)
+  let soldAgreement = 0
+
+  if (signal.retailAnchorEUR != null && signal.retailAnchorEUR > 0 && signal.soldAnchorEUR != null && signal.soldAnchorEUR > 0) {
+    const delta = Math.abs(signal.soldAnchorEUR - signal.retailAnchorEUR) / signal.retailAnchorEUR
+    if (delta <= 0.15) soldAgreement = 20
+    else if (delta <= 0.3) soldAgreement = 12
+    else if (delta <= 0.5) soldAgreement = 6
+  }
+
+  const soldFreshness = soldEvidence.length ? Math.round(soldFreshnessPoints(soldEvidence, asOfDate) / 5) : 0
+  const soldQuality = soldEvidence.length ? (soldQualityPoints(soldEvidence).hasVerified ? 5 : 2) : 0
+  const score = Math.round(Math.min(100, retailSources + soldAgreement + soldFreshness + soldQuality))
+
+  return { score, label: confidenceLabel(score) }
+}
+
+// Public v1 deliberately keeps three concepts separate:
 //
-// Market Value = demonstrated completed-sale value.
-// Verified retail = current retail availability/price signal.
-// Active asks = current seller expectations.
-// Trend = movement of completed sales over time.
+// 1. Liquid current retail market -> Market Value = median verified retail price,
+//    but only with at least two independent fresh retail sources.
+// 2. Collector/secondary market -> Market Value = demonstrated completed-sale value.
+// 3. Active asks -> seller expectations only; they are shown separately and never
+//    manufacture or inflate Market Value.
 //
-// Retail and asks remain valuable and visible, but neither can manufacture or
-// inflate the public Market Value. This keeps the headline comparable between a
-// current reissue, a scarce limited edition and a vintage discontinued Release.
+// With one retail source and no sold evidence, or asks without sold evidence, the
+// evidence remains visible but the headline stays unconsolidated.
 export function applyPublicMarketPublicationPolicy(
   signal: MarketSignalDraft,
   soldEvidence: SoldMarketEvidence[] = [],
   asOfDate?: string,
 ): MarketSignalDraft {
+  const hasLiquidRetail = signal.retailAnchorEUR != null && signal.retailAnchorEUR > 0 && signal.retailSourceCount >= 2
   const hasSoldValue = signal.soldAnchorEUR != null && signal.soldEvidenceCount > 0
+
+  if (hasLiquidRetail) {
+    const confidence = asOfDate
+      ? publicRetailConfidence(signal, soldEvidence, asOfDate)
+      : { score: signal.confidenceScore, label: signal.confidenceLabel }
+
+    return {
+      ...signal,
+      marketValueEUR: signal.retailAnchorEUR,
+      lowEUR: signal.retailAnchorEUR,
+      highEUR: signal.retailAnchorEUR,
+      confidenceScore: confidence.score,
+      confidenceLabel: confidence.label,
+    }
+  }
 
   if (hasSoldValue) {
     const confidence = asOfDate && soldEvidence.length
