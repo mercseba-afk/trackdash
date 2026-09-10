@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Check, ExternalLink, Heart, Info, Plus } from "lucide-react"
+import { ArrowLeft, Check, Heart, Plus } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { formatDate, formatMoney } from "@/lib/format"
@@ -9,9 +9,8 @@ import type { Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/catalog/product-image"
-import { MarketSignalCard, RarityBadge } from "@/components/market-bits"
+import { MarketSignalCard } from "@/components/market-bits"
 import { MarketDataEmptyCard } from "@/components/market-data-empty-card"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { CollectorsSection } from "@/components/collectors-section"
@@ -45,7 +44,11 @@ export function ReleaseDetailScreen({
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         <div className="flex flex-col gap-3">
           <ProductImage product={product} release={release} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
-          <p className="text-xs text-muted-foreground">{hasExactImage ? (it ? "Immagine esatta di questa release." : "Exact image for this release.") : (it ? "L'immagine esatta di questa release non è ancora disponibile: viene mostrata l'immagine del modello." : "Exact image for this release is not available yet — showing the model image instead.")}</p>
+          <p className="text-xs text-muted-foreground">
+            {hasExactImage
+              ? (it ? "Immagine esatta di questa release." : "Exact image for this release.")
+              : (it ? "L'immagine esatta di questa release non è ancora disponibile: viene mostrata l'immagine del modello." : "Exact image for this release is not available yet — showing the model image instead.")}
+          </p>
         </div>
 
         <div className="flex flex-col gap-5">
@@ -53,14 +56,28 @@ export function ReleaseDetailScreen({
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{product.series}</Badge>
               <Badge variant="outline">{releaseTypeLabel(release.releaseType, it)}</Badge>
-              {release.isOriginal ? <Badge variant="outline">{it ? "Release originale" : "Original release"}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{it ? "Riedizione / edizione" : "Reissue / edition"}</Badge>}
-              {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline">{it ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
+              {release.isOriginal
+                ? <Badge variant="outline">{it ? "Release originale" : "Original release"}</Badge>
+                : <Badge variant="secondary" className="bg-brand/15 text-brand">{it ? "Riedizione / edizione" : "Reissue / edition"}</Badge>}
               <ProductionBadge status={release.productionStatus} it={it} />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{release.editionName}</h1>
-            <p className="text-sm text-muted-foreground">{it ? "Release di" : "Release of"}{" "}<Link href={`/catalog/${product.id}`} className="font-medium text-foreground hover:text-brand hover:underline">{product.name}</Link></p>
+            <p className="text-sm text-muted-foreground">
+              {it ? "Release di" : "Release of"}{" "}
+              <Link href={`/catalog/${product.id}`} className="font-medium text-foreground hover:text-brand hover:underline">{product.name}</Link>
+            </p>
             {publicDescription ? <p className="leading-relaxed text-muted-foreground text-pretty">{publicDescription}</p> : null}
           </div>
+
+          {marketSignal ? (
+            <MarketSignalCard
+              signal={marketSignal}
+              title={it ? "Valore attuale stimato" : "Estimated current value"}
+              rarity={release.rarity ?? null}
+            />
+          ) : (
+            <MarketDataEmptyCard title={it ? "Valore attuale stimato" : "Estimated current value"} />
+          )}
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
             <Spec label={it ? "Codice articolo" : "Item no."} value={release.itemNumber ? `#${release.itemNumber}` : "—"} />
@@ -70,61 +87,33 @@ export function ReleaseDetailScreen({
             <Spec label={it ? "Mercato" : "Market"} value={marketLabel(release.countryMarket, it)} />
             <Spec label={it ? "Tipo edizione" : "Edition type"} value={editionTypeLabel(release.editionType, it)} />
             <Spec label={it ? "Produzione" : "Production"} value={productionStatusLabel(release.productionStatus, it)} />
-            <Spec label={it ? "Verifica" : "Verification"} value={verificationStatusLabel(release.verificationStatus, it)} />
             <Spec label="JAN barcode" value={release.barcodeJAN ?? "—"} />
             <Spec label="MSRP" value={formatReleaseMsrp(release)} />
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <AddToCollectionDialog product={product} defaultReleaseId={release.id}><Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi questa release" : "Add this release"}</Button></AddToCollectionDialog>
-            <AddToWishlistDialog product={product} defaultReleaseId={release.id}><Button variant="outline" className="gap-1.5"><Heart className="size-4" /> {it ? "Aggiungi release ai desideri" : "Wishlist this release"}</Button></AddToWishlistDialog>
+            <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+              <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
+            </AddToCollectionDialog>
+            <AddToWishlistDialog product={product} defaultReleaseId={release.id}>
+              <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> {it ? "Wishlist" : "Wishlist"}</Button>
+            </AddToWishlistDialog>
           </div>
 
-          {mine.length > 0 ? <div className="rounded-lg border border-success/40 bg-success/5 px-3 py-2 text-sm text-success"><Check className="mr-1 inline size-4" />{it ? `Possiedi ${mine.length} ${mine.length === 1 ? "copia" : "copie"} di questa release esatta.` : `You own ${mine.length} ${mine.length === 1 ? "copy" : "copies"} of this exact release.`}</div> : null}
+          {mine.length > 0 ? (
+            <div className="rounded-lg border border-success/40 bg-success/5 px-3 py-2 text-sm text-success">
+              <Check className="mr-1 inline size-4" />
+              {it
+                ? `Possiedi ${mine.length} ${mine.length === 1 ? "copia" : "copie"} di questa release.`
+                : `You own ${mine.length} ${mine.length === 1 ? "copy" : "copies"} of this release.`}
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <div id="collectors" className="scroll-mt-24"><CollectorsSection releaseId={release.id} /></div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {marketSignal ? (
-          <MarketSignalCard signal={marketSignal} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
-        ) : (
-          <MarketDataEmptyCard title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
-        )}
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {it ? "Come leggere il mercato" : "How to read the market"}</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <p>{it ? "Ogni dato è legato a questa specifica release commerciale, non solo al modello. Edizioni diverse possono avere disponibilità, rarità e valore molto differenti anche quando condividono lo stesso Product." : "Every market signal is tied to this exact commercial release, not just to the parent model. Different editions can have very different availability, rarity and value even when they share the same Product."}</p>
-            <p>
-              {marketSignal
-                ? (it
-                    ? "Sul mercato secondario il Valore di mercato privilegia le vendite concluse: ciò che i collezionisti hanno realmente pagato. Le richieste dei venditori vengono mostrate separatamente per capire dove si sta posizionando oggi l'offerta, ma non possono gonfiare il valore. Per release ancora reperibili retail, TrackDash considera anche prezzi realmente disponibili. Un vero trend ↑/↓ compare solo quando esiste una serie temporale sufficiente di vendite concluse. Prezzi esauriti e offerte non più verificabili restano nello storico e non entrano nel mercato corrente."
-                    : "On the secondary market, Market Value prioritizes completed sales: what collectors actually paid. Seller asking prices are shown separately to indicate where current supply is positioned, but they cannot inflate the value. For releases still genuinely available at retail, TrackDash also considers verified in-stock retail prices. A true ↑/↓ trend appears only when there is enough completed-sale history. Sold-out or stale offers remain historical and do not enter the current market.")
-                : (it
-                    ? "I dati reali di mercato per questa release non sono ancora sufficienti. Nessun prezzo o trend sintetico viene pubblicato."
-                    : "Real market evidence for this release is not yet sufficient. No synthetic price or trend is published.")}
-            </p>
-          </CardContent>
-        </Card>
+      <div id="collectors" className="scroll-mt-24">
+        <CollectorsSection releaseId={release.id} />
       </div>
-
-      {release.sources.length > 0 ? (
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-base">{it ? "Fonti e verifica" : "Sources & verification"}<Badge variant="secondary">{release.sources.length}</Badge></CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {release.sources.map((source) => (
-              <div key={source.id} className="rounded-lg border border-border bg-background p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{sourceTypeLabel(source.sourceType, it)}</Badge>{source.checkedAt ? <span className="text-xs text-muted-foreground">{it ? "Controllata" : "Checked"} {formatDate(source.checkedAt)}</span> : null}</div>
-                  {source.sourceUrl ? <a href={source.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline">{it ? "Apri fonte" : "Open source"} <ExternalLink className="size-3" /></a> : null}
-                </div>
-                {source.verifiedFields.length > 0 ? <p className="mt-2 text-xs text-muted-foreground">{it ? "Verifica" : "Verifies"}: {source.verifiedFields.map((field) => fieldLabel(field, it)).join(", ")}</p> : null}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   )
 }
@@ -136,7 +125,9 @@ function ProductionBadge({ status, it }: { status: ProductRelease["productionSta
   return <Badge variant="outline">{it ? "Annunciata" : "Announced"}</Badge>
 }
 
-function Spec({ label, value }: { label: string; value: string }) { return <div className="flex flex-col gap-0.5"><span className="text-xs text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div> }
+function Spec({ label, value }: { label: string; value: string }) {
+  return <div className="flex flex-col gap-0.5"><span className="text-xs text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div>
+}
 
 function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
   if (!it) return value
@@ -179,28 +170,6 @@ function productionStatusLabel(value: ProductRelease["productionStatus"], it: bo
   return labels[value]
 }
 
-function verificationStatusLabel(value: ProductRelease["verificationStatus"], it: boolean): string {
-  if (!it) return humanize(value)
-  const labels: Record<ProductRelease["verificationStatus"], string> = {
-    verified: "Verificata",
-    partial: "Parzialmente verificata",
-    unverified: "Non verificata",
-  }
-  return labels[value]
-}
-
-function sourceTypeLabel(value: ProductRelease["sources"][number]["sourceType"], it: boolean): string {
-  if (!it) return humanize(value)
-  const labels: Record<ProductRelease["sources"][number]["sourceType"], string> = {
-    official_manufacturer: "Produttore ufficiale",
-    official_catalog_pdf: "Catalogo ufficiale PDF",
-    official_archive: "Archivio ufficiale",
-    trusted_secondary: "Fonte secondaria verificata",
-    other: "Altra fonte",
-  }
-  return labels[value]
-}
-
 function colorLabel(value: string | undefined, it: boolean): string {
   if (!value) return "—"
   if (!it) return value
@@ -235,24 +204,12 @@ function marketLabel(value: string | undefined, it: boolean): string {
   return labels[value] ?? value
 }
 
-function fieldLabel(value: string, it: boolean): string {
-  if (!it) return humanize(value)
-  const labels: Record<string, string> = {
-    itemNumber: "Codice articolo",
-    chassis: "Chassis",
-    releaseDate: "Data di uscita",
-    releaseYear: "Anno di uscita",
-    editionName: "Nome edizione",
-    releaseType: "Tipo release",
-    barcodeJAN: "JAN barcode",
-    msrpJPY: "MSRP JPY",
-    msrpEUR: "MSRP EUR",
-    productionStatus: "Produzione",
-    countryMarket: "Mercato",
-    color: "Colore",
-  }
-  return labels[value] ?? humanize(value)
+function humanize(value: string): string {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function humanize(value: string): string { return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase()) }
-function formatReleaseMsrp(release: ProductRelease): string { if (release.msrpEUR !== undefined) return formatMoney(release.msrpEUR, "EUR"); if (release.msrpJPY !== undefined) return formatMoney(release.msrpJPY, "JPY"); return "—" }
+function formatReleaseMsrp(release: ProductRelease): string {
+  if (release.msrpEUR !== undefined) return formatMoney(release.msrpEUR, "EUR")
+  if (release.msrpJPY !== undefined) return formatMoney(release.msrpJPY, "JPY")
+  return "—"
+}
