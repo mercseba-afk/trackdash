@@ -42,6 +42,8 @@ function toMarketSignalView(signal: Awaited<ReturnType<typeof getMarketSignalFor
     activeAnchorEUR,
     soldAnchorEUR,
     startingItemPriceEUR: numberOrNull(signal.startingItemPriceEUR),
+    retailSourceCount: signal.retailSourceCount,
+    activeOfferCount: signal.activeOfferCount,
     currentOfferCount: signal.currentOfferCount,
     soldUnits: signal.soldUnits,
     trendPercent: numberOrNull(signal.trendPercent),
