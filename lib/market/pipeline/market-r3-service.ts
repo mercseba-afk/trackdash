@@ -5,12 +5,12 @@ import {
   computeCurrentMarketSignal,
   type MarketSignalDraft,
 } from "./market-model"
+import {
+  applyPublicMarketPublicationPolicy,
+  filterFreshCurrentOffers,
+} from "./market-publication-policy"
 import { MarketR3Repository } from "./market-r3-repository"
 import { selectCurrentSoldEvidence } from "./sold-selection"
-
-const DAY_MS = 86_400_000
-const MARKETPLACE_MAX_AGE_MS = 3 * DAY_MS
-const RETAIL_MAX_AGE_MS = 7 * DAY_MS
 
 export async function recomputeReleaseMarketSignal(
   releaseId: string,
@@ -26,17 +26,10 @@ export async function recomputeReleaseMarketSignal(
     repo.listAggregateSoldEvidence(releaseId, condition),
   ])
 
-  // A stored offer is not automatically a current offer forever. Marketplace
-  // inventory is volatile, so it must have been checked within 3 days; retail
-  // stock gets a 7-day window. Older states remain available for audit/history
-  // but are excluded from the current R3 signal until explicitly revalidated.
-  const freshOffers = offers.filter((offer) => {
-    const checkedAt = Date.parse(offer.lastCheckedAt)
-    if (!Number.isFinite(checkedAt)) return false
-    const ageMs = Math.max(0, now.getTime() - checkedAt)
-    const maxAgeMs = offer.channel === "marketplace" ? MARKETPLACE_MAX_AGE_MS : RETAIL_MAX_AGE_MS
-    return ageMs <= maxAgeMs
-  })
+  // Stored availability is never trusted forever. The pure policy applies a
+  // bounded freshness window per channel; stale states remain in history but
+  // cannot influence the public current-market signal until revalidated.
+  const freshOffers = filterFreshCurrentOffers(offers, now)
 
   const soldEvidence = selectCurrentSoldEvidence({
     granular,
@@ -45,12 +38,16 @@ export async function recomputeReleaseMarketSignal(
   })
   const monthlySoldEvidence = aggregate.filter((row) => row.grain === "monthly")
 
-  const signal = computeCurrentMarketSignal({
+  const computedSignal = computeCurrentMarketSignal({
     offers: freshOffers,
     soldEvidence,
     monthlySoldEvidence,
     asOfDate,
   })
+
+  // The calculation may retain thin evidence for audit, but the public layer is
+  // intentionally stricter: one lone secondary-market ask is not a Market Value.
+  const signal = applyPublicMarketPublicationPolicy(computedSignal)
 
   await repo.upsertReleaseSignal(releaseId, condition, signal)
   await repo.upsertMonthlySoldSignals(releaseId, condition, signal)
