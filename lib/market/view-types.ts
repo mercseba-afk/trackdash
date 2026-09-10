@@ -22,7 +22,7 @@ export interface ReleaseMarketSignalView {
   currentOfferCount: number
   soldUnits: number
   trendPercent: number | null
-  trendWindowMonths: 1 | 3 | null
+  trendWindowMonths: 1 | 3 | 6 | 12 | null
   computedAt: string
 }
 
