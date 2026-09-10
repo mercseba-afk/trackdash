@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { RARITY_STYLE, formatMoney, formatPercent } from "@/lib/format"
 
+const STABLE_TREND_THRESHOLD_PERCENT = 1
+
 function rarityLabel(rarity: Rarity, it: boolean): string {
   if (!it) return rarity
   const labels: Record<Rarity, string> = {
@@ -37,8 +39,8 @@ export function RarityBadge({ rarity, className }: { rarity: Rarity; className?:
 }
 
 function trendDirection(value: number, it: boolean): string {
-  if (value > 0) return it ? "In crescita" : "Rising"
-  if (value < 0) return it ? "In calo" : "Falling"
+  if (value > STABLE_TREND_THRESHOLD_PERCENT) return it ? "In crescita" : "Rising"
+  if (value < -STABLE_TREND_THRESHOLD_PERCENT) return it ? "In calo" : "Falling"
   return it ? "Stabile" : "Stable"
 }
 
@@ -53,7 +55,7 @@ export function TrendIndicator({
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const dir = value > 0 ? "up" : value < 0 ? "down" : "flat"
+  const dir = value > STABLE_TREND_THRESHOLD_PERCENT ? "up" : value < -STABLE_TREND_THRESHOLD_PERCENT ? "down" : "flat"
   const Icon = dir === "up" ? ArrowUp : dir === "down" ? ArrowDown : ArrowRight
   const formatted = formatPercent(value)
   const label = `${trendDirection(value, it)} ${formatted}`
@@ -88,6 +90,8 @@ export function ConfidenceBadge(_props: {
 function trendWindowLabel(signal: ReleaseMarketSignalView, it: boolean): string {
   if (signal.trendPercent == null) return it ? "Trend in raccolta" : "Trend gathering"
   const direction = trendDirection(signal.trendPercent, it)
+  if (signal.trendWindowMonths === 12) return `${direction} · ${it ? "ultimo anno" : "last year"}`
+  if (signal.trendWindowMonths === 6) return `${direction} · ${it ? "ultimi 6 mesi" : "last 6 months"}`
   if (signal.trendWindowMonths === 3) return `${direction} · ${it ? "ultimi 3 mesi" : "last 3 months"}`
   if (signal.trendWindowMonths === 1) return `${direction} · ${it ? "ultimo mese" : "last month"}`
   return direction
