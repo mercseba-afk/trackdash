@@ -8,7 +8,7 @@ export type ReleaseMarketConfidence = "low" | "medium" | "high"
 
 export interface ReleaseMarketSignalView {
   marketRegime: ReleaseMarketRegime
-  valueEUR: number
+  valueEUR: number | null
   lowEUR: number | null
   highEUR: number | null
   confidenceScore: number
