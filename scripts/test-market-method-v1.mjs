@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import {
   applyPublicMarketPublicationPolicy,
   filterFreshCurrentOffers,
+  publicRetailConfidence,
   publicSoldConfidence,
 } from "../lib/market/pipeline/market-publication-policy.ts"
 import { nextScanSchedule } from "../lib/market/pipeline/scheduler.ts"
@@ -81,7 +82,7 @@ ok("secondary Market Value equals completed-sale anchor while active asks stay s
   assert.equal(result.activeAnchorEUR, 60)
 })
 
-ok("verified retail without sold evidence is visible but does not invent Market Value", () => {
+ok("one verified retailer is visible evidence but not enough to consolidate Market Value", () => {
   const result = applyPublicMarketPublicationPolicy(signal({
     marketRegime: "retail_driven",
     retailAnchorEUR: 18,
@@ -98,7 +99,26 @@ ok("verified retail without sold evidence is visible but does not invent Market 
   assert.equal(result.retailAnchorEUR, 18)
 })
 
-ok("retail and asks cannot pull a sold-based Market Value away from completed sales", () => {
+ok("two independent fresh retailers publish the retail median as Market Value", () => {
+  const result = applyPublicMarketPublicationPolicy(signal({
+    marketRegime: "retail_driven",
+    retailAnchorEUR: 14.57,
+    activeAnchorEUR: 21.99,
+    marketValueEUR: 16.09,
+    lowEUR: 14.57,
+    highEUR: 21.99,
+    retailSourceCount: 2,
+    activeOfferCount: 1,
+    currentOfferCount: 3,
+  }), [], "2026-09-10")
+  assert.equal(result.marketValueEUR, 14.57)
+  assert.equal(result.lowEUR, 14.57)
+  assert.equal(result.highEUR, 14.57)
+  assert.equal(result.activeAnchorEUR, 21.99)
+  assert.equal(result.confidenceLabel, "medium")
+})
+
+ok("liquid retail takes the headline while completed sales remain confirmation", () => {
   const soldEvidence = [{
     stableId: "ebay-pr",
     sourceId: "ebay-pr",
@@ -122,9 +142,37 @@ ok("retail and asks cannot pull a sold-based Market Value away from completed sa
     soldEvidenceCount: 1,
   }), soldEvidence, "2026-09-10")
   assert.equal(result.marketRegime, "retail_driven")
-  assert.equal(result.marketValueEUR, 16.85)
-  assert.equal(result.retailAnchorEUR, 14.57)
+  assert.equal(result.marketValueEUR, 14.57)
+  assert.equal(result.soldAnchorEUR, 16.85)
   assert.equal(result.activeAnchorEUR, 21.99)
+})
+
+ok("one retailer plus sold evidence uses demonstrated sold value, not the lone retail ask", () => {
+  const soldEvidence = [{
+    stableId: "sold",
+    sourceId: "ebay-pr",
+    averagePriceEUR: 30,
+    salesCount: 4,
+    periodStart: "2026-01-01",
+    periodEnd: "2026-07-01",
+    grain: "rolling_window",
+    evidenceGrade: "indicative",
+  }]
+  const result = applyPublicMarketPublicationPolicy(signal({
+    marketRegime: "mixed_scarce",
+    retailAnchorEUR: 19,
+    activeAnchorEUR: 45,
+    soldAnchorEUR: 30,
+    retailSourceCount: 1,
+    activeOfferCount: 1,
+    currentOfferCount: 2,
+    soldUnits: 4,
+    soldSourceCount: 1,
+    soldEvidenceCount: 1,
+  }), soldEvidence, "2026-09-10")
+  assert.equal(result.marketValueEUR, 30)
+  assert.equal(result.retailAnchorEUR, 19)
+  assert.equal(result.activeAnchorEUR, 45)
 })
 
 ok("indicative-only Product Research confidence can reach Medium but never High", () => {
@@ -160,6 +208,18 @@ ok("thin old sold evidence remains low confidence", () => {
   const confidence = publicSoldConfidence(signal({ soldUnits: 2, soldSourceCount: 1 }), soldEvidence, "2026-09-10")
   assert.equal(confidence.label, "low")
   assert.ok(confidence.score < 50)
+})
+
+ok("two-source retail confidence is Medium without being inflated by marketplace asks", () => {
+  const confidence = publicRetailConfidence(signal({
+    retailAnchorEUR: 15,
+    activeAnchorEUR: 70,
+    retailSourceCount: 2,
+    activeOfferCount: 5,
+    currentOfferCount: 7,
+  }), [], "2026-09-10")
+  assert.equal(confidence.label, "medium")
+  assert.equal(confidence.score, 50)
 })
 
 ok("marketplace and retail offer freshness is bounded", () => {
