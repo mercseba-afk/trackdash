@@ -9,6 +9,7 @@ import { applyCatalogCorrectionsBatch4 } from "./catalog-corrections-batch4"
 import { applyCatalogCorrectionsBatch5 } from "./catalog-corrections-batch5"
 import { applyCatalogCorrectionsBatch6 } from "./catalog-corrections-batch6"
 import { applyCatalogCorrectionsBatch7 } from "./catalog-corrections-batch7"
+import { applyCatalogCorrectionsBatch8 } from "./catalog-corrections-batch8"
 import { applyCatalogImageManifest } from "./catalog-image-overlay"
 
 // Runtime/demo compatibility view of the historical seed catalog after applying
@@ -30,7 +31,8 @@ const BATCH4_PRODUCTS = applyCatalogCorrectionsBatch4(BATCH3_PRODUCTS)
 const BATCH5_PRODUCTS = applyCatalogCorrectionsBatch5(BATCH4_PRODUCTS)
 const BATCH6_PRODUCTS = applyCatalogCorrectionsBatch6(BATCH5_PRODUCTS)
 const BATCH7_PRODUCTS = applyCatalogCorrectionsBatch7(BATCH6_PRODUCTS)
-export const PRODUCTS: Product[] = applyCatalogImageManifest(BATCH7_PRODUCTS)
+const BATCH8_PRODUCTS = applyCatalogCorrectionsBatch8(BATCH7_PRODUCTS)
+export const PRODUCTS: Product[] = applyCatalogImageManifest(BATCH8_PRODUCTS)
 
 export { getRelatedProducts }
 
