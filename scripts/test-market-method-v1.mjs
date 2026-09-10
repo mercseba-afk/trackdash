@@ -48,7 +48,7 @@ ok("one secondary asking price is evidence but not a public Market Value", () =>
   assert.equal(result.activeAnchorEUR, 40)
 })
 
-ok("two independent marketplace representatives may publish a low-confidence value", () => {
+ok("multiple secondary asks remain asking evidence, not demonstrated Market Value", () => {
   const result = applyPublicMarketPublicationPolicy(signal({
     marketValueEUR: 41,
     lowEUR: 40,
@@ -57,19 +57,28 @@ ok("two independent marketplace representatives may publish a low-confidence val
     activeOfferCount: 2,
     currentOfferCount: 2,
   }))
-  assert.equal(result.marketRegime, "secondary_market_driven")
-  assert.equal(result.marketValueEUR, 41)
+  assert.equal(result.marketRegime, "insufficient")
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.activeAnchorEUR, 41)
 })
 
-ok("release-specific sold evidence allows a secondary value even with one current ask", () => {
+ok("secondary Market Value equals completed-sale anchor while active asks stay separate", () => {
   const result = applyPublicMarketPublicationPolicy(signal({
+    marketValueEUR: 48,
+    lowEUR: 38,
+    highEUR: 60,
+    activeAnchorEUR: 60,
     soldAnchorEUR: 38,
-    soldUnits: 3,
+    soldUnits: 8,
     soldSourceCount: 1,
     soldEvidenceCount: 1,
+    activeOfferCount: 2,
   }))
   assert.equal(result.marketRegime, "secondary_market_driven")
-  assert.equal(result.marketValueEUR, 40)
+  assert.equal(result.marketValueEUR, 38)
+  assert.equal(result.lowEUR, 38)
+  assert.equal(result.highEUR, 38)
+  assert.equal(result.activeAnchorEUR, 60)
 })
 
 ok("one genuine retail source may publish a low-confidence observable retail signal", () => {
