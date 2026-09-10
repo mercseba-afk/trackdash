@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, eq } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
@@ -61,6 +61,26 @@ export async function getMarketSignalForRelease(
   })
 }
 
+// Public app surfaces need the same R3 rows as the Release page. Keep this query
+// centralized so Scanner/Dashboard/Collection/Wishlist/Market cannot drift back
+// to a separate pricing engine. With no ids supplied it returns every current
+// collector-condition signal; callers may optionally request only known releases.
+export async function listMarketSignals(
+  releaseIds?: string[],
+  condition = COLLECTOR_VALUE_CONDITION,
+) {
+  if (releaseIds && releaseIds.length === 0) return []
+
+  return db.query.marketReleaseSignals.findMany({
+    where: releaseIds
+      ? and(
+          eq(marketReleaseSignals.condition, condition),
+          inArray(marketReleaseSignals.releaseId, releaseIds),
+        )
+      : eq(marketReleaseSignals.condition, condition),
+  })
+}
+
 export async function getMarketMonthlySignalsForRelease(
   releaseId: string,
   condition = COLLECTOR_VALUE_CONDITION,
@@ -78,7 +98,7 @@ export async function getMarketMonthlySignalsForRelease(
 
 // Product cards show the cheapest CURRENT PURCHASABLE Release item price only.
 // Sold evidence and out-of-stock retail can influence Market Value/trend but can
-// never masquerade as "A partire da". Shipping remains separate provenance and
+// never masquerade as "Da"/"From". Shipping remains separate provenance and
 // never gets folded into this clean item-price headline.
 export async function getCatalogStartingPrices(): Promise<Record<string, number>> {
   const rows = await db
