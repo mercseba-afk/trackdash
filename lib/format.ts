@@ -24,8 +24,10 @@ export function formatDate(iso: string): string {
 }
 
 export function formatPercent(value: number): string {
-  const sign = value > 0 ? "+" : ""
-  return `${sign}${value}%`
+  const rounded = Math.round(value * 10) / 10
+  const sign = rounded > 0 ? "+" : ""
+  const display = Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)
+  return `${sign}${display}%`
 }
 
 // Gamified collector level derived from collection size. Deliberately gentle —
