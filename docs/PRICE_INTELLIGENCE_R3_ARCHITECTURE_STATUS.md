@@ -24,10 +24,12 @@ The public value is always **Release-specific** and currently refers to `new_com
 ### Market Value publication
 
 - Shipping is stored separately and never added to the collectible's headline Market Value.
-- Retail, active marketplace asks and completed sales remain distinct anchors and are reliability-weighted by R3.
-- A single secondary-market asking price with no retail and no Release-specific sold evidence is **not** enough to publish a Market Value. It remains evidence only.
-- Secondary-only Market Value requires either Release-specific sold evidence or at least two independent active marketplace representatives.
-- One genuinely purchasable retail source may still publish a low-confidence retail signal because it is an observable current transaction opportunity, not an unsupported secondary ask.
+- **Completed sales, active seller asks and retail availability are different market concepts and are never presented as if they were the same measurement.**
+- On a secondary-only market, Release-specific completed sales define the public **Market Value**. Active marketplace asks remain a separate signal and do not pull that value up or down.
+- One or several active marketplace asks without Release-specific sold evidence are useful market activity, but they do **not** create a Market Value. The UI may show an active asking level while stating that the value is not yet consolidated.
+- For a Release with genuinely available retail stock, verified retail can publish a low-confidence current value; completed sales may corroborate the broader retail/mixed regime.
+- When both sold evidence and active asks exist, the UI may show whether asking prices are above, below or broadly aligned with observed sold value. This is an **ask-position signal**, not a price trend.
+- A true `↑ / ↓` trend is derived only from a sufficient, recent time series of completed sales.
 - Outliers are quarantined when they conflict materially with contemporaneous exact evidence and are not promoted merely because the Release identity is correct.
 - The public `Da / From` price is intentionally removed for v1. International low prices may be real but not accessible to every user; reintroducing a localised acquisition price requires a separate shipping/market-access model.
 
@@ -35,6 +37,7 @@ The public value is always **Release-specific** and currently refers to `new_com
 
 - eBay Seller Hub Product Research is the preferred sold-market aggregate source for eBay.
 - Aggregate and granular rows from the same source are never summed together; the most suitable current aggregate grain supersedes overlapping rows.
+- **Sold freshness follows the most recent actual accepted sale, not the end date of the Product Research query window.** Query coverage is stored separately in provenance/raw payload.
 - Sold freshness and evidence grade affect weight. Old research remains history but cannot create a current trend indefinitely.
 - `sales_count` represents observed sold units in the accepted Product Research evidence, not a claim about total worldwide sales.
 - If Product Research cannot distinguish two reissues sharing an item number, the aggregate stays at item-code level and contributes to neither Release until attribution can be resolved.
@@ -42,6 +45,19 @@ The public value is always **Release-specific** and currently refers to `new_com
 ### Confidence
 
 Confidence is evidence quality, not marketing certainty. It increases with independent current sources, completed-sale volume/source diversity, anchor agreement, shipping knowledge and sold freshness. Low-confidence values are permitted only when the publication rules above are satisfied.
+
+## Public UI semantics
+
+The Release market card is designed to be readable without requiring the user to understand the R3 model:
+
+- **Market Value** = demonstrated value according to the rules above.
+- **Observed sold** = completed-sale anchor used on the secondary market.
+- **Active asks** = current seller expectation, shown separately.
+- **Asks above/below sold** = current positioning of seller expectations; never labelled as growth/decline.
+- **Sales trend** = actual completed-sale movement over time and appears only with sufficient recent time-series evidence.
+- **Market forming / Value not yet consolidated** = real activity exists, but evidence is not strong enough to publish Market Value.
+
+The design goal is to stimulate collection activity and future trading by making market activity visible, without using optimistic arrows or asking prices to manufacture appreciation that completed transactions do not support.
 
 ## Deployment status
 
