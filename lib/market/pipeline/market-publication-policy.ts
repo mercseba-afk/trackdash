@@ -1,6 +1,11 @@
-import type { CurrentOfferEvidence, MarketSignalDraft } from "./market-model"
+import type {
+  CurrentOfferEvidence,
+  MarketSignalDraft,
+  SoldMarketEvidence,
+} from "./market-model"
 
 const HOUR_MS = 3_600_000
+const DAY_MS = 86_400_000
 
 // Scanner cadence deliberately runs inside these windows:
 // marketplace normal/cold = 72h, expiry = 96h
@@ -26,40 +31,104 @@ export function filterFreshCurrentOffers(
   })
 }
 
-// Public v1 semantics deliberately keep three different concepts separate:
-// - Market Value: demonstrated market value (sold evidence on the secondary market,
-//   or the composite retail regime while the product is genuinely available retail).
-// - Active asks: current seller expectations. They remain visible as a separate
-//   signal but never pull a secondary-market Market Value up or down.
-// - Trend: derived only from completed-sale history elsewhere in R3.
+function confidenceLabel(score: number): MarketSignalDraft["confidenceLabel"] {
+  if (score >= 75) return "high"
+  if (score >= 50) return "medium"
+  return "low"
+}
+
+function soldFreshnessPoints(evidence: SoldMarketEvidence[], asOfDate: string): number {
+  if (!evidence.length) return 0
+  const asOf = Date.parse(`${asOfDate}T23:59:59Z`)
+  const latest = Math.max(...evidence.map((row) => Date.parse(`${row.periodEnd}T23:59:59Z`)).filter(Number.isFinite))
+  if (!Number.isFinite(asOf) || !Number.isFinite(latest)) return 0
+
+  const ageDays = Math.max(0, (asOf - latest) / DAY_MS)
+  if (ageDays <= 90) return 25
+  if (ageDays <= 180) return 20
+  if (ageDays <= 365) return 15
+  if (ageDays <= 730) return 8
+  return 4
+}
+
+function soldQualityPoints(evidence: SoldMarketEvidence[]): { points: number; hasVerified: boolean } {
+  if (!evidence.length) return { points: 0, hasVerified: false }
+  let weighted = 0
+  let totalWeight = 0
+  let hasVerified = false
+
+  for (const row of evidence) {
+    const weight = Math.sqrt(Math.max(1, row.salesCount))
+    const points = row.evidenceGrade === "verified" ? 20 : 10
+    if (row.evidenceGrade === "verified") hasVerified = true
+    weighted += points * weight
+    totalWeight += weight
+  }
+
+  return {
+    points: totalWeight > 0 ? weighted / totalWeight : 0,
+    hasVerified,
+  }
+}
+
+// Confidence shown next to a sold-based Market Value must describe the evidence
+// behind THAT value, not the amount of retail/asking-price activity around it.
+// Indicative-only title-matched Product Research can reach Medium, but never High.
+export function publicSoldConfidence(
+  signal: MarketSignalDraft,
+  soldEvidence: SoldMarketEvidence[],
+  asOfDate: string,
+): { score: number; label: MarketSignalDraft["confidenceLabel"] } {
+  const volume = signal.soldUnits > 0
+    ? Math.min(30, Math.log2(signal.soldUnits + 1) * 5)
+    : 0
+  const diversity = Math.min(20, signal.soldSourceCount * 8)
+  const freshness = soldFreshnessPoints(soldEvidence, asOfDate)
+  const quality = soldQualityPoints(soldEvidence)
+
+  let score = Math.round(Math.min(100, volume + diversity + freshness + quality.points))
+  if (!quality.hasVerified) score = Math.min(score, 70)
+
+  return { score, label: confidenceLabel(score) }
+}
+
+// Public v1 has one deliberately simple definition across every Release:
 //
-// Therefore a secondary-only Release without sold evidence never publishes a
-// Market Value, even if several sellers are currently asking a price. Those asks
-// are still retained on the signal so the UI can show the market's asking level.
+// Market Value = demonstrated completed-sale value.
+// Verified retail = current retail availability/price signal.
+// Active asks = current seller expectations.
+// Trend = movement of completed sales over time.
+//
+// Retail and asks remain valuable and visible, but neither can manufacture or
+// inflate the public Market Value. This keeps the headline comparable between a
+// current reissue, a scarce limited edition and a vintage discontinued Release.
 export function applyPublicMarketPublicationPolicy(
   signal: MarketSignalDraft,
+  soldEvidence: SoldMarketEvidence[] = [],
+  asOfDate?: string,
 ): MarketSignalDraft {
-  if (signal.retailSourceCount > 0) return signal
+  const hasSoldValue = signal.soldAnchorEUR != null && signal.soldEvidenceCount > 0
 
-  if (signal.soldAnchorEUR != null && signal.soldEvidenceCount > 0) {
+  if (hasSoldValue) {
+    const confidence = asOfDate && soldEvidence.length
+      ? publicSoldConfidence(signal, soldEvidence, asOfDate)
+      : { score: signal.confidenceScore, label: signal.confidenceLabel }
+
     return {
       ...signal,
-      marketRegime: "secondary_market_driven",
       marketValueEUR: signal.soldAnchorEUR,
       lowEUR: signal.soldAnchorEUR,
       highEUR: signal.soldAnchorEUR,
+      confidenceScore: confidence.score,
+      confidenceLabel: confidence.label,
     }
   }
 
-  if (signal.activeAnchorEUR != null || signal.activeOfferCount > 0) {
-    return {
-      ...signal,
-      marketRegime: "insufficient",
-      marketValueEUR: null,
-      lowEUR: null,
-      highEUR: null,
-    }
+  return {
+    ...signal,
+    marketRegime: signal.retailSourceCount > 0 ? signal.marketRegime : "insufficient",
+    marketValueEUR: null,
+    lowEUR: null,
+    highEUR: null,
   }
-
-  return signal
 }
