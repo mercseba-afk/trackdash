@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import {
   applyPublicMarketPublicationPolicy,
   filterFreshCurrentOffers,
+  publicSoldConfidence,
 } from "../lib/market/pipeline/market-publication-policy.ts"
 import { nextScanSchedule } from "../lib/market/pipeline/scheduler.ts"
 
@@ -43,16 +44,11 @@ ok("one secondary asking price is evidence but not a public Market Value", () =>
   const result = applyPublicMarketPublicationPolicy(signal())
   assert.equal(result.marketRegime, "insufficient")
   assert.equal(result.marketValueEUR, null)
-  assert.equal(result.lowEUR, null)
-  assert.equal(result.highEUR, null)
   assert.equal(result.activeAnchorEUR, 40)
 })
 
 ok("multiple secondary asks remain asking evidence, not demonstrated Market Value", () => {
   const result = applyPublicMarketPublicationPolicy(signal({
-    marketValueEUR: 41,
-    lowEUR: 40,
-    highEUR: 42,
     activeAnchorEUR: 41,
     activeOfferCount: 2,
     currentOfferCount: 2,
@@ -63,25 +59,29 @@ ok("multiple secondary asks remain asking evidence, not demonstrated Market Valu
 })
 
 ok("secondary Market Value equals completed-sale anchor while active asks stay separate", () => {
+  const soldEvidence = [{
+    stableId: "ebay-pr",
+    sourceId: "ebay-pr",
+    averagePriceEUR: 38,
+    salesCount: 8,
+    periodStart: "2026-06-01",
+    periodEnd: "2026-08-31",
+    grain: "rolling_window",
+    evidenceGrade: "indicative",
+  }]
   const result = applyPublicMarketPublicationPolicy(signal({
-    marketValueEUR: 48,
-    lowEUR: 38,
-    highEUR: 60,
     activeAnchorEUR: 60,
     soldAnchorEUR: 38,
     soldUnits: 8,
     soldSourceCount: 1,
     soldEvidenceCount: 1,
     activeOfferCount: 2,
-  }))
-  assert.equal(result.marketRegime, "secondary_market_driven")
+  }), soldEvidence, "2026-09-10")
   assert.equal(result.marketValueEUR, 38)
-  assert.equal(result.lowEUR, 38)
-  assert.equal(result.highEUR, 38)
   assert.equal(result.activeAnchorEUR, 60)
 })
 
-ok("one genuine retail source may publish a low-confidence observable retail signal", () => {
+ok("verified retail without sold evidence is visible but does not invent Market Value", () => {
   const result = applyPublicMarketPublicationPolicy(signal({
     marketRegime: "retail_driven",
     retailAnchorEUR: 18,
@@ -91,9 +91,75 @@ ok("one genuine retail source may publish a low-confidence observable retail sig
     highEUR: 18,
     retailSourceCount: 1,
     activeOfferCount: 0,
+    currentOfferCount: 1,
   }))
   assert.equal(result.marketRegime, "retail_driven")
-  assert.equal(result.marketValueEUR, 18)
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.retailAnchorEUR, 18)
+})
+
+ok("retail and asks cannot pull a sold-based Market Value away from completed sales", () => {
+  const soldEvidence = [{
+    stableId: "ebay-pr",
+    sourceId: "ebay-pr",
+    averagePriceEUR: 16.85,
+    salesCount: 53,
+    periodStart: "2023-09-10",
+    periodEnd: "2026-09-09",
+    grain: "full_history",
+    evidenceGrade: "indicative",
+  }]
+  const result = applyPublicMarketPublicationPolicy(signal({
+    marketRegime: "retail_driven",
+    retailAnchorEUR: 14.57,
+    activeAnchorEUR: 21.99,
+    soldAnchorEUR: 16.85,
+    retailSourceCount: 2,
+    activeOfferCount: 1,
+    currentOfferCount: 3,
+    soldUnits: 53,
+    soldSourceCount: 1,
+    soldEvidenceCount: 1,
+  }), soldEvidence, "2026-09-10")
+  assert.equal(result.marketRegime, "retail_driven")
+  assert.equal(result.marketValueEUR, 16.85)
+  assert.equal(result.retailAnchorEUR, 14.57)
+  assert.equal(result.activeAnchorEUR, 21.99)
+})
+
+ok("indicative-only Product Research confidence can reach Medium but never High", () => {
+  const soldEvidence = [{
+    stableId: "ebay-pr",
+    sourceId: "ebay-pr",
+    averagePriceEUR: 17,
+    salesCount: 80,
+    periodStart: "2023-09-10",
+    periodEnd: "2026-09-09",
+    grain: "full_history",
+    evidenceGrade: "indicative",
+  }]
+  const confidence = publicSoldConfidence(signal({
+    soldUnits: 80,
+    soldSourceCount: 1,
+  }), soldEvidence, "2026-09-10")
+  assert.equal(confidence.label, "medium")
+  assert.ok(confidence.score <= 70)
+})
+
+ok("thin old sold evidence remains low confidence", () => {
+  const soldEvidence = [{
+    stableId: "old-pr",
+    sourceId: "ebay-pr",
+    averagePriceEUR: 36.4,
+    salesCount: 2,
+    periodStart: "2023-09-10",
+    periodEnd: "2025-11-19",
+    grain: "full_history",
+    evidenceGrade: "indicative",
+  }]
+  const confidence = publicSoldConfidence(signal({ soldUnits: 2, soldSourceCount: 1 }), soldEvidence, "2026-09-10")
+  assert.equal(confidence.label, "low")
+  assert.ok(confidence.score < 50)
 })
 
 ok("marketplace and retail offer freshness is bounded", () => {
