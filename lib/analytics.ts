@@ -1,39 +1,66 @@
 import type {
   CollectionItem,
-  MarketEstimate,
+  Condition,
   Product,
   ProductRelease,
   WishlistItem,
 } from "@/lib/types"
-import { getProductEstimate, getReleaseEstimate } from "@/lib/data/market"
+import type {
+  ReleaseMarketSignalMap,
+  ReleaseMarketSignalView,
+} from "@/lib/market/view-types"
 import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
 // Respects a per-item release-year override without mutating shared data.
 export function releaseLabel(release: ProductRelease, displayYear?: number): string {
   const year = displayYear ?? release.releaseYear
-  // Catalog Model V2 hardening (point 2): year can be genuinely unknown.
   return `${year ?? "—"} ${release.releaseType}`
+}
+
+// R3 currently publishes a reference market for complete, new, unbuilt kits.
+// Sealed and New / Opened collection states can use that release-level reference
+// without inventing a condition multiplier. Built/Used/Incomplete deliberately
+// remain unvalued until condition-specific evidence exists.
+export function conditionUsesNewUnbuiltReference(condition: Condition): boolean {
+  return condition === "Sealed" || condition === "New / Opened"
 }
 
 export interface EnrichedCollectionItem {
   item: CollectionItem
   product: Product
   release: ProductRelease
-  estimate: MarketEstimate
-  displayYear?: number // release-year override if set, else the release year; undefined when genuinely unknown
-  label: string // e.g. "2026 Reissue"
+  marketSignal: ReleaseMarketSignalView | null
+  marketValue: number | null
+  marketTrend: number | null
+  displayYear?: number
+  label: string
 }
 
-export function enrichCollection(collection: CollectionItem[]): EnrichedCollectionItem[] {
+export function enrichCollection(
+  collection: CollectionItem[],
+  marketSignals: ReleaseMarketSignalMap = {},
+): EnrichedCollectionItem[] {
   return collection
     .map((item): EnrichedCollectionItem | null => {
       const product = getProductById(item.productId)
       if (!product) return null
       const release = resolveRelease(product, item.releaseId)
-      const estimate = getReleaseEstimate(product, release, item.condition)
+      const marketSignal = marketSignals[release.id] ?? null
+      const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
+      const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
+      const marketTrend = comparableCondition ? marketSignal?.trendPercent ?? null : null
       const displayYear = item.releaseYearOverride ?? release.releaseYear
-      return { item, product, release, estimate, displayYear, label: releaseLabel(release, displayYear) }
+      return {
+        item,
+        product,
+        release,
+        marketSignal,
+        marketValue,
+        marketTrend,
+        displayYear,
+        label: releaseLabel(release, displayYear),
+      }
     })
     .filter((x): x is EnrichedCollectionItem => x !== null)
 }
@@ -43,59 +70,77 @@ export interface PortfolioSummary {
   uniqueProducts: number
   uniqueReleases: number
   marketValue: number
+  marketValueCount: number
   acquisitionCost: number
+  trackedAcquisitionCost: number
   gain: number
   gainPercent: number
-  avgTrend90d: number
+  avgTrend90d: number | null
+  trendCount: number
   sealedCount: number
 }
 
 export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioSummary {
-  const marketValue = enriched.reduce((sum, e) => sum + e.estimate.value, 0)
-  const acquisitionCost = enriched.reduce((sum, e) => sum + e.item.acquisitionPrice, 0)
-  const gain = marketValue - acquisitionCost
-  const uniqueProducts = new Set(enriched.map((e) => e.product.id)).size
-  const uniqueReleases = new Set(enriched.map((e) => e.release.id)).size
-  const avgTrend90d =
-    enriched.length > 0
-      ? Math.round(enriched.reduce((s, e) => s + e.estimate.trend90d, 0) / enriched.length)
-      : 0
+  const valued = enriched.filter((entry) => entry.marketValue != null)
+  const marketValue = valued.reduce((sum, entry) => sum + (entry.marketValue ?? 0), 0)
+  const acquisitionCost = enriched.reduce((sum, entry) => sum + entry.item.acquisitionPrice, 0)
+  const trackedAcquisitionCost = valued.reduce((sum, entry) => sum + entry.item.acquisitionPrice, 0)
+  const gain = marketValue - trackedAcquisitionCost
+  const uniqueProducts = new Set(enriched.map((entry) => entry.product.id)).size
+  const uniqueReleases = new Set(enriched.map((entry) => entry.release.id)).size
+  const trends = valued
+    .map((entry) => entry.marketTrend)
+    .filter((value): value is number => value != null)
+  const avgTrend90d = trends.length > 0
+    ? Math.round((trends.reduce((sum, value) => sum + value, 0) / trends.length) * 10) / 10
+    : null
+
   return {
     count: enriched.length,
     uniqueProducts,
     uniqueReleases,
     marketValue,
+    marketValueCount: valued.length,
     acquisitionCost,
+    trackedAcquisitionCost,
     gain,
-    gainPercent: acquisitionCost > 0 ? Math.round((gain / acquisitionCost) * 100) : 0,
+    gainPercent: trackedAcquisitionCost > 0 ? Math.round((gain / trackedAcquisitionCost) * 100) : 0,
     avgTrend90d,
-    sealedCount: enriched.filter((e) => e.item.condition === "Sealed").length,
+    trendCount: trends.length,
+    sealedCount: enriched.filter((entry) => entry.item.condition === "Sealed").length,
   }
 }
 
 export interface Breakdown {
   label: string
   count: number
+  valuedCount: number
   value: number
 }
 
 export function breakdownBy(
   enriched: EnrichedCollectionItem[],
-  key: (e: EnrichedCollectionItem) => string,
+  key: (entry: EnrichedCollectionItem) => string,
 ): Breakdown[] {
   const map = new Map<string, Breakdown>()
-  for (const e of enriched) {
-    const label = key(e)
-    const cur = map.get(label) ?? { label, count: 0, value: 0 }
-    cur.count += 1
-    cur.value += e.estimate.value
-    map.set(label, cur)
+  for (const entry of enriched) {
+    const label = key(entry)
+    const current = map.get(label) ?? { label, count: 0, valuedCount: 0, value: 0 }
+    current.count += 1
+    if (entry.marketValue != null) {
+      current.valuedCount += 1
+      current.value += entry.marketValue
+    }
+    map.set(label, current)
   }
   return Array.from(map.values()).sort((a, b) => b.value - a.value)
 }
 
 export function topValued(enriched: EnrichedCollectionItem[], n = 5): EnrichedCollectionItem[] {
-  return [...enriched].sort((a, b) => b.estimate.value - a.estimate.value).slice(0, n)
+  return enriched
+    .filter((entry) => entry.marketValue != null)
+    .sort((a, b) => (b.marketValue ?? 0) - (a.marketValue ?? 0))
+    .slice(0, n)
 }
 
 export function recentAdditions(enriched: EnrichedCollectionItem[], n = 6): EnrichedCollectionItem[] {
@@ -104,46 +149,63 @@ export function recentAdditions(enriched: EnrichedCollectionItem[], n = 6): Enri
     .slice(0, n)
 }
 
-// Count how many physical copies of a given release the collector owns — used to
-// surface "×2" aggregation while still tracking each copy as its own item.
 export function releaseOwnedCount(enriched: EnrichedCollectionItem[], releaseId: string): number {
-  return enriched.filter((e) => e.release.id === releaseId).length
+  return enriched.filter((entry) => entry.release.id === releaseId).length
 }
 
-// All collection items belonging to one model (across every release), for the
-// "Your collection" section on the product page.
 export function itemsForProduct(
   enriched: EnrichedCollectionItem[],
   productId: string,
 ): EnrichedCollectionItem[] {
-  return enriched.filter((e) => e.product.id === productId)
+  return enriched.filter((entry) => entry.product.id === productId)
 }
 
 export interface EnrichedWishlistItem {
   item: WishlistItem
   product: Product
   release?: ProductRelease
-  estimate: MarketEstimate
+  marketSignal: ReleaseMarketSignalView | null
+  marketValue: number | null
+  currentPrice: number | null
   label?: string
   belowTarget: boolean
 }
 
-export function enrichWishlist(wishlist: WishlistItem[]): EnrichedWishlistItem[] {
+function lowestStartingPrice(product: Product, marketSignals: ReleaseMarketSignalMap): number | null {
+  let lowest: number | null = null
+  for (const release of product.releases) {
+    const price = marketSignals[release.id]?.startingItemPriceEUR
+    if (price == null || price <= 0) continue
+    if (lowest == null || price < lowest) lowest = price
+  }
+  return lowest
+}
+
+export function enrichWishlist(
+  wishlist: WishlistItem[],
+  marketSignals: ReleaseMarketSignalMap = {},
+): EnrichedWishlistItem[] {
   return wishlist
     .map((item): EnrichedWishlistItem | null => {
       const product = getProductById(item.productId)
       if (!product) return null
-      // If a specific release is targeted, value that; otherwise the whole model.
       const release = item.releaseId ? resolveRelease(product, item.releaseId) : undefined
-      const estimate = release
-        ? getReleaseEstimate(product, release)
-        : getProductEstimate(product)
-      const belowTarget = item.targetPrice ? estimate.value <= item.targetPrice : false
+      const marketSignal = release ? marketSignals[release.id] ?? null : null
+      const marketValue = release ? marketSignal?.valueEUR ?? null : null
+      const currentPrice = release
+        ? marketSignal?.startingItemPriceEUR ?? null
+        : lowestStartingPrice(product, marketSignals)
+      const belowTarget = item.targetPrice != null && currentPrice != null
+        ? currentPrice <= item.targetPrice
+        : false
+
       return {
         item,
         product,
         release,
-        estimate,
+        marketSignal,
+        marketValue,
+        currentPrice,
         label: release ? releaseLabel(release) : undefined,
         belowTarget,
       }
