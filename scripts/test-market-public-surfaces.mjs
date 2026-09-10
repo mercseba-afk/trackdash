@@ -1,5 +1,7 @@
 import fs from "node:fs"
 
+// Public R3 alignment regression gate. Keep this test deployment-visible so
+// Vercel preview builds verify the same canonical market-source contract.
 const publicSurfaces = [
   "components/screens/scanner-screen.tsx",
   "components/screens/release-detail-screen.tsx",
