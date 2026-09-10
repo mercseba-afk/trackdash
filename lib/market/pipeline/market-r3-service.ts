@@ -45,9 +45,10 @@ export async function recomputeReleaseMarketSignal(
     asOfDate,
   })
 
-  // The calculation may retain thin evidence for audit, but the public layer is
-  // intentionally stricter: one lone secondary-market ask is not a Market Value.
-  const signal = applyPublicMarketPublicationPolicy(computedSignal)
+  // Public v1 keeps demonstrated sold value, verified retail and current seller
+  // asks as separate concepts. Confidence is recalibrated from the completed-sale
+  // evidence behind the headline, not from unrelated asking-price volume.
+  const signal = applyPublicMarketPublicationPolicy(computedSignal, soldEvidence, asOfDate)
 
   await repo.upsertReleaseSignal(releaseId, condition, signal)
   await repo.upsertMonthlySoldSignals(releaseId, condition, signal)
