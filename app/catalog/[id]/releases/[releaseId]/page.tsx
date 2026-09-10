@@ -16,19 +16,31 @@ function numberOrNull(value: string | number | null | undefined): number | null 
 
 function toMarketSignalView(signal: Awaited<ReturnType<typeof getMarketSignalForRelease>> | null): ReleaseMarketSignalView | null {
   if (!signal) return null
+
   const valueEUR = numberOrNull(signal.marketValueEUR)
-  if (valueEUR == null || valueEUR <= 0) return null
+  const retailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
+  const activeAnchorEUR = numberOrNull(signal.activeAnchorEUR)
+  const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
+  const hasMarketEvidence =
+    (valueEUR != null && valueEUR > 0) ||
+    (retailAnchorEUR != null && retailAnchorEUR > 0) ||
+    (activeAnchorEUR != null && activeAnchorEUR > 0) ||
+    (soldAnchorEUR != null && soldAnchorEUR > 0) ||
+    signal.currentOfferCount > 0 ||
+    signal.soldUnits > 0
+
+  if (!hasMarketEvidence) return null
 
   return {
     marketRegime: signal.marketRegime as ReleaseMarketRegime,
-    valueEUR,
+    valueEUR: valueEUR != null && valueEUR > 0 ? valueEUR : null,
     lowEUR: numberOrNull(signal.lowEUR),
     highEUR: numberOrNull(signal.highEUR),
     confidenceScore: signal.confidenceScore,
     confidenceLabel: signal.confidenceLabel as ReleaseMarketConfidence,
-    retailAnchorEUR: numberOrNull(signal.retailAnchorEUR),
-    activeAnchorEUR: numberOrNull(signal.activeAnchorEUR),
-    soldAnchorEUR: numberOrNull(signal.soldAnchorEUR),
+    retailAnchorEUR,
+    activeAnchorEUR,
+    soldAnchorEUR,
     startingItemPriceEUR: numberOrNull(signal.startingItemPriceEUR),
     currentOfferCount: signal.currentOfferCount,
     soldUnits: signal.soldUnits,
