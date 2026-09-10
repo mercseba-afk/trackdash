@@ -146,7 +146,7 @@ function AskPositionSignal({ signal, it }: { signal: ReleaseMarketSignalView; it
           <Icon className="size-4" aria-hidden /> {label}
         </span>
         <span className="text-xs font-semibold tabular-nums text-muted-foreground">
-          {differencePct > 0 ? "+" : ""}{formatPercent(differencePct)}
+          {formatPercent(differencePct)}
         </span>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-3 text-xs">
@@ -209,8 +209,8 @@ export function MarketSignalCard({
                 </p>
                 <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
                   {it
-                    ? "TrackDash ha segnali di mercato reali, ma non abbastanza vendite concluse per pubblicare un valore affidabile."
-                    : "TrackDash has real market activity, but not enough completed-sale evidence to publish a reliable value."}
+                    ? "TrackDash ha segnali di mercato reali, ma non ancora abbastanza evidenze indipendenti per pubblicare un valore affidabile."
+                    : "TrackDash has real market activity, but not yet enough independent evidence to publish a reliable value."}
                 </p>
               </>
             )}
