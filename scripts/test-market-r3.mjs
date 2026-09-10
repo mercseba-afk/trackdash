@@ -184,9 +184,9 @@ ok("aggregate Product Research supersedes granular rows from the same source", (
   assert.equal(selected.some((row) => row.stableId === "yahoo-1"), true)
 })
 
-ok("scanner defaults are staggered: 7d retail/active, 14d sold", () => {
+ok("scanner defaults are staggered: 7d retail, 3d active marketplace, 14d sold", () => {
   assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 168)
-  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 168)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 72)
   assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 336)
 })
 

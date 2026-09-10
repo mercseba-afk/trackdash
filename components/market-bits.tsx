@@ -103,10 +103,69 @@ function signalConfidence(signal: ReleaseMarketSignalView): MarketEstimate["conf
 }
 
 function regimeLabel(signal: ReleaseMarketSignalView, it: boolean): string {
-  if (signal.marketRegime === "retail_driven") return it ? "Retail attivo" : "Retail-driven"
+  if (signal.marketRegime === "retail_driven") return it ? "Retail attivo" : "Active retail"
   if (signal.marketRegime === "mixed_scarce") return it ? "Mercato misto / scarso" : "Mixed / scarce"
-  if (signal.marketRegime === "secondary_market_driven") return it ? "Mercato secondario" : "Secondary-market driven"
-  return it ? "Dati insufficienti" : "Insufficient data"
+  if (signal.marketRegime === "secondary_market_driven") return it ? "Mercato secondario" : "Secondary market"
+  return it ? "Mercato in formazione" : "Market forming"
+}
+
+function AskPositionSignal({ signal, it }: { signal: ReleaseMarketSignalView; it: boolean }) {
+  if (signal.activeAnchorEUR == null) return null
+
+  if (signal.soldAnchorEUR == null || signal.soldAnchorEUR <= 0) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-foreground">
+            {it ? "Richieste attive" : "Active asks"}
+          </span>
+          <span className="font-semibold tabular-nums">~{formatMoney(signal.activeAnchorEUR)}</span>
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          {it
+            ? `${signal.activeOfferCount} ${signal.activeOfferCount === 1 ? "offerta marketplace monitorata" : "offerte marketplace monitorate"}. È un livello richiesto dai venditori, non ancora un valore di mercato consolidato.`
+            : `${signal.activeOfferCount} active marketplace ${signal.activeOfferCount === 1 ? "ask" : "asks"} monitored. This is seller expectation, not yet a consolidated Market Value.`}
+        </p>
+      </div>
+    )
+  }
+
+  const differencePct = ((signal.activeAnchorEUR - signal.soldAnchorEUR) / signal.soldAnchorEUR) * 100
+  const direction = differencePct > 10 ? "above" : differencePct < -10 ? "below" : "aligned"
+  const Icon = direction === "above" ? ArrowUpRight : direction === "below" ? ArrowDownRight : Minus
+  const label = direction === "above"
+    ? (it ? "Prezzi richiesti sopra il venduto" : "Asking prices above sold")
+    : direction === "below"
+      ? (it ? "Prezzi richiesti sotto il venduto" : "Asking prices below sold")
+      : (it ? "Prezzi richiesti in linea col venduto" : "Asking prices in line with sold")
+
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <Icon className="size-4" aria-hidden /> {label}
+        </span>
+        <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+          {formatPercent(differencePct)}
+        </span>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-3 text-xs">
+        <div>
+          <p className="text-muted-foreground">{it ? "Venduto osservato" : "Observed sold"}</p>
+          <p className="mt-0.5 font-semibold tabular-nums text-foreground">{formatMoney(signal.soldAnchorEUR)}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">{it ? "Richieste attive" : "Active asks"}</p>
+          <p className="mt-0.5 font-semibold tabular-nums text-foreground">~{formatMoney(signal.activeAnchorEUR)}</p>
+        </div>
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+        {it
+          ? "Questo confronto misura le aspettative dei venditori rispetto alle vendite concluse: non è un trend di prezzo."
+          : "This compares seller expectations with completed sales; it is not a price trend."}
+      </p>
+    </div>
+  )
 }
 
 export function MarketSignalCard({
@@ -121,46 +180,67 @@ export function MarketSignalCard({
   const { locale } = useI18n()
   const it = locale === "it"
   const resolvedTitle = title ?? (it ? "Valore di mercato" : "Market value")
+  const hasValue = signal.valueEUR != null && signal.valueEUR > 0
+  const hasUsefulRange = hasValue && signal.lowEUR != null && signal.highEUR != null && Math.abs(signal.highEUR - signal.lowEUR) > 0.01
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-sm text-muted-foreground">{resolvedTitle}</CardTitle>
-        <ConfidenceBadge confidence={signalConfidence(signal)} />
+        <ConfidenceBadge confidence={hasValue ? signalConfidence(signal) : "Insufficient"} />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-end justify-between gap-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-semibold tabular-nums">{formatMoney(signal.valueEUR)}</span>
-            {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} className="text-sm" /> : null}
+          <div className="min-w-0">
+            {hasValue ? (
+              <>
+                <span className="text-3xl font-semibold tabular-nums">{formatMoney(signal.valueEUR!)}</span>
+                {signal.trendPercent != null ? (
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <span>{it ? "Trend vendite" : "Sales trend"}</span>
+                    <TrendIndicator value={signal.trendPercent} />
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <p className="text-xl font-semibold text-foreground">
+                  {it ? "Valore non ancora consolidato" : "Value not yet consolidated"}
+                </p>
+                <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
+                  {it
+                    ? "TrackDash ha segnali di mercato reali, ma non ancora abbastanza evidenze indipendenti per pubblicare un valore affidabile."
+                    : "TrackDash has real market activity, but not yet enough independent evidence to publish a reliable value."}
+                </p>
+              </>
+            )}
           </div>
-          <div className="text-right text-xs text-muted-foreground">
+          <div className="shrink-0 text-right text-xs text-muted-foreground">
             <div>{regimeLabel(signal, it)}</div>
-            <div className="tabular-nums">{signal.confidenceScore}/100</div>
+            {hasValue ? <div className="tabular-nums">{signal.confidenceScore}/100</div> : null}
             {msrp != null && <div>MSRP {formatMoney(msrp)}</div>}
           </div>
         </div>
 
-        {signal.lowEUR != null && signal.highEUR != null ? (
+        {hasUsefulRange ? (
           <div className="grid grid-cols-3 gap-3 border-t pt-3 text-center">
-            <RangeStat label={it ? "Minimo" : "Low"} value={formatMoney(signal.lowEUR)} />
-            <RangeStat label={it ? "Valore" : "Value"} value={formatMoney(signal.valueEUR)} accent />
-            <RangeStat label={it ? "Massimo" : "High"} value={formatMoney(signal.highEUR)} />
+            <RangeStat label={it ? "Minimo" : "Low"} value={formatMoney(signal.lowEUR!)} />
+            <RangeStat label={it ? "Valore" : "Value"} value={formatMoney(signal.valueEUR!)} accent />
+            <RangeStat label={it ? "Massimo" : "High"} value={formatMoney(signal.highEUR!)} />
           </div>
         ) : null}
 
+        <AskPositionSignal signal={signal} it={it} />
+
         <div className="flex flex-col gap-1 border-t pt-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap gap-x-3 gap-y-1">
-            {signal.retailAnchorEUR != null ? <span>{it ? "Retail" : "Retail"}: {formatMoney(signal.retailAnchorEUR)}</span> : null}
-            {signal.activeAnchorEUR != null ? <span>{it ? "Marketplace attivo" : "Active marketplace"}: {formatMoney(signal.activeAnchorEUR)}</span> : null}
-            {signal.soldAnchorEUR != null ? <span>{it ? "Venduto" : "Sold"}: {formatMoney(signal.soldAnchorEUR)}</span> : null}
+            {signal.retailAnchorEUR != null ? <span>{it ? "Retail verificato" : "Verified retail"}: {formatMoney(signal.retailAnchorEUR)}</span> : null}
+            {signal.soldAnchorEUR != null ? <span>{it ? "Venduto osservato" : "Observed sold"}: {formatMoney(signal.soldAnchorEUR)}</span> : null}
+            {signal.activeAnchorEUR != null ? <span>{it ? "Richieste attive" : "Active asks"}: ~{formatMoney(signal.activeAnchorEUR)}</span> : null}
           </div>
           <div>
-            {signal.currentOfferCount} {it ? "offerte correnti" : "current offers"} · {signal.soldUnits} {it ? "unità vendute osservate" : "sold units observed"}
+            {signal.currentOfferCount} {it ? "offerte correnti verificate" : "verified current offers"} · {signal.soldUnits} {it ? "unità vendute osservate" : "observed sold units"}
           </div>
-          {signal.startingItemPriceEUR != null ? (
-            <div>{it ? "Da" : "From"} {formatMoney(signal.startingItemPriceEUR)}</div>
-          ) : null}
           <div>{it ? "Aggiornato" : "Updated"} {formatDate(signal.computedAt)}</div>
         </div>
       </CardContent>

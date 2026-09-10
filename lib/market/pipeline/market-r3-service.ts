@@ -5,6 +5,10 @@ import {
   computeCurrentMarketSignal,
   type MarketSignalDraft,
 } from "./market-model"
+import {
+  applyPublicMarketPublicationPolicy,
+  filterFreshCurrentOffers,
+} from "./market-publication-policy"
 import { MarketR3Repository } from "./market-r3-repository"
 import { selectCurrentSoldEvidence } from "./sold-selection"
 
@@ -22,6 +26,11 @@ export async function recomputeReleaseMarketSignal(
     repo.listAggregateSoldEvidence(releaseId, condition),
   ])
 
+  // Stored availability is never trusted forever. The pure policy applies a
+  // bounded freshness window per channel; stale states remain in history but
+  // cannot influence the public current-market signal until revalidated.
+  const freshOffers = filterFreshCurrentOffers(offers, now)
+
   const soldEvidence = selectCurrentSoldEvidence({
     granular,
     aggregate,
@@ -29,12 +38,17 @@ export async function recomputeReleaseMarketSignal(
   })
   const monthlySoldEvidence = aggregate.filter((row) => row.grain === "monthly")
 
-  const signal = computeCurrentMarketSignal({
-    offers,
+  const computedSignal = computeCurrentMarketSignal({
+    offers: freshOffers,
     soldEvidence,
     monthlySoldEvidence,
     asOfDate,
   })
+
+  // Public v1 keeps demonstrated sold value, verified retail and current seller
+  // asks as separate concepts. Confidence is recalibrated from the completed-sale
+  // evidence behind the headline, not from unrelated asking-price volume.
+  const signal = applyPublicMarketPublicationPolicy(computedSignal, soldEvidence, asOfDate)
 
   await repo.upsertReleaseSignal(releaseId, condition, signal)
   await repo.upsertMonthlySoldSignals(releaseId, condition, signal)

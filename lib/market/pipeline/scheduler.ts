@@ -35,16 +35,20 @@ export const DEFAULT_SCAN_BATCH_LIMITS: ScanBatchLimits = {
   total: 18,
 }
 
+// Current-offer scans deliberately run inside the public freshness windows.
+// Marketplace: 1d when hot, 3d otherwise; public expiry is 4d.
+// Retail: 3d when hot, 7d otherwise; public expiry is 8d.
+// Sold research changes much more slowly and is independently scheduled.
 const INTERVAL_HOURS: Record<ScanScope, Record<ScanActivityTier, number>> = {
   retail: {
     hot: 72,
     normal: 168,
-    cold: 336,
+    cold: 168,
   },
   active_marketplace: {
-    hot: 72,
-    normal: 168,
-    cold: 336,
+    hot: 24,
+    normal: 72,
+    cold: 72,
   },
   sold_research: {
     hot: 168,

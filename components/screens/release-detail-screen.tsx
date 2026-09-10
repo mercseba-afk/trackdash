@@ -96,17 +96,17 @@ export function ReleaseDetailScreen({
           <MarketEstimateCard estimate={demoEstimate} title={it ? "Valore di mercato — questa release" : "Market value — this release"} msrp={release.msrpEUR} />
         )}
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {it ? "Valutazione specifica della release" : "Release-specific valuation"}</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {it ? "Come leggere il mercato" : "How to read the market"}</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <p>{it ? "Questa stima è legata a questa specifica release commerciale, non solo al modello. Edizioni diverse possono avere rarità, età e valore di mercato differenti anche se condividono lo stesso Product." : "This estimate is tied to this exact commercial release, not just to the parent model. Different editions can have different rarity, age and market value even when they share the same Product."}</p>
+            <p>{it ? "Ogni dato è legato a questa specifica release commerciale, non solo al modello. Edizioni diverse possono avere disponibilità, rarità e valore molto differenti anche quando condividono lo stesso Product." : "Every market signal is tied to this exact commercial release, not just to the parent model. Different editions can have very different availability, rarity and value even when they share the same Product."}</p>
             <p>
               {marketSignal
                 ? (it
-                    ? "Il valore R3 combina retail realmente disponibile, marketplace a prezzo fisso attivo e vendite concluse. I prezzi esauriti restano nello storico ma non entrano nel mercato corrente; la spedizione è conservata separatamente e non viene sommata al valore del modello."
-                    : "The R3 value combines genuinely available retail, active fixed-price marketplace offers, and completed sales. Out-of-stock prices remain historical only; shipping is stored separately and is not added to the collectible value.")
+                    ? "Sul mercato secondario il Valore di mercato privilegia le vendite concluse: ciò che i collezionisti hanno realmente pagato. Le richieste dei venditori vengono mostrate separatamente per capire dove si sta posizionando oggi l'offerta, ma non possono gonfiare il valore. Per release ancora reperibili retail, TrackDash considera anche prezzi realmente disponibili. Un vero trend ↑/↓ compare solo quando esiste una serie temporale sufficiente di vendite concluse. Prezzi esauriti e offerte non più verificabili restano nello storico e non entrano nel mercato corrente."
+                    : "On the secondary market, Market Value prioritizes completed sales: what collectors actually paid. Seller asking prices are shown separately to indicate where current supply is positioned, but they cannot inflate the value. For releases still genuinely available at retail, TrackDash also considers verified in-stock retail prices. A true ↑/↓ trend appears only when there is enough completed-sale history. Sold-out or stale offers remain historical and do not enter the current market.")
                 : (it
-                    ? "I dati reali di mercato per questa release non sono ancora sufficientemente collegati alla superficie pubblica. Nessuna stima demo viene mostrata come valore reale."
-                    : "Real market evidence for this release is not yet connected to the public surface. Demo estimates are never shown as real market value.")}
+                    ? "I dati reali di mercato per questa release non sono ancora sufficienti. Nessuna stima demo viene mostrata come valore reale."
+                    : "Real market evidence for this release is not yet sufficient. Demo estimates are never shown as real market value.")}
             </p>
           </CardContent>
         </Card>

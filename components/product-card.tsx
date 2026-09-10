@@ -6,19 +6,12 @@ import type { Product } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { primaryRelease } from "@/lib/data/products"
-import { formatMoney } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { ProductImage } from "@/components/catalog/product-image"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
-export function ProductCard({
-  product,
-  startingPrice,
-}: {
-  product: Product
-  startingPrice?: number
-}) {
+export function ProductCard({ product }: { product: Product }) {
   const { isInCollection, isInWishlist } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
@@ -52,39 +45,22 @@ export function ProductCard({
           </p>
         </Link>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
-          <div className="min-w-0">
-            {startingPrice != null ? (
-              <>
-                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {it ? "Da" : "From"}
-                </p>
-                <p className="text-sm font-semibold tabular-nums">{formatMoney(startingPrice)}</p>
-              </>
-            ) : (
-              <p className="max-w-28 text-[11px] leading-tight text-muted-foreground">
-                {it ? "Dati mercato in arrivo" : "Market data coming soon"}
-              </p>
-            )}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <AddToWishlistDialog product={product}>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                aria-label={it ? "Aggiungi ai desideri" : "Add to wishlist"}
-                className={cn(wished && "border-brand text-brand")}
-              >
-                <Heart className={cn(wished && "fill-brand")} />
-              </Button>
-            </AddToWishlistDialog>
-            <AddToCollectionDialog product={product}>
-              <Button size="icon-sm" aria-label={it ? "Aggiungi alla collezione" : "Add to collection"}>
-                <Plus />
-              </Button>
-            </AddToCollectionDialog>
-          </div>
+        <div className="mt-auto flex items-center justify-end gap-1 pt-1">
+          <AddToWishlistDialog product={product}>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label={it ? "Aggiungi ai desideri" : "Add to wishlist"}
+              className={cn(wished && "border-brand text-brand")}
+            >
+              <Heart className={cn(wished && "fill-brand")} />
+            </Button>
+          </AddToWishlistDialog>
+          <AddToCollectionDialog product={product}>
+            <Button size="icon-sm" aria-label={it ? "Aggiungi alla collezione" : "Add to collection"}>
+              <Plus />
+            </Button>
+          </AddToCollectionDialog>
         </div>
       </div>
     </div>

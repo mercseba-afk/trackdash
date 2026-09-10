@@ -109,7 +109,13 @@ export function ProductDetailScreen({
             {mine.map((m) => (
               <div key={m.item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm">
                 <div className="flex items-center gap-3"><ProductImage product={m.product} release={m.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{m.label}</p><p className="text-xs text-muted-foreground">{m.item.condition} · {m.release.itemNumber ? `#${m.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(m.item.acquisitionDate)}</p></div></div>
-                <div className="text-right"><p className="font-semibold tabular-nums">{formatMoney(m.estimate.value)}</p><TrendIndicator value={m.estimate.trend90d} className="justify-end text-xs" /></div>
+                <div className="text-right">
+                  {m.estimate.isDemo ? (
+                    <p className="max-w-28 text-[11px] leading-tight text-muted-foreground">{locale === "it" ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
+                  ) : (
+                    <><p className="font-semibold tabular-nums">{formatMoney(m.estimate.value)}</p><TrendIndicator value={m.estimate.trend90d} className="justify-end text-xs" /></>
+                  )}
+                </div>
               </div>
             ))}
           </CardContent>
@@ -159,7 +165,13 @@ function ReleaseRow({ product, release, owned, community }: { product: Product; 
           ) : null}
         </div>
         <div className="col-span-2 flex items-center justify-between gap-3 border-t border-border pt-3 sm:col-span-1 sm:col-start-3 sm:row-span-2 sm:row-start-1 sm:ml-auto sm:flex-col sm:items-end sm:justify-center sm:border-0 sm:pt-0">
-          <div className="text-left sm:text-right"><p className="font-semibold tabular-nums">{formatMoney(estimate.value)}</p><TrendIndicator value={estimate.trend90d} className="text-xs sm:justify-end" /></div>
+          <div className="text-left sm:text-right">
+            {estimate.isDemo ? (
+              <p className="max-w-28 text-[11px] leading-tight text-muted-foreground">{locale === "it" ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
+            ) : (
+              <><p className="font-semibold tabular-nums">{formatMoney(estimate.value)}</p><TrendIndicator value={estimate.trend90d} className="text-xs sm:justify-end" /></>
+            )}
+          </div>
           <div className="flex items-center gap-2"><Button size="sm" variant="outline" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button><AddToCollectionDialog product={product} defaultReleaseId={release.id}><Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">{owned ? <Check className="size-4" /> : <Plus className="size-4" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button></AddToCollectionDialog></div>
         </div>
       </div>
