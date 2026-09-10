@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import type { Condition, Currency, Product, ProductRelease, WishlistPriority } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { getReleaseEstimate, getProductEstimate } from "@/lib/data/market"
+import { useMarketSignals } from "@/lib/market/context"
 import { primaryRelease, resolveRelease } from "@/lib/data/products"
 import { formatMoney } from "@/lib/format"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ProductImage } from "@/components/catalog/product-image"
+import { MarketSignalInline } from "@/components/market-signal-inline"
 
 const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Incomplete"]
 const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
@@ -127,6 +128,7 @@ export function AddToCollectionDialog({
   children: React.ReactNode
 }) {
   const { addToCollection } = useStore()
+  const { marketSignals } = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
   const [open, setOpen] = React.useState(false)
@@ -138,12 +140,12 @@ export function AddToCollectionDialog({
   const [date, setDate] = React.useState(new Date().toISOString().slice(0, 10))
   const [year, setYear] = React.useState(initialRelease.releaseYear ? String(initialRelease.releaseYear) : "")
   const [currency, setCurrency] = React.useState<Currency>("EUR")
+  const [price, setPrice] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [visibility, setVisibility] = React.useState<CollectionVisibility>("private")
 
   const selectedRelease = resolveRelease(product, releaseId)
-  const estimate = getReleaseEstimate(product, selectedRelease, condition)
-  const [price, setPrice] = React.useState(String(estimate.value))
+  const selectedSignal = marketSignals[selectedRelease.id]
 
   React.useEffect(() => {
     if (!open) return
@@ -151,7 +153,7 @@ export function AddToCollectionDialog({
     setReleaseId(r.id)
     setYear(r.releaseYear ? String(r.releaseYear) : "")
     setCondition("New / Opened")
-    setPrice(String(getReleaseEstimate(product, r, "New / Opened").value))
+    setPrice("")
     setNotes("")
     setVisibility("private")
     setDate(new Date().toISOString().slice(0, 10))
@@ -261,9 +263,7 @@ export function AddToCollectionDialog({
                   </SelectTrigger>
                   <SelectContent>
                     {CURRENCIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -276,19 +276,20 @@ export function AddToCollectionDialog({
                 type="number"
                 min={0}
                 step="0.01"
+                placeholder="0.00"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
               />
               <p className="text-[11px] text-muted-foreground">
-                {it ? "Stima demo per questa release e condizione" : "Demo estimate for this release & condition"}: {formatMoney(estimate.value)}
+                {selectedSignal?.valueEUR != null
+                  ? `${it ? "Valore attuale stimato" : "Estimated current value"}: ${formatMoney(selectedSignal.valueEUR)}`
+                  : (it ? "Inserisci quanto hai realmente pagato." : "Enter what you actually paid.")}
               </p>
             </Field>
             <Field>
               <FieldLabel>{it ? "Visibilità" : "Visibility"}</FieldLabel>
               <Select value={visibility} onValueChange={(v) => setVisibility(v as CollectionVisibility)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="private">{it ? "Privato — solo tu" : "Private — only you"}</SelectItem>
                   <SelectItem value="showcase">{it ? "Condiviso — vetrina collezionista" : "Shared — collector showcase"}</SelectItem>
@@ -334,21 +335,28 @@ export function AddToWishlistDialog({
   children: React.ReactNode
 }) {
   const { addToWishlist } = useStore()
+  const { marketSignals } = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState(false)
-  const estimate = getProductEstimate(product)
 
   const [releaseId, setReleaseId] = React.useState(defaultReleaseId ?? "any")
   const [priority, setPriority] = React.useState<WishlistPriority>("Medium")
-  const [target, setTarget] = React.useState(String(Math.round(estimate.value * 0.9)))
+  const [target, setTarget] = React.useState("")
   const [notes, setNotes] = React.useState("")
 
   const selectedRelease =
     releaseId && releaseId !== "any" ? resolveRelease(product, releaseId) : primaryRelease(product)
-  const displayEstimate =
-    releaseId && releaseId !== "any" ? getReleaseEstimate(product, selectedRelease) : estimate
+  const selectedSignal = releaseId && releaseId !== "any" ? marketSignals[selectedRelease.id] : null
+
+  React.useEffect(() => {
+    if (!open) return
+    setReleaseId(defaultReleaseId ?? "any")
+    setPriority("Medium")
+    setTarget("")
+    setNotes("")
+  }, [open, defaultReleaseId])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -378,17 +386,19 @@ export function AddToWishlistDialog({
           <DialogTitle>{it ? "Aggiungi ai desideri" : "Add to wishlist"}</DialogTitle>
           <DialogDescription>
             {it
-              ? "Salva un modello che stai cercando e imposta un prezzo obiettivo. Gli alert automatici saranno attivati quando avremo dati di mercato reali."
-              : "Save a model you're looking for and set a target price. Automatic alerts will be enabled when real market data is available."}
+              ? "Salva una release che stai cercando e, se vuoi, imposta il prezzo che vorresti pagare."
+              : "Save a release you're looking for and optionally set the price you'd like to pay."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
-          <ProductImage product={product} size="sm" className="h-14 w-20" />
-          <div className="min-w-0">
+          <ProductImage product={product} release={releaseId !== "any" ? selectedRelease : undefined} size="sm" className="h-14 w-20" />
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{product.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {it ? "Stima" : "Est."} {formatMoney(displayEstimate.value)} · demo
-            </p>
+            {releaseId !== "any" ? (
+              <MarketSignalInline signal={selectedSignal} />
+            ) : (
+              <p className="text-xs text-muted-foreground">{it ? "Qualsiasi edizione" : "Any edition"}</p>
+            )}
           </div>
         </div>
         <form onSubmit={submit}>
@@ -397,14 +407,10 @@ export function AddToWishlistDialog({
             <Field>
               <FieldLabel htmlFor="priority">{it ? "Priorità" : "Priority"}</FieldLabel>
               <Select value={priority} onValueChange={(v) => setPriority(v as WishlistPriority)}>
-                <SelectTrigger id="priority" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger id="priority" className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {priorityLabel(p, it)}
-                    </SelectItem>
+                    <SelectItem key={p} value={p}>{priorityLabel(p, it)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -416,6 +422,7 @@ export function AddToWishlistDialog({
                 type="number"
                 min={0}
                 step="0.01"
+                placeholder={it ? "Opzionale" : "Optional"}
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
               />
