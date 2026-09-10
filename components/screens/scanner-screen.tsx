@@ -4,12 +4,12 @@ import * as React from "react"
 import Link from "next/link"
 import { Camera, Loader2, ScanLine, Sparkles, X } from "lucide-react"
 import { PRODUCTS, findByCode, resolveRelease } from "@/lib/data/corrected-products"
-import { getReleaseEstimate } from "@/lib/data/market"
 import { useI18n } from "@/lib/i18n"
-import { formatMoney } from "@/lib/format"
+import { useMarketSignals } from "@/lib/market/context"
 import type { Product, ProductRelease } from "@/lib/types"
 import { ProductImage } from "@/components/catalog/product-image"
-import { RarityBadge, TrendIndicator, ConfidenceBadge } from "@/components/market-bits"
+import { RarityBadge } from "@/components/market-bits"
+import { MarketSignalInline } from "@/components/market-signal-inline"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -53,15 +53,16 @@ export function ScannerScreen() {
 
 function ScanResult({ product, matchedReleaseId, onScanAgain }: { product: Product; matchedReleaseId?: string; onScanAgain: () => void }) {
   const { t } = useI18n()
+  const marketSignals = useMarketSignals()
   const [releaseId, setReleaseId] = React.useState(resolveRelease(product, matchedReleaseId).id)
   React.useEffect(() => setReleaseId(resolveRelease(product, matchedReleaseId).id), [product, matchedReleaseId])
   const release: ProductRelease = resolveRelease(product, releaseId)
-  const estimate = getReleaseEstimate(product, release)
+  const marketSignal = marketSignals[release.id] ?? null
   const releaseHref = `/catalog/${product.id}/releases/${release.id}`
   return (
     <Card className="border-brand/40"><CardContent className="flex flex-col gap-4">
       <div className="flex items-center gap-2 text-brand"><Sparkles className="size-4" /><span className="text-sm font-medium">{matchedReleaseId ? t("scanner.foundRelease") : t("scanner.foundProduct")}</span></div>
-      <div className="flex gap-4"><ProductImage product={product} release={release} className="h-24 w-36 shrink-0" /><div className="flex min-w-0 flex-1 flex-col gap-1.5"><Link href={releaseHref} className="font-semibold leading-tight hover:text-brand">{release.editionName}</Link><p className="text-xs text-muted-foreground">{t("scanner.model")}: <Link href={`/catalog/${product.id}`} className="hover:text-foreground">{product.name}</Link></p><p className="text-xs text-muted-foreground">#{release.itemNumber ?? "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}</p><div className="flex flex-wrap items-center gap-1.5"><RarityBadge rarity={release.rarity ?? product.rarity} /><Badge variant="outline">{product.series}</Badge></div><div className="mt-1 flex items-center gap-2"><span className="text-lg font-semibold tabular-nums">{formatMoney(estimate.value)}</span><TrendIndicator value={estimate.trend90d} /><ConfidenceBadge estimate={estimate} /></div></div></div>
+      <div className="flex gap-4"><ProductImage product={product} release={release} className="h-24 w-36 shrink-0" /><div className="flex min-w-0 flex-1 flex-col gap-1.5"><Link href={releaseHref} className="font-semibold leading-tight hover:text-brand">{release.editionName}</Link><p className="text-xs text-muted-foreground">{t("scanner.model")}: <Link href={`/catalog/${product.id}`} className="hover:text-foreground">{product.name}</Link></p><p className="text-xs text-muted-foreground">#{release.itemNumber ?? "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}</p><div className="flex flex-wrap items-center gap-1.5"><RarityBadge rarity={release.rarity ?? product.rarity} /><Badge variant="outline">{product.series}</Badge></div><div className="mt-1"><MarketSignalInline signal={marketSignal} showStartingPrice /></div></div></div>
       <div className="flex flex-col gap-1.5"><span className="text-xs font-medium text-muted-foreground">{t("scanner.releaseEdition")}</span><Select value={releaseId} onValueChange={(v) => v && setReleaseId(v as string)}><SelectTrigger className="w-full"><SelectValue>{(v: string) => { const r = product.releases.find((x) => x.id === v); return r ? `${r.releaseYear ?? "—"} · ${r.releaseType} · #${r.itemNumber ?? "—"}` : t("scanner.selectRelease") }}</SelectValue></SelectTrigger><SelectContent>{product.releases.map((r) => <SelectItem key={r.id} value={r.id}>{r.releaseYear ?? "—"} · {r.releaseType} · #{r.itemNumber ?? "—"}</SelectItem>)}</SelectContent></Select>{product.hasMultipleReleases ? <p className="text-[11px] text-muted-foreground">{t("scanner.multiple")}</p> : null}</div>
       <div className="flex flex-wrap gap-2"><AddToCollectionDialog product={product} defaultReleaseId={releaseId}><Button className="flex-1">{t("product.addCollection")}</Button></AddToCollectionDialog><AddToWishlistDialog product={product} defaultReleaseId={releaseId}><Button variant="outline" className="flex-1">{t("scanner.addWishlist")}</Button></AddToWishlistDialog><Button variant="ghost" onClick={onScanAgain}>{t("scanner.again")}</Button></div>
     </CardContent></Card>
