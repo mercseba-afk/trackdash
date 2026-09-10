@@ -26,27 +26,40 @@ export function filterFreshCurrentOffers(
   })
 }
 
-// A single secondary-market asking price is evidence, not a market value.
-// Publish secondary-only R3 only when there is either release-specific sold
-// evidence or at least two independent active marketplace representatives.
-// One genuinely available retail source may still publish a low-confidence
-// retail signal because it is an observable purchasable market price.
+// Public v1 semantics deliberately keep three different concepts separate:
+// - Market Value: demonstrated market value (sold evidence on the secondary market,
+//   or the composite retail regime while the product is genuinely available retail).
+// - Active asks: current seller expectations. They remain visible as a separate
+//   signal but never pull a secondary-market Market Value up or down.
+// - Trend: derived only from completed-sale history elsewhere in R3.
+//
+// Therefore a secondary-only Release without sold evidence never publishes a
+// Market Value, even if several sellers are currently asking a price. Those asks
+// are still retained on the signal so the UI can show the market's asking level.
 export function applyPublicMarketPublicationPolicy(
   signal: MarketSignalDraft,
 ): MarketSignalDraft {
-  const singleSecondaryAskOnly =
-    signal.retailSourceCount === 0 &&
-    signal.soldEvidenceCount === 0 &&
-    signal.activeOfferCount < 2 &&
-    signal.activeAnchorEUR != null
+  if (signal.retailSourceCount > 0) return signal
 
-  if (!singleSecondaryAskOnly) return signal
-
-  return {
-    ...signal,
-    marketRegime: "insufficient",
-    marketValueEUR: null,
-    lowEUR: null,
-    highEUR: null,
+  if (signal.soldAnchorEUR != null && signal.soldEvidenceCount > 0) {
+    return {
+      ...signal,
+      marketRegime: "secondary_market_driven",
+      marketValueEUR: signal.soldAnchorEUR,
+      lowEUR: signal.soldAnchorEUR,
+      highEUR: signal.soldAnchorEUR,
+    }
   }
+
+  if (signal.activeAnchorEUR != null || signal.activeOfferCount > 0) {
+    return {
+      ...signal,
+      marketRegime: "insufficient",
+      marketValueEUR: null,
+      lowEUR: null,
+      highEUR: null,
+    }
+  }
+
+  return signal
 }
