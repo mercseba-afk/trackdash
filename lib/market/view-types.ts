@@ -24,3 +24,5 @@ export interface ReleaseMarketSignalView {
   trendPercent: number | null
   computedAt: string
 }
+
+export type ReleaseMarketSignalMap = Record<string, ReleaseMarketSignalView>
