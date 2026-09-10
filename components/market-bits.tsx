@@ -151,16 +151,13 @@ export function MarketSignalCard({
 
         <div className="flex flex-col gap-1 border-t pt-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap gap-x-3 gap-y-1">
-            {signal.retailAnchorEUR != null ? <span>{it ? "Retail" : "Retail"}: {formatMoney(signal.retailAnchorEUR)}</span> : null}
+            {signal.retailAnchorEUR != null ? <span>Retail: {formatMoney(signal.retailAnchorEUR)}</span> : null}
             {signal.activeAnchorEUR != null ? <span>{it ? "Marketplace attivo" : "Active marketplace"}: {formatMoney(signal.activeAnchorEUR)}</span> : null}
             {signal.soldAnchorEUR != null ? <span>{it ? "Venduto" : "Sold"}: {formatMoney(signal.soldAnchorEUR)}</span> : null}
           </div>
           <div>
             {signal.currentOfferCount} {it ? "offerte correnti" : "current offers"} · {signal.soldUnits} {it ? "unità vendute osservate" : "sold units observed"}
           </div>
-          {signal.startingItemPriceEUR != null ? (
-            <div>{it ? "Da" : "From"} {formatMoney(signal.startingItemPriceEUR)}</div>
-          ) : null}
           <div>{it ? "Aggiornato" : "Updated"} {formatDate(signal.computedAt)}</div>
         </div>
       </CardContent>
