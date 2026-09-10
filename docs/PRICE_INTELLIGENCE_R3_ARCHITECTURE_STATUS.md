@@ -63,4 +63,4 @@ The design goal is to stimulate collection activity and future trading by making
 
 ## Deployment status
 
-Production storage migrations 0037, 0038 and 0039 are applied. Catalog/image/market audit migrations through 0062 are tracked on the current feature branch and applied to the live Supabase project where noted. The application branch is merged only after `pnpm verify` and the Vercel preview succeed, including the R3 and Market Method v1 regression suites.
+Production storage migrations 0037, 0038 and 0039 are applied. Catalog/image/market audit migrations through 0063 are tracked on the current feature branch and applied to the live Supabase project where noted. The application branch is merged only after `pnpm verify` and the Vercel preview succeed, including the R3 and Market Method v1 regression suites.
