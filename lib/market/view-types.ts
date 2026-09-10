@@ -17,6 +17,8 @@ export interface ReleaseMarketSignalView {
   activeAnchorEUR: number | null
   soldAnchorEUR: number | null
   startingItemPriceEUR: number | null
+  retailSourceCount: number
+  activeOfferCount: number
   currentOfferCount: number
   soldUnits: number
   trendPercent: number | null
