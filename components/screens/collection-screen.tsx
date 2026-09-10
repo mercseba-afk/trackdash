@@ -5,7 +5,8 @@ import Link from "next/link"
 import { Boxes, Coins, Globe2, Handshake, Layers, LockKeyhole, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { breakdownBy, enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
+import { useMarketSignals } from "@/lib/market/context"
+import { breakdownBy, conditionUsesNewUnbuiltReference, enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatDate, formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition } from "@/lib/types"
 import { CONDITIONS } from "@/lib/types"
@@ -48,11 +49,11 @@ function VisibilityIcon({ value }: { value: Visibility }) {
 function conditionLabel(value: Condition, it: boolean) {
   if (!it) return value
   const labels: Partial<Record<Condition, string>> = {
-    "Sealed": "Sigillato",
+    Sealed: "Sigillato",
     "New / Opened": "Nuovo / Aperto",
-    "Built": "Montato",
-    "Used": "Usato",
-    "Incomplete": "Incompleto",
+    Built: "Montato",
+    Used: "Usato",
+    Incomplete: "Incompleto",
   }
   return labels[value] ?? value
 }
@@ -76,6 +77,7 @@ function VisibilitySelect({ value, disabled, onChange }: { value: Visibility; di
 export function CollectionScreen() {
   const { collection, updateCollectionItem, removeFromCollection } = useStore()
   const { locale, t } = useI18n(); const it = locale === "it"
+  const marketSignals = useMarketSignals()
   const [sort, setSort] = React.useState<SortKey>("recent")
   const [editing, setEditing] = React.useState<EnrichedCollectionItem | null>(null)
   const [shares, setShares] = React.useState<MyShare[]>([])
@@ -83,15 +85,15 @@ export function CollectionScreen() {
 
   React.useEffect(() => { let cancelled = false; getMyCollectionSharesAction().then((rows) => { if (!cancelled) setShares(rows) }).catch(() => {}); return () => { cancelled = true } }, [])
 
-  const enriched = React.useMemo(() => enrichCollection(collection), [collection])
+  const enriched = React.useMemo(() => enrichCollection(collection, marketSignals), [collection, marketSignals])
   const summary = React.useMemo(() => portfolioSummary(enriched), [enriched])
-  const byCondition = React.useMemo(() => breakdownBy(enriched, (e) => e.item.condition), [enriched])
+  const byCondition = React.useMemo(() => breakdownBy(enriched, (entry) => entry.item.condition), [enriched])
   const shareByCollectionItem = React.useMemo(() => new Map(shares.map((share) => [share.collectionItemId, share])), [shares])
   const sorted = React.useMemo(() => {
     const list = [...enriched]
     switch (sort) {
-      case "value-desc": return list.sort((a, b) => b.estimate.value - a.estimate.value)
-      case "value-asc": return list.sort((a, b) => a.estimate.value - b.estimate.value)
+      case "value-desc": return list.sort((a, b) => (b.marketValue ?? -Infinity) - (a.marketValue ?? -Infinity))
+      case "value-asc": return list.sort((a, b) => (a.marketValue ?? Infinity) - (b.marketValue ?? Infinity))
       case "name": return list.sort((a, b) => a.product.name.localeCompare(b.product.name))
       default: return list.sort((a, b) => +new Date(b.item.createdAt) - +new Date(a.item.createdAt))
     }
@@ -113,32 +115,40 @@ export function CollectionScreen() {
     <div className="flex flex-col gap-6">
       <PageHeader />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={it ? "Valore di mercato" : "Market value"} value={formatMoney(summary.marketValue)} icon={Coins} accent />
+        <StatCard label={it ? "Valore di mercato" : "Market value"} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "pezzi valorizzati R3" : "items valued by R3"}</span>} />
         <StatCard label={it ? "Speso" : "Spent"} value={formatMoney(summary.acquisitionCost)} icon={Layers} hint={<span>{summary.count} {it ? "pezzi" : "items"}</span>} />
-        <StatCard label={it ? "Guadagno / perdita" : "Gain / loss"} value={formatMoney(summary.gain)} icon={TrendingUp} hint={<TrendIndicator value={summary.gainPercent} className="text-xs" />} />
+        <StatCard label={it ? "Guadagno / perdita" : "Gain / loss"} value={summary.marketValueCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.marketValueCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Nessun valore R3" : "No R3 values"}</span>} />
         <StatCard label={it ? "Sigillati" : "Sealed"} value={summary.sealedCount} icon={Boxes} hint={<span>{it ? "su" : "of"} {summary.count}</span>} />
       </div>
 
+      {summary.marketValueCount < summary.count ? (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {it
+            ? "Il totale usa solo valori R3 reali per kit nuovi/completi/non montati. Built, Used e Incomplete restano esclusi finché non avremo evidenze specifiche per condizione; nessun moltiplicatore artificiale viene applicato."
+            : "The total uses only real R3 values for new/complete/unbuilt kits. Built, Used and Incomplete remain excluded until condition-specific evidence exists; no synthetic multiplier is applied."}
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
-        {byCondition.map((b) => <Badge key={b.label} variant="outline" className="gap-1.5">{conditionLabel(b.label as Condition, it)}<span className="text-muted-foreground">{b.count}</span></Badge>)}
-        <div className="ml-auto"><Select value={sort} onValueChange={(v) => setSort(v as SortKey)}><SelectTrigger size="sm" className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="recent">{it ? "Aggiunti di recente" : "Recently added"}</SelectItem><SelectItem value="value-desc">{it ? "Valore: alto → basso" : "Value: high to low"}</SelectItem><SelectItem value="value-asc">{it ? "Valore: basso → alto" : "Value: low to high"}</SelectItem><SelectItem value="name">{it ? "Nome A–Z" : "Name A–Z"}</SelectItem></SelectContent></Select></div>
+        {byCondition.map((bucket) => <Badge key={bucket.label} variant="outline" className="gap-1.5">{conditionLabel(bucket.label as Condition, it)}<span className="text-muted-foreground">{bucket.count}</span></Badge>)}
+        <div className="ml-auto"><Select value={sort} onValueChange={(value) => setSort(value as SortKey)}><SelectTrigger size="sm" className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="recent">{it ? "Aggiunti di recente" : "Recently added"}</SelectItem><SelectItem value="value-desc">{it ? "Valore: alto → basso" : "Value: high to low"}</SelectItem><SelectItem value="value-asc">{it ? "Valore: basso → alto" : "Value: low to high"}</SelectItem><SelectItem value="name">{it ? "Nome A–Z" : "Name A–Z"}</SelectItem></SelectContent></Select></div>
       </div>
 
       <div className="grid gap-3">
-        {sorted.map((e) => {
-          const share = shareByCollectionItem.get(e.item.id); const visibility: Visibility = share?.shareMode ?? "private"
-          const remove = async () => { try { await removeFromCollection(e.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== e.item.id)); toast.success(it ? `Rimosso ${e.product.name}` : `Removed ${e.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
+        {sorted.map((entry) => {
+          const share = shareByCollectionItem.get(entry.item.id); const visibility: Visibility = share?.shareMode ?? "private"
+          const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
           return (
-            <Card key={e.item.id} className="overflow-hidden py-0"><div className="p-3 sm:p-4">
+            <Card key={entry.item.id} className="overflow-hidden py-0"><div className="p-3 sm:p-4">
               <div className="flex gap-3 sm:gap-4">
-                <Link href={`/catalog/${e.product.id}`} className="shrink-0"><ProductImage product={e.product} release={e.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" /></Link>
+                <Link href={`/catalog/${entry.product.id}`} className="shrink-0"><ProductImage product={entry.product} release={entry.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" /></Link>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/catalog/${e.product.id}`} className="block truncate font-medium hover:text-brand">{e.product.name}</Link><p className="truncate text-xs text-muted-foreground">{e.label} · {e.release.chassis ?? "—"} · #{e.release.itemNumber ?? "—"}</p><p className="truncate text-[11px] text-muted-foreground">{it ? "Modello originale" : "Model originally released"} {e.product.originalReleaseYear ?? "—"}</p></div><div className="hidden shrink-0 sm:block"><VisibilitySelect value={visibility} disabled={visibilityBusyId === e.item.id} onChange={(next) => void changeVisibility(e.item.id, next)} /></div></div>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground"><span>{t("collection.condition")} <span className="font-medium text-foreground">{conditionLabel(e.item.condition, it)}</span></span><span>{t("collection.paid")} <span className="font-medium text-foreground">{formatMoney(e.item.acquisitionPrice, e.item.acquisitionCurrency)}</span></span><span className="hidden sm:inline">{it ? "Aggiunto" : "Added"} {formatDate(e.item.acquisitionDate)}</span></div>
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/catalog/${entry.product.id}`} className="block truncate font-medium hover:text-brand">{entry.product.name}</Link><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.release.chassis ?? "—"} · #{entry.release.itemNumber ?? "—"}</p><p className="truncate text-[11px] text-muted-foreground">{it ? "Modello originale" : "Model originally released"} {entry.product.originalReleaseYear ?? "—"}</p></div><div className="hidden shrink-0 sm:block"><VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} /></div></div>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground"><span>{t("collection.condition")} <span className="font-medium text-foreground">{conditionLabel(entry.item.condition, it)}</span></span><span>{t("collection.paid")} <span className="font-medium text-foreground">{formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency)}</span></span><span className="hidden sm:inline">{it ? "Aggiunto" : "Added"} {formatDate(entry.item.acquisitionDate)}</span></div>
                 </div>
-                <div className="hidden shrink-0 flex-col items-end justify-between border-l border-border pl-4 sm:flex"><div className="text-right"><p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p><TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" /></div><div className="flex gap-1"><Button variant="ghost" size="icon" className="size-8" aria-label={t("common.edit")} onClick={() => setEditing(e)}><Pencil /></Button><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button></div></div>
+                <div className="hidden shrink-0 flex-col items-end justify-between border-l border-border pl-4 sm:flex"><CollectionMarketValue entry={entry} it={it} /><div className="flex gap-1"><Button variant="ghost" size="icon" className="size-8" aria-label={t("common.edit")} onClick={() => setEditing(entry)}><Pencil /></Button><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button></div></div>
               </div>
-              <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 sm:hidden"><VisibilitySelect value={visibility} disabled={visibilityBusyId === e.item.id} onChange={(next) => void changeVisibility(e.item.id, next)} /><div className="ml-auto flex items-center gap-3"><div className="text-right"><p className="text-sm font-semibold tabular-nums">{formatMoney(e.estimate.value)}</p><TrendIndicator value={e.estimate.trend90d} className="justify-end text-xs" /></div><div className="flex gap-1"><Button variant="ghost" size="icon" className="size-8" aria-label={t("common.edit")} onClick={() => setEditing(e)}><Pencil /></Button><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button></div></div></div>
+              <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 sm:hidden"><VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} /><div className="ml-auto flex items-center gap-3"><CollectionMarketValue entry={entry} it={it} /><div className="flex gap-1"><Button variant="ghost" size="icon" className="size-8" aria-label={t("common.edit")} onClick={() => setEditing(entry)}><Pencil /></Button><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button></div></div></div>
             </div></Card>
           )
         })}
@@ -155,6 +165,19 @@ export function CollectionScreen() {
   )
 }
 
+function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
+  if (!conditionUsesNewUnbuiltReference(entry.item.condition)) {
+    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Condizione non ancora valorizzata" : "Condition not valued yet"}</p>
+  }
+  if (!entry.marketSignal) {
+    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
+  }
+  if (entry.marketValue == null) {
+    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Valore non consolidato" : "Value not consolidated"}</p>
+  }
+  return <div className="text-right"><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
+}
+
 function PageHeader() {
   const { locale, t } = useI18n(); const it = locale === "it"
   return <div className="flex flex-col gap-1"><h1 className="text-2xl font-semibold tracking-tight">{t("collection.title")}</h1><p className="text-sm text-muted-foreground">{it ? "La collezione è privata per impostazione predefinita. Condividi singoli modelli solo quando vuoi mostrarli nella tua vetrina." : "Your collection is private by default. Share individual items only when you want them in your collector showcase."}</p></div>
@@ -169,11 +192,11 @@ function EditDialog({ entry, shareMode, onClose, onSave }: { entry: EnrichedColl
   const [visibility, setVisibility] = React.useState<Visibility>("private")
   React.useEffect(() => { if (entry) { setCondition(entry.item.condition); setPrice(String(entry.item.acquisitionPrice)); setYear(entry.displayYear ? String(entry.displayYear) : ""); setNotes(entry.item.notes ?? ""); setVisibility(shareMode ?? "private") } }, [entry, shareMode])
   return (
-    <Dialog open={Boolean(entry)} onOpenChange={(o) => !o && onClose()}><DialogContent><DialogHeader><DialogTitle>{it ? "Modifica elemento" : "Edit item"}</DialogTitle><DialogDescription>{entry?.product.name}{entry ? ` · ${entry.release.releaseType} · #${entry.release.itemNumber}` : ""}</DialogDescription></DialogHeader>
+    <Dialog open={Boolean(entry)} onOpenChange={(open) => !open && onClose()}><DialogContent><DialogHeader><DialogTitle>{it ? "Modifica elemento" : "Edit item"}</DialogTitle><DialogDescription>{entry?.product.name}{entry ? ` · ${entry.release.releaseType} · #${entry.release.itemNumber}` : ""}</DialogDescription></DialogHeader>
       <FieldGroup>
-        <Field><FieldLabel>{t("collection.condition")}</FieldLabel><ToggleGroup value={[condition]} onValueChange={(v) => v[0] && setCondition(v[0] as Condition)} className="flex-wrap">{CONDITIONS.map((c) => <ToggleGroupItem key={c} value={c} className="text-xs">{conditionLabel(c, it)}</ToggleGroupItem>)}</ToggleGroup></Field>
-        <div className="grid grid-cols-2 gap-3"><Field><FieldLabel htmlFor="edit-price">{it ? "Prezzo di acquisto" : "Acquisition price"}</FieldLabel><Input id="edit-price" type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} /></Field><Field><FieldLabel htmlFor="edit-year">{it ? "Anno release" : "Release year"}</FieldLabel><Input id="edit-year" type="number" inputMode="numeric" min={1980} max={2100} value={year} onChange={(e) => setYear(e.target.value)} /></Field></div>
-        <Field><FieldLabel htmlFor="edit-notes">Note</FieldLabel><Input id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+        <Field><FieldLabel>{t("collection.condition")}</FieldLabel><ToggleGroup value={[condition]} onValueChange={(value) => value[0] && setCondition(value[0] as Condition)} className="flex-wrap">{CONDITIONS.map((candidate) => <ToggleGroupItem key={candidate} value={candidate} className="text-xs">{conditionLabel(candidate, it)}</ToggleGroupItem>)}</ToggleGroup></Field>
+        <div className="grid grid-cols-2 gap-3"><Field><FieldLabel htmlFor="edit-price">{it ? "Prezzo di acquisto" : "Acquisition price"}</FieldLabel><Input id="edit-price" type="number" min="0" value={price} onChange={(event) => setPrice(event.target.value)} /></Field><Field><FieldLabel htmlFor="edit-year">{it ? "Anno release" : "Release year"}</FieldLabel><Input id="edit-year" type="number" inputMode="numeric" min={1980} max={2100} value={year} onChange={(event) => setYear(event.target.value)} /></Field></div>
+        <Field><FieldLabel htmlFor="edit-notes">Note</FieldLabel><Input id="edit-notes" value={notes} onChange={(event) => setNotes(event.target.value)} /></Field>
         <Separator />
         <Field><FieldLabel>{it ? "Collezione condivisa" : "Shared collection"}</FieldLabel><Select value={visibility} onValueChange={(value) => setVisibility(value as Visibility)}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="private">{it ? "Privato — visibile solo a te" : "Private — only you can see it"}</SelectItem><SelectItem value="showcase">{it ? "Condiviso — mostralo nella vetrina" : "Shared — show it in your collector showcase"}</SelectItem><SelectItem value="open_to_offers">{it ? "Aperto a offerte — condiviso e disponibile a proposte" : "Open to offers — shared and open to proposals"}</SelectItem></SelectContent></Select><p className="text-xs text-muted-foreground">{it ? "La condivisione espone solo modello, release esatta e condizione. Prezzo d'acquisto, fonte e note private restano sempre nella tua collezione." : "Sharing exposes only the model, exact release and condition. Purchase price, acquisition source and private notes never leave My Collection."}</p></Field>
       </FieldGroup>
