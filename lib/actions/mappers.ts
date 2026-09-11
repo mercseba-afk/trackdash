@@ -42,6 +42,10 @@ type CollectionRow = {
   acquisitionDate: string | null
   acquisitionPrice: string | null
   acquisitionCurrency: string
+  acquisitionPriceEUR: string | null
+  acquisitionFxRateToEUR: string | null
+  acquisitionFxRateDate: string | null
+  acquisitionFxSource: string | null
   releaseYearOverride: number | null
   notes: string | null
   createdAt: Date
@@ -58,6 +62,10 @@ export function mapCollectionRow(row: CollectionRow): CollectionItem {
     acquisitionDate: row.acquisitionDate ?? "",
     acquisitionPrice: row.acquisitionPrice ? Number(row.acquisitionPrice) : 0,
     acquisitionCurrency: row.acquisitionCurrency as Currency,
+    acquisitionPriceEUR: row.acquisitionPriceEUR ? Number(row.acquisitionPriceEUR) : undefined,
+    acquisitionFxRateToEUR: row.acquisitionFxRateToEUR ? Number(row.acquisitionFxRateToEUR) : undefined,
+    acquisitionFxRateDate: row.acquisitionFxRateDate ?? undefined,
+    acquisitionFxSource: row.acquisitionFxSource === "ecb_reference" ? "ecb_reference" : undefined,
     releaseYearOverride: row.releaseYearOverride ?? undefined,
     notes: row.notes ?? undefined,
     photos: row.photos ? row.photos.map((p) => p.url) : [],
