@@ -9,6 +9,7 @@ import {
   removeWishlistItem,
   updateWishlistItem,
 } from "@/lib/db/queries/wishlist"
+import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
 import type { Condition, Currency, WishlistPriority } from "@/lib/types"
 import { mapCollectionRow, mapWishlistRow } from "./mappers"
 
@@ -88,16 +89,15 @@ export interface MoveWishlistToCollectionInput {
   notes?: string
 }
 
-// Both operations now run inside the SAME withUserContext transaction —
-// an improvement over Step 4B, which ran them as two separate calls (and
-// therefore two separate transactions). Still not a single atomic
-// operation was the Step 4B tradeoff description; as of Step 5 it
-// actually is: if removeWishlistItem fails, createCollectionItem's insert
-// rolls back too, since both happen inside withUserContext's one
-// db.transaction().
+// Both operations run inside the SAME withUserContext transaction. Historical
+// FX is resolved beforehand so an external ECB request never keeps that DB
+// transaction open. The original amount/currency remain untouched.
 export async function moveWishlistItemToCollectionAction(wishlistId: string, input: MoveWishlistToCollectionInput) {
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
+
+  const acquisitionDate = input.acquisitionDate ? input.acquisitionDate.slice(0, 10) : null
+  const basis = await resolveHistoricalEurBasis(input.acquisitionPrice, input.acquisitionCurrency, acquisitionDate)
 
   return withUserContext(user.id, async (tx) => {
     const wishlist = await getWishlistForUser(user.id, tx)
@@ -111,9 +111,13 @@ export async function moveWishlistItemToCollectionAction(wishlistId: string, inp
         releaseId: input.releaseId,
         quantity: 1,
         condition: input.condition,
-        acquisitionDate: input.acquisitionDate.slice(0, 10),
+        acquisitionDate,
         acquisitionPrice: input.acquisitionPrice.toString(),
         acquisitionCurrency: input.acquisitionCurrency,
+        acquisitionPriceEUR: basis.amountEUR != null ? basis.amountEUR.toString() : null,
+        acquisitionFxRateToEUR: basis.fxRateToEUR != null ? basis.fxRateToEUR.toString() : null,
+        acquisitionFxRateDate: basis.fxRateDate,
+        acquisitionFxSource: basis.fxSource,
         releaseYearOverride: input.releaseYearOverride ?? null,
         notes: input.notes ?? null,
       },

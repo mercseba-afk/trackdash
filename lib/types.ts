@@ -243,9 +243,14 @@ export interface CollectionItem {
   productId: string
   releaseId: string // the specific release/edition owned
   condition: Condition
-  acquisitionDate: string // ISO date
+  acquisitionDate: string // ISO date, empty string when genuinely unknown
   acquisitionPrice: number
   acquisitionCurrency: Currency
+  /** Trustworthy purchase basis in EUR. Native EUR is copied directly; foreign currency is converted at the dated ECB reference rate. */
+  acquisitionPriceEUR?: number
+  acquisitionFxRateToEUR?: number
+  acquisitionFxRateDate?: string
+  acquisitionFxSource?: "ecb_reference"
   // Optional collector override of the release year for THIS physical item.
   // Lets a collector correct the exact kit year without mutating the shared
   // release/original-release data.

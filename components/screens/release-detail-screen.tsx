@@ -136,11 +136,12 @@ function OwnedCopiesCard({
       <div className="grid gap-2">
         {copies.map((copy, index) => {
           const comparable = conditionUsesNewUnbuiltReference(copy.condition)
-          const personalGain = comparable && currentValue != null && copy.acquisitionCurrency === "EUR" && copy.acquisitionPrice > 0
-            ? currentValue - copy.acquisitionPrice
+          const acquisitionBasisEUR = copy.acquisitionPriceEUR ?? null
+          const personalGain = comparable && currentValue != null && acquisitionBasisEUR != null && acquisitionBasisEUR > 0
+            ? currentValue - acquisitionBasisEUR
             : null
-          const personalGainPercent = personalGain != null && copy.acquisitionPrice > 0
-            ? (personalGain / copy.acquisitionPrice) * 100
+          const personalGainPercent = personalGain != null && acquisitionBasisEUR != null && acquisitionBasisEUR > 0
+            ? (personalGain / acquisitionBasisEUR) * 100
             : null
 
           return (
@@ -155,6 +156,11 @@ function OwnedCopiesCard({
                 <div className="text-right">
                   <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{it ? "Pagato" : "Paid"}</p>
                   <p className="text-sm font-medium tabular-nums">{copy.acquisitionPrice > 0 ? formatMoney(copy.acquisitionPrice, copy.acquisitionCurrency) : "—"}</p>
+                  {copy.acquisitionCurrency !== "EUR" && acquisitionBasisEUR != null ? (
+                    <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+                      {it ? "Base storica" : "Historical basis"} {formatMoney(acquisitionBasisEUR)}{copy.acquisitionFxRateDate ? ` · ECB ${formatDate(copy.acquisitionFxRateDate)}` : ""}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               {comparable && currentValue != null ? (
@@ -171,7 +177,11 @@ function OwnedCopiesCard({
                       </p>
                     </div>
                   ) : copy.acquisitionPrice > 0 && copy.acquisitionCurrency !== "EUR" ? (
-                    <p className="max-w-44 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Rendimento disponibile con FX storico" : "Performance available with historical FX"}</p>
+                    <p className="max-w-44 text-right text-[11px] leading-tight text-muted-foreground">
+                      {copy.acquisitionDate
+                        ? (it ? "Cambio storico ECB non disponibile." : "Historical ECB rate unavailable.")
+                        : (it ? "Aggiungi la data d'acquisto per calcolare il rendimento." : "Add the purchase date to calculate performance.")}
+                    </p>
                   ) : null}
                 </div>
               ) : (

@@ -119,7 +119,7 @@ export function CollectionScreen() {
       <PageHeader />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={it ? "Valore di mercato" : "Market value"} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "pezzi valorizzati R3" : "items valued by R3"}</span>} />
-        <StatCard label={it ? "Speso" : "Spent"} value={summary.acquisitionCostCount > 0 ? formatMoney(summary.acquisitionCost) : "—"} icon={Layers} hint={<span>{summary.acquisitionCostCount}/{summary.count} {it ? "acquisti in EUR" : "EUR purchases"}</span>} />
+        <StatCard label={it ? "Speso" : "Spent"} value={summary.acquisitionCostCount > 0 ? formatMoney(summary.acquisitionCost) : "—"} icon={Layers} hint={<span>{summary.acquisitionCostCount}/{summary.count} {it ? "acquisti con base EUR" : "purchases with EUR basis"}</span>} />
         <StatCard label={it ? "Guadagno / perdita" : "Gain / loss"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Nessun confronto disponibile" : "No comparison available"}</span>} />
         <StatCard label={it ? "Sigillati" : "Sealed"} value={summary.sealedCount} icon={Boxes} hint={<span>{it ? "su" : "of"} {summary.count}</span>} />
       </div>
@@ -127,8 +127,8 @@ export function CollectionScreen() {
       {summary.marketValueCount < summary.count || summary.acquisitionCostCount < summary.count ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Valore e rendimento usano solo segnali R3 compatibili con kit nuovi/completi/non montati. Il rendimento personale viene calcolato solo per acquisti in EUR finché non attiviamo FX storico; le altre valute restano registrate senza conversioni artificiali."
-            : "Value and performance use only R3 signals compatible with new/complete/unbuilt kits. Personal performance is calculated only for EUR purchases until historical FX is enabled; other currencies remain recorded without synthetic conversions."}
+            ? "Valore e rendimento usano solo segnali R3 compatibili con kit nuovi/completi/non montati. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico di riferimento ECB della data d'acquisto (o dell'ultimo giorno disponibile); se data o cambio non sono disponibili, il rendimento resta non calcolato."
+            : "Value and performance use only R3 signals compatible with new/complete/unbuilt kits. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
         </p>
       ) : null}
 
@@ -149,7 +149,7 @@ export function CollectionScreen() {
                   <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="block truncate font-medium hover:text-brand">{entry.product.name}</Link><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.release.chassis ?? "—"} · #{entry.release.itemNumber ?? "—"}</p><p className="truncate text-[11px] text-muted-foreground">{it ? "Modello originale" : "Model originally released"} {entry.product.originalReleaseYear ?? "—"}</p></div><div className="hidden shrink-0 sm:block"><VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} /></div></div>
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span>{t("collection.condition")} <span className="font-medium text-foreground">{conditionLabel(entry.item.condition, it)}</span></span>
-                    <span>{t("collection.paid")} <span className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</span></span>
+                    <span>{t("collection.paid")} <span className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</span>{entry.item.acquisitionCurrency !== "EUR" && entry.item.acquisitionPriceEUR != null ? <span> · {it ? "base" : "basis"} {formatMoney(entry.item.acquisitionPriceEUR)}</span> : null}</span>
                     <span className="hidden sm:inline">{entry.item.acquisitionDate ? `${it ? "Acquistato" : "Acquired"} ${formatDate(entry.item.acquisitionDate)}` : (it ? "Data acquisto non indicata" : "Purchase date not provided")}</span>
                     {share?.askingPrice != null && share.askingCurrency ? <span>{it ? "Richiesta" : "Asking"} <span className="font-medium text-foreground">{formatMoney(share.askingPrice, share.askingCurrency)}</span></span> : null}
                   </div>
@@ -192,7 +192,11 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
           {signedMoney(entry.personalGainEUR)} · {formatPercent(entry.personalGainPercent)}
         </p>
       ) : entry.item.acquisitionPrice > 0 && entry.item.acquisitionCurrency !== "EUR" ? (
-        <p className="mt-0.5 max-w-32 text-[10px] leading-tight text-muted-foreground">{it ? "Rendimento con FX storico" : "Performance with historical FX"}</p>
+        <p className="mt-0.5 max-w-32 text-[10px] leading-tight text-muted-foreground">
+          {entry.item.acquisitionDate
+            ? (it ? "FX storico ECB non disponibile" : "Historical ECB FX unavailable")
+            : (it ? "Aggiungi la data per il rendimento" : "Add purchase date for performance")}
+        </p>
       ) : null}
       {entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="mt-1 justify-end text-xs" /> : null}
     </div>
@@ -234,7 +238,7 @@ function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollecti
       <FieldGroup>
         <Field><FieldLabel>{t("collection.condition")}</FieldLabel><ToggleGroup value={[condition]} onValueChange={(value) => value[0] && setCondition(value[0] as Condition)} className="flex-wrap">{CONDITIONS.map((candidate) => <ToggleGroupItem key={candidate} value={candidate} className="text-xs">{conditionLabel(candidate, it)}</ToggleGroupItem>)}</ToggleGroup></Field>
         <div className="grid grid-cols-[1fr_7rem] gap-3"><Field><FieldLabel htmlFor="edit-price">{it ? "Prezzo di acquisto" : "Acquisition price"}</FieldLabel><Input id="edit-price" type="number" min="0" step="0.01" value={price} onChange={(event) => setPrice(event.target.value)} /></Field><Field><FieldLabel htmlFor="edit-currency">{it ? "Valuta" : "Currency"}</FieldLabel><Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}><SelectTrigger id="edit-currency" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{CURRENCIES.map((candidate) => <SelectItem key={candidate} value={candidate}>{candidate}</SelectItem>)}</SelectContent></Select></Field></div>
-        <div className="grid grid-cols-2 gap-3"><Field><FieldLabel htmlFor="edit-date">{it ? "Data acquisto" : "Purchase date"}</FieldLabel><Input id="edit-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} /><p className="text-[11px] text-muted-foreground">{it ? "Puoi lasciarla vuota se non la ricordi." : "Leave blank if you don't remember it."}</p></Field><Field><FieldLabel htmlFor="edit-year">{it ? "Anno release" : "Release year"}</FieldLabel><Input id="edit-year" type="number" inputMode="numeric" min={1980} max={2100} value={year} onChange={(event) => setYear(event.target.value)} /></Field></div>
+        <div className="grid grid-cols-2 gap-3"><Field><FieldLabel htmlFor="edit-date">{it ? "Data acquisto" : "Purchase date"}</FieldLabel><Input id="edit-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} /><p className="text-[11px] text-muted-foreground">{currency !== "EUR" ? (it ? "Serve per applicare il cambio storico ECB. Puoi lasciarla vuota se non la ricordi." : "Used for historical ECB FX. Leave blank if you don't remember it.") : (it ? "Puoi lasciarla vuota se non la ricordi." : "Leave blank if you don't remember it.")}</p></Field><Field><FieldLabel htmlFor="edit-year">{it ? "Anno release" : "Release year"}</FieldLabel><Input id="edit-year" type="number" inputMode="numeric" min={1980} max={2100} value={year} onChange={(event) => setYear(event.target.value)} /></Field></div>
         <Field><FieldLabel htmlFor="edit-notes">Note</FieldLabel><Input id="edit-notes" value={notes} onChange={(event) => setNotes(event.target.value)} /></Field>
         <Separator />
         <Field><FieldLabel>{it ? "Collezione condivisa" : "Shared collection"}</FieldLabel><Select value={visibility} onValueChange={(value) => setVisibility(value as Visibility)}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="private">{it ? "Privato — visibile solo a te" : "Private — only you can see it"}</SelectItem><SelectItem value="showcase">{it ? "Condiviso — mostralo nella vetrina" : "Shared — show it in your collector showcase"}</SelectItem><SelectItem value="open_to_offers">{it ? "Aperto a offerte — condiviso e disponibile a proposte" : "Open to offers — shared and open to proposals"}</SelectItem></SelectContent></Select><p className="text-xs text-muted-foreground">{it ? "Prezzo d'acquisto, data e note private non vengono mai pubblicati." : "Purchase price, date and private notes are never published."}</p></Field>
