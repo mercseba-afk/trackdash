@@ -17,8 +17,8 @@ assert.ok(parsed)
 assert.equal(parsed.rateDate, "2024-05-10")
 assert.equal(parsed.unitsPerEUR, 167.5)
 assert.equal(parsed.source, ECB_FX_SOURCE)
-assert.ok(Math.abs(parsed.rateToEUR - (1 / 167.5)) < 1e-12)
-console.log("ok: weekend purchase uses latest ECB rate on or before purchase date")
+assert.equal(parsed.rateToEUR, 0.00597015)
+console.log("ok: weekend purchase uses latest ECB rate and DB-safe 8-decimal multiplier")
 
 let fetchCalls = 0
 const fakeFetch = async (url) => {
@@ -37,9 +37,10 @@ console.log("ok: ECB data API query uses a bounded historical lookback")
 
 const basis = await resolveHistoricalEurBasis(3200, "JPY", "2024-05-12", fakeFetch)
 assert.equal(basis.amountEUR, 19.1)
+assert.equal(basis.fxRateToEUR, 0.00597015)
 assert.equal(basis.fxRateDate, "2024-05-10")
 assert.equal(basis.fxSource, ECB_FX_SOURCE)
-console.log("ok: foreign purchase is converted with the historical ECB reference rate")
+console.log("ok: foreign purchase is converted with the exact persisted historical multiplier")
 
 const eurBasis = await resolveHistoricalEurBasis(20, "EUR", null, fakeFetch)
 assert.deepEqual(eurBasis, {
@@ -62,7 +63,7 @@ const enriched = await enrichMarketObservationFx({
   fxRateToEUR: null,
   fxRateDate: null,
 }, fakeFetch)
-assert.ok(enriched.fxRateToEUR)
+assert.equal(enriched.fxRateToEUR, 0.00597015)
 assert.equal(enriched.fxRateDate, "2024-05-10")
 console.log("ok: market observations can acquire FX provenance automatically")
 
