@@ -68,9 +68,19 @@ const source95061Tamiya: ReleaseSource = {
   releaseId: AVANTE_95061_ID,
   sourceType: "official_manufacturer",
   sourceUrl: "https://www.tamiya.com/japan/products/95061/index.html",
-  verifiedFields: ["itemNumber", "barcodeJAN", "editionName", "chassis", "releaseYear", "releaseDate", "color"],
+  verifiedFields: ["itemNumber", "editionName", "chassis", "releaseYear", "releaseDate", "color"],
   checkedAt: "2026-09-11",
-  notes: "Tamiya Japan identifies ITEM 95061 Avante Mk.II Pink Special (Clear Body), MS chassis, released 2015-05-02 as a limited kit; JAN is corroborated by the audited product listing.",
+  notes: "Tamiya Japan identifies ITEM 95061 Avante Mk.II Pink Special (Clear Body), MS chassis, released 2015-05-02 as a limited kit.",
+}
+
+const source95061HobbySearch: ReleaseSource = {
+  id: "d25aca1f-2fe0-50c4-ae52-db2a2077cf72",
+  releaseId: AVANTE_95061_ID,
+  sourceType: "trusted_secondary",
+  sourceUrl: "https://www.1999.co.jp/10314802",
+  verifiedFields: ["itemNumber", "barcodeJAN", "editionName", "chassis"],
+  checkedAt: "2026-09-11",
+  notes: "Hobby Search identifies ITEM 95061 / JAN 4950344950614 as Avante Mk.II Pink Special (Clear Body) on MS chassis.",
 }
 
 const source95525Rcjaz: ReleaseSource = {
@@ -149,7 +159,7 @@ const pinkSpecial: ProductRelease = {
   rarity: "Uncommon",
   verificationStatus: "verified",
   productionStatus: "unknown",
-  sources: [source95061Tamiya],
+  sources: [source95061Tamiya, source95061HobbySearch],
 }
 
 const asiaChallenge2020: ProductRelease = {
