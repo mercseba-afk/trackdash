@@ -35,6 +35,14 @@ export const collectionItems = pgTable(
     acquisitionDate: date("acquisition_date"),
     acquisitionPrice: numeric("acquisition_price", { precision: 10, scale: 2 }),
     acquisitionCurrency: text("acquisition_currency").notNull().default("EUR"),
+    // Historical EUR purchase basis. Native EUR purchases copy the original
+    // amount directly. Foreign purchases are converted with the ECB reference
+    // rate from the latest published business day on/before acquisitionDate.
+    // NULL means the app could not establish a trustworthy dated conversion.
+    acquisitionPriceEUR: numeric("acquisition_price_eur", { precision: 12, scale: 2 }),
+    acquisitionFxRateToEUR: numeric("acquisition_fx_rate_to_eur", { precision: 18, scale: 8 }),
+    acquisitionFxRateDate: date("acquisition_fx_rate_date"),
+    acquisitionFxSource: text("acquisition_fx_source"),
     acquisitionSource: text("acquisition_source"), // 'eBay' | 'Negozio' | 'Mercatino' | ...
     // Collector's own correction, when the physical item's actual release
     // year is known to differ from the catalog release's nominal year
