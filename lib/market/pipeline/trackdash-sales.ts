@@ -21,6 +21,42 @@ function daysBetween(a: string, b: string) {
   return Math.abs(new Date(`${a}T00:00:00Z`).getTime() - new Date(`${b}T00:00:00Z`).getTime()) / 86_400_000
 }
 
+function monthBounds(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number)
+  const end = new Date(Date.UTC(year, monthNumber, 0)).toISOString().slice(0, 10)
+  return { start: `${month}-01`, end }
+}
+
+export function buildTrackDashMonthlySaleEvidence(events: SoldMarketEvidence[]): SoldMarketEvidence[] {
+  const byMonth = new Map<string, SoldMarketEvidence[]>()
+  for (const event of events) {
+    if (event.grain !== "event") continue
+    const month = event.periodEnd.slice(0, 7)
+    const bucket = byMonth.get(month) ?? []
+    bucket.push(event)
+    byMonth.set(month, bucket)
+  }
+
+  return [...byMonth.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, rows]) => {
+      const bounds = monthBounds(month)
+      const sourceId = rows[0].sourceId
+      return {
+        stableId: `trackdash-month|${sourceId}|${month}`,
+        sourceId,
+        // Pair-capped confirmed events already represent independent clusters.
+        // Median keeps a single unusual deal from dominating a sparse month.
+        averagePriceEUR: Number(median(rows.map((row) => row.averagePriceEUR)).toFixed(2)),
+        salesCount: rows.reduce((sum, row) => sum + Math.max(1, row.salesCount), 0),
+        periodStart: bounds.start,
+        periodEnd: bounds.end,
+        grain: "monthly" as const,
+        evidenceGrade: "verified" as const,
+      }
+    })
+}
+
 export async function loadConfirmedTrackDashSales(
   releaseId: string,
   condition: MarketCondition,
