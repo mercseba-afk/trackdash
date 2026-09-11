@@ -40,15 +40,20 @@ type CollectionVisibility = "private" | "showcase" | "open_to_offers"
 type HistoricalFxPreview = { amountEUR: number; fxRateDate: string | null }
 
 function conditionLabel(value: Condition, it: boolean): string {
-  if (!it) return value
-  const labels: Record<Condition, string> = {
-    Sealed: "Sigillato",
-    "New / Opened": "Nuovo / Aperto",
-    Built: "Montato",
-    Used: "Usato",
-    Incomplete: "Incompleto",
+  const labels: Record<Condition, { it: string; en: string }> = {
+    Sealed: { it: "Nuovo · bustine chiuse", en: "New · sealed bags" },
+    "New / Opened": { it: "Nuovo · bustine aperte", en: "New · opened bags" },
+    Built: { it: "Montato · mai usato", en: "Built · unused" },
+    Used: { it: "Usato", en: "Used" },
+    Incomplete: { it: "Incompleto", en: "Incomplete" },
   }
-  return labels[value]
+  return it ? labels[value].it : labels[value].en
+}
+
+function visibilityLabel(value: CollectionVisibility, it: boolean): string {
+  if (value === "open_to_offers") return it ? "Aperto a offerte" : "Open to offers"
+  if (value === "showcase") return it ? "Condiviso · vetrina" : "Shared · showcase"
+  return it ? "Privato · solo tu" : "Private · only you"
 }
 
 function priorityLabel(value: WishlistPriority, it: boolean): string {
@@ -142,7 +147,7 @@ export function AddToCollectionDialog({
 
   const initialRelease = resolveRelease(product, defaultReleaseId)
   const [releaseId, setReleaseId] = React.useState(initialRelease.id)
-  const [condition, setCondition] = React.useState<Condition>("New / Opened")
+  const [condition, setCondition] = React.useState<Condition | "">("")
   const [date, setDate] = React.useState("")
   const [year, setYear] = React.useState(initialRelease.releaseYear ? String(initialRelease.releaseYear) : "")
   const [currency, setCurrency] = React.useState<Currency>("EUR")
@@ -176,7 +181,7 @@ export function AddToCollectionDialog({
     const r = resolveRelease(product, defaultReleaseId)
     setReleaseId(r.id)
     setYear(r.releaseYear ? String(r.releaseYear) : "")
-    setCondition("New / Opened")
+    setCondition("")
     setPrice("")
     setNotes("")
     setVisibility("private")
@@ -227,6 +232,10 @@ export function AddToCollectionDialog({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (!condition) {
+      toast.error(it ? "Seleziona la condizione del kit" : "Select the kit condition")
+      return
+    }
     const parsedYear = Number(year)
     const releaseYearOverride =
       Number.isFinite(parsedYear) && parsedYear !== selectedRelease.releaseYear ? parsedYear : undefined
@@ -263,7 +272,7 @@ export function AddToCollectionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{it ? "Aggiungi alla collezione" : "Add to collection"}</DialogTitle>
           <DialogDescription>
@@ -284,12 +293,14 @@ export function AddToCollectionDialog({
         <form onSubmit={submit}>
           <FieldGroup>
             <ReleaseSelect product={product} value={releaseId} onChange={handleReleaseChange} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="condition">{it ? "Condizione" : "Condition"}</FieldLabel>
-                <Select value={condition} onValueChange={(v) => setCondition(v as Condition)}>
+                <Select value={condition || null} onValueChange={(v) => setCondition(v as Condition)}>
                   <SelectTrigger id="condition" className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder={it ? "Seleziona condizione" : "Select condition"}>
+                      {(v: Condition | null) => v ? conditionLabel(v, it) : (it ? "Seleziona condizione" : "Select condition")}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {CONDITIONS.map((c) => (
@@ -313,6 +324,11 @@ export function AddToCollectionDialog({
                 />
               </Field>
             </div>
+            <p className="-mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              {it
+                ? "Guarda le bustine interne: chiuse = “Nuovo · bustine chiuse”; aperte ma kit mai montato = “Nuovo · bustine aperte”."
+                : "Check the inner bags: sealed = “New · sealed bags”; opened but never built = “New · opened bags”."}
+            </p>
             <p className="-mt-1 text-[11px] text-muted-foreground">
               {it ? "Prima uscita del modello" : "Original model release"}: {product.originalReleaseYear ?? "—"}. {it ? "Modifica l'anno sopra per indicare il tuo kit esatto." : "Adjust the year above to match your exact kit."}
             </p>
@@ -373,7 +389,7 @@ export function AddToCollectionDialog({
                   <p className={personalGain >= 0 ? "font-medium text-success" : "font-medium text-destructive"}>
                     {it ? "Rendimento personale" : "Personal performance"}: {signedMoney(personalGain)} · {formatPercent(personalGainPercent)}
                   </p>
-                ) : price && !comparableCondition ? (
+                ) : price && condition && !comparableCondition ? (
                   <p>{it ? "Questa condizione non ha ancora un valore di mercato comparabile." : "This condition doesn't have a comparable market value yet."}</p>
                 ) : null}
               </div>
@@ -381,11 +397,13 @@ export function AddToCollectionDialog({
             <Field>
               <FieldLabel>{it ? "Visibilità" : "Visibility"}</FieldLabel>
               <Select value={visibility} onValueChange={(v) => setVisibility(v as CollectionVisibility)}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full">
+                  <SelectValue>{(v: CollectionVisibility) => visibilityLabel(v, it)}</SelectValue>
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="private">{it ? "Privato — solo tu" : "Private — only you"}</SelectItem>
-                  <SelectItem value="showcase">{it ? "Condiviso — vetrina collezionista" : "Shared — collector showcase"}</SelectItem>
-                  <SelectItem value="open_to_offers">{it ? "Aperto a offerte" : "Open to offers"}</SelectItem>
+                  <SelectItem value="private">{visibilityLabel("private", it)}</SelectItem>
+                  <SelectItem value="showcase">{visibilityLabel("showcase", it)}</SelectItem>
+                  <SelectItem value="open_to_offers">{visibilityLabel("open_to_offers", it)}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-[11px] text-muted-foreground">
@@ -435,8 +453,8 @@ export function AddToCollectionDialog({
           </FieldGroup>
           <DialogFooter className="mt-4">
             <DialogClose render={<Button type="button" variant="outline" />}>{it ? "Annulla" : "Cancel"}</DialogClose>
-            <Button type="submit" disabled={pending}>
-              {pending ? (it ? "Aggiunta…" : "Adding…") : it ? "Aggiungi modello" : "Add item"}
+            <Button type="submit" disabled={pending || !condition}>
+              {pending ? (it ? "Aggiunta…" : "Adding…") : it ? "Aggiungi alla collezione" : "Add to collection"}
             </Button>
           </DialogFooter>
         </form>
@@ -527,7 +545,9 @@ export function AddToWishlistDialog({
             <Field>
               <FieldLabel htmlFor="priority">{it ? "Priorità" : "Priority"}</FieldLabel>
               <Select value={priority} onValueChange={(v) => setPriority(v as WishlistPriority)}>
-                <SelectTrigger id="priority" className="w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="priority" className="w-full">
+                  <SelectValue>{(v: WishlistPriority) => priorityLabel(v, it)}</SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {PRIORITIES.map((p) => (
                     <SelectItem key={p} value={p}>{priorityLabel(p, it)}</SelectItem>
