@@ -11,6 +11,7 @@ import {
 } from "./market-publication-policy"
 import { MarketR3Repository } from "./market-r3-repository"
 import { selectCurrentSoldEvidence } from "./sold-selection"
+import { loadConfirmedTrackDashSales } from "./trackdash-sales"
 
 export async function recomputeReleaseMarketSignal(
   releaseId: string,
@@ -20,11 +21,18 @@ export async function recomputeReleaseMarketSignal(
 ): Promise<MarketSignalDraft> {
   const asOfDate = now.toISOString().slice(0, 10)
 
-  const [offers, granular, aggregate] = await Promise.all([
+  const [offers, granularExternal, aggregate, trackDashSales] = await Promise.all([
     repo.listCurrentOffers(releaseId, condition),
     repo.listGranularSoldEvidence(releaseId, condition),
     repo.listAggregateSoldEvidence(releaseId, condition),
+    loadConfirmedTrackDashSales(releaseId, condition),
   ])
+
+  // Confirmed bilateral TrackDash sales are first-class completed-sale evidence.
+  // Their loader already caps repeated buyer/seller pairs into conservative
+  // independence clusters, while external marketplace evidence keeps its normal
+  // source-specific grouping rules.
+  const granular = [...granularExternal, ...trackDashSales]
 
   // Stored availability is never trusted forever. The pure policy applies a
   // bounded freshness window per channel; stale states remain in history but
@@ -45,7 +53,7 @@ export async function recomputeReleaseMarketSignal(
     asOfDate,
   })
 
-  // Public v1 keeps demonstrated sold value, verified retail and current seller
+  // Public v2 keeps demonstrated sold value, verified retail and current seller
   // asks as separate concepts. Confidence is recalibrated from the completed-sale
   // evidence behind the headline, not from unrelated asking-price volume.
   const signal = applyPublicMarketPublicationPolicy(computedSignal, soldEvidence, asOfDate)
