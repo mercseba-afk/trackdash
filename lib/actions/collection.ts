@@ -67,6 +67,28 @@ export async function getMyCollectionAction() {
   return rows.map(mapCollectionRow)
 }
 
+export async function previewHistoricalAcquisitionEurAction(input: {
+  amount: number
+  currency: Currency
+  acquisitionDate: string
+}) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+
+  if (!Number.isFinite(input.amount) || input.amount <= 0) return null
+  const acquisitionDate = normalizeAcquisitionDate(input.acquisitionDate)
+  if (!acquisitionDate) return null
+
+  const basis = await resolveHistoricalEurBasis(input.amount, input.currency, acquisitionDate)
+  if (basis.amountEUR == null) return null
+
+  return {
+    amountEUR: basis.amountEUR,
+    fxRateDate: basis.fxRateDate,
+    fxSource: basis.fxSource,
+  }
+}
+
 export async function addCollectionItemAction(input: AddCollectionActionInput) {
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")

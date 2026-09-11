@@ -7,7 +7,8 @@ import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { primaryRelease, resolveRelease } from "@/lib/data/products"
-import { formatMoney, formatPercent } from "@/lib/format"
+import { formatDate, formatMoney, formatPercent } from "@/lib/format"
+import { previewHistoricalAcquisitionEurAction } from "@/lib/actions/collection"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -36,6 +37,7 @@ const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Inc
 const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
 type CollectionVisibility = "private" | "showcase" | "open_to_offers"
+type HistoricalFxPreview = { amountEUR: number; fxRateDate: string | null }
 
 function conditionLabel(value: Condition, it: boolean): string {
   if (!it) return value
@@ -149,20 +151,25 @@ export function AddToCollectionDialog({
   const [visibility, setVisibility] = React.useState<CollectionVisibility>("private")
   const [askingPrice, setAskingPrice] = React.useState("")
   const [askingCurrency, setAskingCurrency] = React.useState<Currency>("EUR")
+  const [fxPreview, setFxPreview] = React.useState<HistoricalFxPreview | null>(null)
+  const [fxPreviewPending, setFxPreviewPending] = React.useState(false)
 
   const selectedRelease = resolveRelease(product, releaseId)
   const selectedSignal = marketSignals[selectedRelease.id]
   const currentValue = selectedSignal?.valueEUR ?? null
   const paid = Number(price)
+  const nativePaid = Number.isFinite(paid) && paid > 0 ? paid : null
+  const paidEUR = currency === "EUR" ? nativePaid : fxPreview?.amountEUR ?? null
   const comparableCondition = condition === "Sealed" || condition === "New / Opened"
   const canShowPerformance =
     comparableCondition &&
     currentValue != null &&
-    currency === "EUR" &&
-    Number.isFinite(paid) &&
-    paid > 0
-  const personalGain = canShowPerformance ? currentValue - paid : null
-  const personalGainPercent = canShowPerformance && personalGain != null ? (personalGain / paid) * 100 : null
+    paidEUR != null &&
+    paidEUR > 0
+  const personalGain = canShowPerformance && paidEUR != null ? currentValue - paidEUR : null
+  const personalGainPercent = canShowPerformance && personalGain != null && paidEUR != null
+    ? (personalGain / paidEUR) * 100
+    : null
 
   React.useEffect(() => {
     if (!open) return
@@ -177,7 +184,40 @@ export function AddToCollectionDialog({
     setCurrency("EUR")
     setAskingPrice("")
     setAskingCurrency("EUR")
+    setFxPreview(null)
+    setFxPreviewPending(false)
   }, [open, product, defaultReleaseId])
+
+  React.useEffect(() => {
+    setFxPreview(null)
+    setFxPreviewPending(false)
+    if (!open || currency === "EUR" || !date || nativePaid == null) return
+
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      setFxPreviewPending(true)
+      void previewHistoricalAcquisitionEurAction({
+        amount: nativePaid,
+        currency,
+        acquisitionDate: date,
+      })
+        .then((result) => {
+          if (cancelled) return
+          setFxPreview(result ? { amountEUR: result.amountEUR, fxRateDate: result.fxRateDate } : null)
+        })
+        .catch(() => {
+          if (!cancelled) setFxPreview(null)
+        })
+        .finally(() => {
+          if (!cancelled) setFxPreviewPending(false)
+        })
+    }, 350)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [open, currency, date, nativePaid])
 
   function handleReleaseChange(id: string) {
     setReleaseId(id)
@@ -310,6 +350,20 @@ export function AddToCollectionDialog({
                 onChange={(e) => setPrice(e.target.value)}
               />
               <div className="space-y-0.5 text-[11px] text-muted-foreground">
+                {price && currency !== "EUR" ? (
+                  !date ? (
+                    <p>{it ? "Inserisci la data d'acquisto per vedere subito il controvalore storico in euro." : "Enter the purchase date to see the historical EUR equivalent immediately."}</p>
+                  ) : fxPreviewPending ? (
+                    <p>{it ? "Calcolo del controvalore storico…" : "Calculating historical EUR equivalent…"}</p>
+                  ) : fxPreview ? (
+                    <p className="font-medium text-foreground">
+                      {it ? "Controvalore storico" : "Historical EUR equivalent"}: {formatMoney(fxPreview.amountEUR)}
+                      {fxPreview.fxRateDate ? <span className="font-normal text-muted-foreground"> · ECB {formatDate(fxPreview.fxRateDate)}</span> : null}
+                    </p>
+                  ) : (
+                    <p>{it ? "Cambio storico non disponibile: verrà riprovato al salvataggio." : "Historical FX is unavailable right now; it will be retried when saving."}</p>
+                  )
+                ) : null}
                 {currentValue != null ? (
                   <p>{it ? "Valore attuale stimato" : "Estimated current value"}: {formatMoney(currentValue)}</p>
                 ) : (
@@ -319,8 +373,6 @@ export function AddToCollectionDialog({
                   <p className={personalGain >= 0 ? "font-medium text-success" : "font-medium text-destructive"}>
                     {it ? "Rendimento personale" : "Personal performance"}: {signedMoney(personalGain)} · {formatPercent(personalGainPercent)}
                   </p>
-                ) : price && currentValue != null && currency !== "EUR" ? (
-                  <p>{it ? "Rendimento disponibile con FX storico: non convertiamo il prezzo con il cambio di oggi." : "Performance will be available with historical FX; we won't use today's exchange rate."}</p>
                 ) : price && !comparableCondition ? (
                   <p>{it ? "Questa condizione non ha ancora un valore di mercato comparabile." : "This condition doesn't have a comparable market value yet."}</p>
                 ) : null}
