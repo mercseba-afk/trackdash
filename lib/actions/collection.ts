@@ -40,6 +40,8 @@ export interface AddCollectionActionInput {
   releaseYearOverride?: number
   notes?: string
   visibility?: InitialCollectionVisibility
+  askingPrice?: number
+  askingCurrency?: Currency
 }
 
 export async function getMyCollectionAction() {
@@ -64,9 +66,9 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
         releaseId: input.releaseId,
         quantity: 1,
         condition: input.condition,
-        // The dialog sends a full ISO datetime (new Date(...).toISOString());
-        // the DB column is a plain `date`, so trim to its YYYY-MM-DD prefix.
-        acquisitionDate: input.acquisitionDate.slice(0, 10),
+        // acquisition_date is nullable: an unknown historical purchase date
+        // is better represented as NULL than silently pretending it was today.
+        acquisitionDate: input.acquisitionDate ? input.acquisitionDate.slice(0, 10) : null,
         acquisitionPrice: input.acquisitionPrice.toString(),
         acquisitionCurrency: input.acquisitionCurrency,
         releaseYearOverride: input.releaseYearOverride ?? null,
@@ -91,7 +93,10 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
         },
         tx,
       )
-      await upsertCollectionShare(user.id, created.id, visibility, tx)
+      await upsertCollectionShare(user.id, created.id, visibility, tx, {
+        askingPrice: input.askingPrice,
+        askingCurrency: input.askingCurrency,
+      })
     }
 
     return created
@@ -119,7 +124,9 @@ export async function updateCollectionItemAction(
       id,
       {
         ...(patch.condition !== undefined ? { condition: patch.condition } : {}),
-        ...(patch.acquisitionDate !== undefined ? { acquisitionDate: patch.acquisitionDate.slice(0, 10) } : {}),
+        ...(patch.acquisitionDate !== undefined
+          ? { acquisitionDate: patch.acquisitionDate ? patch.acquisitionDate.slice(0, 10) : null }
+          : {}),
         ...(patch.acquisitionPrice !== undefined ? { acquisitionPrice: patch.acquisitionPrice.toString() } : {}),
         ...(patch.acquisitionCurrency !== undefined ? { acquisitionCurrency: patch.acquisitionCurrency } : {}),
         ...(patch.releaseYearOverride !== undefined ? { releaseYearOverride: patch.releaseYearOverride } : {}),

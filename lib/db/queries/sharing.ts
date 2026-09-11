@@ -6,6 +6,10 @@ import { collectionItems, collectionShares, collectorProfiles } from "../schema"
 import type { Database } from "../types"
 
 export type ShareMode = "showcase" | "open_to_offers"
+export type OfferTerms = {
+  askingPrice?: number | null
+  askingCurrency?: string | null
+}
 
 export async function getMyCollectionShares(userId: string, dbClient: Database = defaultDb) {
   return dbClient.query.collectionShares.findMany({
@@ -67,6 +71,7 @@ export async function upsertCollectionShare(
   collectionItemId: string,
   shareMode: ShareMode,
   dbClient: Database = defaultDb,
+  offerTerms?: OfferTerms,
 ) {
   // Resolve all public snapshot fields from the caller's OWN private row. The
   // client never supplies product/release/condition, so it cannot forge them.
@@ -74,6 +79,12 @@ export async function upsertCollectionShare(
     where: and(eq(collectionItems.id, collectionItemId), eq(collectionItems.userId, userId)),
   })
   if (!item) throw new Error("Collection item not found")
+
+  const askingPrice =
+    shareMode === "open_to_offers" && offerTerms?.askingPrice != null && offerTerms.askingPrice > 0
+      ? offerTerms.askingPrice.toFixed(2)
+      : null
+  const askingCurrency = askingPrice ? (offerTerms?.askingCurrency ?? "EUR") : null
 
   const [share] = await dbClient
     .insert(collectionShares)
@@ -84,6 +95,8 @@ export async function upsertCollectionShare(
       releaseId: item.releaseId,
       condition: item.condition,
       shareMode,
+      askingPrice,
+      askingCurrency,
     })
     .onConflictDoUpdate({
       target: collectionShares.collectionItemId,
@@ -92,6 +105,8 @@ export async function upsertCollectionShare(
         releaseId: item.releaseId,
         condition: item.condition,
         shareMode,
+        askingPrice,
+        askingCurrency,
         updatedAt: new Date(),
       },
     })

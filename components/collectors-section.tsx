@@ -8,6 +8,8 @@ import { getReleaseCollectorsAction } from "@/lib/actions/sharing"
 import { createConversationRequestAction } from "@/lib/actions/messaging"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
+import { formatMoney } from "@/lib/format"
+import type { Currency } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +26,8 @@ import { toast } from "sonner"
 
 type CollectorRow = Awaited<ReturnType<typeof getReleaseCollectorsAction>>[number]
 
+type PublicAsk = { price: number; currency: Currency }
+
 function conditionLabel(value: string, it: boolean): string {
   if (!it) return value
   const labels: Record<string, string> = {
@@ -34,6 +38,13 @@ function conditionLabel(value: string, it: boolean): string {
     Incomplete: "Incompleto",
   }
   return labels[value] ?? value
+}
+
+function compactAsk(asks: PublicAsk[]): PublicAsk | null {
+  if (asks.length === 0) return null
+  const currencies = new Set(asks.map((ask) => ask.currency))
+  if (currencies.size !== 1) return null
+  return asks.reduce((lowest, current) => current.price < lowest.price ? current : lowest)
 }
 
 export function CollectorsSection({ releaseId }: { releaseId: string }) {
@@ -67,16 +78,20 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
   const collectors = React.useMemo(() => {
     const grouped = new Map<
       string,
-      CollectorRow & { copies: number; conditions: Set<string>; openToOffers: boolean; openShareId?: string }
+      CollectorRow & { copies: number; conditions: Set<string>; openToOffers: boolean; openShareId?: string; asks: PublicAsk[] }
     >()
 
     for (const row of rows) {
+      const publicAsk = row.shareMode === "open_to_offers" && row.askingPrice != null && row.askingCurrency
+        ? { price: row.askingPrice, currency: row.askingCurrency }
+        : null
       const existing = grouped.get(row.userId)
       if (existing) {
         existing.copies += 1
         existing.conditions.add(row.condition)
         existing.openToOffers ||= row.shareMode === "open_to_offers"
         if (!existing.openShareId && row.shareMode === "open_to_offers") existing.openShareId = row.id
+        if (publicAsk) existing.asks.push(publicAsk)
       } else {
         grouped.set(row.userId, {
           ...row,
@@ -84,6 +99,7 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
           conditions: new Set([row.condition]),
           openToOffers: row.shareMode === "open_to_offers",
           openShareId: row.shareMode === "open_to_offers" ? row.id : undefined,
+          asks: publicAsk ? [publicAsk] : [],
         })
       }
     }
@@ -120,51 +136,55 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {collectors.map((collector) => (
-                <div
-                  key={collector.userId}
-                  className="flex items-center gap-2 rounded-lg border bg-background p-3 transition-colors hover:border-brand/40 hover:bg-muted/30"
-                >
-                  <Link
-                    href={`/collectors/${encodeURIComponent(collector.username)}`}
-                    className="flex min-w-0 flex-1 items-center gap-3"
+              {collectors.map((collector) => {
+                const asking = compactAsk(collector.asks)
+                return (
+                  <div
+                    key={collector.userId}
+                    className="flex items-center gap-2 rounded-lg border bg-background p-3 transition-colors hover:border-brand/40 hover:bg-muted/30"
                   >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted font-semibold uppercase">
-                      {collector.username.slice(0, 1)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-sm font-medium">
-                          {collector.username}{collector.userId === user.id ? (it ? " (tu)" : " (you)") : ""}
-                        </span>
-                        {collector.openToOffers ? (
-                          <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
-                            <Handshake className="size-3" /> {it ? "Accetta offerte" : "Open to offers"}
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {[...collector.conditions].map((condition) => conditionLabel(condition, it)).join(" / ")}
-                        {collector.copies > 1 ? ` · ${collector.copies} ${it ? "copie condivise" : "shared copies"}` : ""}
-                        {collector.country ? ` · ${collector.country}` : ""}
-                      </p>
-                    </div>
-                  </Link>
-                  {collector.userId !== user.id && collector.openShareId ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="shrink-0 gap-1"
-                      onClick={() => {
-                        setRequestTarget({ username: collector.username, shareId: collector.openShareId! })
-                        setRequestText("")
-                      }}
+                    <Link
+                      href={`/collectors/${encodeURIComponent(collector.username)}`}
+                      className="flex min-w-0 flex-1 items-center gap-3"
                     >
-                      <MessageCircle className="size-3.5" /> {it ? "Messaggio" : "Message"}
-                    </Button>
-                  ) : null}
-                </div>
-              ))}
+                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted font-semibold uppercase">
+                        {collector.username.slice(0, 1)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="truncate text-sm font-medium">
+                            {collector.username}{collector.userId === user.id ? (it ? " (tu)" : " (you)") : ""}
+                          </span>
+                          {collector.openToOffers ? (
+                            <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
+                              <Handshake className="size-3" /> {it ? "Accetta offerte" : "Open to offers"}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {[...collector.conditions].map((condition) => conditionLabel(condition, it)).join(" / ")}
+                          {collector.copies > 1 ? ` · ${collector.copies} ${it ? "copie condivise" : "shared copies"}` : ""}
+                          {collector.country ? ` · ${collector.country}` : ""}
+                        </p>
+                        {asking ? <p className="mt-0.5 text-xs font-medium text-brand">{it ? "Richiesta" : "Asking"} {formatMoney(asking.price, asking.currency)}</p> : null}
+                      </div>
+                    </Link>
+                    {collector.userId !== user.id && collector.openShareId ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 gap-1"
+                        onClick={() => {
+                          setRequestTarget({ username: collector.username, shareId: collector.openShareId! })
+                          setRequestText("")
+                        }}
+                      >
+                        <MessageCircle className="size-3.5" /> {it ? "Messaggio" : "Message"}
+                      </Button>
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
           )}
         </CardContent>

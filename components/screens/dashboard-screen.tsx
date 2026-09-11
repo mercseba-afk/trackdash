@@ -67,16 +67,16 @@ export function DashboardScreen() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "valorizzati R3" : "valued by R3"}</span>} />
-        <StatCard label={t("dashboard.gain")} value={summary.marketValueCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.marketValueCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati reali insufficienti" : "Insufficient real data"}</span>} />
+        <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Rendimento EUR non disponibile" : "EUR performance unavailable"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Nessun trend vendite ancora consolidato" : "No consolidated sales trend yet")} />
       </div>
 
-      {summary.marketValueCount < summary.count ? (
+      {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Valore e rendimento usano esclusivamente segnali R3 reali compatibili con kit nuovi/completi/non montati. Le altre condizioni non ricevono stime artificiali."
-            : "Value and performance use only real R3 signals compatible with new/complete/unbuilt kits. Other conditions receive no synthetic estimates."}
+            ? "Valore e rendimento usano esclusivamente segnali R3 reali compatibili con kit nuovi/completi/non montati. Il rendimento personale richiede inoltre un prezzo di acquisto in EUR finché non attiviamo FX storico."
+            : "Value and performance use only real R3 signals compatible with new/complete/unbuilt kits. Personal performance also requires an EUR purchase price until historical FX is enabled."}
         </p>
       ) : null}
 

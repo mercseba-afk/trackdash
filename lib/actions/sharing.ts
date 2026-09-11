@@ -19,6 +19,10 @@ import type { Condition, Currency } from "@/lib/types"
 import { mapCollectionRow } from "./mappers"
 
 export type CollectionVisibility = "private" | ShareMode
+export type CollectionOfferTerms = {
+  askingPrice?: number | null
+  askingCurrency?: Currency | null
+}
 
 function assertShareMode(value: string): asserts value is ShareMode {
   if (value !== "showcase" && value !== "open_to_offers") {
@@ -37,6 +41,8 @@ function mapShare(row: {
   releaseId: string
   condition: string
   shareMode: string
+  askingPrice: string | null
+  askingCurrency: string | null
   createdAt: Date
   updatedAt: Date
 }) {
@@ -47,6 +53,8 @@ function mapShare(row: {
     releaseId: row.releaseId,
     condition: row.condition,
     shareMode: row.shareMode as ShareMode,
+    askingPrice: row.askingPrice ? Number(row.askingPrice) : null,
+    askingCurrency: (row.askingCurrency as Currency | null) ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }
@@ -60,7 +68,11 @@ export async function getMyCollectionSharesAction() {
   return rows.map(mapShare)
 }
 
-export async function setCollectionShareAction(collectionItemId: string, shareMode: string) {
+export async function setCollectionShareAction(
+  collectionItemId: string,
+  shareMode: string,
+  offerTerms?: CollectionOfferTerms,
+) {
   assertShareMode(shareMode)
 
   const user = await getCurrentUser()
@@ -82,7 +94,7 @@ export async function setCollectionShareAction(collectionItemId: string, shareMo
       tx,
     )
 
-    return mapShare(await upsertCollectionShare(user.id, collectionItemId, shareMode, tx))
+    return mapShare(await upsertCollectionShare(user.id, collectionItemId, shareMode, tx, offerTerms))
   })
 }
 
@@ -112,6 +124,7 @@ export async function saveCollectionItemAndShareAction(
     notes: string
   }>,
   visibility: string,
+  offerTerms?: CollectionOfferTerms,
 ) {
   assertVisibility(visibility)
 
@@ -124,7 +137,9 @@ export async function saveCollectionItemAndShareAction(
       id,
       {
         ...(patch.condition !== undefined ? { condition: patch.condition } : {}),
-        ...(patch.acquisitionDate !== undefined ? { acquisitionDate: patch.acquisitionDate.slice(0, 10) } : {}),
+        ...(patch.acquisitionDate !== undefined
+          ? { acquisitionDate: patch.acquisitionDate ? patch.acquisitionDate.slice(0, 10) : null }
+          : {}),
         ...(patch.acquisitionPrice !== undefined ? { acquisitionPrice: patch.acquisitionPrice.toString() } : {}),
         ...(patch.acquisitionCurrency !== undefined ? { acquisitionCurrency: patch.acquisitionCurrency } : {}),
         ...(patch.releaseYearOverride !== undefined ? { releaseYearOverride: patch.releaseYearOverride } : {}),
@@ -152,7 +167,7 @@ export async function saveCollectionItemAndShareAction(
         },
         tx,
       )
-      share = mapShare(await upsertCollectionShare(user.id, id, visibility, tx))
+      share = mapShare(await upsertCollectionShare(user.id, id, visibility, tx, offerTerms))
     }
 
     // Return the fully-hydrated private row so the client store can update
@@ -182,6 +197,8 @@ export async function getReleaseCollectorsAction(releaseId: string) {
     collectionItemId: row.collectionItemId,
     condition: row.condition,
     shareMode: row.shareMode as ShareMode,
+    askingPrice: row.askingPrice ? Number(row.askingPrice) : null,
+    askingCurrency: (row.askingCurrency as Currency | null) ?? null,
   }))
 }
 
@@ -220,6 +237,8 @@ export async function getSharedCollectionByUsernameAction(username: string) {
         collectionItemId: share.collectionItemId,
         condition: share.condition,
         shareMode: share.shareMode as ShareMode,
+        askingPrice: share.askingPrice ? Number(share.askingPrice) : null,
+        askingCurrency: (share.askingCurrency as Currency | null) ?? null,
         updatedAt: share.updatedAt.toISOString(),
         imageUrl: releaseImage ?? productImage,
         product: {
