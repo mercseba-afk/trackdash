@@ -1,7 +1,6 @@
 -- TrackDash structured marketplace deal flow.
--- Payment/shipping remain off-platform for now, but offers and bilateral sale
--- confirmations are first-class, auditable data. Only the item price contributes
--- to market evidence; shipping stays separate.
+-- Payment and shipping remain off-platform. Only a bilateral confirmed ITEM
+-- price becomes completed-sale evidence; shipping is stored separately.
 
 create table if not exists public.marketplace_offers (
   id uuid primary key default gen_random_uuid(),
@@ -68,10 +67,18 @@ create table if not exists public.marketplace_sales (
   constraint marketplace_sales_status_check check (status in ('pending_confirmation','confirmed','disputed')),
   constraint marketplace_sales_date_check check (sale_date <= current_date),
   constraint marketplace_sales_eur_check check (
-    (currency = 'EUR' and item_price_eur = round(item_price, 2) and fx_rate_to_eur is null and fx_rate_date is null)
-    or (currency <> 'EUR' and (
+    (currency = 'EUR'
+      and item_price_eur = round(item_price, 2)
+      and fx_rate_to_eur is null
+      and fx_rate_date is null)
+    or
+    (currency <> 'EUR' and (
       (item_price_eur is null and fx_rate_to_eur is null and fx_rate_date is null)
-      or (item_price_eur is not null and fx_rate_to_eur is not null and fx_rate_to_eur > 0 and fx_rate_date is not null
+      or
+      (item_price_eur is not null
+        and fx_rate_to_eur is not null
+        and fx_rate_to_eur > 0
+        and fx_rate_date is not null
         and item_price_eur = round(item_price * fx_rate_to_eur, 2))
     ))
   ),
@@ -91,14 +98,12 @@ create index if not exists idx_marketplace_sales_seller_status
 alter table public.marketplace_offers enable row level security;
 alter table public.marketplace_sales enable row level security;
 
--- Participants may read their own deal history. All writes go through the
--- SECURITY DEFINER functions below, so clients cannot mutate amount/status fields
--- directly through PostgREST.
 drop policy if exists marketplace_offers_participant_read on public.marketplace_offers;
 create policy marketplace_offers_participant_read on public.marketplace_offers
   for select to authenticated
   using (exists (
-    select 1 from public.conversations c
+    select 1
+    from public.conversations c
     where c.id = marketplace_offers.conversation_id
       and (c.owner_id = auth.uid() or c.requester_id = auth.uid())
   ));
@@ -108,6 +113,8 @@ create policy marketplace_sales_participant_read on public.marketplace_sales
   for select to authenticated
   using (seller_id = auth.uid() or buyer_id = auth.uid());
 
+-- No direct client mutations: every state transition is checked atomically by
+-- the SECURITY DEFINER functions below.
 revoke all on public.marketplace_offers from anon, authenticated;
 revoke all on public.marketplace_sales from anon, authenticated;
 grant select on public.marketplace_offers to authenticated;
@@ -146,7 +153,9 @@ begin
     select 1 from public.collector_blocks b
     where (b.blocker_id = v_conversation.owner_id and b.blocked_id = v_conversation.requester_id)
        or (b.blocker_id = v_conversation.requester_id and b.blocked_id = v_conversation.owner_id)
-  ) then raise exception 'Messaging is blocked between these collectors'; end if;
+  ) then
+    raise exception 'Messaging is blocked between these collectors';
+  end if;
 
   select s.condition into v_condition
   from public.collection_shares s
@@ -161,10 +170,12 @@ begin
     where o.conversation_id = p_conversation_id
       and o.status = 'accepted'
       and o.deal_status <> 'cancelled'
-  ) then raise exception 'This conversation already has an accepted deal'; end if;
+  ) then
+    raise exception 'This conversation already has an accepted deal';
+  end if;
 
   update public.marketplace_offers
-    set status = 'superseded', responded_at = now(), updated_at = now()
+  set status = 'superseded', responded_at = now(), updated_at = now()
   where conversation_id = p_conversation_id and status = 'pending';
 
   insert into public.marketplace_offers(
@@ -194,9 +205,16 @@ begin
   if v_uid is null then raise exception 'Not authenticated'; end if;
   if p_decision not in ('accepted','rejected') then raise exception 'Invalid decision'; end if;
 
-  select * into v_offer from public.marketplace_offers where id = p_offer_id for update;
+  select * into v_offer
+  from public.marketplace_offers
+  where id = p_offer_id
+  for update;
   if not found or v_offer.status <> 'pending' then raise exception 'Offer is no longer pending'; end if;
-  select * into v_conversation from public.conversations where id = v_offer.conversation_id for update;
+
+  select * into v_conversation
+  from public.conversations
+  where id = v_offer.conversation_id
+  for update;
   if not found or (v_conversation.owner_id <> v_uid and v_conversation.requester_id <> v_uid) then
     raise exception 'Conversation not found';
   end if;
@@ -210,23 +228,33 @@ begin
         and s.user_id = v_conversation.owner_id
         and s.release_id = v_conversation.release_id
         and s.share_mode = 'open_to_offers'
-    ) then raise exception 'This item is no longer open to offers'; end if;
+    ) then
+      raise exception 'This item is no longer open to offers';
+    end if;
     if exists (
       select 1 from public.collector_blocks b
       where (b.blocker_id = v_conversation.owner_id and b.blocked_id = v_conversation.requester_id)
          or (b.blocker_id = v_conversation.requester_id and b.blocked_id = v_conversation.owner_id)
-    ) then raise exception 'Messaging is blocked between these collectors'; end if;
+    ) then
+      raise exception 'Messaging is blocked between these collectors';
+    end if;
 
     update public.marketplace_offers
-      set status = 'accepted', responded_at = now(), accepted_at = now(),
-          followup_due_at = now() + interval '3 days', updated_at = now()
+    set status = 'accepted',
+        responded_at = now(),
+        accepted_at = now(),
+        followup_due_at = now() + interval '3 days',
+        updated_at = now()
     where id = p_offer_id;
+
     update public.marketplace_offers
-      set status = 'superseded', responded_at = now(), updated_at = now()
-    where conversation_id = v_offer.conversation_id and id <> p_offer_id and status = 'pending';
+    set status = 'superseded', responded_at = now(), updated_at = now()
+    where conversation_id = v_offer.conversation_id
+      and id <> p_offer_id
+      and status = 'pending';
   else
     update public.marketplace_offers
-      set status = 'rejected', responded_at = now(), updated_at = now()
+    set status = 'rejected', responded_at = now(), updated_at = now()
     where id = p_offer_id;
   end if;
 
@@ -248,15 +276,22 @@ declare
   v_owner uuid;
 begin
   if v_uid is null then raise exception 'Not authenticated'; end if;
-  select o.*, c.owner_id into v_offer, v_owner
-  from public.marketplace_offers o join public.conversations c on c.id = o.conversation_id
-  where o.id = p_offer_id
-  for update of o;
-  if not found or v_owner <> v_uid then raise exception 'Only the seller can update this follow-up'; end if;
+
+  select * into v_offer
+  from public.marketplace_offers
+  where id = p_offer_id
+  for update;
+  if not found then raise exception 'Offer not found'; end if;
+
+  select c.owner_id into v_owner
+  from public.conversations c
+  where c.id = v_offer.conversation_id;
+  if v_owner is null or v_owner <> v_uid then raise exception 'Only the seller can update this follow-up'; end if;
   if v_offer.status <> 'accepted' or v_offer.deal_status <> 'open' then raise exception 'Deal is not awaiting follow-up'; end if;
+
   update public.marketplace_offers
-    set followup_due_at = now() + interval '4 days', updated_at = now()
-    where id = p_offer_id;
+  set followup_due_at = now() + interval '4 days', updated_at = now()
+  where id = p_offer_id;
   update public.conversations set updated_at = now() where id = v_offer.conversation_id;
   return p_offer_id;
 end;
@@ -275,14 +310,26 @@ declare
   v_conversation public.conversations%rowtype;
 begin
   if v_uid is null then raise exception 'Not authenticated'; end if;
-  select * into v_offer from public.marketplace_offers where id = p_offer_id for update;
+
+  select * into v_offer
+  from public.marketplace_offers
+  where id = p_offer_id
+  for update;
   if not found then raise exception 'Offer not found'; end if;
-  select * into v_conversation from public.conversations where id = v_offer.conversation_id;
-  if v_conversation.owner_id <> v_uid and v_conversation.requester_id <> v_uid then raise exception 'Offer not found'; end if;
-  if v_offer.status <> 'accepted' or v_offer.deal_status <> 'open' then raise exception 'Deal can no longer be cancelled here'; end if;
+
+  select * into v_conversation
+  from public.conversations
+  where id = v_offer.conversation_id;
+  if not found or (v_conversation.owner_id <> v_uid and v_conversation.requester_id <> v_uid) then
+    raise exception 'Offer not found';
+  end if;
+  if v_offer.status <> 'accepted' or v_offer.deal_status <> 'open' then
+    raise exception 'Deal can no longer be cancelled here';
+  end if;
+
   update public.marketplace_offers
-    set deal_status = 'cancelled', followup_due_at = null, updated_at = now()
-    where id = p_offer_id;
+  set deal_status = 'cancelled', followup_due_at = null, updated_at = now()
+  where id = p_offer_id;
   update public.conversations set updated_at = now() where id = v_offer.conversation_id;
   return p_offer_id;
 end;
@@ -316,47 +363,88 @@ begin
   p_currency := upper(btrim(p_currency));
   if p_currency not in ('EUR','USD','JPY','GBP') then raise exception 'Unsupported currency'; end if;
 
-  select * into v_offer from public.marketplace_offers where id = p_offer_id for update;
+  if p_currency = 'EUR' then
+    if p_item_price_eur is distinct from round(p_item_price, 2)
+       or p_fx_rate_to_eur is not null
+       or p_fx_rate_date is not null then
+      raise exception 'Invalid EUR normalization';
+    end if;
+  elsif (p_item_price_eur is null) <> (p_fx_rate_to_eur is null)
+     or (p_item_price_eur is null) <> (p_fx_rate_date is null) then
+    raise exception 'Incomplete FX provenance';
+  end if;
+
+  select * into v_offer
+  from public.marketplace_offers
+  where id = p_offer_id
+  for update;
   if not found or v_offer.status <> 'accepted' or v_offer.deal_status not in ('open','sale_reported') then
     raise exception 'Accepted deal not found';
   end if;
-  select * into v_conversation from public.conversations where id = v_offer.conversation_id for update;
-  if not found or v_conversation.owner_id <> v_uid then raise exception 'Only the seller can report the sale'; end if;
 
-  select * into v_existing from public.marketplace_sales where conversation_id = v_offer.conversation_id for update;
-  if found and v_existing.status not in ('disputed','pending_confirmation') then
+  select * into v_conversation
+  from public.conversations
+  where id = v_offer.conversation_id
+  for update;
+  if not found or v_conversation.owner_id <> v_uid then
+    raise exception 'Only the seller can report the sale';
+  end if;
+
+  select * into v_existing
+  from public.marketplace_sales
+  where conversation_id = v_offer.conversation_id
+  for update;
+
+  if found and v_existing.status = 'confirmed' then
     raise exception 'Sale is already confirmed';
   end if;
 
   if found then
     update public.marketplace_sales
-      set offer_id = p_offer_id, release_id = v_offer.release_id,
-          seller_id = v_conversation.owner_id, buyer_id = v_conversation.requester_id,
-          condition = v_offer.condition, item_price = round(p_item_price, 2),
-          shipping_price = case when p_shipping_price is null then null else round(p_shipping_price, 2) end,
-          currency = p_currency, item_price_eur = p_item_price_eur,
-          fx_rate_to_eur = p_fx_rate_to_eur, fx_rate_date = p_fx_rate_date,
-          sale_date = p_sale_date, status = 'pending_confirmation',
-          reported_at = now(), buyer_responded_at = null, confirmed_at = null, updated_at = now()
-      where id = v_existing.id
-      returning id into v_sale_id;
+    set offer_id = p_offer_id,
+        release_id = v_offer.release_id,
+        seller_id = v_conversation.owner_id,
+        buyer_id = v_conversation.requester_id,
+        condition = v_offer.condition,
+        item_price = round(p_item_price, 2),
+        shipping_price = case when p_shipping_price is null then null else round(p_shipping_price, 2) end,
+        currency = p_currency,
+        item_price_eur = p_item_price_eur,
+        fx_rate_to_eur = p_fx_rate_to_eur,
+        fx_rate_date = p_fx_rate_date,
+        sale_date = p_sale_date,
+        status = 'pending_confirmation',
+        reported_at = now(),
+        buyer_responded_at = null,
+        confirmed_at = null,
+        updated_at = now()
+    where id = v_existing.id
+    returning id into v_sale_id;
   else
     insert into public.marketplace_sales(
       conversation_id, offer_id, release_id, seller_id, buyer_id, condition,
       item_price, shipping_price, currency, item_price_eur, fx_rate_to_eur,
       fx_rate_date, sale_date
     ) values (
-      v_offer.conversation_id, p_offer_id, v_offer.release_id,
-      v_conversation.owner_id, v_conversation.requester_id, v_offer.condition,
+      v_offer.conversation_id,
+      p_offer_id,
+      v_offer.release_id,
+      v_conversation.owner_id,
+      v_conversation.requester_id,
+      v_offer.condition,
       round(p_item_price, 2),
       case when p_shipping_price is null then null else round(p_shipping_price, 2) end,
-      p_currency, p_item_price_eur, p_fx_rate_to_eur, p_fx_rate_date, p_sale_date
+      p_currency,
+      p_item_price_eur,
+      p_fx_rate_to_eur,
+      p_fx_rate_date,
+      p_sale_date
     ) returning id into v_sale_id;
   end if;
 
   update public.marketplace_offers
-    set deal_status = 'sale_reported', followup_due_at = null, updated_at = now()
-    where id = p_offer_id;
+  set deal_status = 'sale_reported', followup_due_at = null, updated_at = now()
+  where id = p_offer_id;
   update public.conversations set updated_at = now() where id = v_offer.conversation_id;
   return v_sale_id;
 end;
@@ -376,24 +464,28 @@ declare
 begin
   if v_uid is null then raise exception 'Not authenticated'; end if;
   if p_decision not in ('confirmed','disputed') then raise exception 'Invalid decision'; end if;
-  select * into v_sale from public.marketplace_sales where id = p_sale_id for update;
+
+  select * into v_sale
+  from public.marketplace_sales
+  where id = p_sale_id
+  for update;
   if not found or v_sale.buyer_id <> v_uid then raise exception 'Sale not found'; end if;
   if v_sale.status <> 'pending_confirmation' then raise exception 'Sale no longer awaits confirmation'; end if;
 
   if p_decision = 'confirmed' then
     update public.marketplace_sales
-      set status = 'confirmed', buyer_responded_at = now(), confirmed_at = now(), updated_at = now()
-      where id = p_sale_id;
+    set status = 'confirmed', buyer_responded_at = now(), confirmed_at = now(), updated_at = now()
+    where id = p_sale_id;
     update public.marketplace_offers
-      set deal_status = 'confirmed', updated_at = now()
-      where id = v_sale.offer_id;
+    set deal_status = 'confirmed', updated_at = now()
+    where id = v_sale.offer_id;
   else
     update public.marketplace_sales
-      set status = 'disputed', buyer_responded_at = now(), confirmed_at = null, updated_at = now()
-      where id = p_sale_id;
+    set status = 'disputed', buyer_responded_at = now(), confirmed_at = null, updated_at = now()
+    where id = p_sale_id;
     update public.marketplace_offers
-      set deal_status = 'sale_reported', updated_at = now()
-      where id = v_sale.offer_id;
+    set deal_status = 'sale_reported', updated_at = now()
+    where id = v_sale.offer_id;
   end if;
 
   update public.conversations set updated_at = now() where id = v_sale.conversation_id;
@@ -423,20 +515,23 @@ on conflict (slug) do update set
   origin = excluded.origin,
   ingestion_mode = excluded.ingestion_mode;
 
--- Best-effort realtime support so the counterpart sees offers/sale state changes
--- without having to reload the messages screen.
+-- Realtime keeps both participants' deal cards synchronized.
 do $$
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
     if not exists (
       select 1 from pg_publication_tables
-      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'marketplace_offers'
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'marketplace_offers'
     ) then
       execute 'alter publication supabase_realtime add table public.marketplace_offers';
     end if;
     if not exists (
       select 1 from pg_publication_tables
-      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'marketplace_sales'
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'marketplace_sales'
     ) then
       execute 'alter publication supabase_realtime add table public.marketplace_sales';
     end if;
