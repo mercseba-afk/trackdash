@@ -6,10 +6,12 @@ import {
   createCollectionItem,
   deleteCollectionItem,
   getCollectionForUser,
+  getCollectionItemById,
   updateCollectionItem,
 } from "@/lib/db/queries/collection"
 import { getProfileById } from "@/lib/db/queries/profiles"
 import { upsertCollectionShare, upsertCollectorProfile, type ShareMode } from "@/lib/db/queries/sharing"
+import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
 import type { Condition, Currency } from "@/lib/types"
 import { mapCollectionRow } from "./mappers"
 
@@ -27,6 +29,20 @@ export type InitialCollectionVisibility = "private" | ShareMode
 function assertInitialVisibility(value: string): asserts value is InitialCollectionVisibility {
   if (value !== "private" && value !== "showcase" && value !== "open_to_offers") {
     throw new Error("Invalid collection visibility")
+  }
+}
+
+function normalizeAcquisitionDate(value: string | null | undefined): string | null {
+  return value ? value.slice(0, 10) : null
+}
+
+async function acquisitionFxColumns(price: number, currency: Currency, acquisitionDate: string | null) {
+  const basis = await resolveHistoricalEurBasis(price, currency, acquisitionDate)
+  return {
+    acquisitionPriceEUR: basis.amountEUR != null ? basis.amountEUR.toString() : null,
+    acquisitionFxRateToEUR: basis.fxRateToEUR != null ? basis.fxRateToEUR.toString() : null,
+    acquisitionFxRateDate: basis.fxRateDate,
+    acquisitionFxSource: basis.fxSource,
   }
 }
 
@@ -57,6 +73,8 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
 
   const visibility = input.visibility ?? "private"
   assertInitialVisibility(visibility)
+  const acquisitionDate = normalizeAcquisitionDate(input.acquisitionDate)
+  const fxColumns = await acquisitionFxColumns(input.acquisitionPrice, input.acquisitionCurrency, acquisitionDate)
 
   const row = await withUserContext(user.id, async (tx) => {
     const created = await createCollectionItem(
@@ -68,9 +86,10 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
         condition: input.condition,
         // acquisition_date is nullable: an unknown historical purchase date
         // is better represented as NULL than silently pretending it was today.
-        acquisitionDate: input.acquisitionDate ? input.acquisitionDate.slice(0, 10) : null,
+        acquisitionDate,
         acquisitionPrice: input.acquisitionPrice.toString(),
         acquisitionCurrency: input.acquisitionCurrency,
+        ...fxColumns,
         releaseYearOverride: input.releaseYearOverride ?? null,
         notes: input.notes ?? null,
       },
@@ -118,17 +137,33 @@ export async function updateCollectionItemAction(
 ) {
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
+
+  const current = await withUserContext(user.id, (tx) => getCollectionItemById(user.id, id, tx))
+  if (!current) return null
+
+  const acquisitionChanged =
+    patch.acquisitionDate !== undefined ||
+    patch.acquisitionPrice !== undefined ||
+    patch.acquisitionCurrency !== undefined
+  const nextDate = patch.acquisitionDate !== undefined
+    ? normalizeAcquisitionDate(patch.acquisitionDate)
+    : current.acquisitionDate
+  const nextPrice = patch.acquisitionPrice ?? Number(current.acquisitionPrice ?? 0)
+  const nextCurrency = patch.acquisitionCurrency ?? (current.acquisitionCurrency as Currency)
+  const fxColumns = acquisitionChanged
+    ? await acquisitionFxColumns(nextPrice, nextCurrency, nextDate)
+    : null
+
   const row = await withUserContext(user.id, (tx) =>
     updateCollectionItem(
       user.id,
       id,
       {
         ...(patch.condition !== undefined ? { condition: patch.condition } : {}),
-        ...(patch.acquisitionDate !== undefined
-          ? { acquisitionDate: patch.acquisitionDate ? patch.acquisitionDate.slice(0, 10) : null }
-          : {}),
+        ...(patch.acquisitionDate !== undefined ? { acquisitionDate: nextDate } : {}),
         ...(patch.acquisitionPrice !== undefined ? { acquisitionPrice: patch.acquisitionPrice.toString() } : {}),
         ...(patch.acquisitionCurrency !== undefined ? { acquisitionCurrency: patch.acquisitionCurrency } : {}),
+        ...(fxColumns ?? {}),
         ...(patch.releaseYearOverride !== undefined ? { releaseYearOverride: patch.releaseYearOverride } : {}),
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
       },
