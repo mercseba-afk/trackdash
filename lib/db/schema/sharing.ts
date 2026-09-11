@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm"
-import { check, index, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { check, index, numeric, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 import { authenticatedRole, authUid } from "drizzle-orm/supabase"
 import { products, productReleases } from "./catalog"
 import { collectionItems } from "./collection"
@@ -70,6 +70,10 @@ export const collectionShares = pgTable(
       .references(() => productReleases.id),
     condition: text("condition").notNull(),
     shareMode: text("share_mode").notNull().default("showcase"),
+    // Optional public asking price. It is an ASK, not a completed sale and
+    // must never be treated as Market Value evidence by itself.
+    askingPrice: numeric("asking_price", { precision: 10, scale: 2 }),
+    askingCurrency: text("asking_currency"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -82,6 +86,13 @@ export const collectionShares = pgTable(
     check(
       "collection_shares_condition_check",
       sql`${table.condition} in ('Sealed', 'New / Opened', 'Built', 'Used', 'Incomplete')`,
+    ),
+    check(
+      "collection_shares_asking_price_check",
+      sql`(${table.askingPrice} is null and ${table.askingCurrency} is null)
+        or (${table.shareMode} = 'open_to_offers'
+          and ${table.askingPrice} > 0
+          and ${table.askingCurrency} in ('EUR', 'USD', 'JPY', 'GBP'))`,
     ),
     pgPolicy("collection_shares_authenticated_read", {
       for: "select",
