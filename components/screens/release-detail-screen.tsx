@@ -4,8 +4,9 @@ import Link from "next/link"
 import { ArrowLeft, Check, Heart, Plus } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { formatDate, formatMoney } from "@/lib/format"
-import type { Product, ProductRelease } from "@/lib/types"
+import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
+import { formatDate, formatMoney, formatPercent } from "@/lib/format"
+import type { Condition, Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ import { MarketSignalCard } from "@/components/market-bits"
 import { MarketDataEmptyCard } from "@/components/market-data-empty-card"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { CollectorsSection } from "@/components/collectors-section"
+import { cn } from "@/lib/utils"
 
 export function ReleaseDetailScreen({
   product,
@@ -79,6 +81,10 @@ export function ReleaseDetailScreen({
             <MarketDataEmptyCard title={it ? "Valore attuale stimato" : "Estimated current value"} />
           )}
 
+          {mine.length > 0 ? (
+            <OwnedCopiesCard copies={mine} marketSignal={marketSignal} it={it} />
+          ) : null}
+
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
             <Spec label={it ? "Codice articolo" : "Item no."} value={release.itemNumber ? `#${release.itemNumber}` : "—"} />
             <Spec label={it ? "Data di uscita" : "Release date"} value={release.releaseDate ? formatDate(release.releaseDate) : release.releaseYear ? String(release.releaseYear) : "—"} />
@@ -99,15 +105,6 @@ export function ReleaseDetailScreen({
               <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> {it ? "Wishlist" : "Wishlist"}</Button>
             </AddToWishlistDialog>
           </div>
-
-          {mine.length > 0 ? (
-            <div className="rounded-lg border border-success/40 bg-success/5 px-3 py-2 text-sm text-success">
-              <Check className="mr-1 inline size-4" />
-              {it
-                ? `Possiedi ${mine.length} ${mine.length === 1 ? "copia" : "copie"} di questa release.`
-                : `You own ${mine.length} ${mine.length === 1 ? "copy" : "copies"} of this release.`}
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -116,6 +113,93 @@ export function ReleaseDetailScreen({
       </div>
     </div>
   )
+}
+
+function OwnedCopiesCard({
+  copies,
+  marketSignal,
+  it,
+}: {
+  copies: ReturnType<typeof useStore>["collection"]
+  marketSignal?: ReleaseMarketSignalView | null
+  it: boolean
+}) {
+  const currentValue = marketSignal?.valueEUR ?? null
+
+  return (
+    <div className="rounded-lg border border-success/30 bg-success/5 p-4">
+      <div className="mb-3 flex items-center gap-2">
+        <Check className="size-4 text-success" />
+        <p className="text-sm font-semibold">{it ? (copies.length === 1 ? "La tua copia" : "Le tue copie") : (copies.length === 1 ? "Your copy" : "Your copies")}</p>
+        <Badge variant="secondary">{copies.length}</Badge>
+      </div>
+      <div className="grid gap-2">
+        {copies.map((copy, index) => {
+          const comparable = conditionUsesNewUnbuiltReference(copy.condition)
+          const personalGain = comparable && currentValue != null && copy.acquisitionCurrency === "EUR" && copy.acquisitionPrice > 0
+            ? currentValue - copy.acquisitionPrice
+            : null
+          const personalGainPercent = personalGain != null && copy.acquisitionPrice > 0
+            ? (personalGain / copy.acquisitionPrice) * 100
+            : null
+
+          return (
+            <div key={copy.id} className="rounded-md border border-border/70 bg-background/70 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium">{copies.length > 1 ? `${it ? "Copia" : "Copy"} ${index + 1} · ` : ""}{conditionLabel(copy.condition, it)}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {copy.acquisitionDate ? `${it ? "Acquistata" : "Acquired"} ${formatDate(copy.acquisitionDate)}` : (it ? "Data acquisto non indicata" : "Purchase date not provided")}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{it ? "Pagato" : "Paid"}</p>
+                  <p className="text-sm font-medium tabular-nums">{copy.acquisitionPrice > 0 ? formatMoney(copy.acquisitionPrice, copy.acquisitionCurrency) : "—"}</p>
+                </div>
+              </div>
+              {comparable && currentValue != null ? (
+                <div className="mt-3 flex items-end justify-between gap-3 border-t border-border/70 pt-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{it ? "Valore attuale" : "Current value"}</p>
+                    <p className="text-sm font-semibold tabular-nums">{formatMoney(currentValue)}</p>
+                  </div>
+                  {personalGain != null && personalGainPercent != null ? (
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{it ? "Rendimento" : "Performance"}</p>
+                      <p className={cn("text-sm font-semibold tabular-nums", personalGain > 0 ? "text-success" : personalGain < 0 ? "text-destructive" : "text-muted-foreground")}>
+                        {personalGain > 0 ? "+" : ""}{formatMoney(personalGain)} · {formatPercent(personalGainPercent)}
+                      </p>
+                    </div>
+                  ) : copy.acquisitionPrice > 0 && copy.acquisitionCurrency !== "EUR" ? (
+                    <p className="max-w-44 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Rendimento disponibile con FX storico" : "Performance available with historical FX"}</p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="mt-2 border-t border-border/70 pt-2 text-[11px] text-muted-foreground">
+                  {comparable
+                    ? (it ? "Valore R3 non ancora consolidato per questa release." : "R3 value is not consolidated for this release yet.")
+                    : (it ? "La condizione della tua copia non è confrontata con il valore R3 dei kit nuovi/non montati." : "Your copy's condition is not compared with the R3 new/unbuilt reference.")}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <p className="mt-2 text-[10px] text-muted-foreground">{it ? "Questi dati sono privati e visibili solo nella tua sessione." : "These details are private and visible only in your session."}</p>
+    </div>
+  )
+}
+
+function conditionLabel(value: Condition, it: boolean) {
+  if (!it) return value
+  const labels: Record<Condition, string> = {
+    Sealed: "Sigillato",
+    "New / Opened": "Nuovo / Aperto",
+    Built: "Montato",
+    Used: "Usato",
+    Incomplete: "Incompleto",
+  }
+  return labels[value]
 }
 
 function ProductionBadge({ status, it }: { status: ProductRelease["productionStatus"]; it: boolean }) {
