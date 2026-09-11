@@ -29,6 +29,10 @@ function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100
 }
 
+function round8(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100_000_000) / 100_000_000
+}
+
 function isoDate(value: string): string | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return null
@@ -100,7 +104,10 @@ export function parseEcbDailyCsv(
     requestedDate,
     rateDate: best.date,
     unitsPerEUR: best.unitsPerEUR,
-    rateToEUR: 1 / best.unitsPerEUR,
+    // DB provenance columns are numeric(18,8). Persist and calculate from the
+    // same 8-decimal multiplier so the DB integrity check can never differ by
+    // one cent because PostgreSQL rounded the rate after JS used more digits.
+    rateToEUR: round8(1 / best.unitsPerEUR),
     source: ECB_FX_SOURCE,
   }
 }
