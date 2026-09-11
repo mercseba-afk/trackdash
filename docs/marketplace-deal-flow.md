@@ -12,6 +12,7 @@ Status: MVP contract for off-platform collector-to-collector deals.
 6. For a completed sale, the seller records the final item price, optional shipping and sale date. Shipping is always separate from the item price.
 7. The buyer confirms the sale details or flags them as incorrect.
 8. Only a bilateral confirmed sale becomes TrackDash completed-sale evidence.
+9. On confirmation, one physical copy automatically leaves the seller's active collection and is created in the buyer's collection with the confirmed item price/date/currency as its acquisition data.
 
 ## Market evidence
 
@@ -28,7 +29,17 @@ Status: MVP contract for off-platform collector-to-collector deals.
 - The cluster price is the median of its confirmed item-only prices.
 - This preserves reported transactions for audit while preventing one pair of accounts from manufacturing volume.
 - One physical collection share may have multiple interested conversations but only one live accepted deal at a time.
+- A public collection share with an accepted live deal cannot be removed or edited until the deal is cancelled, disputed/corrected, or confirmed.
 
-## Listing lifecycle
+## Collection ownership lifecycle
 
-When the buyer confirms the sale, the public share is closed from `open_to_offers` to `showcase` and its asking price is cleared. The private seller collection row is intentionally left untouched in this MVP; ownership-transfer/removal UX can be handled as a separate explicit collector action.
+A bilateral confirmation is also an ownership transfer, not only a market event.
+
+- The sold copy is removed from the seller's **active** collection automatically.
+- If a row represents more than one identical copy, only one unit is transferred and the seller keeps the remaining quantity.
+- The buyer receives a new active collection row with quantity `1`, the sold condition, sale date and final item price. Its acquisition source is `TrackDash`.
+- Shipping is not copied into the buyer's market/acquisition item price; it remains a separate sale field.
+- The seller's previous ownership data is not discarded: TrackDash stores an immutable snapshot of the sold collection row plus its photo URLs in `collection_item_transfers`, linked to the confirmed sale and the buyer's new collection row.
+- The seller's old public listing is removed. The conversation remains as transaction history even though its `collection_share_id` becomes null.
+
+This keeps active collections truthful while retaining the provenance needed for future sale history, realised performance and collector-to-collector item lineage.
