@@ -22,7 +22,7 @@
     "market:runner:test": "node --experimental-strip-types scripts/test-market-runner.mjs",
     "market:edge:test": "node --experimental-strip-types scripts/test-market-edge-cases.mjs",
     "market:r3:test": "node --experimental-strip-types scripts/test-market-r3.mjs",
-    "market:method:test": "node --experimental-strip-types scripts/test-market-method-v1.mjs",
+    "market:method:test": "node --experimental-strip-types scripts/test-market-method-v1.mjs && node --experimental-strip-types scripts/test-market-method-v2.mjs",
     "market:public:test": "node scripts/test-market-public-surfaces.mjs"
   },
   "dependencies": {

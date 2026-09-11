@@ -71,6 +71,15 @@ function soldQualityPoints(evidence: SoldMarketEvidence[]): { points: number; ha
   }
 }
 
+function totalSoldUnits(evidence: SoldMarketEvidence[]): number {
+  return evidence.reduce((sum, row) => sum + Math.max(0, row.salesCount), 0)
+}
+
+function pricesBroadlyCorroborate(a: number | null, b: number | null, tolerance = 0.3): boolean {
+  if (a == null || b == null || a <= 0 || b <= 0) return false
+  return Math.abs(a - b) / Math.max(a, b) <= tolerance
+}
+
 // Confidence shown next to a sold-based Market Value describes the evidence
 // behind THAT value, not the amount of asking-price activity around it.
 // Indicative-only title-matched Product Research can reach Medium, but never High.
@@ -119,23 +128,33 @@ export function publicRetailConfidence(
   return { score, label: confidenceLabel(score) }
 }
 
-// Public v1 deliberately keeps three concepts separate:
+// Market Method v2 publication rules:
 //
-// 1. Liquid current retail market -> Market Value = median verified retail price,
-//    but only with at least two independent fresh retail sources.
-// 2. Collector/secondary market -> Market Value = demonstrated completed-sale value.
-// 3. Active asks -> seller expectations only; they are shown separately and never
-//    manufacture or inflate Market Value.
-//
-// With one retail source and no sold evidence, or asks without sold evidence, the
-// evidence remains visible but the headline stays unconsolidated.
+// 1. Current value is based on current evidence, not a historical average by default.
+//    `selectCurrentSoldEvidence` has already chosen the best recent window per source.
+// 2. Two independent fresh retailers may define the headline as the current retail median.
+// 3. Otherwise completed sales define the headline, but one isolated indicative sale
+//    is not enough to publish Market Value.
+// 4. One verified completed sale may publish only when one fresh retailer independently
+//    corroborates it within a broad 30% band.
+// 5. Active asking prices remain separate seller expectations and never create or inflate
+//    the public Market Value.
 export function applyPublicMarketPublicationPolicy(
   signal: MarketSignalDraft,
   soldEvidence: SoldMarketEvidence[] = [],
   asOfDate?: string,
 ): MarketSignalDraft {
   const hasLiquidRetail = signal.retailAnchorEUR != null && signal.retailAnchorEUR > 0 && signal.retailSourceCount >= 2
-  const hasSoldValue = signal.soldAnchorEUR != null && signal.soldEvidenceCount > 0
+  const soldUnits = Math.max(signal.soldUnits, totalSoldUnits(soldEvidence))
+  const hasVerifiedSale = soldEvidence.some((row) => row.evidenceGrade === "verified" && row.salesCount > 0)
+  const hasSoldCluster = signal.soldAnchorEUR != null && signal.soldAnchorEUR > 0 && soldUnits >= 2
+  const singleVerifiedCorroborated =
+    signal.soldAnchorEUR != null &&
+    signal.soldAnchorEUR > 0 &&
+    soldUnits === 1 &&
+    hasVerifiedSale &&
+    signal.retailSourceCount >= 1 &&
+    pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR)
 
   if (hasLiquidRetail) {
     const confidence = asOfDate
@@ -152,13 +171,14 @@ export function applyPublicMarketPublicationPolicy(
     }
   }
 
-  if (hasSoldValue) {
+  if (hasSoldCluster || singleVerifiedCorroborated) {
     const confidence = asOfDate && soldEvidence.length
-      ? publicSoldConfidence(signal, soldEvidence, asOfDate)
+      ? publicSoldConfidence({ ...signal, soldUnits }, soldEvidence, asOfDate)
       : { score: signal.confidenceScore, label: signal.confidenceLabel }
 
     return {
       ...signal,
+      soldUnits,
       marketValueEUR: signal.soldAnchorEUR,
       lowEUR: signal.soldAnchorEUR,
       highEUR: signal.soldAnchorEUR,
@@ -169,6 +189,7 @@ export function applyPublicMarketPublicationPolicy(
 
   return {
     ...signal,
+    soldUnits,
     marketRegime: signal.retailSourceCount > 0 ? signal.marketRegime : "insufficient",
     marketValueEUR: null,
     lowEUR: null,
