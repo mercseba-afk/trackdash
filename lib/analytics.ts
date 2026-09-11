@@ -33,11 +33,9 @@ export interface EnrichedCollectionItem {
   marketSignal: ReleaseMarketSignalView | null
   marketValue: number | null
   marketTrend: number | null
-  /**
-   * Personal performance is deliberately separate from the release market
-   * trend. Until historical FX lands, only EUR acquisition prices can be
-   * compared with today's EUR Market Value without inventing a conversion.
-   */
+  /** Personal performance uses the persisted EUR purchase basis. For foreign
+   * currencies that basis exists only when a dated ECB reference conversion
+   * was successfully resolved, so the comparison always fails closed. */
   personalGainEUR: number | null
   personalGainPercent: number | null
   displayYear?: number
@@ -57,15 +55,16 @@ export function enrichCollection(
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
       const marketTrend = comparableCondition ? marketSignal?.trendPercent ?? null : null
+      const acquisitionBasisEUR = item.acquisitionPriceEUR ?? null
       const canCalculatePersonalPerformance =
         marketValue != null &&
-        item.acquisitionCurrency === "EUR" &&
-        item.acquisitionPrice > 0
+        acquisitionBasisEUR != null &&
+        acquisitionBasisEUR > 0
       const personalGainEUR = canCalculatePersonalPerformance
-        ? marketValue - item.acquisitionPrice
+        ? marketValue - acquisitionBasisEUR
         : null
       const personalGainPercent = canCalculatePersonalPerformance
-        ? (personalGainEUR! / item.acquisitionPrice) * 100
+        ? (personalGainEUR! / acquisitionBasisEUR) * 100
         : null
       const displayYear = item.releaseYearOverride ?? release.releaseYear
       return {
@@ -90,7 +89,7 @@ export interface PortfolioSummary {
   uniqueReleases: number
   marketValue: number
   marketValueCount: number
-  /** Sum of purchase prices that are already denominated in EUR. */
+  /** Sum of purchase prices with a trustworthy EUR basis (native or historical FX). */
   acquisitionCost: number
   acquisitionCostCount: number
   /** EUR purchase basis for copies that also have a comparable R3 value. */
@@ -107,19 +106,19 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
   const valued = enriched.filter((entry) => entry.marketValue != null)
   const marketValue = valued.reduce((sum, entry) => sum + (entry.marketValue ?? 0), 0)
 
-  // Never add USD/JPY/GBP amounts directly to EUR. Foreign-currency purchase
-  // history remains visible per copy and will enter these totals only after the
-  // historical-FX module can establish a dated EUR basis.
-  const eurPurchases = enriched.filter(
-    (entry) => entry.item.acquisitionCurrency === "EUR" && entry.item.acquisitionPrice > 0,
+  const normalizedPurchases = enriched.filter(
+    (entry) => entry.item.acquisitionPriceEUR != null && entry.item.acquisitionPriceEUR > 0,
   )
-  const acquisitionCost = eurPurchases.reduce((sum, entry) => sum + entry.item.acquisitionPrice, 0)
+  const acquisitionCost = normalizedPurchases.reduce(
+    (sum, entry) => sum + (entry.item.acquisitionPriceEUR ?? 0),
+    0,
+  )
 
   const performanceEntries = enriched.filter(
     (entry) => entry.personalGainEUR != null && entry.personalGainPercent != null,
   )
   const trackedAcquisitionCost = performanceEntries.reduce(
-    (sum, entry) => sum + entry.item.acquisitionPrice,
+    (sum, entry) => sum + (entry.item.acquisitionPriceEUR ?? 0),
     0,
   )
   const gain = performanceEntries.reduce((sum, entry) => sum + (entry.personalGainEUR ?? 0), 0)
@@ -139,7 +138,7 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
     marketValue,
     marketValueCount: valued.length,
     acquisitionCost,
-    acquisitionCostCount: eurPurchases.length,
+    acquisitionCostCount: normalizedPurchases.length,
     trackedAcquisitionCost,
     gain,
     gainPercent: trackedAcquisitionCost > 0 ? (gain / trackedAcquisitionCost) * 100 : 0,
