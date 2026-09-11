@@ -12,7 +12,7 @@
 //     existing entry.
 //   - The invariant checker HARD-FAILS if any id listed here is missing
 //     from the current catalog, or if its product/release kind changed.
-//   - Current sealed floor: 38 products + 96 releases = 134 ids.
+//   - Current sealed floor: 38 products + 101 releases = 139 ids.
 
 export interface StableIdManifestEntry {
   id: string
@@ -159,4 +159,11 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "d0e6d2fc-3566-5004-a479-52f89253863b", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Silver Metallic Special (AR Chassis)" },
   { id: "e96a1769-9b91-55b8-84c4-697799d0b441", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Asia Challenge 2016 (AR Chassis)" },
   { id: "324310d8-9c3d-5fa9-9d75-1202b43cfce7", kind: "release", label: "Aero Thunder Shot — Aero Thunder Shot Black Special (AR Chassis)" },
+
+  // ---- Dyna-Hawk + Avante Mk.II audits sealed after DB migration ----
+  { id: "67423b20-d880-5e54-a83f-dc06dcba6f75", kind: "release", label: "Dyna-Hawk GX — Dyna-Hawk GX Black Special (Super XX Chassis)" },
+  { id: "e7f6a362-9bac-53aa-8673-2fa308c50a17", kind: "release", label: "Avante Mk.II — Avante Mk.II Black Special" },
+  { id: "6c1d4fcf-7265-5a61-9be9-795e27eec353", kind: "release", label: "Avante Mk.II — Avante Mk.II V Special" },
+  { id: "c819da54-1ebc-5a8b-a24f-77166cf70e8d", kind: "release", label: "Avante Mk.II — Avante Mk.II Pink Special (Clear Body)" },
+  { id: "5489c586-0f2a-5393-9447-dcf36bed8f1a", kind: "release", label: "Avante Mk.II — Avante Mk.II Asia Challenge 2020 Special (Taiwan Final)" },
 ]
