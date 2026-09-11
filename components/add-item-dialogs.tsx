@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { primaryRelease, resolveRelease } from "@/lib/data/products"
-import { formatMoney } from "@/lib/format"
+import { formatMoney, formatPercent } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -118,6 +118,10 @@ function ReleaseSelect({
   )
 }
 
+function signedMoney(value: number): string {
+  return `${value > 0 ? "+" : ""}${formatMoney(value)}`
+}
+
 export function AddToCollectionDialog({
   product,
   defaultReleaseId,
@@ -137,15 +141,28 @@ export function AddToCollectionDialog({
   const initialRelease = resolveRelease(product, defaultReleaseId)
   const [releaseId, setReleaseId] = React.useState(initialRelease.id)
   const [condition, setCondition] = React.useState<Condition>("New / Opened")
-  const [date, setDate] = React.useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = React.useState("")
   const [year, setYear] = React.useState(initialRelease.releaseYear ? String(initialRelease.releaseYear) : "")
   const [currency, setCurrency] = React.useState<Currency>("EUR")
   const [price, setPrice] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [visibility, setVisibility] = React.useState<CollectionVisibility>("private")
+  const [askingPrice, setAskingPrice] = React.useState("")
+  const [askingCurrency, setAskingCurrency] = React.useState<Currency>("EUR")
 
   const selectedRelease = resolveRelease(product, releaseId)
   const selectedSignal = marketSignals[selectedRelease.id]
+  const currentValue = selectedSignal?.valueEUR ?? null
+  const paid = Number(price)
+  const comparableCondition = condition === "Sealed" || condition === "New / Opened"
+  const canShowPerformance =
+    comparableCondition &&
+    currentValue != null &&
+    currency === "EUR" &&
+    Number.isFinite(paid) &&
+    paid > 0
+  const personalGain = canShowPerformance ? currentValue - paid : null
+  const personalGainPercent = canShowPerformance && personalGain != null ? (personalGain / paid) * 100 : null
 
   React.useEffect(() => {
     if (!open) return
@@ -156,7 +173,10 @@ export function AddToCollectionDialog({
     setPrice("")
     setNotes("")
     setVisibility("private")
-    setDate(new Date().toISOString().slice(0, 10))
+    setDate("")
+    setCurrency("EUR")
+    setAskingPrice("")
+    setAskingCurrency("EUR")
   }, [open, product, defaultReleaseId])
 
   function handleReleaseChange(id: string) {
@@ -176,13 +196,19 @@ export function AddToCollectionDialog({
         productId: product.id,
         releaseId: selectedRelease.id,
         condition,
-        acquisitionDate: new Date(date).toISOString(),
+        acquisitionDate: date,
         acquisitionPrice: Number(price) || 0,
         acquisitionCurrency: currency,
         releaseYearOverride,
         notes: notes.trim() || undefined,
         visibility,
-      } as Parameters<typeof addToCollection>[0] & { visibility: CollectionVisibility })
+        askingPrice: visibility === "open_to_offers" && askingPrice ? Number(askingPrice) : undefined,
+        askingCurrency: visibility === "open_to_offers" && askingPrice ? askingCurrency : undefined,
+      } as Parameters<typeof addToCollection>[0] & {
+        visibility: CollectionVisibility
+        askingPrice?: number
+        askingCurrency?: Currency
+      })
       toast.success(it ? "Aggiunto alla collezione" : "Added to collection", {
         description: `${selectedRelease.editionName} · ${year} ${releaseTypeLabel(selectedRelease.releaseType, it)}`,
       })
@@ -254,6 +280,9 @@ export function AddToCollectionDialog({
               <Field>
                 <FieldLabel htmlFor="date">{it ? "Acquistato il" : "Acquired"}</FieldLabel>
                 <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                <p className="text-[11px] text-muted-foreground">
+                  {it ? "Opzionale — lascialo vuoto se non ricordi la data." : "Optional — leave blank if you don't remember the date."}
+                </p>
               </Field>
               <Field>
                 <FieldLabel htmlFor="currency">{it ? "Valuta" : "Currency"}</FieldLabel>
@@ -280,11 +309,22 @@ export function AddToCollectionDialog({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
               />
-              <p className="text-[11px] text-muted-foreground">
-                {selectedSignal?.valueEUR != null
-                  ? `${it ? "Valore attuale stimato" : "Estimated current value"}: ${formatMoney(selectedSignal.valueEUR)}`
-                  : (it ? "Inserisci quanto hai realmente pagato." : "Enter what you actually paid.")}
-              </p>
+              <div className="space-y-0.5 text-[11px] text-muted-foreground">
+                {currentValue != null ? (
+                  <p>{it ? "Valore attuale stimato" : "Estimated current value"}: {formatMoney(currentValue)}</p>
+                ) : (
+                  <p>{it ? "Inserisci quanto hai realmente pagato." : "Enter what you actually paid."}</p>
+                )}
+                {personalGain != null && personalGainPercent != null ? (
+                  <p className={personalGain >= 0 ? "font-medium text-success" : "font-medium text-destructive"}>
+                    {it ? "Rendimento personale" : "Personal performance"}: {signedMoney(personalGain)} · {formatPercent(personalGainPercent)}
+                  </p>
+                ) : price && currentValue != null && currency !== "EUR" ? (
+                  <p>{it ? "Rendimento disponibile con FX storico: non convertiamo il prezzo con il cambio di oggi." : "Performance will be available with historical FX; we won't use today's exchange rate."}</p>
+                ) : price && !comparableCondition ? (
+                  <p>{it ? "Questa condizione non ha ancora un valore di mercato comparabile." : "This condition doesn't have a comparable market value yet."}</p>
+                ) : null}
+              </div>
             </Field>
             <Field>
               <FieldLabel>{it ? "Visibilità" : "Visibility"}</FieldLabel>
@@ -298,10 +338,38 @@ export function AddToCollectionDialog({
               </Select>
               <p className="text-[11px] text-muted-foreground">
                 {it
-                  ? "Privato è l'impostazione predefinita. La condivisione mostra solo modello, release esatta e condizione."
-                  : "Private is the default. Sharing exposes only the model, exact release and condition."}
+                  ? "Privato è l'impostazione predefinita. La condivisione non espone mai il tuo prezzo d'acquisto."
+                  : "Private is the default. Sharing never exposes your purchase price."}
               </p>
             </Field>
+            {visibility === "open_to_offers" ? (
+              <div className="grid grid-cols-[1fr_7rem] gap-3">
+                <Field>
+                  <FieldLabel htmlFor="asking-price">{it ? "Prezzo richiesto" : "Asking price"}</FieldLabel>
+                  <Input
+                    id="asking-price"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    placeholder={it ? "Opzionale" : "Optional"}
+                    value={askingPrice}
+                    onChange={(e) => setAskingPrice(e.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="asking-currency">{it ? "Valuta" : "Currency"}</FieldLabel>
+                  <Select value={askingCurrency} onValueChange={(v) => setAskingCurrency(v as Currency)}>
+                    <SelectTrigger id="asking-currency" className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <p className="col-span-2 -mt-1 text-[11px] text-muted-foreground">
+                  {it ? "È un prezzo richiesto pubblico, non una vendita conclusa e non modifica il Valore di mercato TrackDash." : "This is a public asking price, not a completed sale, and it does not change TrackDash Market Value."}
+                </p>
+              </div>
+            ) : null}
             <Field>
               <FieldLabel htmlFor="notes">Note</FieldLabel>
               <Textarea
