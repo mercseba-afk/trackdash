@@ -15,6 +15,7 @@ import {
   upsertCollectorProfile,
   type ShareMode,
 } from "@/lib/db/queries/sharing"
+import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
 import type { Condition, Currency } from "@/lib/types"
 import { mapCollectionRow } from "./mappers"
 
@@ -32,6 +33,20 @@ function assertShareMode(value: string): asserts value is ShareMode {
 
 function assertVisibility(value: string): asserts value is CollectionVisibility {
   if (value !== "private") assertShareMode(value)
+}
+
+function normalizeAcquisitionDate(value: string | null | undefined): string | null {
+  return value ? value.slice(0, 10) : null
+}
+
+async function acquisitionFxColumns(price: number, currency: Currency, acquisitionDate: string | null) {
+  const basis = await resolveHistoricalEurBasis(price, currency, acquisitionDate)
+  return {
+    acquisitionPriceEUR: basis.amountEUR != null ? basis.amountEUR.toString() : null,
+    acquisitionFxRateToEUR: basis.fxRateToEUR != null ? basis.fxRateToEUR.toString() : null,
+    acquisitionFxRateDate: basis.fxRateDate,
+    acquisitionFxSource: basis.fxSource,
+  }
 }
 
 function mapShare(row: {
@@ -131,17 +146,34 @@ export async function saveCollectionItemAndShareAction(
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
 
+  // Historical FX may require one external ECB request. Resolve it before the
+  // DB transaction so a slow network call never holds transaction resources.
+  const current = await withUserContext(user.id, (tx) => getCollectionItemById(user.id, id, tx))
+  if (!current) throw new Error("Collection item not found")
+
+  const acquisitionChanged =
+    patch.acquisitionDate !== undefined ||
+    patch.acquisitionPrice !== undefined ||
+    patch.acquisitionCurrency !== undefined
+  const nextDate = patch.acquisitionDate !== undefined
+    ? normalizeAcquisitionDate(patch.acquisitionDate)
+    : current.acquisitionDate
+  const nextPrice = patch.acquisitionPrice ?? Number(current.acquisitionPrice ?? 0)
+  const nextCurrency = patch.acquisitionCurrency ?? (current.acquisitionCurrency as Currency)
+  const fxColumns = acquisitionChanged
+    ? await acquisitionFxColumns(nextPrice, nextCurrency, nextDate)
+    : null
+
   return withUserContext(user.id, async (tx) => {
     const updated = await updateCollectionItem(
       user.id,
       id,
       {
         ...(patch.condition !== undefined ? { condition: patch.condition } : {}),
-        ...(patch.acquisitionDate !== undefined
-          ? { acquisitionDate: patch.acquisitionDate ? patch.acquisitionDate.slice(0, 10) : null }
-          : {}),
+        ...(patch.acquisitionDate !== undefined ? { acquisitionDate: nextDate } : {}),
         ...(patch.acquisitionPrice !== undefined ? { acquisitionPrice: patch.acquisitionPrice.toString() } : {}),
         ...(patch.acquisitionCurrency !== undefined ? { acquisitionCurrency: patch.acquisitionCurrency } : {}),
+        ...(fxColumns ?? {}),
         ...(patch.releaseYearOverride !== undefined ? { releaseYearOverride: patch.releaseYearOverride } : {}),
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
       },
