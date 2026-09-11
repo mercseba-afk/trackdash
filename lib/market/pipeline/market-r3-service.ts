@@ -11,7 +11,7 @@ import {
 } from "./market-publication-policy"
 import { MarketR3Repository } from "./market-r3-repository"
 import { selectCurrentSoldEvidence } from "./sold-selection"
-import { loadConfirmedTrackDashSales } from "./trackdash-sales"
+import { buildTrackDashMonthlySaleEvidence, loadConfirmedTrackDashSales } from "./trackdash-sales"
 
 export async function recomputeReleaseMarketSignal(
   releaseId: string,
@@ -29,9 +29,8 @@ export async function recomputeReleaseMarketSignal(
   ])
 
   // Confirmed bilateral TrackDash sales are first-class completed-sale evidence.
-  // Their loader already caps repeated buyer/seller pairs into conservative
-  // independence clusters, while external marketplace evidence keeps its normal
-  // source-specific grouping rules.
+  // Their loader caps repeated buyer/seller pairs into conservative independence
+  // clusters, while external marketplace evidence keeps its source-specific rules.
   const granular = [...granularExternal, ...trackDashSales]
 
   // Stored availability is never trusted forever. The pure policy applies a
@@ -44,7 +43,14 @@ export async function recomputeReleaseMarketSignal(
     aggregate,
     asOfDate,
   })
-  const monthlySoldEvidence = aggregate.filter((row) => row.grain === "monthly")
+
+  // TrackDash confirmed events also become chronological monthly evidence for
+  // trend once a calendar month is complete. This lets real in-app transactions
+  // affect direction over time without inventing a percentage from offers/asks.
+  const monthlySoldEvidence = [
+    ...aggregate.filter((row) => row.grain === "monthly"),
+    ...buildTrackDashMonthlySaleEvidence(trackDashSales),
+  ]
 
   const computedSignal = computeCurrentMarketSignal({
     offers: freshOffers,
