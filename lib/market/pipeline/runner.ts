@@ -1,5 +1,6 @@
 import "server-only"
 
+import { enrichMarketObservationFx } from "@/lib/fx/ecb"
 import { MarketPipelineRepository, type MarketPipelineStore } from "./repository"
 import {
   ingestManualVerifiedSaleWithStore,
@@ -16,7 +17,13 @@ export async function ingestManualVerifiedSale(
   } = {},
 ): Promise<ManualIngestionResult> {
   const repository = options.repository ?? new MarketPipelineRepository()
-  return ingestManualVerifiedSaleWithStore(observation, repository, options.now ?? new Date())
+  // Production ingestion no longer requires callers to hand-calculate FX.
+  // Foreign completed sales get the ECB reference rate from the latest
+  // published business day on/before soldOn. If ECB is unavailable, the
+  // observation remains native-currency and the existing promotion guard
+  // fails closed rather than inventing a conversion.
+  const normalizedObservation = await enrichMarketObservationFx(observation)
+  return ingestManualVerifiedSaleWithStore(normalizedObservation, repository, options.now ?? new Date())
 }
 
 // Snapshot cadence is intentionally NOT invented here. Callers supply the
