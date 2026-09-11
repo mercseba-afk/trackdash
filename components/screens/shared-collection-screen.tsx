@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Boxes, Handshake, ImageIcon, Loader2, UserRound } from "lucide-react"
 import { getSharedCollectionByUsernameAction } from "@/lib/actions/sharing"
 import { useI18n } from "@/lib/i18n"
+import { formatMoney } from "@/lib/format"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
@@ -130,6 +131,11 @@ export function SharedCollectionScreen({ username }: { username: string }) {
                   <p className="mt-1 text-xs text-muted-foreground">
                     {share.product.name} · #{share.release.itemNumber ?? "—"} · {share.release.releaseYear ?? "—"}
                   </p>
+                  {share.shareMode === "open_to_offers" && share.askingPrice != null && share.askingCurrency ? (
+                    <p className="mt-2 text-sm font-semibold text-brand">
+                      {it ? "Richiesta" : "Asking"} {formatMoney(share.askingPrice, share.askingCurrency)}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </Link>
