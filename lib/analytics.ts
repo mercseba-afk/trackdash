@@ -33,6 +33,13 @@ export interface EnrichedCollectionItem {
   marketSignal: ReleaseMarketSignalView | null
   marketValue: number | null
   marketTrend: number | null
+  /**
+   * Personal performance is deliberately separate from the release market
+   * trend. Until historical FX lands, only EUR acquisition prices can be
+   * compared with today's EUR Market Value without inventing a conversion.
+   */
+  personalGainEUR: number | null
+  personalGainPercent: number | null
   displayYear?: number
   label: string
 }
@@ -50,6 +57,16 @@ export function enrichCollection(
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
       const marketTrend = comparableCondition ? marketSignal?.trendPercent ?? null : null
+      const canCalculatePersonalPerformance =
+        marketValue != null &&
+        item.acquisitionCurrency === "EUR" &&
+        item.acquisitionPrice > 0
+      const personalGainEUR = canCalculatePersonalPerformance
+        ? marketValue - item.acquisitionPrice
+        : null
+      const personalGainPercent = canCalculatePersonalPerformance
+        ? (personalGainEUR! / item.acquisitionPrice) * 100
+        : null
       const displayYear = item.releaseYearOverride ?? release.releaseYear
       return {
         item,
@@ -58,6 +75,8 @@ export function enrichCollection(
         marketSignal,
         marketValue,
         marketTrend,
+        personalGainEUR,
+        personalGainPercent,
         displayYear,
         label: releaseLabel(release, displayYear),
       }
@@ -71,10 +90,14 @@ export interface PortfolioSummary {
   uniqueReleases: number
   marketValue: number
   marketValueCount: number
+  /** Sum of purchase prices that are already denominated in EUR. */
   acquisitionCost: number
+  acquisitionCostCount: number
+  /** EUR purchase basis for copies that also have a comparable R3 value. */
   trackedAcquisitionCost: number
   gain: number
   gainPercent: number
+  gainCount: number
   avgTrend90d: number | null
   trendCount: number
   sealedCount: number
@@ -83,9 +106,23 @@ export interface PortfolioSummary {
 export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioSummary {
   const valued = enriched.filter((entry) => entry.marketValue != null)
   const marketValue = valued.reduce((sum, entry) => sum + (entry.marketValue ?? 0), 0)
-  const acquisitionCost = enriched.reduce((sum, entry) => sum + entry.item.acquisitionPrice, 0)
-  const trackedAcquisitionCost = valued.reduce((sum, entry) => sum + entry.item.acquisitionPrice, 0)
-  const gain = marketValue - trackedAcquisitionCost
+
+  // Never add USD/JPY/GBP amounts directly to EUR. Foreign-currency purchase
+  // history remains visible per copy and will enter these totals only after the
+  // historical-FX module can establish a dated EUR basis.
+  const eurPurchases = enriched.filter(
+    (entry) => entry.item.acquisitionCurrency === "EUR" && entry.item.acquisitionPrice > 0,
+  )
+  const acquisitionCost = eurPurchases.reduce((sum, entry) => sum + entry.item.acquisitionPrice, 0)
+
+  const performanceEntries = enriched.filter(
+    (entry) => entry.personalGainEUR != null && entry.personalGainPercent != null,
+  )
+  const trackedAcquisitionCost = performanceEntries.reduce(
+    (sum, entry) => sum + entry.item.acquisitionPrice,
+    0,
+  )
+  const gain = performanceEntries.reduce((sum, entry) => sum + (entry.personalGainEUR ?? 0), 0)
   const uniqueProducts = new Set(enriched.map((entry) => entry.product.id)).size
   const uniqueReleases = new Set(enriched.map((entry) => entry.release.id)).size
   const trends = valued
@@ -102,9 +139,11 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
     marketValue,
     marketValueCount: valued.length,
     acquisitionCost,
+    acquisitionCostCount: eurPurchases.length,
     trackedAcquisitionCost,
     gain,
-    gainPercent: trackedAcquisitionCost > 0 ? Math.round((gain / trackedAcquisitionCost) * 100) : 0,
+    gainPercent: trackedAcquisitionCost > 0 ? (gain / trackedAcquisitionCost) * 100 : 0,
+    gainCount: performanceEntries.length,
     avgTrend90d,
     trendCount: trends.length,
     sealedCount: enriched.filter((entry) => entry.item.condition === "Sealed").length,
