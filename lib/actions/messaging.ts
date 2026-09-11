@@ -16,12 +16,62 @@ import {
   unblockCollector,
   type ConversationDecision,
 } from "@/lib/db/queries/messaging"
+import {
+  cancelMarketplaceDeal,
+  createMarketplaceOffer,
+  getConversationOffers,
+  getConversationSale,
+  getSaleById,
+  reportMarketplaceSale,
+  respondMarketplaceOffer,
+  respondMarketplaceSale,
+  snoozeMarketplaceFollowup,
+  type DealCurrency,
+} from "@/lib/db/queries/deals"
+import { getUnreadDealNotificationCount } from "@/lib/db/queries/deal-notifications"
+import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
+import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-service"
+import type { MarketCondition } from "@/lib/market/pipeline/types"
+
+const DEAL_CURRENCIES = new Set<DealCurrency>(["EUR", "USD", "JPY", "GBP"])
 
 function cleanMessage(value: string, max: number) {
   const body = value.trim()
   if (!body) throw new Error("Message cannot be empty")
   if (body.length > max) throw new Error(`Message is too long (max ${max} characters)`)
   return body
+}
+
+function cleanCurrency(value: string): DealCurrency {
+  const currency = value.trim().toUpperCase() as DealCurrency
+  if (!DEAL_CURRENCIES.has(currency)) throw new Error("Unsupported currency")
+  return currency
+}
+
+function cleanPositiveAmount(value: number, label: string) {
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`${label} must be positive`)
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
+function cleanOptionalNonNegativeAmount(value: number | null | undefined, label: string) {
+  if (value == null) return null
+  if (!Number.isFinite(value) || value < 0) throw new Error(`${label} cannot be negative`)
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
+function cleanSaleDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error("Invalid sale date")
+  const date = new Date(`${value}T00:00:00.000Z`)
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error("Invalid sale date")
+  if (value > new Date().toISOString().slice(0, 10)) throw new Error("Sale date cannot be in the future")
+  return value
+}
+
+function marketConditionForCollection(condition: string): MarketCondition {
+  if (condition === "Sealed" || condition === "New / Opened") return "new_complete_unbuilt"
+  if (condition === "Built" || condition === "Used") return "built_complete"
+  if (condition === "Incomplete") return "incomplete_parts_custom"
+  return "unknown"
 }
 
 function hasBlockBetween(
@@ -63,6 +113,7 @@ export async function getMyConversationsAction() {
       const blockedByMe = blocks.some((block) => block.blockerId === user.id && block.blockedId === otherUserId)
       const blockedByThem = blocks.some((block) => block.blockerId === otherUserId && block.blockedId === user.id)
       const offerStillOpen = row.collectionShare?.shareMode === "open_to_offers"
+      const rawAskingPrice = row.collectionShare?.askingPrice
 
       return {
         id: row.id,
@@ -75,6 +126,9 @@ export async function getMyConversationsAction() {
         blockedByThem,
         canAccept: isOwner && row.status === "pending" && offerStillOpen && !blockedByMe && !blockedByThem,
         offerStillOpen,
+        askingPrice: rawAskingPrice == null ? null : Number(rawAskingPrice),
+        askingCurrency: (row.collectionShare?.askingCurrency ?? null) as DealCurrency | null,
+        condition: row.collectionShare?.condition ?? null,
         product: { id: row.product.id, name: row.product.name },
         release: {
           id: row.release.id,
@@ -92,7 +146,13 @@ export async function getMyConversationsAction() {
 export async function getUnreadMessagingCountAction() {
   const user = await getCurrentUser()
   if (!user) return 0
-  return withUserContext(user.id, (tx) => getUnreadMessagingCount(user.id, tx))
+  return withUserContext(user.id, async (tx) => {
+    const [messages, deals] = await Promise.all([
+      getUnreadMessagingCount(user.id, tx),
+      getUnreadDealNotificationCount(user.id, tx),
+    ])
+    return messages + deals
+  })
 }
 
 export async function markConversationReadAction(conversationId: string) {
@@ -122,6 +182,110 @@ export async function getConversationMessagesAction(conversationId: string) {
       createdAt: row.createdAt.toISOString(),
     }))
   })
+}
+
+export async function getConversationDealAction(conversationId: string) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+  return withUserContext(user.id, async (tx) => {
+    const conversation = await getConversationForUser(user.id, conversationId, tx)
+    if (!conversation) throw new Error("Conversation not found")
+    const [offers, sale] = await Promise.all([
+      getConversationOffers(conversationId, tx),
+      getConversationSale(conversationId, tx),
+    ])
+    return { offers, sale }
+  })
+}
+
+export async function createMarketplaceOfferAction(conversationId: string, amount: number, currency: string) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+  const cleanAmount = cleanPositiveAmount(amount, "Offer amount")
+  const cleanCode = cleanCurrency(currency)
+  const id = await withUserContext(user.id, (tx) => createMarketplaceOffer(conversationId, cleanAmount, cleanCode, tx))
+  if (!id) throw new Error("Couldn't create offer")
+  return { id }
+}
+
+export async function respondMarketplaceOfferAction(offerId: string, decision: "accepted" | "rejected") {
+  if (decision !== "accepted" && decision !== "rejected") throw new Error("Invalid decision")
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+  const id = await withUserContext(user.id, (tx) => respondMarketplaceOffer(offerId, decision, tx))
+  if (!id) throw new Error("Couldn't update offer")
+  return { id }
+}
+
+export async function snoozeMarketplaceFollowupAction(offerId: string) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+  const id = await withUserContext(user.id, (tx) => snoozeMarketplaceFollowup(offerId, tx))
+  if (!id) throw new Error("Couldn't postpone follow-up")
+  return { id }
+}
+
+export async function cancelMarketplaceDealAction(offerId: string) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+  const id = await withUserContext(user.id, (tx) => cancelMarketplaceDeal(offerId, tx))
+  if (!id) throw new Error("Couldn't cancel deal")
+  return { id }
+}
+
+export async function reportMarketplaceSaleAction(input: {
+  offerId: string
+  itemPrice: number
+  shippingPrice?: number | null
+  currency: string
+  saleDate: string
+}) {
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+  const itemPrice = cleanPositiveAmount(input.itemPrice, "Final item price")
+  const shippingPrice = cleanOptionalNonNegativeAmount(input.shippingPrice, "Shipping")
+  const currency = cleanCurrency(input.currency)
+  const saleDate = cleanSaleDate(input.saleDate)
+  const basis = await resolveHistoricalEurBasis(itemPrice, currency, saleDate)
+
+  const id = await withUserContext(user.id, (tx) => reportMarketplaceSale({
+    offerId: input.offerId,
+    itemPrice,
+    shippingPrice,
+    currency,
+    saleDate,
+    itemPriceEUR: basis.amountEUR,
+    fxRateToEUR: basis.fxRateToEUR,
+    fxRateDate: basis.fxRateDate,
+  }, tx))
+  if (!id) throw new Error("Couldn't report sale")
+  return { id }
+}
+
+export async function respondMarketplaceSaleAction(saleId: string, decision: "confirmed" | "disputed") {
+  if (decision !== "confirmed" && decision !== "disputed") throw new Error("Invalid decision")
+  const user = await getCurrentUser()
+  if (!user) throw new Error("Not authenticated")
+
+  const sale = await withUserContext(user.id, async (tx) => {
+    const id = await respondMarketplaceSale(saleId, decision, tx)
+    if (!id) throw new Error("Couldn't update sale")
+    return getSaleById(id, tx)
+  })
+  if (!sale) throw new Error("Sale not found")
+
+  if (decision === "confirmed" && sale.itemPriceEUR != null) {
+    try {
+      await recomputeReleaseMarketSignal(
+        sale.releaseId,
+        marketConditionForCollection(sale.condition),
+      )
+    } catch (error) {
+      console.error("[marketplace-sale] confirmed sale stored but market recompute failed", error)
+    }
+  }
+
+  return { id: sale.id, status: decision }
 }
 
 export async function respondConversationAction(conversationId: string, decision: ConversationDecision) {
@@ -165,9 +329,6 @@ export async function sendMessageAction(conversationId: string, message: string)
       }
     })
   } catch (error) {
-    // A block can be created between the pre-check and INSERT. RLS correctly
-    // rejects that INSERT; convert only that newly-valid business state into
-    // a controlled response instead of leaking a production Server Action error.
     const state = await withUserContext(user.id, async (tx) => {
       const conversation = await getConversationForUser(user.id, conversationId, tx)
       if (!conversation || conversation.status !== "accepted") return "closed" as const
