@@ -68,9 +68,9 @@ const source95061Tamiya: ReleaseSource = {
   releaseId: AVANTE_95061_ID,
   sourceType: "official_manufacturer",
   sourceUrl: "https://www.tamiya.com/japan/products/95061/index.html",
-  verifiedFields: ["itemNumber", "editionName", "chassis", "releaseYear", "releaseDate", "color"],
+  verifiedFields: ["itemNumber", "barcodeJAN", "editionName", "chassis", "releaseYear", "releaseDate", "color"],
   checkedAt: "2026-09-11",
-  notes: "Tamiya Japan identifies ITEM 95061 Avante Mk.II Pink Special (Clear Body), MS chassis, released 2015-05-02 as a limited kit.",
+  notes: "Tamiya Japan identifies ITEM 95061 Avante Mk.II Pink Special (Clear Body), MS chassis, released 2015-05-02 as a limited kit; JAN is corroborated by the audited product listing.",
 }
 
 const source95525Rcjaz: ReleaseSource = {
