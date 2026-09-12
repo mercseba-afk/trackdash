@@ -18,7 +18,7 @@ export function BrandMark({
 
   React.useEffect(() => setMounted(true), [])
 
-  const sizeClass = showText ? "h-12" : "h-10"
+  const sizeClass = showText ? "h-12" : "h-10 translate-y-[2px]"
   const dark = tone === "invert" || (mounted && resolvedTheme === "dark")
   const src = dark ? "/brand/trackdash-logo-dark.webp" : "/brand/trackdash-logo-light.webp"
 
