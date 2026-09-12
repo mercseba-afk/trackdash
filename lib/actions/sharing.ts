@@ -17,6 +17,7 @@ import {
 } from "@/lib/db/queries/sharing"
 import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
 import type { Condition, Currency } from "@/lib/types"
+import { getVisiblePrimaryCopyPhotos } from "./shared-copy-photos"
 import { mapCollectionRow } from "./mappers"
 
 export type CollectionVisibility = "private" | ShareMode
@@ -97,8 +98,6 @@ export async function setCollectionShareAction(
     const profile = await getProfileById(user.id, tx)
     if (!profile) throw new Error("Collector profile not found")
 
-    // Creating the public-safe profile projection and the share in the same
-    // transaction avoids a visible profile with no corresponding shared item.
     await upsertCollectorProfile(
       user.id,
       {
@@ -119,15 +118,10 @@ export async function removeCollectionShareAction(collectionItemId: string) {
 
   await withUserContext(user.id, async (tx) => {
     await deleteCollectionShare(user.id, collectionItemId, tx)
-    // No shared rows left = no reason to keep a discoverable public profile.
     await pruneCollectorProfileIfEmpty(user.id, tx)
   })
 }
 
-// Atomic edit used by My Collection. The private item mutation and its public
-// sharing state are deliberately one PostgreSQL transaction: a failure in
-// either half rolls the whole save back, so the UI can never end up with a
-// newly-edited private item but an old sharing mode (or vice versa).
 export async function saveCollectionItemAndShareAction(
   id: string,
   patch: Partial<{
@@ -146,8 +140,6 @@ export async function saveCollectionItemAndShareAction(
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
 
-  // Historical FX may require one external ECB request. Resolve it before the
-  // DB transaction so a slow network call never holds transaction resources.
   const current = await withUserContext(user.id, (tx) => getCollectionItemById(user.id, id, tx))
   if (!current) throw new Error("Collection item not found")
 
@@ -202,9 +194,6 @@ export async function saveCollectionItemAndShareAction(
       share = mapShare(await upsertCollectionShare(user.id, id, visibility, tx, offerTerms))
     }
 
-    // Return the fully-hydrated private row so the client store can update
-    // itself without a second write or a second round-trip that could fail
-    // after the transaction has already committed.
     const hydratedItem = await getCollectionItemById(user.id, id, tx)
     if (!hydratedItem) throw new Error("Collection item not found after save")
 
@@ -220,6 +209,11 @@ export async function getReleaseCollectorsAction(releaseId: string) {
   if (!user) return []
 
   const rows = await withUserContext(user.id, (tx) => getCollectorsForRelease(releaseId, tx))
+  const openCopyIds = rows
+    .filter((row) => row.shareMode === "open_to_offers")
+    .map((row) => row.collectionItemId)
+  const primaryPhotos = await getVisiblePrimaryCopyPhotos(openCopyIds)
+
   return rows.map((row) => ({
     id: row.id,
     userId: row.userId,
@@ -231,6 +225,7 @@ export async function getReleaseCollectorsAction(releaseId: string) {
     shareMode: row.shareMode as ShareMode,
     askingPrice: row.askingPrice ? Number(row.askingPrice) : null,
     askingCurrency: (row.askingCurrency as Currency | null) ?? null,
+    photoUrl: row.shareMode === "open_to_offers" ? primaryPhotos.get(row.collectionItemId) : undefined,
   }))
 }
 
@@ -253,6 +248,11 @@ export async function getSharedCollectionByUsernameAction(username: string) {
   const result = await withUserContext(user.id, (tx) => getSharedCollectionForUsername(username, tx))
   if (!result || result.shares.length === 0) return null
 
+  const openCopyIds = result.shares
+    .filter((share) => share.shareMode === "open_to_offers")
+    .map((share) => share.collectionItemId)
+  const primaryPhotos = await getVisiblePrimaryCopyPhotos(openCopyIds)
+
   return {
     profile: {
       userId: result.userId,
@@ -263,6 +263,7 @@ export async function getSharedCollectionByUsernameAction(username: string) {
     shares: result.shares.map((share) => {
       const releaseImage = [...share.release.images].sort((a, b) => a.position - b.position)[0]?.url
       const productImage = [...share.product.images].sort((a, b) => a.position - b.position)[0]?.url
+      const copyPhoto = share.shareMode === "open_to_offers" ? primaryPhotos.get(share.collectionItemId) : undefined
 
       return {
         id: share.id,
@@ -272,7 +273,8 @@ export async function getSharedCollectionByUsernameAction(username: string) {
         askingPrice: share.askingPrice ? Number(share.askingPrice) : null,
         askingCurrency: (share.askingCurrency as Currency | null) ?? null,
         updatedAt: share.updatedAt.toISOString(),
-        imageUrl: releaseImage ?? productImage,
+        imageUrl: copyPhoto ?? releaseImage ?? productImage,
+        isCopyPhoto: Boolean(copyPhoto),
         product: {
           id: share.product.id,
           name: share.product.name,
