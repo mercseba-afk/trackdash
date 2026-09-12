@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { I18nBootstrap } from "@/components/i18n-bootstrap"
+import { PwaInstallManager } from "@/components/pwa-install-manager"
 import { StoreProvider } from "@/lib/store"
 import { I18nProvider, type AppLocale } from "@/lib/i18n"
 import { MarketSignalsProvider } from "@/lib/market/context"
@@ -21,13 +22,24 @@ export const metadata: Metadata = {
   description:
     "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog your models, track market value with honest data, and manage your wishlist.",
   generator: "TrackDash",
+  applicationName: "TrackDash",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/pwa/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "TrackDash",
+    statusBarStyle: "black-translucent",
+  },
 }
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: dark)", color: "#080d18" },
   ],
 }
 
@@ -57,6 +69,7 @@ export default async function RootLayout({
               <I18nProvider>
                 <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
                   <TooltipProvider>{children}</TooltipProvider>
+                  <PwaInstallManager />
                   <Toaster position="top-center" />
                 </I18nBootstrap>
               </I18nProvider>
