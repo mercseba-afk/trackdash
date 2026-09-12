@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Search, LayoutGrid, List, SlidersHorizontal, X, Check, Heart } from "lucide-react"
+import { Search, LayoutGrid, List, SlidersHorizontal, X, Check, Heart, PackageSearch } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { primaryRelease } from "@/lib/data/products"
 import { useStore } from "@/lib/store"
@@ -45,9 +45,6 @@ export function CatalogScreen({ products }: { products: Product[] }) {
       if (chassis !== "all" && p.chassis !== chassis) return false
       if (series !== "all" && p.series !== series) return false
 
-      // Rarity filtering is strictly RELEASE-level. If a release has no
-      // release-specific rarity yet, it stays unknown instead of inheriting the
-      // Product compatibility/fallback rarity.
       if (
         rarity !== "all" &&
         !p.releases.some((release) => release.rarity === rarity)
@@ -168,7 +165,17 @@ export function CatalogScreen({ products }: { products: Product[] }) {
               </>
             )}
           </EmptyHeader>
-          {hasFilters && <Button variant="outline" onClick={reset}>{t("catalog.clear")}</Button>}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {hasFilters && <Button variant="outline" onClick={reset}>{t("catalog.clear")}</Button>}
+            {products.length > 0 && query.trim() ? (
+              <Button
+                variant="ghost"
+                render={<Link href={`/support?category=model_release_request&query=${encodeURIComponent(query.trim())}`} />}
+              >
+                <PackageSearch /> {it ? "Non trovi il modello? Richiedine l'inserimento" : "Can't find it? Request this model"}
+              </Button>
+            ) : null}
+          </div>
         </Empty>
       ) : view === "grid" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
