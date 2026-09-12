@@ -94,21 +94,21 @@ begin
   for update;
 
   if found then
+    if v_conversation.status = 'declined' then
+      raise exception 'A previous request for this item was declined';
+    end if;
+
     v_conversation_id := v_conversation.id;
 
-    -- A previous generic message request must not force a second approval now
-    -- that the owner has explicitly left this item open to structured offers.
-    if v_conversation.status <> 'accepted' then
+    -- Keep the original request text immutable. A legacy pending request can
+    -- be opened automatically because the item is explicitly open to offers.
+    if v_conversation.status = 'pending' then
       update public.conversations
-      set status = 'accepted',
-          responded_at = now(),
-          request_message = v_request_message,
-          updated_at = now()
+      set status = 'accepted'
       where id = v_conversation_id;
     else
       update public.conversations
-      set request_message = v_request_message,
-          updated_at = now()
+      set updated_at = now()
       where id = v_conversation_id;
     end if;
   else
