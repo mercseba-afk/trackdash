@@ -3,14 +3,16 @@
 import * as React from "react"
 import { Camera, ChevronLeft, ChevronRight, Loader2, Trash2 } from "lucide-react"
 import {
-  COLLECTION_PHOTO_BUCKET,
-  MAX_COLLECTION_PHOTOS,
   deleteCollectionItemPhotoAction,
   getCollectionItemPhotosAction,
   registerCollectionItemPhotoAction,
   reorderCollectionItemPhotosAction,
-  type CollectionPhotoView,
 } from "@/lib/actions/collection-photos"
+import {
+  COLLECTION_PHOTO_BUCKET,
+  MAX_COLLECTION_PHOTOS,
+  type CollectionPhotoView,
+} from "@/lib/collection-photos"
 import { createClient } from "@/lib/supabase/client"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
