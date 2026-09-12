@@ -17,10 +17,10 @@ const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
 
 export const metadata: Metadata = {
-  title: "Mini 4WD Collector — Catalog, value & wishlist for your collection",
+  title: "TrackDash — Mini 4WD Collector, market value & wishlist",
   description:
-    "The collector's database for Tamiya Mini 4WD. Catalog your models, track market value with honest data, and manage your wishlist.",
-  generator: "v0.app",
+    "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog your models, track market value with honest data, and manage your wishlist.",
+  generator: "TrackDash",
 }
 
 export const viewport: Viewport = {
