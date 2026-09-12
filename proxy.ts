@@ -37,8 +37,18 @@
 // to show (see app/auth/callback/route.ts and
 // components/screens/update-password-screen.tsx for how each handles a
 // missing/invalid recovery state).
+//
+// PWA bootstrap resources are also ungated. Browsers must be able to fetch
+// the web manifest and service worker before/without an authenticated app
+// page; gating either resource would make TrackDash fail installability.
 const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password"]
-const UNGATED_PREFIXES = ["/api/dev", "/auth/callback", "/update-password"]
+const UNGATED_PREFIXES = [
+  "/api/dev",
+  "/auth/callback",
+  "/update-password",
+  "/manifest.webmanifest",
+  "/sw.js",
+]
 
 import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/proxy"
