@@ -14,6 +14,7 @@ import { getMyCollectionSharesAction, saveCollectionItemAndShareAction, type Col
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { TrendIndicator } from "@/components/market-bits"
+import { CollectionItemPhotosButton } from "@/components/collection-item-photos-button"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -152,6 +153,7 @@ export function CollectionScreen() {
                     <span>{t("collection.paid")} <span className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</span>{entry.item.acquisitionCurrency !== "EUR" && entry.item.acquisitionPriceEUR != null ? <span> · {it ? "base" : "basis"} {formatMoney(entry.item.acquisitionPriceEUR)}</span> : null}</span>
                     <span className="hidden sm:inline">{entry.item.acquisitionDate ? `${it ? "Acquistato" : "Acquired"} ${formatDate(entry.item.acquisitionDate)}` : (it ? "Data acquisto non indicata" : "Purchase date not provided")}</span>
                     {share?.askingPrice != null && share.askingCurrency ? <span>{it ? "Richiesta" : "Asking"} <span className="font-medium text-foreground">{formatMoney(share.askingPrice, share.askingCurrency)}</span></span> : null}
+                    <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                   </div>
                 </div>
                 <div className="hidden shrink-0 flex-col items-end justify-between border-l border-border pl-4 sm:flex"><CollectionMarketValue entry={entry} it={it} /><div className="flex gap-1"><Button variant="ghost" size="icon" className="size-8" aria-label={t("common.edit")} onClick={() => setEditing(entry)}><Pencil /></Button><Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button></div></div>

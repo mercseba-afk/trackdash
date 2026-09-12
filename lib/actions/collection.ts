@@ -12,17 +12,9 @@ import {
 import { getProfileById } from "@/lib/db/queries/profiles"
 import { upsertCollectionShare, upsertCollectorProfile, type ShareMode } from "@/lib/db/queries/sharing"
 import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
+import { createClient } from "@/lib/supabase/server"
 import type { Condition, Currency } from "@/lib/types"
 import { mapCollectionRow } from "./mappers"
-
-// Every action below resolves the caller's own user via getCurrentUser()
-// (Step 3) and never accepts a userId parameter from the client — there is
-// no way to read or write another user's collection through these.
-//
-// Step 5: every DB call is now wrapped in withUserContext(user.id, ...)
-// (lib/db/rls.ts), which is what makes the `auth.uid() = user_id` RLS
-// policy on collection_items actually apply to these queries — not just
-// the explicit userId filter already inside lib/db/queries/collection.ts.
 
 export type InitialCollectionVisibility = "private" | ShareMode
 
@@ -106,8 +98,6 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
         releaseId: input.releaseId,
         quantity: 1,
         condition: input.condition,
-        // acquisition_date is nullable: an unknown historical purchase date
-        // is better represented as NULL than silently pretending it was today.
         acquisitionDate,
         acquisitionPrice: input.acquisitionPrice.toString(),
         acquisitionCurrency: input.acquisitionCurrency,
@@ -118,9 +108,6 @@ export async function addCollectionItemAction(input: AddCollectionActionInput) {
       tx,
     )
 
-    // Sharing is opt-in and created in the SAME transaction as the private
-    // collection item. A failure cannot leave behind a half-created public
-    // projection, and Private remains the default when visibility is omitted.
     if (visibility !== "private") {
       const profile = await getProfileById(user.id, tx)
       if (!profile) throw new Error("Collector profile not found")
@@ -199,5 +186,23 @@ export async function updateCollectionItemAction(
 export async function removeCollectionItemAction(id: string) {
   const user = await getCurrentUser()
   if (!user) throw new Error("Not authenticated")
+
+  const current = await withUserContext(user.id, (tx) => getCollectionItemById(user.id, id, tx))
+  if (!current) return
+  const photoPaths = current.photos.map((photo) => photo.url)
+
   await withUserContext(user.id, (tx) => deleteCollectionItem(user.id, id, tx))
+
+  // DB deletion is authoritative. The photo rows cascade with the item; 0078
+  // then permits deletion of the now-orphaned Storage objects only when they
+  // are not protected by a historical collection_item_transfers snapshot.
+  if (photoPaths.length > 0) {
+    try {
+      const supabase = await createClient()
+      const { error } = await supabase.storage.from("collection-item-photos").remove(photoPaths)
+      if (error) console.error("Failed to clean collection photo objects:", error.message)
+    } catch (error) {
+      console.error("Failed to clean collection photo objects:", error)
+    }
+  }
 }
