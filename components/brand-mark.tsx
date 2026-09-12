@@ -1,3 +1,7 @@
+"use client"
+
+import * as React from "react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
 export function BrandMark({
@@ -9,32 +13,18 @@ export function BrandMark({
   showText?: boolean
   tone?: "default" | "invert"
 }) {
-  const sizeClass = showText ? "h-12" : "h-10"
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
 
-  if (tone === "invert") {
-    return (
-      <span className={cn("inline-flex items-center", className)}>
-        <img
-          src="/brand/trackdash-logo-dark.webp"
-          alt="TrackDash"
-          className={cn(sizeClass, "w-auto object-contain")}
-        />
-      </span>
-    )
-  }
+  React.useEffect(() => setMounted(true), [])
+
+  const sizeClass = showText ? "h-12" : "h-10"
+  const dark = tone === "invert" || (mounted && resolvedTheme === "dark")
+  const src = dark ? "/brand/trackdash-logo-dark.webp" : "/brand/trackdash-logo-light.webp"
 
   return (
     <span className={cn("inline-flex items-center", className)}>
-      <img
-        src="/brand/trackdash-logo-light.webp"
-        alt="TrackDash"
-        className={cn(sizeClass, "w-auto object-contain dark:hidden")}
-      />
-      <img
-        src="/brand/trackdash-logo-dark.webp"
-        alt="TrackDash"
-        className={cn(sizeClass, "hidden w-auto object-contain dark:block")}
-      />
+      <img src={src} alt="TrackDash" className={cn(sizeClass, "w-auto object-contain")} />
     </span>
   )
 }
