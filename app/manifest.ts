@@ -8,13 +8,13 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#0a0a0a",
-    theme_color: "#0a0a0a",
+    background_color: "#080d18",
+    theme_color: "#080d18",
     orientation: "portrait-primary",
     icons: [
-      { src: "/pwa/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/pwa/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/pwa/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/pwa/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/pwa/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png", purpose: "any" },
     ],
   }
 }
