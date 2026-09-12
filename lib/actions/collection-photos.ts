@@ -2,18 +2,11 @@
 
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { createClient } from "@/lib/supabase/server"
-
-export const COLLECTION_PHOTO_BUCKET = "collection-item-photos"
-export const MAX_COLLECTION_PHOTOS = 5
-
-export type CollectionPhotoView = {
-  id: string
-  collectionItemId: string
-  path: string
-  position: number
-  signedUrl: string
-  createdAt: string
-}
+import {
+  COLLECTION_PHOTO_BUCKET,
+  MAX_COLLECTION_PHOTOS,
+  type CollectionPhotoView,
+} from "@/lib/collection-photos"
 
 type PhotoRow = {
   id: string
