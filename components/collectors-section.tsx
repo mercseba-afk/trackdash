@@ -2,31 +2,20 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Handshake, Loader2, MessageCircle, Users } from "lucide-react"
+import { HandCoins, Handshake, Loader2, Users } from "lucide-react"
 import { getReleaseCollectorsAction } from "@/lib/actions/sharing"
-import { createConversationRequestAction } from "@/lib/actions/messaging"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { formatMoney } from "@/lib/format"
 import type { Currency } from "@/lib/types"
+import { DirectOfferDialog } from "@/components/messaging/direct-offer-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
 
 type CollectorRow = Awaited<ReturnType<typeof getReleaseCollectorsAction>>[number]
-
 type PublicAsk = { price: number; currency: Currency }
+type OfferTarget = { username: string; shareId: string; askingPrice: number | null; askingCurrency: Currency | null }
 
 function conditionLabel(value: string, it: boolean): string {
   if (!it) return value
@@ -51,12 +40,9 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
   const { user } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
-  const router = useRouter()
   const [rows, setRows] = React.useState<CollectorRow[]>([])
   const [loading, setLoading] = React.useState(true)
-  const [requestTarget, setRequestTarget] = React.useState<{ username: string; shareId: string } | null>(null)
-  const [requestText, setRequestText] = React.useState("")
-  const [sending, setSending] = React.useState(false)
+  const [offerTarget, setOfferTarget] = React.useState<OfferTarget | null>(null)
 
   React.useEffect(() => {
     let cancelled = false
@@ -125,8 +111,8 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
           ) : !user ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               {it
-                ? "Accedi per vedere i collezionisti che hanno condiviso questa release e contattare chi accetta offerte."
-                : "Sign in to see collectors who shared this release and contact owners who are open to offers."}
+                ? "Accedi per vedere i collezionisti che hanno condiviso questa release e fare un'offerta a chi la accetta."
+                : "Sign in to see collectors who shared this release and make an offer to owners who accept them."}
             </div>
           ) : collectors.length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
@@ -141,7 +127,7 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
                 return (
                   <div
                     key={collector.userId}
-                    className="flex items-center gap-2 rounded-lg border bg-background p-3 transition-colors hover:border-brand/40 hover:bg-muted/30"
+                    className="flex items-center gap-2 rounded-xl border bg-background p-3 transition-colors hover:border-brand/40 hover:bg-muted/30"
                   >
                     <Link
                       href={`/collectors/${encodeURIComponent(collector.username)}`}
@@ -166,20 +152,21 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
                           {collector.copies > 1 ? ` · ${collector.copies} ${it ? "copie condivise" : "shared copies"}` : ""}
                           {collector.country ? ` · ${collector.country}` : ""}
                         </p>
-                        {asking ? <p className="mt-0.5 text-xs font-medium text-brand">{it ? "Richiesta" : "Asking"} {formatMoney(asking.price, asking.currency)}</p> : null}
+                        {asking ? <p className="mt-1 text-sm font-semibold text-brand">{it ? "Richiesta" : "Asking"} {formatMoney(asking.price, asking.currency)}</p> : null}
                       </div>
                     </Link>
                     {collector.userId !== user.id && collector.openShareId ? (
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="shrink-0 gap-1"
-                        onClick={() => {
-                          setRequestTarget({ username: collector.username, shareId: collector.openShareId! })
-                          setRequestText("")
-                        }}
+                        className="shrink-0 gap-1.5"
+                        onClick={() => setOfferTarget({
+                          username: collector.username,
+                          shareId: collector.openShareId!,
+                          askingPrice: asking?.price ?? null,
+                          askingCurrency: asking?.currency ?? null,
+                        })}
                       >
-                        <MessageCircle className="size-3.5" /> {it ? "Messaggio" : "Message"}
+                        <HandCoins className="size-3.5" /> {it ? "Fai un'offerta" : "Make offer"}
                       </Button>
                     ) : null}
                   </div>
@@ -190,48 +177,11 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
         </CardContent>
       </Card>
 
-      <Dialog open={Boolean(requestTarget)} onOpenChange={(open) => !open && setRequestTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{it ? "Contatta" : "Contact"} {requestTarget?.username}</DialogTitle>
-            <DialogDescription>
-              {it
-                ? "Invia una richiesta iniziale per questa release esatta. Il collezionista dovrà accettarla prima che si apra la chat."
-                : "Send an initial request about this exact release. The collector must accept before a chat opens."}
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={requestText}
-            maxLength={1000}
-            placeholder={it ? "Ciao, ho visto che accetti offerte per questa release…" : "Hi, I saw you're open to offers for this release…"}
-            onChange={(event) => setRequestText(event.target.value)}
-          />
-          <p className="text-xs text-muted-foreground">{requestText.trim().length}/1000</p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRequestTarget(null)} disabled={sending}>{it ? "Annulla" : "Cancel"}</Button>
-            <Button
-              disabled={sending || !requestText.trim() || !requestTarget}
-              onClick={async () => {
-                if (!requestTarget) return
-                setSending(true)
-                try {
-                  const conversation = await createConversationRequestAction(requestTarget.shareId, requestText)
-                  toast.success(it ? "Richiesta inviata" : "Request sent")
-                  setRequestTarget(null)
-                  router.push(`/messages?conversation=${conversation.id}`)
-                } catch (error) {
-                  toast.error(error instanceof Error ? error.message : it ? "Impossibile inviare la richiesta" : "Couldn't send request")
-                } finally {
-                  setSending(false)
-                }
-              }}
-            >
-              {sending ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
-              {it ? "Invia richiesta" : "Send request"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DirectOfferDialog
+        target={offerTarget}
+        locale={it ? "it" : "en"}
+        onOpenChange={(open) => { if (!open) setOfferTarget(null) }}
+      />
     </>
   )
 }
