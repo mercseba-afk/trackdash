@@ -15,8 +15,10 @@ set search_path = public, pg_temp
 as $$
 declare
   v_uid uuid := auth.uid();
+  v_currency text := upper(btrim(p_currency));
   v_share public.collection_shares%rowtype;
   v_requester_username text;
+  v_owner_username text;
   v_conversation public.conversations%rowtype;
   v_conversation_id uuid;
   v_offer_id uuid;
@@ -30,8 +32,7 @@ begin
     raise exception 'Offer amount must be positive';
   end if;
 
-  p_currency := upper(btrim(p_currency));
-  if p_currency not in ('EUR', 'USD', 'JPY', 'GBP') then
+  if v_currency not in ('EUR', 'USD', 'JPY', 'GBP') then
     raise exception 'Unsupported currency';
   end if;
 
@@ -73,11 +74,18 @@ begin
   from public.profiles p
   where p.id = v_uid;
 
+  select cp.username into v_owner_username
+  from public.collector_profiles cp
+  where cp.user_id = v_share.user_id;
+
   if v_requester_username is null then
     raise exception 'Your collector profile is unavailable';
   end if;
+  if v_owner_username is null then
+    raise exception 'Seller collector profile is unavailable';
+  end if;
 
-  v_request_message := 'Offerta iniziale: ' || p_currency || ' ' || round(p_amount, 2)::text;
+  v_request_message := 'Offerta iniziale · ' || v_currency || ' ' || round(p_amount, 2)::text;
 
   select c.* into v_conversation
   from public.conversations c
@@ -86,21 +94,21 @@ begin
   for update;
 
   if found then
-    if v_conversation.status = 'declined' then
-      raise exception 'A previous request for this item was declined';
-    end if;
-
     v_conversation_id := v_conversation.id;
 
-    if v_conversation.status = 'pending' then
+    -- A previous generic message request must not force a second approval now
+    -- that the owner has explicitly left this item open to structured offers.
+    if v_conversation.status <> 'accepted' then
       update public.conversations
       set status = 'accepted',
           responded_at = now(),
+          request_message = v_request_message,
           updated_at = now()
       where id = v_conversation_id;
     else
       update public.conversations
-      set updated_at = now()
+      set request_message = v_request_message,
+          updated_at = now()
       where id = v_conversation_id;
     end if;
   else
@@ -115,25 +123,19 @@ begin
       request_message,
       status,
       responded_at
-    )
-    select
+    ) values (
       v_share.id,
       v_share.product_id,
       v_share.release_id,
       v_share.user_id,
       v_uid,
-      cp.username,
+      v_owner_username,
       v_requester_username,
       v_request_message,
       'accepted',
       now()
-    from public.collector_profiles cp
-    where cp.user_id = v_share.user_id
+    )
     returning id into v_conversation_id;
-
-    if v_conversation_id is null then
-      raise exception 'Seller collector profile is unavailable';
-    end if;
   end if;
 
   update public.marketplace_offers
@@ -155,8 +157,8 @@ begin
     v_share.release_id,
     v_uid,
     v_share.condition,
-    round(p_amount, 2),
-    p_currency
+    case when v_currency = 'JPY' then round(p_amount, 0) else round(p_amount, 2) end,
+    v_currency
   ) returning id into v_offer_id;
 
   update public.conversations
