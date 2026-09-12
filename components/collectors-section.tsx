@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 type CollectorRow = Awaited<ReturnType<typeof getReleaseCollectorsAction>>[number]
-type PublicAsk = { price: number; currency: Currency }
 type OfferTarget = { username: string; shareId: string; askingPrice: number | null; askingCurrency: Currency | null }
 
 function conditionLabel(value: string, it: boolean): string {
@@ -27,13 +26,6 @@ function conditionLabel(value: string, it: boolean): string {
     Incomplete: "Incompleto",
   }
   return labels[value] ?? value
-}
-
-function compactAsk(asks: PublicAsk[]): PublicAsk | null {
-  if (asks.length === 0) return null
-  const currencies = new Set(asks.map((ask) => ask.currency))
-  if (currencies.size !== 1) return null
-  return asks.reduce((lowest, current) => current.price < lowest.price ? current : lowest)
 }
 
 export function CollectorsSection({ releaseId }: { releaseId: string }) {
@@ -61,37 +53,10 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
     }
   }, [releaseId])
 
-  const collectors = React.useMemo(() => {
-    const grouped = new Map<
-      string,
-      CollectorRow & { copies: number; conditions: Set<string>; openToOffers: boolean; openShareId?: string; asks: PublicAsk[] }
-    >()
-
-    for (const row of rows) {
-      const publicAsk = row.shareMode === "open_to_offers" && row.askingPrice != null && row.askingCurrency
-        ? { price: row.askingPrice, currency: row.askingCurrency }
-        : null
-      const existing = grouped.get(row.userId)
-      if (existing) {
-        existing.copies += 1
-        existing.conditions.add(row.condition)
-        existing.openToOffers ||= row.shareMode === "open_to_offers"
-        if (!existing.openShareId && row.shareMode === "open_to_offers") existing.openShareId = row.id
-        if (publicAsk) existing.asks.push(publicAsk)
-      } else {
-        grouped.set(row.userId, {
-          ...row,
-          copies: 1,
-          conditions: new Set([row.condition]),
-          openToOffers: row.shareMode === "open_to_offers",
-          openShareId: row.shareMode === "open_to_offers" ? row.id : undefined,
-          asks: publicAsk ? [publicAsk] : [],
-        })
-      }
-    }
-
-    return [...grouped.values()].sort((a, b) => Number(b.openToOffers) - Number(a.openToOffers))
-  }, [rows])
+  const sorted = React.useMemo(
+    () => [...rows].sort((a, b) => Number(b.shareMode === "open_to_offers") - Number(a.shareMode === "open_to_offers")),
+    [rows],
+  )
 
   return (
     <>
@@ -99,74 +64,83 @@ export function CollectorsSection({ releaseId }: { releaseId: string }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="size-4 text-muted-foreground" />
-            {it ? "Collezionisti" : "Collectors"}
-            {!loading ? <Badge variant="secondary">{collectors.length}</Badge> : null}
+            {it ? "Copie condivise" : "Shared copies"}
+            {!loading ? <Badge variant="secondary">{sorted.length}</Badge> : null}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> {it ? "Caricamento collezionisti…" : "Loading shared collectors…"}
+              <Loader2 className="size-4 animate-spin" /> {it ? "Caricamento copie…" : "Loading shared copies…"}
             </div>
           ) : !user ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               {it
-                ? "Accedi per vedere i collezionisti che hanno condiviso questa release e fare un'offerta a chi la accetta."
-                : "Sign in to see collectors who shared this release and make an offer to owners who accept them."}
+                ? "Accedi per vedere le copie condivise e fare un'offerta a chi la accetta."
+                : "Sign in to see shared copies and make an offer to owners who accept them."}
             </div>
-          ) : collectors.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               {it
-                ? "Nessun collezionista ha ancora condiviso questa release. I modelli restano privati finché il proprietario non decide esplicitamente di condividerli."
-                : "No collector has shared this release yet. Collection items stay private unless their owner explicitly shares them."}
+                ? "Nessun collezionista ha ancora condiviso questa Release. Le copie restano private finché il proprietario non decide esplicitamente di condividerle."
+                : "No collector has shared this Release yet. Copies stay private until their owner explicitly shares them."}
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {collectors.map((collector) => {
-                const asking = compactAsk(collector.asks)
+              {sorted.map((copy) => {
+                const asking = copy.shareMode === "open_to_offers" && copy.askingPrice != null && copy.askingCurrency
+                  ? { price: copy.askingPrice, currency: copy.askingCurrency }
+                  : null
                 return (
                   <div
-                    key={collector.userId}
+                    key={copy.id}
                     className="flex items-center gap-2 rounded-xl border bg-background p-3 transition-colors hover:border-brand/40 hover:bg-muted/30"
                   >
                     <Link
-                      href={`/collectors/${encodeURIComponent(collector.username)}`}
+                      href={`/collectors/${encodeURIComponent(copy.username)}`}
                       className="flex min-w-0 flex-1 items-center gap-3"
                     >
-                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted font-semibold uppercase">
-                        {collector.username.slice(0, 1)}
-                      </span>
+                      {copy.photoUrl ? (
+                        <img
+                          src={copy.photoUrl}
+                          alt={it ? `Foto della copia di ${copy.username}` : `${copy.username}'s copy`}
+                          className="h-14 w-16 shrink-0 rounded-lg border bg-muted object-cover"
+                        />
+                      ) : (
+                        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted font-semibold uppercase">
+                          {copy.username.slice(0, 1)}
+                        </span>
+                      )}
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="truncate text-sm font-medium">
-                            {collector.username}{collector.userId === user.id ? (it ? " (tu)" : " (you)") : ""}
+                            {copy.username}{copy.userId === user.id ? (it ? " (tu)" : " (you)") : ""}
                           </span>
-                          {collector.openToOffers ? (
+                          {copy.shareMode === "open_to_offers" ? (
                             <Badge variant="secondary" className="gap-1 bg-brand/15 text-brand">
                               <Handshake className="size-3" /> {it ? "Accetta offerte" : "Open to offers"}
                             </Badge>
                           ) : null}
                         </div>
                         <p className="truncate text-xs text-muted-foreground">
-                          {[...collector.conditions].map((condition) => conditionLabel(condition, it)).join(" / ")}
-                          {collector.copies > 1 ? ` · ${collector.copies} ${it ? "copie condivise" : "shared copies"}` : ""}
-                          {collector.country ? ` · ${collector.country}` : ""}
+                          {conditionLabel(copy.condition, it)}{copy.country ? ` · ${copy.country}` : ""}
                         </p>
+                        {copy.photoUrl ? <p className="mt-0.5 text-[10px] text-muted-foreground">{it ? "Foto reale della copia" : "Real copy photo"}</p> : null}
                         {asking ? <p className="mt-1 text-sm font-semibold text-brand">{it ? "Richiesta" : "Asking"} {formatMoney(asking.price, asking.currency)}</p> : null}
                       </div>
                     </Link>
-                    {collector.userId !== user.id && collector.openShareId ? (
+                    {copy.userId !== user.id && copy.shareMode === "open_to_offers" ? (
                       <Button
                         size="sm"
                         className="shrink-0 gap-1.5"
                         onClick={() => setOfferTarget({
-                          username: collector.username,
-                          shareId: collector.openShareId!,
+                          username: copy.username,
+                          shareId: copy.id,
                           askingPrice: asking?.price ?? null,
                           askingCurrency: asking?.currency ?? null,
                         })}
                       >
-                        <HandCoins className="size-3.5" /> {it ? "Fai un'offerta" : "Make offer"}
+                        <HandCoins className="size-3.5" /> {it ? "Offerta" : "Offer"}
                       </Button>
                     ) : null}
                   </div>
