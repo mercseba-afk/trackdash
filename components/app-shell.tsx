@@ -16,9 +16,12 @@ import {
   LogOut,
   User as UserIcon,
   Settings,
+  LifeBuoy,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { BrandMark } from "@/components/brand-mark"
+import { NotificationCenter } from "@/components/notification-center"
+import { PwaInstallMenuItem } from "@/components/pwa-install-menu-item"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -89,7 +92,7 @@ const ACCOUNT_LINK_CLASS =
 
 function UserMenu() {
   const { user, logout } = useStore()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const router = useRouter()
   if (!user) {
     return (
@@ -111,23 +114,28 @@ function UserMenu() {
           </button>
         }
       />
-      <DropdownMenuContent align="end" className="w-52">
+      <DropdownMenuContent align="end" className="w-56">
         <div className="flex flex-col px-1.5 py-1 text-xs font-medium text-muted-foreground">
           <span className="truncate font-medium text-foreground">{user.username}</span>
           <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
         </div>
         <DropdownMenuSeparator />
         <div className="flex flex-col gap-0.5" role="group">
-          <a href="https://trackdash-dusky.vercel.app/profile" className={ACCOUNT_LINK_CLASS} role="menuitem">
+          <a href="/profile" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <UserIcon />
             {t("menu.profile")}
           </a>
-          <a href="https://trackdash-dusky.vercel.app/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
+          <a href="/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <Settings />
             {t("menu.settings")}
           </a>
+          <a href="/support" className={ACCOUNT_LINK_CLASS} role="menuitem">
+            <LifeBuoy />
+            {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
+          </a>
         </div>
         <DropdownMenuSeparator />
+        <PwaInstallMenuItem />
         <DropdownMenuItem
           variant="destructive"
           onClick={async () => {
@@ -233,6 +241,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
+            <NotificationCenter />
             <UserMenu />
           </div>
         </header>
