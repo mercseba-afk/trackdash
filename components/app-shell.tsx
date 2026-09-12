@@ -112,31 +112,17 @@ function UserMenu() {
         }
       />
       <DropdownMenuContent align="end" className="w-52">
-        {/* This is intentionally plain markup rather than DropdownMenuLabel.
-            In Base UI, GroupLabel requires a Menu.Group context; using it
-            directly under Menu.Popup throws production error #31. */}
         <div className="flex flex-col px-1.5 py-1 text-xs font-medium text-muted-foreground">
           <span className="truncate font-medium text-foreground">{user.username}</span>
           <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
         </div>
         <DropdownMenuSeparator />
         <div className="flex flex-col gap-0.5" role="group">
-          {/* Deliberately plain HTML anchors: these do not use Next Link,
-              router.push, window.location handlers, or Base UI MenuItem's
-              render machinery. A tap therefore becomes a browser-level GET. */}
-          <a
-            href="https://trackdash-dusky.vercel.app/profile"
-            className={ACCOUNT_LINK_CLASS}
-            role="menuitem"
-          >
+          <a href="https://trackdash-dusky.vercel.app/profile" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <UserIcon />
             {t("menu.profile")}
           </a>
-          <a
-            href="https://trackdash-dusky.vercel.app/settings"
-            className={ACCOUNT_LINK_CLASS}
-            role="menuitem"
-          >
+          <a href="https://trackdash-dusky.vercel.app/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <Settings />
             {t("menu.settings")}
           </a>
@@ -205,7 +191,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-svh bg-background">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center px-5">
-          <Link href="/" aria-label="Mini 4WD Collector home">
+          <Link href="/" aria-label="TrackDash home">
             <BrandMark />
           </Link>
         </div>
@@ -236,7 +222,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="lg:pl-60">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
-          <Link href="/" className="lg:hidden" aria-label="Mini 4WD Collector home">
+          <Link href="/" className="lg:hidden" aria-label="TrackDash home">
             <BrandMark showText={false} />
           </Link>
           <div className="hidden text-sm text-muted-foreground lg:block">
