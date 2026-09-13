@@ -31,18 +31,11 @@ export function SettingsScreen() {
     getMyProfileAction()
       .then((profile) => {
         if (cancelled || !profile) return
-        if (CURRENCIES.includes(profile.preferredCurrency as Currency)) {
-          setCurrency(profile.preferredCurrency as Currency)
-        }
+        if (CURRENCIES.includes(profile.preferredCurrency as Currency)) setCurrency(profile.preferredCurrency as Currency)
       })
       .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoadingProfile(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
+      .finally(() => { if (!cancelled) setLoadingProfile(false) })
+    return () => { cancelled = true }
   }, [])
 
   async function saveCurrency(next: Currency) {
@@ -78,6 +71,9 @@ export function SettingsScreen() {
     router.push("/login")
   }
 
+  const themeLabel = (value: string) => value === "light" ? t("settings.light") : value === "dark" ? t("settings.dark") : t("settings.system")
+  const localeLabel = (value: AppLocale) => value === "it" ? `🇮🇹 ${t("settings.italian")}` : `🇬🇧 ${t("settings.english")}`
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -86,15 +82,11 @@ export function SettingsScreen() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MonitorCog className="size-4 text-muted-foreground" /> {t("settings.appearance")}
-          </CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><MonitorCog className="size-4 text-muted-foreground" /> {t("settings.appearance")}</CardTitle></CardHeader>
         <CardContent className="flex flex-col">
           <SettingRow label={t("settings.theme")} description={t("settings.themeDesc")}>
             <Select value={theme ?? "system"} onValueChange={(v) => v && setTheme(v as string)}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-32"><SelectValue>{(value: string) => themeLabel(value)}</SelectValue></SelectTrigger>
               <SelectContent>
                 <SelectItem value="light">{t("settings.light")}</SelectItem>
                 <SelectItem value="dark">{t("settings.dark")}</SelectItem>
@@ -107,15 +99,13 @@ export function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Globe2 className="size-4 text-muted-foreground" /> {t("settings.languageRegion")}
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><Globe2 className="size-4 text-muted-foreground" /> {t("settings.languageRegion")}</CardTitle>
           <CardDescription>{t("settings.languageRegionDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col">
           <SettingRow label={t("settings.language")} description={t("settings.languageDesc")}>
             <Select value={locale} disabled={savingLocale} onValueChange={(v) => v && void saveLocale(v as AppLocale)}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-36"><SelectValue>{(value: AppLocale) => localeLabel(value)}</SelectValue></SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">🇬🇧 {t("settings.english")}</SelectItem>
                 <SelectItem value="it">🇮🇹 {t("settings.italian")}</SelectItem>
@@ -126,9 +116,7 @@ export function SettingsScreen() {
           <SettingRow label={t("settings.currency")} description={t("settings.currencyDesc")}>
             <Select value={currency} disabled={loadingProfile || savingCurrency} onValueChange={(v) => v && void saveCurrency(v as Currency)}>
               <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
+              <SelectContent>{CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </SettingRow>
         </CardContent>
@@ -136,9 +124,7 @@ export function SettingsScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Bell className="size-4 text-muted-foreground" /> {t("settings.notifications")}
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><Bell className="size-4 text-muted-foreground" /> {t("settings.notifications")}</CardTitle>
           <CardDescription>{t("settings.notificationsDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col">
@@ -149,59 +135,29 @@ export function SettingsScreen() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <UserRound className="size-4 text-muted-foreground" /> {t("settings.account")}
-          </CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><UserRound className="size-4 text-muted-foreground" /> {t("settings.account")}</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-1">
           <Link href="/profile" className="flex items-center justify-between gap-4 rounded-lg px-1 py-3 text-sm hover:bg-muted/50">
-            <div>
-              <p className="font-medium">{t("settings.profile")}</p>
-              <p className="text-xs text-muted-foreground">{t("settings.profileDesc")}</p>
-            </div>
+            <div><p className="font-medium">{t("settings.profile")}</p><p className="text-xs text-muted-foreground">{t("settings.profileDesc")}</p></div>
             <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
           <Separator />
-          <div className="flex items-center justify-between gap-4 py-3">
-            <div className="min-w-0">
-              <p className="text-sm font-medium">{t("settings.email")}</p>
-              <p className="truncate text-xs text-muted-foreground">{user?.email || "—"}</p>
-            </div>
-          </div>
+          <div className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="text-sm font-medium">{t("settings.email")}</p><p className="truncate text-xs text-muted-foreground">{user?.email || "—"}</p></div></div>
           <Separator />
           <div className="flex items-center justify-between gap-4 py-3">
-            <div>
-              <p className="text-sm font-medium">{t("menu.signOut")}</p>
-              <p className="text-xs text-muted-foreground">{t("settings.signOutDesc")}</p>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut data-icon="inline-start" /> {t("menu.signOut")}
-            </Button>
+            <div><p className="text-sm font-medium">{t("menu.signOut")}</p><p className="text-xs text-muted-foreground">{t("settings.signOutDesc")}</p></div>
+            <Button variant="outline" onClick={handleLogout}><LogOut data-icon="inline-start" /> {t("menu.signOut")}</Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-dashed">
-        <CardContent className="flex items-start gap-3 py-4 text-sm text-muted-foreground">
-          <WalletCards className="mt-0.5 size-4 shrink-0" />
-          <p>{t("settings.demoNotice")}</p>
-        </CardContent>
-      </Card>
+      <Card className="border-dashed"><CardContent className="flex items-start gap-3 py-4 text-sm text-muted-foreground"><WalletCards className="mt-0.5 size-4 shrink-0" /><p>{t("settings.demoNotice")}</p></CardContent></Card>
     </div>
   )
 }
 
 function SettingRow({ label, description, children }: { label: string; description: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-sm font-medium">{label}</span>
-        <span className="max-w-2xl text-xs text-muted-foreground">{description}</span>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  )
+  return <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><div className="flex min-w-0 flex-col gap-0.5"><span className="text-sm font-medium">{label}</span><span className="max-w-2xl text-xs text-muted-foreground">{description}</span></div><div className="shrink-0">{children}</div></div>
 }
 
 function ComingSoonRow({ label, description, text }: { label: string; description: string; text: string }) {
