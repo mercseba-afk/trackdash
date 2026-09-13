@@ -22,24 +22,21 @@ const COLLECTOR_RELEASE_TYPES = new Set<ReleaseType>([
 ])
 
 export function getCatalogProductMeta(product: Product, it: boolean) {
-  const chassis = Array.from(
-    new Set(product.releases.map((release) => release.chassis).filter((value): value is NonNullable<typeof value> => Boolean(value))),
-  )
+  const original = primaryRelease(product)
   const specialCount = product.releases.filter((release) => COLLECTOR_RELEASE_TYPES.has(release.releaseType)).length
 
-  const chassisLabel = chassis.length === 0
-    ? (it ? "Chassis da verificare" : "Chassis pending")
-    : chassis.length === 1
-      ? `Chassis ${chassis[0]}`
-      : `${chassis.length} chassis`
+  const chassisLabel = original.chassis
+    ? `${it ? "Chassis orig." : "Orig. chassis"} ${original.chassis}`
+    : (it ? "Chassis da verificare" : "Chassis pending")
 
   const specialLabel = specialCount > 0
     ? `${specialCount} ${it ? (specialCount === 1 ? "speciale" : "speciali") : (specialCount === 1 ? "special" : "specials")}`
     : null
 
   return {
-    debutLabel: `${it ? "Debutto" : "Debut"} ${product.originalReleaseYear ?? "—"}`,
+    debutLabel: `${it ? "Prima uscita" : "First release"} ${product.originalReleaseYear ?? "—"}`,
     chassisLabel,
+    itemLabel: original.itemNumber ? `#${original.itemNumber}` : null,
     specialLabel,
   }
 }
@@ -59,7 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
         <ProductImage product={product} release={release} className="aspect-[4/3] w-full" />
         {owned && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded bg-success px-1.5 py-0.5 text-[10px] font-semibold text-white">
-            <Check className="size-3" /> {it ? "Posseduto" : "Owned"}
+            <Check className="size-3" /> {it ? "In collezione" : "In collection"}
           </span>
         )}
         {product.hasMultipleReleases && (
@@ -69,20 +66,30 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2 p-3">
+      <div className="flex flex-1 flex-col gap-1.5 p-3">
         <Link href={`/catalog/${product.id}`} className="min-w-0">
-          <p className="line-clamp-2 min-h-9 text-sm font-semibold leading-[1.15rem] hover:text-brand">
+          <p className="line-clamp-2 text-sm font-semibold leading-[1.15rem] hover:text-brand">
             {product.name}
           </p>
-          <div className="mt-1 min-h-10 space-y-0.5 text-xs leading-4 text-muted-foreground">
-            <p>{meta.debutLabel}</p>
-            <p className="truncate">
-              {meta.chassisLabel}{meta.specialLabel ? ` · ${meta.specialLabel}` : ""}
-            </p>
+          <div className="mt-1.5 rounded-md bg-muted/35 px-2.5 py-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-4">
+              <span className="font-semibold text-foreground">{meta.debutLabel}</span>
+              {meta.itemLabel ? <span className="font-mono text-muted-foreground">{meta.itemLabel}</span> : null}
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <span className="rounded bg-background/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {meta.chassisLabel}
+              </span>
+              {meta.specialLabel ? (
+                <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                  {meta.specialLabel}
+                </span>
+              ) : null}
+            </div>
           </div>
         </Link>
 
-        <div className="mt-auto flex items-center justify-end gap-1 pt-1">
+        <div className="mt-auto flex items-center justify-end gap-1 pt-1.5">
           <AddToWishlistDialog product={product}>
             <Button
               variant="outline"
