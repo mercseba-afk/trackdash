@@ -29,6 +29,15 @@ import { cn } from "@/lib/utils"
 
 const CURRENT_BUILD_VERSION = process.env.NEXT_PUBLIC_TRACKDASH_BUILD_SHA ?? "development"
 const UPDATE_POLL_MS = 60_000
+const UPDATE_PENDING_KEY = "trackdash.update.pendingVersion"
+const UPDATE_READ_KEY = "trackdash.update.readVersion"
+
+function getSessionBuildVersion() {
+  if (typeof window === "undefined") return CURRENT_BUILD_VERSION
+  const runtimeWindow = window as Window & { __trackdashSessionBuildVersion?: string }
+  runtimeWindow.__trackdashSessionBuildVersion ??= CURRENT_BUILD_VERSION
+  return runtimeWindow.__trackdashSessionBuildVersion
+}
 
 function asText(value: unknown): string | null {
   return typeof value === "string" ? value : null
@@ -215,7 +224,14 @@ export function NotificationCenter() {
   }, [user])
 
   const checkAppVersion = React.useCallback(async () => {
-    if (CURRENT_BUILD_VERSION === "development") return
+    const sessionBuildVersion = getSessionBuildVersion()
+    if (sessionBuildVersion === "development") return
+
+    const storedPendingVersion = localStorage.getItem(UPDATE_PENDING_KEY)
+    if (storedPendingVersion) {
+      setAvailableVersion(storedPendingVersion)
+      setUpdateRead(localStorage.getItem(UPDATE_READ_KEY) === storedPendingVersion)
+    }
 
     try {
       const response = await fetch(`/api/version?ts=${Date.now()}`, { cache: "no-store" })
@@ -224,16 +240,23 @@ export function NotificationCenter() {
       const latestVersion = typeof payload.version === "string" ? payload.version : null
       if (!latestVersion || latestVersion === "development") return
 
-      if (latestVersion === CURRENT_BUILD_VERSION) {
-        setAvailableVersion(null)
-        setUpdateRead(false)
+      if (latestVersion !== sessionBuildVersion) {
+        if (storedPendingVersion !== latestVersion) {
+          localStorage.setItem(UPDATE_PENDING_KEY, latestVersion)
+          localStorage.removeItem(UPDATE_READ_KEY)
+          setUpdateRead(false)
+        }
+        setAvailableVersion(latestVersion)
         return
       }
 
-      setAvailableVersion((current) => {
-        if (current !== latestVersion) setUpdateRead(false)
-        return latestVersion
-      })
+      // If a pending update was already detected, keep it visible until the
+      // user explicitly applies/acknowledges it. This survives route changes
+      // and even a framework-triggered document refresh during a deployment.
+      if (!storedPendingVersion) {
+        setAvailableVersion(null)
+        setUpdateRead(false)
+      }
     } catch {
       // Update checks must never affect normal app usage.
     }
@@ -293,6 +316,8 @@ export function NotificationCenter() {
   async function applyAppUpdate() {
     setUpdateRead(true)
     setOpen(false)
+    localStorage.removeItem(UPDATE_PENDING_KEY)
+    localStorage.removeItem(UPDATE_READ_KEY)
     try {
       const registration = await navigator.serviceWorker?.getRegistration()
       await registration?.update()
@@ -307,6 +332,7 @@ export function NotificationCenter() {
     setRows((current) => current.map((row) => ({ ...row, readAt: row.readAt ?? now })))
     setUnread(0)
     setUpdateRead(true)
+    if (availableVersion) localStorage.setItem(UPDATE_READ_KEY, availableVersion)
     try { await markAllNotificationsReadAction() } catch { void refresh() }
   }
 
@@ -314,7 +340,7 @@ export function NotificationCenter() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button variant="ghost" size="icon" className="relative" aria-label={it ? "Notifiche" : "Notifications"} />
+          <Button variant="ghost" size="icon" className="relative mr-2" aria-label={it ? "Notifiche" : "Notifications"} />
         }
       >
         <Bell />
