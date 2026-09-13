@@ -59,7 +59,7 @@ export const TAMIYA_IMAGES_BATCH2: TamiyaImageEntry[] = [
     sourcePageUrl: "https://www.tamiya.com/japan/products/18038/index.html",
     sourceDomain: "tamiya.com",
     sourceType: "official_manufacturer",
-    note: "Exact Proto Emperor ZX original image; official page confirms item 18038, 2007-09-01 and Zero chassis.",
+    note: "Exact Proto Emperor ZX 2007 reissue image; the official page explicitly dates this item 18038 occurrence to 2007-09-01, so it is not used as proof of the 1992 box art.",
   },
   {
     productSeedKey: "dash-x1-proto-emperor",
