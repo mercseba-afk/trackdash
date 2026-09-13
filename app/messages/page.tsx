@@ -1,10 +1,10 @@
 import { AppPage } from "@/components/app-page"
-import { MessagesScreen } from "@/components/screens/messages-screen"
+import { MessagesScreenV2 } from "@/components/screens/messages-screen-v2"
 
 export default function MessagesPage() {
   return (
     <AppPage>
-      <MessagesScreen />
+      <MessagesScreenV2 />
     </AppPage>
   )
 }

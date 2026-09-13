@@ -110,8 +110,14 @@ export function MarketSignalCard({
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const resolvedTitle = title ?? (it ? "Valore attuale stimato" : "Estimated current value")
+  const resolvedTitle = title ?? (it ? "Valore di mercato" : "Market value")
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
+  const hasCleanActiveAsk =
+    !hasValue &&
+    signal.activeOfferCount > 0 &&
+    signal.retailSourceCount === 0 &&
+    signal.startingItemPriceEUR != null &&
+    signal.startingItemPriceEUR > 0
 
   return (
     <Card>
@@ -127,13 +133,19 @@ export function MarketSignalCard({
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{trendWindowLabel(signal, it)}</p>
           </div>
+        ) : hasCleanActiveAsk ? (
+          <div>
+            <p className="text-xl font-semibold text-foreground">{it ? "Valore in definizione" : "Value being established"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {it ? "In vendita da" : "Listed from"} <span className="font-semibold tabular-nums text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
+            </p>
+          </div>
         ) : (
           <div>
-            <p className="text-xl font-semibold text-foreground">{it ? "Valore in elaborazione" : "Value being calculated"}</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {it
-                ? "Stiamo raccogliendo abbastanza dati reali per pubblicare un valore utile per questa release."
-                : "We are gathering enough real market data to publish a useful value for this release."}
+            <p className="text-xl font-semibold text-foreground">{it ? "Mercato raro" : "Thin market"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{it ? "Valore non ancora disponibile" : "Market value not available yet"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {it ? "Ne possiedi una? Puoi metterla in vendita dalla tua collezione." : "Own one? You can list it for sale from your collection."}
             </p>
           </div>
         )}
@@ -167,7 +179,7 @@ export function MarketEstimateCard({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title ?? (it ? "Valore attuale stimato" : "Estimated current value")}
+          {title ?? (it ? "Valore di mercato" : "Market value")}
         </CardTitle>
       </CardHeader>
       <CardContent>

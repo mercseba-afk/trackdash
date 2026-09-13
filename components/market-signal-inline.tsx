@@ -16,10 +16,16 @@ export function MarketSignalInline({
   const it = locale === "it"
 
   if (!signal) {
-    return <span className="text-xs text-muted-foreground">{it ? "Valore in elaborazione" : "Value being calculated"}</span>
+    return <span className="text-xs text-muted-foreground">{it ? "Mercato raro · valore non disponibile" : "Thin market · value unavailable"}</span>
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
+  const hasCleanActiveAsk =
+    !hasValue &&
+    signal.activeOfferCount > 0 &&
+    signal.retailSourceCount === 0 &&
+    signal.startingItemPriceEUR != null &&
+    signal.startingItemPriceEUR > 0
 
   return (
     <div className="flex flex-col gap-1">
@@ -28,10 +34,17 @@ export function MarketSignalInline({
           <span className="text-lg font-semibold tabular-nums">{formatMoney(signal.valueEUR!)}</span>
           {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} /> : null}
         </div>
+      ) : hasCleanActiveAsk ? (
+        <>
+          <span className="text-xs font-medium text-muted-foreground">{it ? "Valore in definizione" : "Value being established"}</span>
+          <span className="text-xs text-muted-foreground">
+            {it ? "In vendita da" : "Listed from"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
+          </span>
+        </>
       ) : (
-        <span className="text-xs font-medium text-muted-foreground">{it ? "Valore in elaborazione" : "Value being calculated"}</span>
+        <span className="text-xs font-medium text-muted-foreground">{it ? "Mercato raro · valore non disponibile" : "Thin market · value unavailable"}</span>
       )}
-      {showStartingPrice && signal.startingItemPriceEUR != null ? (
+      {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
         <span className="text-xs text-muted-foreground">
           {it ? "Da" : "From"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
         </span>

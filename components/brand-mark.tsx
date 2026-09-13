@@ -18,13 +18,15 @@ export function BrandMark({
 
   React.useEffect(() => setMounted(true), [])
 
-  const sizeClass = showText ? "h-14" : "h-12"
+  // Keep the dark artwork as the sizing reference so light/dark occupy
+  // the same horizontal footprint even though the source canvases differ.
+  const sizeClass = showText ? "w-[166px]" : "w-[142px]"
   const dark = tone === "invert" || (mounted && resolvedTheme === "dark")
   const src = dark ? "/brand/trackdash-logo-dark.webp" : "/brand/trackdash-logo-light.webp"
 
   return (
     <span className={cn("inline-flex items-center", className)}>
-      <img src={src} alt="TrackDash" className={cn(sizeClass, "w-auto object-contain")} />
+      <img src={src} alt="TrackDash" className={cn(sizeClass, "h-auto object-contain")} />
     </span>
   )
 }

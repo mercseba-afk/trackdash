@@ -90,8 +90,6 @@ export function ProductDetailScreen({
             <AddToCollectionDialog product={product}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
             <AddToWishlistDialog product={product}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
           </div>
-
-          {mine.length > 0 && <div className="rounded-lg border border-success/40 bg-success/5 px-3 py-2 text-sm text-success"><Check className="mr-1 inline size-4" />{t(mine.length === 1 ? "product.ownOne" : "product.ownMany", { count: mine.length })}</div>}
         </div>
       </div>
 
@@ -107,7 +105,7 @@ export function ProductDetailScreen({
                 key={release.id}
                 product={product}
                 release={release}
-                owned={mine.some((entry) => entry.release.id === release.id)}
+                ownedCount={mine.filter((entry) => entry.release.id === release.id).length}
                 community={communityByRelease.get(release.id)}
                 marketSignals={marketSignals}
               />
@@ -165,11 +163,16 @@ function CollectionMarketValue({ entry, it }: { entry: ReturnType<typeof enrichC
   )
 }
 
-function ReleaseRow({ product, release, owned, community, marketSignals }: { product: Product; release: ProductRelease; owned: boolean; community?: CommunityCount; marketSignals: ReleaseMarketSignalMap }) {
+function ReleaseRow({ product, release, ownedCount, community, marketSignals }: { product: Product; release: ProductRelease; ownedCount: number; community?: CommunityCount; marketSignals: ReleaseMarketSignalMap }) {
   const { locale, t } = useI18n()
   const marketSignal = marketSignals[release.id] ?? null
   const releaseHref = `/catalog/${product.id}/releases/${release.id}`
   const collectorsHref = `${releaseHref}#collectors`
+  const owned = ownedCount > 0
+  const ownershipLabel = locale === "it"
+    ? (ownedCount === 1 ? "1 copia tua" : `${ownedCount} copie tue`)
+    : (ownedCount === 1 ? "1 copy owned" : `${ownedCount} copies owned`)
+
   return (
     <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
       <div className="grid grid-cols-[minmax(112px,36%)_minmax(0,1fr)] gap-x-3 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-4">
@@ -177,7 +180,10 @@ function ReleaseRow({ product, release, owned, community, marketSignals }: { pro
         <div className="min-w-0 sm:self-start sm:pt-0.5">
           <Link href={releaseHref} className="font-medium leading-snug hover:text-brand hover:underline">{release.editionName}</Link>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">{release.isOriginal ? <Badge variant="outline">{t("common.original")}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{t("common.reissue")}</Badge>}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {release.isOriginal ? <Badge variant="outline">{t("common.original")}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{t("common.reissue")}</Badge>}
+            {owned ? <Badge className="gap-1 bg-success/15 text-success"><Check className="size-3" />{ownershipLabel}</Badge> : null}
+          </div>
         </div>
         <div className="col-span-2 flex flex-col gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-2">
           <div className="flex flex-wrap items-center gap-1.5">
