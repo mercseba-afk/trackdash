@@ -232,8 +232,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="lg:pl-60">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
-          <Link href="/" className="lg:hidden" aria-label="TrackDash home">
-            <BrandMark showText={false} />
+          <Link href="/" className="flex h-full items-center lg:hidden" aria-label="TrackDash home">
+            <BrandMark showText={false} className="translate-y-[2px]" />
           </Link>
           <div className="hidden text-sm text-muted-foreground lg:block">
             {(() => {
