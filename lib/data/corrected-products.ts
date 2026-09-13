@@ -90,32 +90,57 @@ export function tamiyaItemNumberFromJan(value: string): string | undefined {
   return normalized.slice(7, 12)
 }
 
+type ReleaseHit = { product: Product; release: ProductRelease }
+
+function releaseHitsByItemNumber(itemNumber: string): ReleaseHit[] {
+  const hits: ReleaseHit[] = []
+  for (const product of PRODUCTS) {
+    for (const release of product.releases) {
+      if (normalizeScannerCode(release.itemNumber ?? "") === itemNumber) hits.push({ product, release })
+    }
+  }
+  return hits
+}
+
+function resolveItemNumberHits(hits: ReleaseHit[]): { product: Product; release?: ProductRelease } | undefined {
+  if (hits.length === 1) return hits[0]
+  if (hits.length === 0) return undefined
+
+  // The same Tamiya item can legitimately be reused for distinct commercial
+  // occurrences of one model (e.g. Proto Emperor ZX 18038 in 1992 and 2007).
+  // In that case an item number alone is NOT enough to choose the physical
+  // Release: return the model and let the UI ask the collector which Release.
+  const productId = hits[0].product.id
+  return hits.every((hit) => hit.product.id === productId) ? { product: hits[0].product } : undefined
+}
+
 export function findByCode(query: string): { product: Product; release?: ProductRelease } | undefined {
   const q = normalizeScannerCode(query)
   if (!q) return undefined
 
-  // Scanner identity priority is deliberately global, not product-by-product:
-  // 1) exact release item/JAN, 2) conservative Tamiya JAN derivation,
-  // 3) canonical product item, 4) legacy productCode.
-  // A legacy productCode must never steal a real Tamiya release item number from
-  // a different product (e.g. Avante Mk.II productCode 95110 vs Emperor release 95110).
+  // 1) Explicit verified JAN/EAN is the strongest scanner identity.
+  const barcodeHits: ReleaseHit[] = []
   for (const product of PRODUCTS) {
-    const releaseHit = product.releases.find(
-      (r) => normalizeScannerCode(r.itemNumber ?? "") === q || normalizeScannerCode(r.barcodeJAN ?? "") === q,
-    )
-    if (releaseHit) return { product, release: releaseHit }
-  }
-
-  const derivedTamiyaItem = tamiyaItemNumberFromJan(q)
-  if (derivedTamiyaItem) {
-    for (const product of PRODUCTS) {
-      const releaseHit = product.releases.find(
-        (release) => normalizeScannerCode(release.itemNumber ?? "") === derivedTamiyaItem,
-      )
-      if (releaseHit) return { product, release: releaseHit }
+    for (const release of product.releases) {
+      if (normalizeScannerCode(release.barcodeJAN ?? "") === q) barcodeHits.push({ product, release })
     }
   }
+  if (barcodeHits.length === 1) return barcodeHits[0]
+  if (barcodeHits.length > 1) return undefined
 
+  // 2) Exact item number. Reused item numbers intentionally resolve only to
+  // the model, never to an arbitrary first Release.
+  const directItem = resolveItemNumberHits(releaseHitsByItemNumber(q))
+  if (directItem) return directItem
+
+  // 3) Conservative Tamiya JAN derivation for standard 4950344+item barcodes.
+  const derivedTamiyaItem = tamiyaItemNumberFromJan(q)
+  if (derivedTamiyaItem) {
+    const derived = resolveItemNumberHits(releaseHitsByItemNumber(derivedTamiyaItem))
+    if (derived) return derived
+  }
+
+  // 4) Canonical product item and legacy manual product code fallbacks.
   const productByItem = PRODUCTS.find(
     (product) => normalizeScannerCode(product.itemNumber ?? "") === q,
   )
