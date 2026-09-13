@@ -27,7 +27,6 @@ export function getCatalogProductMeta(product: Product, it: boolean) {
 
   return {
     year: product.originalReleaseYear ?? "—",
-    itemLabel: original.itemNumber ? `#${original.itemNumber}` : "—",
     chassisLabel: original.chassis
       ? original.chassis
       : (it ? "Da verificare" : "Pending"),
@@ -69,23 +68,16 @@ export function ProductCard({ product }: { product: Product }) {
             {product.name}
           </p>
 
-          <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/25 p-2">
-            <div className="min-w-0">
-              <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">{it ? "Prima uscita" : "First release"}</p>
-              <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{meta.year}</p>
-            </div>
-            <div className="min-w-0 border-l border-border/60 pl-2">
-              <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">{it ? "Codice originale" : "Original item"}</p>
-              <p className="mt-0.5 truncate font-mono text-sm font-semibold text-foreground">{meta.itemLabel}</p>
-            </div>
-          </div>
-
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/25 px-2 py-1 text-[10px] text-muted-foreground">
+              <span>{it ? "Prima uscita" : "First release"}</span>
+              <strong className="text-xs font-semibold tabular-nums text-foreground">{meta.year}</strong>
+            </span>
+            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
               Chassis {meta.chassisLabel}
             </span>
             {meta.specialLabel ? (
-              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
+              <span className="rounded-full bg-brand/10 px-2 py-1 text-[10px] font-semibold text-brand">
                 {meta.specialLabel}
               </span>
             ) : null}
