@@ -18,13 +18,13 @@ export function BrandMark({
 
   React.useEffect(() => setMounted(true), [])
 
-  const sizeClass = showText ? "h-12" : "h-10 translate-y-[2px]"
+  const sizeClass = showText ? "h-14" : "h-12"
   const dark = tone === "invert" || (mounted && resolvedTheme === "dark")
   const src = dark ? "/brand/trackdash-logo-dark.webp" : "/brand/trackdash-logo-light.webp"
 
   return (
     <span className={cn("inline-flex items-center", className)}>
-      <img src={src} alt="TrackDash" className={cn(sizeClass, "w-auto rounded-[22%] object-contain")} />
+      <img src={src} alt="TrackDash" className={cn(sizeClass, "w-auto object-contain")} />
     </span>
   )
 }
