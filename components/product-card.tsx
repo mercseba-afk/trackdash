@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Check, Heart, RefreshCw } from "lucide-react"
+import { ArrowRight, Check, Heart } from "lucide-react"
 import type { Product, ReleaseType } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
@@ -60,21 +60,16 @@ export function ProductCard({ product }: { product: Product }) {
             <Check className="size-3" /> {it ? "In collezione" : "In collection"}
           </span>
         )}
-        {product.hasMultipleReleases && (
-          <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/90 px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur-sm">
-            <RefreshCw className="size-3" /> {product.releases.length} release
-          </span>
-        )}
       </Link>
 
-      <div className="flex flex-1 flex-col p-3.5">
+      <div className="flex flex-1 flex-col p-3">
         <Link href={href} className="min-w-0">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">{product.series}</p>
-          <p className="line-clamp-2 text-[15px] font-semibold leading-[1.2rem] tracking-tight text-foreground transition-colors group-hover:text-brand">
+          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">{product.series}</p>
+          <p className="line-clamp-2 text-[15px] font-semibold leading-[1.15rem] tracking-tight text-foreground transition-colors group-hover:text-brand">
             {product.name}
           </p>
 
-          <div className="mt-2.5 grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/25 p-2.5">
+          <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/25 p-2">
             <div className="min-w-0">
               <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">{it ? "Prima uscita" : "First release"}</p>
               <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{meta.year}</p>
@@ -85,19 +80,19 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               Chassis {meta.chassisLabel}
             </span>
             {meta.specialLabel ? (
-              <span className="rounded-full bg-brand/10 px-2 py-1 text-[10px] font-semibold text-brand">
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
                 {meta.specialLabel}
               </span>
             ) : null}
           </div>
         </Link>
 
-        <div className="mt-auto flex items-center gap-2 pt-3">
+        <div className="mt-auto flex items-center gap-2 pt-2">
           <AddToWishlistDialog product={product}>
             <Button
               variant="outline"
