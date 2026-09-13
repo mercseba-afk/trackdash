@@ -11,6 +11,7 @@ import {
   Loader2,
   Megaphone,
   ReceiptText,
+  RefreshCw,
 } from "lucide-react"
 import {
   getNotificationsAction,
@@ -25,6 +26,9 @@ import { useI18n } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+
+const CURRENT_BUILD_VERSION = process.env.NEXT_PUBLIC_TRACKDASH_BUILD_SHA ?? "development"
+const UPDATE_POLL_MS = 60_000
 
 function asText(value: unknown): string | null {
   return typeof value === "string" ? value : null
@@ -143,6 +147,43 @@ function NotificationRow({
   )
 }
 
+function UpdateNotificationRow({
+  it,
+  read,
+  onApply,
+}: {
+  it: boolean
+  read: boolean
+  onApply: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onApply}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent",
+        !read && "bg-brand/5",
+      )}
+    >
+      <span className={cn("mt-0.5 grid size-8 shrink-0 place-items-center rounded-full", read ? "bg-muted text-muted-foreground" : "bg-brand/10 text-brand")}>
+        <RefreshCw className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className="truncate text-sm font-medium">{it ? "Nuovo aggiornamento disponibile" : "New update available"}</span>
+          {!read ? <span className="size-1.5 shrink-0 rounded-full bg-brand" /> : null}
+        </span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+          {it ? "È disponibile una nuova versione di TrackDash." : "A new version of TrackDash is available."}
+        </span>
+        <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand">
+          <RefreshCw className="size-3" /> {it ? "Aggiorna ora" : "Update now"}
+        </span>
+      </span>
+    </button>
+  )
+}
+
 export function NotificationCenter() {
   const { user } = useStore()
   const { locale } = useI18n()
@@ -152,6 +193,8 @@ export function NotificationCenter() {
   const [rows, setRows] = React.useState<AppNotification[]>([])
   const [unread, setUnread] = React.useState(0)
   const [loading, setLoading] = React.useState(false)
+  const [availableVersion, setAvailableVersion] = React.useState<string | null>(null)
+  const [updateRead, setUpdateRead] = React.useState(false)
 
   const refresh = React.useCallback(async () => {
     if (!user) {
@@ -171,8 +214,34 @@ export function NotificationCenter() {
     }
   }, [user])
 
+  const checkAppVersion = React.useCallback(async () => {
+    if (CURRENT_BUILD_VERSION === "development") return
+
+    try {
+      const response = await fetch(`/api/version?ts=${Date.now()}`, { cache: "no-store" })
+      if (!response.ok) return
+      const payload = await response.json() as { version?: unknown }
+      const latestVersion = typeof payload.version === "string" ? payload.version : null
+      if (!latestVersion || latestVersion === "development") return
+
+      if (latestVersion === CURRENT_BUILD_VERSION) {
+        setAvailableVersion(null)
+        setUpdateRead(false)
+        return
+      }
+
+      setAvailableVersion((current) => {
+        if (current !== latestVersion) setUpdateRead(false)
+        return latestVersion
+      })
+    } catch {
+      // Update checks must never affect normal app usage.
+    }
+  }, [])
+
   React.useEffect(() => {
     void refresh()
+    void checkAppVersion()
     if (!user) return
 
     const supabase = createClient()
@@ -185,22 +254,31 @@ export function NotificationCenter() {
       )
       .subscribe()
 
-    const onFocus = () => void refresh()
+    const onFocus = () => {
+      void refresh()
+      void checkAppVersion()
+    }
+    const interval = window.setInterval(() => void checkAppVersion(), UPDATE_POLL_MS)
+
     window.addEventListener("focus", onFocus)
     return () => {
       window.removeEventListener("focus", onFocus)
+      window.clearInterval(interval)
       void supabase.removeChannel(channel)
     }
-  }, [refresh, user])
+  }, [checkAppVersion, refresh, user])
 
   React.useEffect(() => {
     if (open) {
       setLoading(true)
-      void refresh().finally(() => setLoading(false))
+      void Promise.all([refresh(), checkAppVersion()]).finally(() => setLoading(false))
     }
-  }, [open, refresh])
+  }, [checkAppVersion, open, refresh])
 
   if (!user) return null
+
+  const updateUnread = availableVersion && !updateRead ? 1 : 0
+  const totalUnread = unread + updateUnread
 
   async function openNotification(notification: AppNotification) {
     if (!notification.readAt) {
@@ -212,10 +290,23 @@ export function NotificationCenter() {
     if (notification.href) router.push(notification.href)
   }
 
+  async function applyAppUpdate() {
+    setUpdateRead(true)
+    setOpen(false)
+    try {
+      const registration = await navigator.serviceWorker?.getRegistration()
+      await registration?.update()
+    } catch {
+      // A hard reload below is enough even if the service-worker update check fails.
+    }
+    window.location.reload()
+  }
+
   async function markAll() {
     const now = new Date().toISOString()
     setRows((current) => current.map((row) => ({ ...row, readAt: row.readAt ?? now })))
     setUnread(0)
+    setUpdateRead(true)
     try { await markAllNotificationsReadAction() } catch { void refresh() }
   }
 
@@ -227,9 +318,9 @@ export function NotificationCenter() {
         }
       >
         <Bell />
-        {unread > 0 ? (
+        {totalUnread > 0 ? (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-semibold leading-none text-white shadow-sm">
-            {unread > 9 ? "9+" : unread}
+            {totalUnread > 9 ? "9+" : totalUnread}
           </span>
         ) : null}
       </PopoverTrigger>
@@ -239,20 +330,25 @@ export function NotificationCenter() {
             <p className="text-sm font-semibold">{it ? "Notifiche" : "Notifications"}</p>
             <p className="text-[11px] text-muted-foreground">{it ? "Solo eventi che richiedono attenzione." : "Only events that need your attention."}</p>
           </div>
-          {unread > 0 ? (
+          {totalUnread > 0 ? (
             <Button variant="ghost" size="sm" className="h-7 gap-1.5 px-2 text-xs" onClick={() => void markAll()}>
               <CheckCheck className="size-3.5" /> {it ? "Segna tutte" : "Mark all"}
             </Button>
           ) : null}
         </div>
         <div className="max-h-[min(65vh,32rem)] overflow-y-auto p-1.5">
-          {loading && rows.length === 0 ? (
+          {loading && rows.length === 0 && !availableVersion ? (
             <div className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground"><Loader2 className="size-4 animate-spin" />{it ? "Caricamento…" : "Loading…"}</div>
-          ) : rows.length === 0 ? (
+          ) : rows.length === 0 && !availableVersion ? (
             <div className="px-4 py-8 text-center"><Bell className="mx-auto mb-2 size-5 text-muted-foreground" /><p className="text-sm font-medium">{it ? "Tutto tranquillo" : "All quiet"}</p><p className="mt-1 text-xs text-muted-foreground">{it ? "Le offerte e gli aggiornamenti importanti compariranno qui." : "Offers and important updates will appear here."}</p></div>
-          ) : rows.map((notification) => (
-            <NotificationRow key={notification.id} notification={notification} it={it} onOpen={(row) => void openNotification(row)} />
-          ))}
+          ) : (
+            <>
+              {availableVersion ? <UpdateNotificationRow it={it} read={updateRead} onApply={() => void applyAppUpdate()} /> : null}
+              {rows.map((notification) => (
+                <NotificationRow key={notification.id} notification={notification} it={it} onOpen={(row) => void openNotification(row)} />
+              ))}
+            </>
+          )}
         </div>
       </PopoverContent>
     </Popover>

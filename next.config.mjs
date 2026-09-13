@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_TRACKDASH_BUILD_SHA: process.env.VERCEL_GIT_COMMIT_SHA || "development",
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

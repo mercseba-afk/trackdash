@@ -38,12 +38,13 @@
 // components/screens/update-password-screen.tsx for how each handles a
 // missing/invalid recovery state).
 //
-// PWA bootstrap resources are also ungated. Browsers must be able to fetch
-// the web manifest and service worker before/without an authenticated app
-// page; gating either resource would make TrackDash fail installability.
+// PWA bootstrap resources and the build-version probe are also ungated.
+// Browsers must be able to fetch the web manifest, service worker and
+// current deployment version before/without an authenticated app page.
 const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password"]
 const UNGATED_PREFIXES = [
   "/api/dev",
+  "/api/version",
   "/auth/callback",
   "/update-password",
   "/manifest.webmanifest",
