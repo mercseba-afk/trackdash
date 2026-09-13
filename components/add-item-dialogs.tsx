@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Camera, Loader2, X } from "lucide-react"
 import { toast } from "sonner"
 import type { Condition, Currency, Product, ProductRelease, WishlistPriority } from "@/lib/types"
 import { useStore } from "@/lib/store"
@@ -8,7 +9,10 @@ import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { primaryRelease, resolveRelease } from "@/lib/data/products"
 import { formatDate, formatMoney, formatPercent } from "@/lib/format"
-import { previewHistoricalAcquisitionEurAction } from "@/lib/actions/collection"
+import { getMyCollectionAction, previewHistoricalAcquisitionEurAction } from "@/lib/actions/collection"
+import { registerCollectionItemPhotoAction } from "@/lib/actions/collection-photos"
+import { COLLECTION_PHOTO_BUCKET, MAX_COLLECTION_PHOTOS } from "@/lib/collection-photos"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -36,6 +40,8 @@ import { MarketSignalInline } from "@/components/market-signal-inline"
 const CONDITIONS: Condition[] = ["Sealed", "New / Opened", "Built", "Used", "Incomplete"]
 const CURRENCIES: Currency[] = ["EUR", "USD", "JPY", "GBP"]
 const PRIORITIES: WishlistPriority[] = ["High", "Medium", "Low"]
+const MAX_SOURCE_BYTES = 12 * 1024 * 1024
+const MAX_EDGE = 1600
 type CollectionVisibility = "private" | "showcase" | "open_to_offers"
 type HistoricalFxPreview = { amountEUR: number; fxRateDate: string | null }
 
@@ -129,6 +135,45 @@ function signedMoney(value: number): string {
   return `${value > 0 ? "+" : ""}${formatMoney(value)}`
 }
 
+async function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(image)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error("Unsupported image format"))
+    }
+    image.src = url
+  })
+}
+
+async function compressPhoto(file: File) {
+  if (file.size > MAX_SOURCE_BYTES) throw new Error("Image too large")
+  if (!file.type.startsWith("image/")) throw new Error("Invalid image")
+
+  const image = await loadImage(file)
+  const scale = Math.min(1, MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight))
+  const width = Math.max(1, Math.round(image.naturalWidth * scale))
+  const height = Math.max(1, Math.round(image.naturalHeight * scale))
+  const canvas = document.createElement("canvas")
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext("2d")
+  if (!context) throw new Error("Image processing unavailable")
+  context.drawImage(image, 0, 0, width, height)
+
+  const webp = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.82))
+  if (webp) return { blob: webp, extension: "webp", contentType: "image/webp" }
+
+  const jpeg = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.84))
+  if (!jpeg) throw new Error("Image processing failed")
+  return { blob: jpeg, extension: "jpg", contentType: "image/jpeg" }
+}
+
 export function AddToCollectionDialog({
   product,
   defaultReleaseId,
@@ -138,12 +183,13 @@ export function AddToCollectionDialog({
   defaultReleaseId?: string
   children: React.ReactNode
 }) {
-  const { addToCollection } = useStore()
+  const { addToCollection, collection, user } = useStore()
   const marketSignals = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState(false)
+  const photoInputRef = React.useRef<HTMLInputElement>(null)
 
   const initialRelease = resolveRelease(product, defaultReleaseId)
   const [releaseId, setReleaseId] = React.useState(initialRelease.id)
@@ -156,6 +202,7 @@ export function AddToCollectionDialog({
   const [visibility, setVisibility] = React.useState<CollectionVisibility>("private")
   const [askingPrice, setAskingPrice] = React.useState("")
   const [askingCurrency, setAskingCurrency] = React.useState<Currency>("EUR")
+  const [offerPhotos, setOfferPhotos] = React.useState<File[]>([])
   const [fxPreview, setFxPreview] = React.useState<HistoricalFxPreview | null>(null)
   const [fxPreviewPending, setFxPreviewPending] = React.useState(false)
 
@@ -189,6 +236,8 @@ export function AddToCollectionDialog({
     setCurrency("EUR")
     setAskingPrice("")
     setAskingCurrency("EUR")
+    setOfferPhotos([])
+    if (photoInputRef.current) photoInputRef.current.value = ""
     setFxPreview(null)
     setFxPreviewPending(false)
   }, [open, product, defaultReleaseId])
@@ -230,6 +279,49 @@ export function AddToCollectionDialog({
     setYear(r.releaseYear ? String(r.releaseYear) : "")
   }
 
+  function addOfferPhotos(files: FileList | null) {
+    if (!files?.length) return
+    const remaining = MAX_COLLECTION_PHOTOS - offerPhotos.length
+    if (remaining <= 0) return
+
+    const incoming = [...files]
+      .filter((file) => file.type.startsWith("image/") && file.size <= MAX_SOURCE_BYTES)
+      .slice(0, remaining)
+
+    if (incoming.length === 0) {
+      toast.error(it ? "Usa immagini JPG, PNG o WebP fino a 12 MB." : "Use JPG, PNG or WebP images up to 12 MB.")
+      return
+    }
+
+    setOfferPhotos((current) => [...current, ...incoming].slice(0, MAX_COLLECTION_PHOTOS))
+    if (photoInputRef.current) photoInputRef.current.value = ""
+  }
+
+  async function uploadOfferPhotos(collectionItemId: string) {
+    if (!user || offerPhotos.length === 0) return
+    const supabase = createClient()
+
+    for (const file of offerPhotos) {
+      const processed = await compressPhoto(file)
+      const path = `${user.id}/${collectionItemId}/${crypto.randomUUID()}.${processed.extension}`
+      const { error: uploadError } = await supabase.storage
+        .from(COLLECTION_PHOTO_BUCKET)
+        .upload(path, processed.blob, {
+          contentType: processed.contentType,
+          upsert: false,
+          cacheControl: "3600",
+        })
+      if (uploadError) throw new Error(uploadError.message)
+
+      try {
+        await registerCollectionItemPhotoAction(collectionItemId, path)
+      } catch (error) {
+        await supabase.storage.from(COLLECTION_PHOTO_BUCKET).remove([path])
+        throw error
+      }
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!condition) {
@@ -239,6 +331,7 @@ export function AddToCollectionDialog({
     const parsedYear = Number(year)
     const releaseYearOverride =
       Number.isFinite(parsedYear) && parsedYear !== selectedRelease.releaseYear ? parsedYear : undefined
+    const collectionIdsBefore = new Set(collection.map((item) => item.id))
     setPending(true)
     try {
       await addToCollection({
@@ -258,6 +351,28 @@ export function AddToCollectionDialog({
         askingPrice?: number
         askingCurrency?: Currency
       })
+
+      if (visibility === "open_to_offers" && offerPhotos.length > 0) {
+        try {
+          const freshCollection = await getMyCollectionAction()
+          const createdItem = freshCollection.find(
+            (item) =>
+              !collectionIdsBefore.has(item.id) &&
+              item.productId === product.id &&
+              item.releaseId === selectedRelease.id,
+          )
+          if (!createdItem) throw new Error("New collection copy not found")
+          await uploadOfferPhotos(createdItem.id)
+        } catch (photoError) {
+          console.error("Collection copy created but offer photos could not be uploaded:", photoError)
+          toast.warning(
+            it
+              ? "Copia aggiunta, ma le foto non sono state caricate. Puoi aggiungerle dalla scheda della copia."
+              : "Copy added, but photos could not be uploaded. You can add them from the copy details.",
+          )
+        }
+      }
+
       toast.success(it ? "Aggiunto alla collezione" : "Added to collection", {
         description: `${selectedRelease.editionName} · ${year} ${releaseTypeLabel(selectedRelease.releaseType, it)}`,
       })
@@ -438,6 +553,63 @@ export function AddToCollectionDialog({
                 <p className="col-span-2 -mt-1 text-[11px] text-muted-foreground">
                   {it ? "È un prezzo richiesto pubblico, non una vendita conclusa e non modifica il Valore di mercato TrackDash." : "This is a public asking price, not a completed sale, and it does not change TrackDash Market Value."}
                 </p>
+
+                <div className="col-span-2 rounded-xl border border-dashed border-border bg-muted/20 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{it ? "Foto della tua copia" : "Photos of your copy"}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                        {it
+                          ? "Aggiungile subito all'annuncio. Fino a 5 foto; la prima sarà la principale."
+                          : "Add them to the listing now. Up to 5 photos; the first will be the main one."}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-background px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                      {offerPhotos.length}/{MAX_COLLECTION_PHOTOS}
+                    </span>
+                  </div>
+
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    capture="environment"
+                    multiple
+                    className="hidden"
+                    onChange={(event) => addOfferPhotos(event.target.files)}
+                  />
+
+                  {offerPhotos.length > 0 ? (
+                    <div className="mt-2 grid gap-1.5">
+                      {offerPhotos.map((file, index) => (
+                        <div key={`${file.name}-${file.lastModified}-${index}`} className="flex items-center gap-2 rounded-lg border bg-background px-2.5 py-2 text-xs">
+                          <Camera className="size-3.5 shrink-0 text-brand" />
+                          <span className="min-w-0 flex-1 truncate">{index === 0 ? `${it ? "Principale" : "Main"} · ` : ""}{file.name}</span>
+                          <button
+                            type="button"
+                            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            onClick={() => setOfferPhotos((current) => current.filter((_, currentIndex) => currentIndex !== index))}
+                            aria-label={it ? "Rimuovi foto" : "Remove photo"}
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-full"
+                    disabled={pending || offerPhotos.length >= MAX_COLLECTION_PHOTOS}
+                    onClick={() => photoInputRef.current?.click()}
+                  >
+                    <Camera />
+                    {offerPhotos.length === 0 ? (it ? "Aggiungi foto" : "Add photos") : (it ? "Aggiungi altre foto" : "Add more photos")}
+                  </Button>
+                </div>
               </div>
             ) : null}
             <Field>
@@ -454,6 +626,7 @@ export function AddToCollectionDialog({
           <DialogFooter className="mt-4">
             <DialogClose render={<Button type="button" variant="outline" />}>{it ? "Annulla" : "Cancel"}</DialogClose>
             <Button type="submit" disabled={pending || !condition}>
+              {pending ? <Loader2 className="animate-spin" /> : null}
               {pending ? (it ? "Aggiunta…" : "Adding…") : it ? "Aggiungi alla collezione" : "Add to collection"}
             </Button>
           </DialogFooter>
