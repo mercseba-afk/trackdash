@@ -128,7 +128,7 @@ export function SupportScreen({
             <Field>
               <FieldLabel>{it ? "Categoria" : "Category"}</FieldLabel>
               <Select value={category} onValueChange={(value) => setCategory(value as SupportCategory)}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue>{(value: SupportCategory) => categoryLabel(value, it)}</SelectValue></SelectTrigger>
                 <SelectContent>
                   {CATEGORY_VALUES.map((value) => <SelectItem key={value} value={value}>{categoryLabel(value, it)}</SelectItem>)}
                 </SelectContent>

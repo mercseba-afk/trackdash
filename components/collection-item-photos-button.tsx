@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Camera } from "lucide-react"
+import Link from "next/link"
+import { Camera, FilePenLine } from "lucide-react"
 import { CollectionItemPhotoGallery } from "@/components/collection-item-photo-gallery"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -20,7 +21,17 @@ export function CollectionItemPhotosButton({
   const [count, setCount] = React.useState(initialCount)
 
   return (
-    <>
+    <div className="flex flex-wrap items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1.5 px-2 text-xs text-muted-foreground"
+        render={<Link href={`/collection/${collectionItemId}`} />}
+      >
+        <FilePenLine className="size-3.5" />
+        <span>{it ? "Scheda copia" : "Copy details"}</span>
+      </Button>
       <Button
         type="button"
         variant="ghost"
@@ -41,6 +52,6 @@ export function CollectionItemPhotosButton({
           {open ? <CollectionItemPhotoGallery collectionItemId={collectionItemId} onCountChange={setCount} /> : null}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }

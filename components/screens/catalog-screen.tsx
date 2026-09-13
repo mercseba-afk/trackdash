@@ -44,14 +44,7 @@ export function CatalogScreen({ products }: { products: Product[] }) {
     let items = products.filter((p) => {
       if (chassis !== "all" && p.chassis !== chassis) return false
       if (series !== "all" && p.series !== series) return false
-
-      if (
-        rarity !== "all" &&
-        !p.releases.some((release) => release.rarity === rarity)
-      ) {
-        return false
-      }
-
+      if (rarity !== "all" && !p.releases.some((release) => release.rarity === rarity)) return false
       if (ownedOnly && !isInCollection(p.id)) return false
       if (q) {
         const itemNumbers = p.releases.map((r) => r.itemNumber ?? "").join(" ")
@@ -64,18 +57,20 @@ export function CatalogScreen({ products }: { products: Product[] }) {
 
     items = items.sort((a, b) => {
       switch (sort) {
-        case "name":
-          return a.name.localeCompare(b.name)
-        case "year-desc":
-          return (b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)
-        case "year-asc":
-          return (a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)
+        case "name": return a.name.localeCompare(b.name)
+        case "year-desc": return (b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)
+        case "year-asc": return (a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)
       }
     })
     return items
   }, [products, query, chassis, series, rarity, sort, ownedOnly, isInCollection])
 
   const hasFilters = chassis !== "all" || series !== "all" || rarity !== "all" || ownedOnly || query.trim()
+  const sortLabel = (value: SortKey) => value === "year-desc"
+    ? (it ? "Più recenti" : "Newest")
+    : value === "year-asc"
+      ? (it ? "Più vecchi" : "Oldest")
+      : (it ? "Nome A–Z" : "Name A–Z")
 
   function reset() {
     setQuery("")
@@ -90,52 +85,31 @@ export function CatalogScreen({ products }: { products: Product[] }) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t("catalog.title")}</h1>
         <p className="text-sm text-muted-foreground">
-          {it
-            ? `${products.length} modelli nel database. Cerca, filtra e aggiungi alla collezione.`
-            : `${products.length} models in the database. Search, filter and add to your collection.`}
+          {it ? `${products.length} modelli nel database. Cerca, filtra e aggiungi alla collezione.` : `${products.length} models in the database. Search, filter and add to your collection.`}
         </p>
       </div>
 
       <div className="flex flex-col gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("catalog.search")}
-            className="h-10 pl-9"
-            aria-label={it ? "Cerca nel catalogo" : "Search catalog"}
-          />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("catalog.search")} className="h-10 pl-9" aria-label={it ? "Cerca nel catalogo" : "Search catalog"} />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <SlidersHorizontal className="size-4 text-muted-foreground" />
           <FilterSelect value={chassis} onChange={setChassis} placeholder="Chassis" options={chassisOptions} allLabel={t("catalog.allChassis")} />
           <FilterSelect value={series} onChange={setSeries} placeholder={it ? "Serie" : "Series"} options={seriesOptions} allLabel={t("catalog.allSeries")} />
-          <FilterSelect
-            value={rarity}
-            onChange={setRarity}
-            placeholder={it ? "Rarità release" : "Release rarity"}
-            options={["Common", "Uncommon", "Rare", "Very Rare", "Grail"]}
-            optionLabels={it ? { Common: "Comune", Uncommon: "Non comune", Rare: "Rara", "Very Rare": "Molto rara", Grail: "Grail" } : undefined}
-            allLabel={t("catalog.allRarity")}
-          />
-          <Button variant={ownedOnly ? "default" : "outline"} size="sm" onClick={() => setOwnedOnly((v) => !v)}>
-            <Check /> {it ? "Posseduti" : "Owned"}
-          </Button>
-          {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={reset}>
-              <X /> {it ? "Azzera" : "Clear"}
-            </Button>
-          )}
+          <FilterSelect value={rarity} onChange={setRarity} placeholder={it ? "Rarità release" : "Release rarity"} options={["Common", "Uncommon", "Rare", "Very Rare", "Grail"]} optionLabels={it ? { Common: "Comune", Uncommon: "Non comune", Rare: "Rara", "Very Rare": "Molto rara", Grail: "Grail" } : undefined} allLabel={t("catalog.allRarity")} />
+          <Button variant={ownedOnly ? "default" : "outline"} size="sm" onClick={() => setOwnedOnly((v) => !v)}><Check /> {it ? "Posseduti" : "Owned"}</Button>
+          {hasFilters && <Button variant="ghost" size="sm" onClick={reset}><X /> {it ? "Azzera" : "Clear"}</Button>}
 
           <div className="ml-auto flex items-center gap-2">
             <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-              <SelectTrigger size="sm" className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger size="sm" className="w-40"><SelectValue>{(value: SortKey) => sortLabel(value)}</SelectValue></SelectTrigger>
               <SelectContent>
-                <SelectItem value="year-desc">{it ? "Più recenti" : "Newest"}</SelectItem>
-                <SelectItem value="year-asc">{it ? "Più vecchi" : "Oldest"}</SelectItem>
-                <SelectItem value="name">{it ? "Nome A–Z" : "Name A–Z"}</SelectItem>
+                <SelectItem value="year-desc">{sortLabel("year-desc")}</SelectItem>
+                <SelectItem value="year-asc">{sortLabel("year-asc")}</SelectItem>
+                <SelectItem value="name">{sortLabel("name")}</SelectItem>
               </SelectContent>
             </Select>
             <ToggleGroup value={[view]} onValueChange={(v) => v[0] && setView(v[0] as View)} className="hidden sm:flex">
@@ -144,9 +118,7 @@ export function CatalogScreen({ products }: { products: Product[] }) {
             </ToggleGroup>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{results.length} {it ? (results.length === 1 ? "risultato" : "risultati") : (results.length === 1 ? "result" : "results")}</span>
-        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground"><span>{results.length} {it ? (results.length === 1 ? "risultato" : "risultati") : (results.length === 1 ? "result" : "results")}</span></div>
       </div>
 
       {results.length === 0 ? (
@@ -154,69 +126,36 @@ export function CatalogScreen({ products }: { products: Product[] }) {
           <EmptyHeader>
             <EmptyMedia variant="icon"><Search /></EmptyMedia>
             {products.length === 0 ? (
-              <>
-                <EmptyTitle>{it ? "Catalogo non disponibile" : "Catalog unavailable"}</EmptyTitle>
-                <EmptyDescription>{it ? "Impossibile caricare il catalogo. Controlla la connessione e riprova." : "Couldn't load the catalog right now. Check your connection and try again."}</EmptyDescription>
-              </>
+              <><EmptyTitle>{it ? "Catalogo non disponibile" : "Catalog unavailable"}</EmptyTitle><EmptyDescription>{it ? "Impossibile caricare il catalogo. Controlla la connessione e riprova." : "Couldn't load the catalog right now. Check your connection and try again."}</EmptyDescription></>
             ) : (
-              <>
-                <EmptyTitle>{t("catalog.noResults")}</EmptyTitle>
-                <EmptyDescription>{t("catalog.noResultsDesc")}</EmptyDescription>
-              </>
+              <><EmptyTitle>{t("catalog.noResults")}</EmptyTitle><EmptyDescription>{t("catalog.noResultsDesc")}</EmptyDescription></>
             )}
           </EmptyHeader>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {hasFilters && <Button variant="outline" onClick={reset}>{t("catalog.clear")}</Button>}
             {products.length > 0 && query.trim() ? (
-              <Button
-                variant="ghost"
-                render={<Link href={`/support?category=model_release_request&query=${encodeURIComponent(query.trim())}`} />}
-              >
-                <PackageSearch /> {it ? "Non trovi il modello? Richiedine l'inserimento" : "Can't find it? Request this model"}
-              </Button>
+              <Button variant="ghost" render={<Link href={`/support?category=model_release_request&query=${encodeURIComponent(query.trim())}`} />}><PackageSearch /> {it ? "Non trovi il modello? Richiedine l'inserimento" : "Can't find it? Request this model"}</Button>
             ) : null}
           </div>
         </Empty>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {results.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{results.map((p) => <ProductCard key={p.id} product={p} />)}</div>
       ) : (
         <div className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border">
           {results.map((p) => {
             const owned = isInCollection(p.id)
             const wished = isInWishlist(p.id)
             const primary = primaryRelease(p)
-
             return (
               <div key={p.id} className="flex items-center gap-3 bg-card p-2.5">
-                <Link href={`/catalog/${p.id}`}>
-                  <ProductImage product={p} release={primary} size="sm" className="h-12 w-16 shrink-0" />
-                </Link>
+                <Link href={`/catalog/${p.id}`}><ProductImage product={p} release={primary} size="sm" className="h-12 w-16 shrink-0" /></Link>
                 <Link href={`/catalog/${p.id}`} className="min-w-0 flex-1">
-                  <div className="flex items-start gap-2">
-                    <p className="line-clamp-2 text-sm font-medium leading-tight hover:text-brand">{p.name}</p>
-                    {owned && <Check className="mt-0.5 size-3.5 shrink-0 text-success" />}
-                    {p.hasMultipleReleases && (
-                      <Badge variant="outline" className="shrink-0 text-[10px]">{p.releases.length} {it ? "release" : "releases"}</Badge>
-                    )}
-                  </div>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {primary.itemNumber ? `#${primary.itemNumber}` : "—"} · {p.chassis ?? "—"} · orig. {p.originalReleaseYear ?? "—"}
-                  </p>
+                  <div className="flex items-start gap-2"><p className="line-clamp-2 text-sm font-medium leading-tight hover:text-brand">{p.name}</p>{owned && <Check className="mt-0.5 size-3.5 shrink-0 text-success" />}{p.hasMultipleReleases && <Badge variant="outline" className="shrink-0 text-[10px]">{p.releases.length} {it ? "release" : "releases"}</Badge>}</div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{primary.itemNumber ? `#${primary.itemNumber}` : "—"} · {p.chassis ?? "—"} · orig. {p.originalReleaseYear ?? "—"}</p>
                 </Link>
-
                 <div className="flex items-center gap-1">
-                  <AddToWishlistDialog product={p}>
-                    <Button variant="outline" size="icon-sm" aria-label={t("product.wishlist")} className={cn(wished && "border-brand text-brand")}>
-                      <Heart className={cn(wished && "fill-brand")} />
-                    </Button>
-                  </AddToWishlistDialog>
-                  <AddToCollectionDialog product={p}>
-                    <Button size="icon-sm" aria-label={it ? "Aggiungi" : "Add"}><Check /></Button>
-                  </AddToCollectionDialog>
+                  <AddToWishlistDialog product={p}><Button variant="outline" size="icon-sm" aria-label={t("product.wishlist")} className={cn(wished && "border-brand text-brand")}><Heart className={cn(wished && "fill-brand")} /></Button></AddToWishlistDialog>
+                  <AddToCollectionDialog product={p}><Button size="icon-sm" aria-label={it ? "Aggiungi" : "Add"}><Check /></Button></AddToCollectionDialog>
                 </div>
               </div>
             )
@@ -227,29 +166,16 @@ export function CatalogScreen({ products }: { products: Product[] }) {
   )
 }
 
-function FilterSelect({
-  value,
-  onChange,
-  placeholder,
-  options,
-  optionLabels,
-  allLabel,
-}: {
-  value: string
-  onChange: (v: string) => void
-  placeholder: string
-  options: readonly string[]
-  optionLabels?: Readonly<Record<string, string>>
-  allLabel: string
-}) {
+function FilterSelect({ value, onChange, placeholder, options, optionLabels, allLabel }: { value: string; onChange: (v: string) => void; placeholder: string; options: readonly string[]; optionLabels?: Readonly<Record<string, string>>; allLabel: string }) {
+  const labelFor = (selected: string) => selected === "all" ? allLabel : (optionLabels?.[selected] ?? selected)
   return (
     <Select value={value} onValueChange={(v) => onChange(v as string)}>
       <SelectTrigger size="sm" className={cn(value !== "all" && "border-brand/50 text-brand")} aria-label={placeholder}>
-        <SelectValue />
+        <SelectValue>{(selected: string) => labelFor(selected)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">{allLabel}</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o}>{optionLabels?.[o] ?? o}</SelectItem>)}
+        {options.map((option) => <SelectItem key={option} value={option}>{labelFor(option)}</SelectItem>)}
       </SelectContent>
     </Select>
   )

@@ -62,25 +62,66 @@ export function resolveRelease(product: Product, releaseId?: string): ProductRel
   return primaryRelease(product)
 }
 
+function normalizeScannerCode(value: string) {
+  return value.trim().replace(/[\s-]+/g, "").toLowerCase()
+}
+
+function isValidEan13(value: string) {
+  if (!/^\d{13}$/.test(value)) return false
+  const digits = [...value].map(Number)
+  const checksumBase = digits.slice(0, 12).reduce(
+    (sum, digit, index) => sum + digit * (index % 2 === 0 ? 1 : 3),
+    0,
+  )
+  return (10 - (checksumBase % 10)) % 10 === digits[12]
+}
+
+/**
+ * Tamiya's standard JAN/EAN-13 for many kits is 4950344 + the five-digit
+ * item number + the EAN check digit. We only use this as a conservative
+ * fallback after an explicit barcodeJAN match and only when checksum/prefix
+ * are both valid, so an arbitrary barcode can never be mistaken for an item.
+ */
+export function tamiyaItemNumberFromJan(value: string): string | undefined {
+  const normalized = normalizeScannerCode(value)
+  if (!isValidEan13(normalized) || !normalized.startsWith("4950344")) return undefined
+  return normalized.slice(7, 12)
+}
+
 export function findByCode(query: string): { product: Product; release?: ProductRelease } | undefined {
-  const q = query.trim().toLowerCase()
+  const q = normalizeScannerCode(query)
   if (!q) return undefined
 
   // Scanner identity priority is deliberately global, not product-by-product:
-  // 1) exact release item/JAN, 2) canonical product item, 3) legacy productCode.
+  // 1) exact release item/JAN, 2) conservative Tamiya JAN derivation,
+  // 3) canonical product item, 4) legacy productCode.
   // A legacy productCode must never steal a real Tamiya release item number from
   // a different product (e.g. Avante Mk.II productCode 95110 vs Emperor release 95110).
   for (const product of PRODUCTS) {
     const releaseHit = product.releases.find(
-      (r) => r.itemNumber?.toLowerCase() === q || r.barcodeJAN?.toLowerCase() === q,
+      (r) => normalizeScannerCode(r.itemNumber ?? "") === q || normalizeScannerCode(r.barcodeJAN ?? "") === q,
     )
     if (releaseHit) return { product, release: releaseHit }
   }
 
-  const productByItem = PRODUCTS.find((product) => product.itemNumber?.toLowerCase() === q)
+  const derivedTamiyaItem = tamiyaItemNumberFromJan(q)
+  if (derivedTamiyaItem) {
+    for (const product of PRODUCTS) {
+      const releaseHit = product.releases.find(
+        (release) => normalizeScannerCode(release.itemNumber ?? "") === derivedTamiyaItem,
+      )
+      if (releaseHit) return { product, release: releaseHit }
+    }
+  }
+
+  const productByItem = PRODUCTS.find(
+    (product) => normalizeScannerCode(product.itemNumber ?? "") === q,
+  )
   if (productByItem) return { product: productByItem }
 
-  const productByLegacyCode = PRODUCTS.find((product) => product.productCode?.toLowerCase() === q)
+  const productByLegacyCode = PRODUCTS.find(
+    (product) => normalizeScannerCode(product.productCode ?? "") === q,
+  )
   if (productByLegacyCode) return { product: productByLegacyCode }
 
   return undefined
