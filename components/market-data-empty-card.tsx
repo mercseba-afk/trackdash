@@ -17,15 +17,16 @@ export function MarketDataEmptyCard({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title ?? (it ? "Valore attuale stimato" : "Estimated current value")}
+          {title ?? (it ? "Valore di mercato" : "Market value")}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        <p className="text-xl font-semibold">{it ? "Valore in elaborazione" : "Value being calculated"}</p>
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <p className="text-xl font-semibold">{it ? "Mercato raro" : "Thin market"}</p>
+        <p className="text-sm text-muted-foreground">{it ? "Valore non ancora disponibile" : "Market value not available yet"}</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Stiamo raccogliendo abbastanza dati reali per pubblicare valore e andamento di questa release."
-            : "We are gathering enough real market data to publish this release's value and movement."}
+            ? "Ne possiedi una? Puoi metterla in vendita dalla tua collezione."
+            : "Own one? You can list it for sale from your collection."}
         </p>
       </CardContent>
     </Card>
