@@ -34,7 +34,7 @@ select src.id,'tamiya:18038:2007-current',null,'tamiya_shop_public','18038-2007-
        '18038',array[rel.id]::uuid[],rel.id,
        990,'JPY',null,'unknown','retail_in_stock','新品',
        'new_complete_unbuilt','unknown','unknown',true,false,1,
-       'exact',array['item_number_exact','release_year_stated','official_reference_match','current_store_availability'],
+       'exact',array['item_number_exact','release_year_stated','official_reference_match'],
        'tamiya_tokyo','18038|tamiya|2007',now(),'accepted','{}'::text[],
        'Official Tamiya 18038 page identifies the 2007-09-01 release and currently states Tamiya Tokyo handling. One current retailer is insufficient to publish Market Value.',
        false,
@@ -107,7 +107,7 @@ select src.id,'akiba:95335:2017-current',null,'akiba_hobby_public','95335-2017-c
        '95335',array[rel.id]::uuid[],rel.id,
        159000,'IDR',null,'unknown','retail_in_stock','New',
        'new_complete_unbuilt','unknown','unknown',true,false,1,
-       'exact',array['item_number_exact','edition_name_exact','add_to_cart_available'],
+       'exact',array['item_number_exact','edition_name_exact'],
        'akiba_hobby','95335|akiba|2017',now(),'accepted','{}'::text[],
        'Akiba Hobby product list showed exact 95335 at IDR 159000 with Add to cart on 2026-09-13. One current retailer is insufficient to publish Market Value.',
        false,
@@ -159,8 +159,7 @@ join public.market_candidates mc on mc.id=mos.candidate_id
 where mc.source_record_key='akiba:95335:2017-current'
   and not exists(select 1 from public.market_offer_history h where h.offer_state_id=mos.id);
 
--- Publish current evidence without inventing a current Market Value.
--- A single retail source is visible as the buyable floor but fails the v2 headline gate.
+-- A single retailer stays visible as current evidence but fails the v2 headline gate.
 insert into public.market_release_signals (
   release_id,condition,market_regime,market_value_eur,low_eur,high_eur,
   confidence_score,confidence_label,retail_anchor_eur,active_anchor_eur,sold_anchor_eur,
