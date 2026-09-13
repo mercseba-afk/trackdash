@@ -1,4 +1,5 @@
 import { AppPage } from "@/components/app-page"
+import { CatalogAreaNav } from "@/components/catalog-area-nav"
 import { CatalogScreen } from "@/components/screens/catalog-screen"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import type { Product } from "@/lib/types"
@@ -34,7 +35,10 @@ export default async function CatalogPage() {
 
   return (
     <AppPage>
-      <CatalogScreen products={products} />
+      <div className="flex flex-col gap-5">
+        <CatalogAreaNav />
+        <CatalogScreen products={products} />
+      </div>
     </AppPage>
   )
 }
