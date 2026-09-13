@@ -9,7 +9,6 @@ import {
   Boxes,
   Heart,
   ScanLine,
-  TrendingUp,
   MessageCircle,
   Moon,
   Sun,
@@ -42,14 +41,13 @@ const NAV = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/catalog", labelKey: "nav.catalog", icon: LibraryBig },
   { href: "/collection", labelKey: "nav.collection", icon: Boxes },
-  { href: "/wishlist", labelKey: "nav.wishlist", icon: Heart },
-  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
   { href: "/scanner", labelKey: "nav.scanner", icon: ScanLine },
-  { href: "/market", labelKey: "nav.market", icon: TrendingUp },
+  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
 ]
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/"
+  if (href === "/catalog" && (pathname === "/market" || pathname.startsWith("/market/"))) return true
   return pathname === href || pathname.startsWith(href + "/")
 }
 
@@ -124,6 +122,10 @@ function UserMenu() {
           <a href="/profile" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <UserIcon />
             {t("menu.profile")}
+          </a>
+          <a href="/wishlist" className={ACCOUNT_LINK_CLASS} role="menuitem">
+            <Heart />
+            {t("nav.wishlist")}
           </a>
           <a href="/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <Settings />
