@@ -20,11 +20,11 @@ export function BrandMark({
 
   const sizeClass = showText ? "h-12" : "h-10 translate-y-[2px]"
   const dark = tone === "invert" || (mounted && resolvedTheme === "dark")
-  const src = dark ? "/brand/trackdash-logo-dark.webp" : "/brand/trackdash-logo-light.webp"
+  const src = dark ? "/brand/trackdash-logo-dark.jpg" : "/brand/trackdash-logo-light.jpg"
 
   return (
     <span className={cn("inline-flex items-center", className)}>
-      <img src={src} alt="TrackDash" className={cn(sizeClass, "w-auto object-contain")} />
+      <img src={src} alt="TrackDash" className={cn(sizeClass, "w-auto rounded-[22%] object-contain")} />
     </span>
   )
 }
