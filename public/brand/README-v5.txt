@@ -1,0 +1,1 @@
+TrackDash Version B car is served by /brand-car-v5 as a binary WebP route to avoid nested SVG/data-URI rendering issues in browsers and PWAs.
