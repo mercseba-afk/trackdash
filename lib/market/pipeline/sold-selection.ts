@@ -1,7 +1,7 @@
-import { canFeedCurrentSoldAnchor } from "../automation/policy"
 import type { SoldMarketEvidence } from "./market-model"
 
 const DAY_MS = 86_400_000
+const CURRENT_SOLD_MAX_AGE_DAYS = 365
 
 function dateMs(value: string): number {
   const parsed = Date.parse(`${value}T00:00:00Z`)
@@ -11,6 +11,12 @@ function dateMs(value: string): number {
 
 function ageDays(date: string, asOfDate: string): number {
   return Math.max(0, (dateMs(asOfDate) - dateMs(date)) / DAY_MS)
+}
+
+function canFeedCurrentSoldAnchor(evidence: SoldMarketEvidence, asOfDate: string): boolean {
+  if (evidence.grain === "full_history") return false
+  if (ageDays(evidence.periodEnd, asOfDate) > CURRENT_SOLD_MAX_AGE_DAYS) return false
+  return evidence.salesCount > 0 && evidence.averagePriceEUR > 0
 }
 
 function spanDays(row: SoldMarketEvidence): number {
