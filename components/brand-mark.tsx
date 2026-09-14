@@ -18,9 +18,13 @@ export function BrandMark({
 
   React.useEffect(() => setMounted(true), [])
 
-  const sizeClass = showText ? "w-[184px]" : "w-[154px]"
   const dark = tone === "invert" || (mounted && resolvedTheme === "dark")
-  const src = dark ? "/brand/trackdash-logo-dark-v2.webp" : "/brand/trackdash-logo-light-v2.webp"
+  const src = showText
+    ? dark
+      ? "/brand/trackdash-logo-dark-v2.svg"
+      : "/brand/trackdash-logo-light-v2.svg"
+    : "/pwa/icon-v2.svg"
+  const sizeClass = showText ? "w-[184px]" : "w-[54px]"
 
   return (
     <span className={cn("inline-flex items-center", className)}>
