@@ -1,4 +1,4 @@
-const CACHE_VERSION = "trackdash-shell-v2"
+const CACHE_VERSION = "trackdash-shell-v3"
 
 self.addEventListener("install", () => {
   self.skipWaiting()
