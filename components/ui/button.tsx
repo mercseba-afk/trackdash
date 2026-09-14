@@ -8,13 +8,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default: "bg-primary text-primary-foreground hover:bg-primary/85 hover:shadow-sm hover:shadow-primary/20",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border bg-background hover:border-brand/30 hover:bg-brand-muted hover:text-brand aria-expanded:border-brand/30 aria-expanded:bg-brand-muted aria-expanded:text-brand dark:border-input dark:bg-input/20 dark:hover:bg-brand/15",
         secondary:
           "bg-brand-yellow/10 text-foreground hover:bg-brand-yellow/20 aria-expanded:bg-brand-yellow/15 aria-expanded:text-foreground dark:bg-brand-yellow/12 dark:hover:bg-brand-yellow/20",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "hover:bg-brand/10 hover:text-brand aria-expanded:bg-brand/10 aria-expanded:text-brand dark:hover:bg-brand/15",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
@@ -48,8 +48,6 @@ function Button({
   nativeButton,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
-  // When rendering as a custom element (e.g. a Next.js <Link> anchor), Base UI
-  // needs to know it is no longer a native <button> to keep semantics correct.
   const resolvedNativeButton = render != null ? (nativeButton ?? false) : nativeButton
   return (
     <ButtonPrimitive
