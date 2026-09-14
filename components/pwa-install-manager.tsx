@@ -80,6 +80,7 @@ export function PwaInstallManager() {
     window.addEventListener("trackdash:pwa-request-install", onRequest)
 
     if (isStandalone()) onInstalled()
+    else localStorage.removeItem("trackdash.pwa.installed")
 
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstall)
@@ -108,9 +109,9 @@ export function PwaInstallManager() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{it ? "Installa TrackDash" : "Install TrackDash"}</DialogTitle>
-            <DialogDescription>{it ? "Il browser non ha ancora reso disponibile il prompt automatico." : "The browser has not made the automatic install prompt available yet."}</DialogDescription>
+            <DialogDescription>{it ? "TrackDash è installabile, ma Chrome non ha ancora esposto il pulsante automatico in questa scheda." : "TrackDash is installable, but Chrome has not exposed the automatic install prompt in this tab yet."}</DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">{it ? "Apri il menu del browser e scegli “Installa app” o “Aggiungi alla schermata Home”. Se l'opzione non compare, usa TrackDash ancora qualche volta e riprova." : "Open your browser menu and choose “Install app” or “Add to Home Screen”. If it is not available yet, use TrackDash a little longer and try again."}</p>
+          <p className="text-sm text-muted-foreground">{it ? "Apri il menu ⋮ di Chrome e scegli “Installa app”. Se la voce non compare, ricarica questa pagina una volta: con il manifest aggiornato il prompt dovrebbe tornare disponibile." : "Open Chrome's ⋮ menu and choose “Install app”. If the option is missing, reload this page once: with the updated manifest the prompt should become available again."}</p>
           <DialogFooter><DialogClose render={<Button>{it ? "Chiudi" : "Close"}</Button>} /></DialogFooter>
         </DialogContent>
       </Dialog>
