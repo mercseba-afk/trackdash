@@ -38,9 +38,10 @@
 // components/screens/update-password-screen.tsx for how each handles a
 // missing/invalid recovery state).
 //
-// PWA bootstrap resources and the build-version probe are also ungated.
-// Browsers must be able to fetch the web manifest, service worker and
-// current deployment version before/without an authenticated app page.
+// PWA bootstrap resources, brand assets and the build-version probe are
+// also ungated. Browsers must be able to fetch the web manifest, service
+// worker, public brand artwork and current deployment version before/
+// without an authenticated app page.
 const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password"]
 const UNGATED_PREFIXES = [
   "/api/dev",
@@ -49,6 +50,7 @@ const UNGATED_PREFIXES = [
   "/update-password",
   "/manifest.webmanifest",
   "/sw.js",
+  "/brand-car-v5",
 ]
 
 import { type NextRequest, NextResponse } from "next/server"
