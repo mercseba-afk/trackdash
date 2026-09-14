@@ -18,7 +18,7 @@ export function BrandMark({
     return (
       <span className={cn("inline-flex items-center", className)}>
         <img
-          src="/brand/trackdash-car-b-v4.svg"
+          src="/brand-car-v5"
           alt="TrackDash"
           className="h-[42px] w-auto object-contain"
         />
@@ -29,7 +29,7 @@ export function BrandMark({
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <img
-        src="/brand/trackdash-car-b-v4.svg"
+        src="/brand-car-v5"
         alt=""
         aria-hidden="true"
         className="h-[38px] w-auto shrink-0 object-contain sm:h-[42px]"
