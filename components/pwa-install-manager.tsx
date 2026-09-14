@@ -17,6 +17,9 @@ declare global {
   interface WindowEventMap {
     "beforeinstallprompt": BeforeInstallPromptEvent
   }
+  interface Window {
+    __trackdashInstallPrompt?: BeforeInstallPromptEvent | null
+  }
   interface Navigator {
     standalone?: boolean
   }
@@ -44,14 +47,21 @@ export function PwaInstallManager() {
       void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {})
     }
 
+    if (window.__trackdashInstallPrompt) {
+      deferredPrompt.current = window.__trackdashInstallPrompt
+      window.dispatchEvent(new Event("trackdash:pwa-available"))
+    }
+
     const onBeforeInstall = (event: BeforeInstallPromptEvent) => {
       event.preventDefault()
       deferredPrompt.current = event
+      window.__trackdashInstallPrompt = event
       window.dispatchEvent(new Event("trackdash:pwa-available"))
     }
 
     const onInstalled = () => {
       deferredPrompt.current = null
+      window.__trackdashInstallPrompt = null
       localStorage.setItem("trackdash.pwa.installed", "1")
       window.dispatchEvent(new Event("trackdash:pwa-installed"))
     }
@@ -62,12 +72,13 @@ export function PwaInstallManager() {
         return
       }
 
-      if (deferredPrompt.current) {
-        const prompt = deferredPrompt.current
-        await prompt.prompt()
-        const choice = await prompt.userChoice
+      const storedPrompt = deferredPrompt.current ?? window.__trackdashInstallPrompt ?? null
+      if (storedPrompt) {
+        await storedPrompt.prompt()
+        const choice = await storedPrompt.userChoice
         if (choice.outcome === "accepted") onInstalled()
         deferredPrompt.current = null
+        window.__trackdashInstallPrompt = null
         return
       }
 
@@ -109,9 +120,9 @@ export function PwaInstallManager() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{it ? "Installa TrackDash" : "Install TrackDash"}</DialogTitle>
-            <DialogDescription>{it ? "TrackDash è installabile, ma Chrome non ha ancora esposto il pulsante automatico in questa scheda." : "TrackDash is installable, but Chrome has not exposed the automatic install prompt in this tab yet."}</DialogDescription>
+            <DialogDescription>{it ? "Chrome non ha ancora reso disponibile il prompt di installazione in questa scheda." : "Chrome has not made the install prompt available in this tab yet."}</DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">{it ? "Apri il menu ⋮ di Chrome e scegli “Installa app”. Se la voce non compare, ricarica questa pagina una volta: con il manifest aggiornato il prompt dovrebbe tornare disponibile." : "Open Chrome's ⋮ menu and choose “Install app”. If the option is missing, reload this page once: with the updated manifest the prompt should become available again."}</p>
+          <p className="text-sm text-muted-foreground">{it ? "Dopo una cancellazione dei dati del sito, Chrome può richiedere una nuova interazione e un breve tempo di utilizzo prima di proporre l'installazione. Resta sulla pagina per circa 30 secondi, interagisci con TrackDash e riprova. Non cancellare di nuovo i dati del sito." : "After site data is cleared, Chrome may require fresh interaction and a short period of use before offering installation. Stay on the page for about 30 seconds, interact with TrackDash, and try again. Do not clear the site data again."}</p>
           <DialogFooter><DialogClose render={<Button>{it ? "Chiudi" : "Close"}</Button>} /></DialogFooter>
         </DialogContent>
       </Dialog>
