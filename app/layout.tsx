@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
 import { cookies } from "next/headers"
 import { Geist, Geist_Mono } from "next/font/google"
+import Script from "next/script"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { I18nBootstrap } from "@/components/i18n-bootstrap"
@@ -66,6 +67,14 @@ export default async function RootLayout({
   return (
     <html lang={initialLocale} suppressHydrationWarning className="bg-background">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+        <Script id="trackdash-pwa-install-capture" strategy="beforeInteractive">{`
+          window.__trackdashInstallPrompt = null;
+          window.addEventListener("beforeinstallprompt", function (event) {
+            event.preventDefault();
+            window.__trackdashInstallPrompt = event;
+            window.dispatchEvent(new Event("trackdash:pwa-available"));
+          });
+        `}</Script>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <StoreProvider>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
