@@ -1,5 +1,6 @@
 import "server-only"
 
+import { unstable_cache } from "next/cache"
 import {
   getMarketSignalForRelease,
   listMarketSignals,
@@ -11,6 +12,12 @@ import type {
   ReleaseMarketSignalMap,
   ReleaseMarketSignalView,
 } from "@/lib/market/view-types"
+
+const listCachedPublicMarketSignals = unstable_cache(
+  async () => listMarketSignals(),
+  ["trackdash-public-market-signals-v1"],
+  { revalidate: 60 },
+)
 
 function numberOrNull(value: string | number | null | undefined): number | null {
   if (value == null) return null
@@ -74,7 +81,14 @@ export async function getPublicMarketSignalForRelease(
 export async function getPublicMarketSignalMap(
   releaseIds?: string[],
 ): Promise<ReleaseMarketSignalMap> {
-  const rows = await listMarketSignals(releaseIds)
+  // The full public map is identical for every visitor and is requested by
+  // the root layout on first load. Keep that bootstrap hot for one minute
+  // instead of paying a database round trip on every fresh dashboard load.
+  // Targeted release lookups remain uncached so exact-detail requests stay
+  // immediately current.
+  const rows = releaseIds?.length
+    ? await listMarketSignals(releaseIds)
+    : await listCachedPublicMarketSignals()
   const result: ReleaseMarketSignalMap = {}
 
   for (const row of rows) {
