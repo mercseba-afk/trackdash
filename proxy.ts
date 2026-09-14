@@ -21,6 +21,10 @@
 // rule below would prevent it from ever reporting on if it were treated
 // as a protected route). It has its own NODE_ENV guard for prod safety.
 //
+// /api/cron/* is also ungated by Supabase Auth because Vercel Cron is not a
+// browser session. Every cron handler must authenticate itself separately
+// (TrackDash market jobs require Authorization: Bearer <CRON_SECRET>).
+//
 // Forgot/reset password (Images Phase 2 + Auth pass): /forgot-password
 // behaves exactly like /login and /signup -- reachable when signed out,
 // bounced to / when already signed in.
@@ -46,6 +50,7 @@ const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password"]
 const UNGATED_PREFIXES = [
   "/api/dev",
   "/api/version",
+  "/api/cron",
   "/auth/callback",
   "/update-password",
   "/manifest.webmanifest",
