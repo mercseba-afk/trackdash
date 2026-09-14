@@ -106,8 +106,16 @@ export const marketScanRuns = pgTable(
   (table) => [
     index("idx_market_scan_runs_started").on(table.startedAt.desc()),
     check(
-      "market_scan_runs_status_check_v1",
-      sql`${table.status} in ('running', 'succeeded', 'partial', 'failed')`,
+      "market_scan_runs_status_check",
+      sql`${table.status} in ('running', 'completed', 'partial', 'failed')`,
+    ),
+    check(
+      "market_scan_runs_counts_check",
+      sql`${table.targetsAttempted} >= 0 and ${table.targetsSucceeded} >= 0 and ${table.candidatesFound} >= 0 and ${table.acceptedCount} >= 0 and ${table.reviewCount} >= 0 and ${table.rejectedCount} >= 0 and ${table.duplicateCount} >= 0 and ${table.valuationsChanged} >= 0 and ${table.trendsChanged} >= 0`,
+    ),
+    check(
+      "market_scan_runs_time_check",
+      sql`${table.finishedAt} is null or ${table.finishedAt} >= ${table.startedAt}`,
     ),
   ],
 ).enableRLS()
@@ -126,6 +134,23 @@ export const marketReviewDigests = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    unique("market_review_digests_period_kind_unique").on(table.periodStart, table.periodEnd, table.kind),
     index("idx_market_review_digests_period").on(table.periodEnd.desc()),
+    check(
+      "market_review_digests_kind_check",
+      sql`${table.kind} in ('weekly_review', 'scanner_failure')`,
+    ),
+    check(
+      "market_review_digests_status_check",
+      sql`${table.status} in ('pending', 'sent', 'failed')`,
+    ),
+    check(
+      "market_review_digests_period_check",
+      sql`${table.periodEnd} > ${table.periodStart}`,
+    ),
+    check(
+      "market_review_digests_sent_check",
+      sql`(${table.status} = 'sent' and ${table.sentAt} is not null) or ${table.status} <> 'sent'`,
+    ),
   ],
 ).enableRLS()
