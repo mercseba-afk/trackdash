@@ -83,20 +83,20 @@ ok("18614 shadow: liquid regular kit follows its recent sold window instead of t
   assert.equal(publishedFromSelected(selected).marketValueEUR, 14.71)
 })
 
-ok("94717 shadow: thin history remains the fallback when no qualified recent window exists", () => {
+ok("94717 shadow: broad historical average stays history when no qualified current window exists", () => {
   const selected = selectCurrentSoldEvidence({
     granular: [],
     aggregate: [aggregate({ id: "94717-history", price: 36.4, count: 2, start: "2023-09-10", end: "2025-11-19" })],
     asOfDate,
   })
-  assert.equal(selected[0].stableId, "94717-history")
-  assert.equal(publishedFromSelected(selected).marketValueEUR, 36.4)
+  assert.equal(selected.length, 0)
+  assert.equal(publishedFromSelected(selected).marketValueEUR, null)
 })
 
-ok("95000 shadow: one indicative completed sale remains evidence but cannot publish Market Value", () => {
+ok("95000 shadow: one recent indicative completed sale remains evidence but cannot publish Market Value", () => {
   const selected = selectCurrentSoldEvidence({
-    granular: [],
-    aggregate: [aggregate({ id: "95000-only", price: 29.66, count: 1, start: "2026-08-04", end: "2026-08-04" })],
+    granular: [aggregate({ id: "95000-only", price: 29.66, count: 1, start: "2026-08-04", end: "2026-08-04", grain: "event" })],
+    aggregate: [],
     asOfDate,
   })
   const published = publishedFromSelected(selected)

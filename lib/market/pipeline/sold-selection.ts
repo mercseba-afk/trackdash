@@ -1,6 +1,7 @@
 import type { SoldMarketEvidence } from "./market-model"
 
 const DAY_MS = 86_400_000
+const CURRENT_SOLD_MAX_AGE_DAYS = 365
 
 function dateMs(value: string): number {
   const parsed = Date.parse(`${value}T00:00:00Z`)
@@ -12,15 +13,14 @@ function ageDays(date: string, asOfDate: string): number {
   return Math.max(0, (dateMs(asOfDate) - dateMs(date)) / DAY_MS)
 }
 
-function spanDays(row: SoldMarketEvidence): number {
-  return Math.max(0, (dateMs(row.periodEnd) - dateMs(row.periodStart)) / DAY_MS)
+function canFeedCurrentSoldAnchor(evidence: SoldMarketEvidence, asOfDate: string): boolean {
+  if (evidence.grain === "full_history") return false
+  if (ageDays(evidence.periodEnd, asOfDate) > CURRENT_SOLD_MAX_AGE_DAYS) return false
+  return evidence.salesCount > 0 && evidence.averagePriceEUR > 0
 }
 
-function grainRank(grain: SoldMarketEvidence["grain"]): number {
-  if (grain === "rolling_window") return 2
-  if (grain === "full_history") return 1
-  if (grain === "monthly") return 0
-  return -1
+function spanDays(row: SoldMarketEvidence): number {
+  return Math.max(0, (dateMs(row.periodEnd) - dateMs(row.periodStart)) / DAY_MS)
 }
 
 function totalSales(rows: SoldMarketEvidence[]): number {
@@ -29,7 +29,12 @@ function totalSales(rows: SoldMarketEvidence[]): number {
 
 function chooseRollingWindow(rows: SoldMarketEvidence[], asOfDate: string): SoldMarketEvidence | null {
   const rolling = rows
-    .filter((row) => row.grain === "rolling_window" && row.salesCount >= 3 && ageDays(row.periodEnd, asOfDate) <= 365)
+    .filter(
+      (row) =>
+        row.grain === "rolling_window" &&
+        row.salesCount >= 3 &&
+        canFeedCurrentSoldAnchor(row, asOfDate),
+    )
     .sort((a, b) => {
       const dateCompare = b.periodEnd.localeCompare(a.periodEnd)
       if (dateCompare !== 0) return dateCompare
@@ -67,15 +72,22 @@ export function selectCurrentSoldEvidence(input: {
   const aggregateSources = new Set<string>()
 
   for (const [sourceId, rows] of bySource) {
-    const monthly = rows
-      .filter((row) => row.grain === "monthly")
+    const currentMonthly = rows
+      .filter(
+        (row) =>
+          row.grain === "monthly" &&
+          canFeedCurrentSoldAnchor(row, input.asOfDate),
+      )
       .sort((a, b) => a.periodEnd.localeCompare(b.periodEnd))
-    const latestMonthly = monthly[monthly.length - 1]
+    const latestMonthly = currentMonthly[currentMonthly.length - 1]
 
     if (latestMonthly && ageDays(latestMonthly.periodEnd, input.asOfDate) <= 180) {
-      const latestSix = monthly.slice(-6)
-      chosen.push(...(totalSales(latestSix) >= 3 ? latestSix : monthly.slice(-12)))
-      aggregateSources.add(sourceId)
+      const latestSix = currentMonthly.slice(-6)
+      const selected = totalSales(latestSix) >= 3 ? latestSix : currentMonthly.slice(-12)
+      if (selected.length) {
+        chosen.push(...selected)
+        aggregateSources.add(sourceId)
+      }
       continue
     }
 
@@ -86,29 +98,27 @@ export function selectCurrentSoldEvidence(input: {
       continue
     }
 
-    const broad = rows
-      .filter((row) => row.grain !== "monthly")
-      .sort((a, b) => {
-        const dateCompare = b.periodEnd.localeCompare(a.periodEnd)
-        if (dateCompare !== 0) return dateCompare
-        return grainRank(b.grain) - grainRank(a.grain)
-      })[0]
-
-    if (broad) {
-      chosen.push(broad)
-      aggregateSources.add(sourceId)
-      continue
-    }
-
+    // A current-but-thin monthly trace can remain evidence. Full-history and
+    // stale aggregate fallbacks stay stored for historical context only; they
+    // never become today's sold anchor merely because fresher evidence is absent.
     if (latestMonthly) {
-      chosen.push(...monthly.slice(-6))
-      aggregateSources.add(sourceId)
+      const selected = currentMonthly.slice(-6)
+      if (selected.length) {
+        chosen.push(...selected)
+        aggregateSources.add(sourceId)
+      }
     }
   }
 
   // Granular completed sales from sources without an aggregate summary remain
-  // first-class evidence. Future TrackDash adapters must group/cap same-account
-  // or same buyer/seller-pair activity before emitting rows here.
-  chosen.push(...input.granular.filter((row) => !aggregateSources.has(row.sourceId)))
+  // first-class evidence only while they are current. Old transactions remain
+  // in history and can support analytics, but cannot drag today's headline down.
+  chosen.push(
+    ...input.granular.filter(
+      (row) =>
+        !aggregateSources.has(row.sourceId) &&
+        canFeedCurrentSoldAnchor(row, input.asOfDate),
+    ),
+  )
   return chosen
 }
