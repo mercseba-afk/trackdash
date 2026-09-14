@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   applicationName: "TrackDash",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/pwa/icon-v4.png", type: "image/png", sizes: "512x512" }],
-    apple: [{ url: "/pwa/icon-v4.png", type: "image/png", sizes: "512x512" }],
+    icon: [{ url: "/pwa/icon-v5.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/pwa/icon-v5.png", type: "image/png", sizes: "512x512" }],
   },
   appleWebApp: {
     capable: true,
