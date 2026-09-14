@@ -3,6 +3,7 @@ import {
   isAutoPublishableSnapshot,
   parseExactRetailPage,
 } from "../lib/market/automation/exact-page-adapter.ts"
+import { guardAutomatedPrice } from "../lib/market/automation/price-guard.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -85,6 +86,41 @@ ok("random textual currency is not scraped as a price", () => {
   assert.equal(snapshot.price, null)
   assert.equal(snapshot.confidence, "none")
   assert.equal(isAutoPublishableSnapshot(snapshot), false)
+})
+
+ok("wild current low price is quarantined against independent evidence", () => {
+  const guard = guardAutomatedPrice({
+    priceEUR: 5,
+    availability: "in_stock",
+    independentReferenceEUR: [18, 20, 22],
+    previousSameSourceEUR: 19,
+    headlineConfidence: "medium",
+  })
+  assert.equal(guard.decision, "review")
+  assert.equal(guard.reasonCodes.includes("AUTOMATION_SOURCE_PRICE_JUMP"), true)
+  assert.equal(guard.reasonCodes.includes("AUTOMATION_CROSS_SOURCE_OUTLIER"), true)
+})
+
+ok("sold-out odd price remains context instead of being blocked as current valuation", () => {
+  const guard = guardAutomatedPrice({
+    priceEUR: 2,
+    availability: "out_of_stock",
+    independentReferenceEUR: [20, 22],
+    previousSameSourceEUR: 20,
+    headlineConfidence: "high",
+  })
+  assert.equal(guard.decision, "accept")
+})
+
+ok("reasonable current price passes the guard", () => {
+  const guard = guardAutomatedPrice({
+    priceEUR: 18,
+    availability: "in_stock",
+    independentReferenceEUR: [17, 19, 20],
+    previousSameSourceEUR: 18.5,
+    headlineConfidence: "medium",
+  })
+  assert.equal(guard.decision, "accept")
 })
 
 console.log(`${passed} passed, 0 failed`)
