@@ -24,7 +24,7 @@ export function BrandMark({
       ? "/brand/trackdash-logo-dark-v2.svg"
       : "/brand/trackdash-logo-light-v2.svg"
     : "/pwa/icon-v2.svg"
-  const sizeClass = showText ? "w-[184px]" : "w-[54px]"
+  const sizeClass = showText ? "w-[156px] sm:w-[184px]" : "w-[54px]"
 
   return (
     <span className={cn("inline-flex items-center", className)}>
