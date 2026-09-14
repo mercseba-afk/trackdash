@@ -1,42 +1,43 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { parseExactRetailPage } from "@/lib/market/automation/exact-page-adapter"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 30
+
+const PREVIEW_ENDPOINTS = {
+  "18074": {
+    editionName: "Dash-X1 Proto-Emperor Premium",
+    releaseYear: 2013,
+    source: "rcjaz_public",
+    url: "https://www.rcjaz.com/tamiya-18074-jr-dashx1-proto-emperor-premium-super-ii-chassis-p-90059083.html",
+  },
+  "94717": {
+    editionName: "Dyna-Hawk GX Super XX Special",
+    releaseYear: 2010,
+    source: "rcjaz_public",
+    url: "https://www.rcjaz.co.uk/94717-tamiya-jr-dyna-hawk-gx-super-xx-sp-chassis-p-90016890.html",
+  },
+  "95525": {
+    editionName: "Avante Mk.II Asia Challenge 2020 Special (Taiwan Final)",
+    releaseYear: 2020,
+    source: "rcjaz_public",
+    url: "https://www.rcjaz.co.uk/tamiya-95525-avante-mk-ii-asia-challenge-2020-special-ms-chassis-finals-in-taiwan-p-18352.html",
+  },
+} as const
 
 export async function GET(request: NextRequest) {
   if (process.env.VERCEL_ENV !== "preview") {
     return NextResponse.json({ error: "Not available outside preview" }, { status: 404 })
   }
 
-  const endpointId = request.nextUrl.searchParams.get("endpointId")
-  if (!endpointId || !/^[0-9a-f-]{36}$/i.test(endpointId)) {
-    return NextResponse.json({ error: "Valid endpointId required" }, { status: 400 })
-  }
-
-  const supabase = createAdminClient()
-  const { data: endpoint, error } = await supabase
-    .from("market_scan_endpoints")
-    .select("id,endpoint_url,exact_release_verified,enabled,release_id,price_sources!inner(slug),product_releases!inner(item_number,edition_name,release_year)")
-    .eq("id", endpointId)
-    .maybeSingle()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  if (!endpoint) return NextResponse.json({ error: "Endpoint not found" }, { status: 404 })
-
-  const release = endpoint.product_releases as unknown as {
-    item_number: string | null
-    edition_name: string
-    release_year: number | null
-  }
-  const source = endpoint.price_sources as unknown as { slug: string }
-  if (!endpoint.enabled || !endpoint.exact_release_verified || !release.item_number) {
-    return NextResponse.json({ error: "Endpoint is not exact-release executable" }, { status: 409 })
+  const itemNumber = request.nextUrl.searchParams.get("item") as keyof typeof PREVIEW_ENDPOINTS | null
+  const endpoint = itemNumber ? PREVIEW_ENDPOINTS[itemNumber] : null
+  if (!itemNumber || !endpoint) {
+    return NextResponse.json({ error: "Use one of the fixed preview items: 18074, 94717, 95525" }, { status: 400 })
   }
 
   try {
-    const response = await fetch(endpoint.endpoint_url, {
+    const response = await fetch(endpoint.url, {
       redirect: "follow",
       cache: "no-store",
       headers: {
@@ -48,22 +49,18 @@ export async function GET(request: NextRequest) {
     const contentType = response.headers.get("content-type") ?? ""
     const html = contentType.toLowerCase().includes("text/html") ? await response.text() : ""
     const snapshot = html
-      ? parseExactRetailPage(html, { itemNumber: release.item_number, pageUrl: endpoint.endpoint_url })
+      ? parseExactRetailPage(html, { itemNumber, pageUrl: endpoint.url })
       : null
 
     return NextResponse.json({
-      source: source.slug,
-      release: {
-        itemNumber: release.item_number,
-        editionName: release.edition_name,
-        releaseYear: release.release_year,
-      },
-      endpoint: endpoint.endpoint_url,
+      source: endpoint.source,
+      release: { itemNumber, editionName: endpoint.editionName, releaseYear: endpoint.releaseYear },
+      endpoint: endpoint.url,
       http: { status: response.status, ok: response.ok, contentType },
       snapshot,
     })
   } catch (probeError) {
     const message = probeError instanceof Error ? probeError.message : String(probeError)
-    return NextResponse.json({ source: source.slug, endpoint: endpoint.endpoint_url, error: message }, { status: 502 })
+    return NextResponse.json({ source: endpoint.source, endpoint: endpoint.url, error: message }, { status: 502 })
   }
 }
