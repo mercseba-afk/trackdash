@@ -1,0 +1,1 @@
+This route returns the Version B TrackDash car as a real `image/webp` response. It exists to avoid browser/PWA failures caused by nesting a WebP data URI inside an SVG wrapper.
