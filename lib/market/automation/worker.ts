@@ -163,6 +163,7 @@ async function loadRelease(client: SupabaseClient, releaseId: string): Promise<R
     .eq("id", releaseId)
     .single()
   fail(error, "load adapter Release")
+  if (!data) throw new Error("load adapter Release returned no row")
   return data as ReleaseRow
 }
 
@@ -246,8 +247,9 @@ async function independentReferences(
     if (marketValue != null && marketValue > 0) values.push(marketValue)
   }
 
-  const confidence = ["low", "medium", "high"].includes(signal?.confidence_label)
-    ? signal.confidence_label as "low" | "medium" | "high"
+  const signalConfidence = signal?.confidence_label ?? null
+  const confidence = signalConfidence && ["low", "medium", "high"].includes(signalConfidence)
+    ? signalConfidence as "low" | "medium" | "high"
     : null
   return { values, confidence }
 }
@@ -324,6 +326,7 @@ async function upsertCandidate(
     .select("id")
     .single()
   fail(error, "upsert exact-page candidate")
+  if (!data) throw new Error("upsert exact-page candidate returned no row")
   return data.id
 }
 
@@ -561,6 +564,8 @@ export async function runExactPageMarketScanBatch(limit = 4): Promise<MarketAdap
     .select("id")
     .single()
   fail(runError, "create exact-page market scan run")
+  if (!run) throw new Error("create exact-page market scan run returned no row")
+  const runId = run.id
 
   const results: MarketAdapterJobResult[] = []
   for (const job of jobs) {
@@ -606,11 +611,11 @@ export async function runExactPageMarketScanBatch(limit = 4): Promise<MarketAdap
       duplicate_count: 0,
       error_summary: failed ? results.filter((row) => row.status === "failed").map((row) => row.reasonCodes.join(",")).join(" | ").slice(0, 1000) : null,
     })
-    .eq("id", run.id)
+    .eq("id", runId)
   fail(finishRunError, "finish exact-page market scan run")
 
   return {
-    runId: run.id,
+    runId,
     attempted: jobs.length,
     succeeded,
     accepted,
