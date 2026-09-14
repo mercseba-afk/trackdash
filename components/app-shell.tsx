@@ -20,7 +20,7 @@ import {
 import { useTheme } from "next-themes"
 import { BrandMark } from "@/components/brand-mark"
 import { NotificationCenter } from "@/components/notification-center"
-import { PwaInstallMenuItem } from "@/components/pwa-install-menu-item"
+import { PwaInstallButton, PwaInstallMenuItem } from "@/components/pwa-install-menu-item"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -244,6 +244,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })()}
           </div>
           <div className="flex items-center gap-1">
+            <PwaInstallButton />
             <ThemeToggle />
             <NotificationCenter />
             <UserMenu />

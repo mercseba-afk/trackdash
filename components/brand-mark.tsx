@@ -33,21 +33,21 @@ export function BrandMark({
         aria-hidden="true"
         className="h-[40px] w-auto shrink-0 object-contain sm:h-[45px]"
       />
-      <span className="relative inline-block pb-[9px] leading-none sm:pb-[10px]">
+      <span className="relative inline-block pb-[10px] leading-none sm:pb-[11px]">
         <span className="whitespace-nowrap text-[21px] font-black italic tracking-[-0.06em] sm:text-[23px]">
           <span className="text-[#086cff] dark:text-[#2f80ff]">Track</span>
           <span className="text-[#ff1e1e] dark:text-[#ff3b3d]">Dash</span>
         </span>
         <span
           className={cn(
-            "absolute inset-x-0 bottom-0 flex items-center justify-between whitespace-nowrap text-[5px] font-bold uppercase leading-none sm:text-[5.5px]",
+            "absolute inset-x-0 bottom-0 flex items-center justify-center gap-[3px] whitespace-nowrap text-[5.75px] font-bold uppercase leading-none tracking-[0.09em] sm:gap-[3.5px] sm:text-[6.25px] sm:tracking-[0.1em]",
             payoffClass,
           )}
         >
           <span>COLLECT</span>
-          <span aria-hidden="true">•</span>
+          <span className="tracking-normal" aria-hidden="true">•</span>
           <span>TRACK</span>
-          <span aria-hidden="true">•</span>
+          <span className="tracking-normal" aria-hidden="true">•</span>
           <span>TRADE</span>
         </span>
       </span>
