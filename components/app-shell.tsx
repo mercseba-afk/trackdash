@@ -214,8 +214,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-brand/10 text-brand" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  "flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors",
+                  active
+                    ? "border-brand-red bg-brand/10 text-brand"
+                    : "border-transparent text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 <item.icon className="size-4" />
@@ -233,7 +235,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="lg:pl-60">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
           <Link href="/" className="flex h-full items-center lg:hidden" aria-label="TrackDash home">
-            <BrandMark showText={false} className="translate-y-[2px]" />
+            <BrandMark className="translate-y-[1px]" />
           </Link>
           <div className="hidden text-sm text-muted-foreground lg:block">
             {(() => {
@@ -267,6 +269,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="relative">
                 <item.icon className="size-5" />
                 {isMessages ? <UnreadBadge count={unreadMessages} compact /> : null}
+                {active ? (
+                  <span className="absolute -bottom-1.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand-red" />
+                ) : null}
               </span>
               {t(item.labelKey)}
             </Link>

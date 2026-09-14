@@ -39,6 +39,8 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-muted: var(--brand-muted);
+  --color-brand-red: var(--brand-red);
+  --color-brand-yellow: var(--brand-yellow);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -80,6 +82,8 @@
   --brand: #086cff;
   --brand-foreground: #ffffff;
   --brand-muted: #eaf2ff;
+  --brand-red: #ef2b2d;
+  --brand-yellow: #d59a00;
   --success: #2e9b67;
   --warning: #f4b400;
   --radius: 0.625rem;
@@ -121,6 +125,8 @@
   --brand: #2f80ff;
   --brand-foreground: #ffffff;
   --brand-muted: #102c52;
+  --brand-red: #ff4d4f;
+  --brand-yellow: #ffc933;
   --success: #58c58a;
   --warning: #ffc933;
   --sidebar: #0a1727;
@@ -162,6 +168,8 @@
     --brand: #2f80ff;
     --brand-foreground: #ffffff;
     --brand-muted: #102c52;
+    --brand-red: #ff4d4f;
+    --brand-yellow: #ffc933;
     --success: #58c58a;
     --warning: #ffc933;
     --sidebar: #0a1727;
