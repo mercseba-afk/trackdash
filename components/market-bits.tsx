@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react"
 import type { MarketEstimate, Rarity } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
+import { getMarketLiquidity, marketLiquidityLabel } from "@/lib/market/liquidity"
 import { useI18n } from "@/lib/i18n"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -118,6 +119,7 @@ export function MarketSignalCard({
   const { locale } = useI18n()
   const it = locale === "it"
   const resolvedTitle = normalizeMarketValueTitle(title, it)
+  const liquidity = getMarketLiquidity(signal)
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
   const hasCleanActiveAsk =
     !hasValue &&
@@ -161,6 +163,29 @@ export function MarketSignalCard({
             </p>
           </div>
         )}
+
+        <div className="flex items-start justify-between gap-4 border-t pt-3">
+          <div>
+            <span className="text-sm text-muted-foreground">{it ? "Liquidità di mercato" : "Market liquidity"}</span>
+            <p className="mt-1 max-w-sm text-[10px] leading-relaxed text-muted-foreground">
+              {it
+                ? "Basata solo sulle vendite concluse osservate nella finestra recente, non sugli annunci attivi."
+                : "Based only on observed completed sales in the recent window, not on active listings."}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-sm font-semibold">
+              {liquidity ? marketLiquidityLabel(liquidity.level, it) : (it ? "Dati insufficienti" : "Insufficient data")}
+            </p>
+            {liquidity ? (
+              <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">
+                {it
+                  ? `${liquidity.observedSales3m} vendite / 3 mesi · ~${liquidity.averageSalesPerMonth.toLocaleString("it-IT", { maximumFractionDigits: 1 })}/mese`
+                  : `${liquidity.observedSales3m} sales / 3 months · ~${liquidity.averageSalesPerMonth.toLocaleString("en-US", { maximumFractionDigits: 1 })}/month`}
+              </p>
+            ) : null}
+          </div>
+        </div>
 
         {rarity !== undefined ? (
           <div className="flex items-center justify-between gap-3 border-t pt-3">
