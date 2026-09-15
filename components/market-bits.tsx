@@ -97,6 +97,13 @@ function trendWindowLabel(signal: ReleaseMarketSignalView, it: boolean): string 
   return direction
 }
 
+function normalizeMarketValueTitle(title: string | undefined, it: boolean): string {
+  if (!title) return it ? "Valore di mercato stimato" : "Estimated market value"
+  if (title === "Valore attuale stimato") return "Valore di mercato stimato"
+  if (title === "Estimated current value") return "Estimated market value"
+  return title
+}
+
 export function MarketSignalCard({
   signal,
   title,
@@ -110,7 +117,7 @@ export function MarketSignalCard({
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const resolvedTitle = title ?? (it ? "Valore di mercato" : "Market value")
+  const resolvedTitle = normalizeMarketValueTitle(title, it)
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
   const hasCleanActiveAsk =
     !hasValue &&
@@ -132,6 +139,11 @@ export function MarketSignalCard({
               {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} className="text-base md:text-lg" /> : null}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{trendWindowLabel(signal, it)}</p>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              {it
+                ? "Stima TrackDash basata sui segnali di mercato osservati. Non rappresenta un prezzo di vendita garantito."
+                : "TrackDash estimate based on observed market signals. It does not represent a guaranteed sale price."}
+            </p>
           </div>
         ) : hasCleanActiveAsk ? (
           <div>
@@ -143,7 +155,7 @@ export function MarketSignalCard({
         ) : (
           <div>
             <p className="text-xl font-semibold text-foreground">{it ? "Mercato raro" : "Thin market"}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{it ? "Valore non ancora disponibile" : "Market value not available yet"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{it ? "Valore di mercato stimato non ancora disponibile" : "Estimated market value not available yet"}</p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               {it ? "Ne possiedi una? Puoi metterla in vendita dalla tua collezione." : "Own one? You can list it for sale from your collection."}
             </p>
@@ -179,7 +191,7 @@ export function MarketEstimateCard({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title ?? (it ? "Valore di mercato" : "Market value")}
+          {normalizeMarketValueTitle(title, it)}
         </CardTitle>
       </CardHeader>
       <CardContent>
