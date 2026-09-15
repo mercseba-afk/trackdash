@@ -10,6 +10,16 @@ Use server-side variables `EBAY_ENV`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` and
 `EBAY_MARKET_WRITES_ENABLED`. `EBAY_ENV` accepts only `sandbox` and `production`;
 missing means sandbox. `EBAY_MARKET_WRITES_ENABLED` is fail-closed: only the exact
 value `true` arms persistence, and only while `EBAY_ENV=production`.
+
+Production also requires eBay Marketplace Account Deletion compliance. Configure
+`EBAY_MARKETPLACE_DELETION_ENDPOINT` with the exact HTTPS callback URL and keep its
+32–80 character `EBAY_MARKETPLACE_DELETION_TOKEN` server-side only. The callback
+validates eBay's challenge, verifies signed notifications against eBay's public-key
+API, removes matching eBay user identifiers from source evidence, and recomputes
+only affected Release signals. It never enables market writes.
+Processing a real deletion notification also requires the existing server-only
+`SUPABASE_SECRET_KEY` (preferred) or `SUPABASE_SERVICE_ROLE_KEY`; the public anon key
+is intentionally insufficient for this trusted backend operation.
 Never prefix these variables with NEXT_PUBLIC.
 
 | Environment | OAuth host | Browse host | Market worker |
@@ -65,9 +75,11 @@ heuristic and matching must be manually inspected before enabling real ingestion
 
 ## Account verification on 2026-09-15
 
-TrackDash Sandbox keyset creation was confirmed in the Developer portal. App ID and
-Cert ID labels are present. No Production keyset was present; the portal offered to
-create one. Production Browse is not verified.
+TrackDash Sandbox and Production keysets were confirmed in the Developer portal.
+App ID and Cert ID labels are present in both environments. The Production keyset
+is currently marked `Non Compliant` and remains disabled until the Marketplace
+Account Deletion endpoint is registered and validated. Production Browse is
+therefore not yet verified.
 
 The Sandbox scopes dialog grants base public-data scope and several Buy scopes,
 including `buy.item.feed`, `buy.marketing`, `buy.product.feed`, `buy.item.bulk`,
