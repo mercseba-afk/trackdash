@@ -96,6 +96,23 @@ export async function getMarketMonthlySignalsForRelease(
   })
 }
 
+export async function listMarketMonthlySignals(
+  releaseIds?: string[],
+  condition = COLLECTOR_VALUE_CONDITION,
+) {
+  if (releaseIds && releaseIds.length === 0) return []
+
+  return db.query.marketReleaseMonthlySignals.findMany({
+    where: releaseIds
+      ? and(
+          eq(marketReleaseMonthlySignals.condition, condition),
+          inArray(marketReleaseMonthlySignals.releaseId, releaseIds),
+        )
+      : eq(marketReleaseMonthlySignals.condition, condition),
+    orderBy: (fields, { asc }) => [asc(fields.releaseId), asc(fields.month)],
+  })
+}
+
 // Product cards show the cheapest CURRENT PURCHASABLE Release item price only.
 // Sold evidence and out-of-stock retail can influence Market Value/trend but can
 // never masquerade as "Da"/"From". Shipping remains separate provenance and
