@@ -6,15 +6,17 @@ R3 formulas and database schema are unchanged by this integration preparation.
 
 ## Environment and credentials
 
-Use server-side variables `EBAY_ENV`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`.
-`EBAY_ENV` accepts only `sandbox` and `production`; missing means sandbox.
-Existing Production installations must explicitly set `EBAY_ENV=production` with
-Production keys before the worker can run. Never prefix these variables with NEXT_PUBLIC.
+Use server-side variables `EBAY_ENV`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` and
+`EBAY_MARKET_WRITES_ENABLED`. `EBAY_ENV` accepts only `sandbox` and `production`;
+missing means sandbox. `EBAY_MARKET_WRITES_ENABLED` is fail-closed: only the exact
+value `true` arms persistence, and only while `EBAY_ENV=production`.
+Never prefix these variables with NEXT_PUBLIC.
 
 | Environment | OAuth host | Browse host | Market worker |
 | --- | --- | --- | --- |
 | sandbox | api.sandbox.ebay.com | api.sandbox.ebay.com | Blocked before database access |
-| production | api.ebay.com | api.ebay.com | Existing active-offer pipeline |
+| production + writes false/unset | api.ebay.com | api.ebay.com | Blocked before database access |
+| production + writes true | api.ebay.com | api.ebay.com | Existing active-offer pipeline |
 
 OAuth uses `/identity/v1/oauth2/token`, Client Credentials and only
 `https://api.ebay.com/oauth/api_scope`. Browse uses `/buy/browse/v1/item_summary/search`.
@@ -22,9 +24,19 @@ Token cache is keyed by environment and credentials. Redirects are refused. Erro
 bodies, authorization headers and token responses must never be logged.
 
 Keep Sandbox credentials in a local environment or Vercel Development only. Do not
-add them to all Preview branches: older branches still use Production-only endpoints.
+add them to all Preview branches: older branches may use different endpoint behavior.
 Do not put any secrets into source control, command arguments, reports or screenshots.
 Enter them directly in the destination's secure environment-variable UI.
+
+Production onboarding is deliberately two-stage:
+1. Configure Production App ID/Client ID and Cert ID/Client Secret with
+   `EBAY_ENV=production` while keeping `EBAY_MARKET_WRITES_ENABLED=false`.
+2. Run and manually inspect the standalone real-Browse check. Only after the returned
+   listings are judged safe may `EBAY_MARKET_WRITES_ENABLED=true` be set and a new
+   Production deployment created.
+
+This separation prevents an existing cron schedule from beginning eBay persistence
+merely because Production credentials have been added.
 
 The first API test must use the standalone script, not the cron or market worker.
 The worker writes candidates and offer states and invokes the existing R3 recomputation.

@@ -134,7 +134,10 @@ export function ebayEnvironment(): EbayEnvironment {
 }
 
 export function ebayMarketWritesAllowed(): boolean {
-  return ebayEnvironment() === "production"
+  // Credentials and Production routing are intentionally not enough to arm
+  // persistence. This separate fail-closed switch lets us validate real Browse
+  // responses first without a cron run creating candidates or recomputing R3.
+  return ebayEnvironment() === "production" && process.env.EBAY_MARKET_WRITES_ENABLED === "true"
 }
 
 function apiOrigin(environment: EbayEnvironment): string {
