@@ -102,10 +102,11 @@ console.log("EBAY BROWSE ADAPTER TEST PASSED")
 // Network is mocked: these are transport and isolation tests, never market data.
 const { searchEbayActiveListings, ebayEnvironment, ebayMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
 const originalFetch = globalThis.fetch
-const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET'].map(key => [key, process.env[key]]))
+const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET', 'EBAY_MARKET_WRITES_ENABLED'].map(key => [key, process.env[key]]))
 const calls = []
 try {
   delete process.env.EBAY_ENV
+  delete process.env.EBAY_MARKET_WRITES_ENABLED
   assert.equal(ebayEnvironment(), 'sandbox')
   assert.equal(ebayMarketWritesAllowed(), false)
   process.env.EBAY_CLIENT_ID = 'fixture-SBX-client'
@@ -140,7 +141,17 @@ try {
   assert.equal(calls.filter(call => call.url.pathname.includes('/identity/')).length, 1)
   assert.equal(calls.every(call => call.url.host === 'api.sandbox.ebay.com'), true)
   console.log('ok: Sandbox routing, OAuth, four marketplaces, token reuse and shipping semantics')
+
   process.env.EBAY_ENV = 'production'
+  assert.equal(ebayMarketWritesAllowed(), false)
+  process.env.EBAY_MARKET_WRITES_ENABLED = 'false'
+  assert.equal(ebayMarketWritesAllowed(), false)
+  process.env.EBAY_MARKET_WRITES_ENABLED = 'true'
+  assert.equal(ebayMarketWritesAllowed(), true)
+  delete process.env.EBAY_MARKET_WRITES_ENABLED
+  assert.equal(ebayMarketWritesAllowed(), false)
+  console.log('ok: Production credentials cannot arm market writes without explicit true switch')
+
   const beforeMismatch = calls.length
   await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), /EBAY_CREDENTIAL_ENV_MISMATCH/)
   assert.equal(calls.length, beforeMismatch)
@@ -183,9 +194,19 @@ try {
       return new Proxy({}, { get: () => forbidden })
     },
   })
+  process.env.EBAY_ENV = 'sandbox'
+  delete process.env.EBAY_MARKET_WRITES_ENABLED
   await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SANDBOX_MARKET_WRITES_DISABLED/)
   assert.equal(dbTouches, 0)
   console.log('ok: Sandbox worker cannot create clients, claim jobs, write prices or recompute R3')
+
+  process.env.EBAY_ENV = 'production'
+  process.env.EBAY_CLIENT_ID = 'fixture-PRD-client'
+  process.env.EBAY_CLIENT_SECRET = 'fixture-only'
+  delete process.env.EBAY_MARKET_WRITES_ENABLED
+  await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SANDBOX_MARKET_WRITES_DISABLED/)
+  assert.equal(dbTouches, 0)
+  console.log('ok: Production worker remains blocked before DB access until writes are explicitly armed')
 } finally {
   globalThis.fetch = originalFetch
   for (const [key, value] of Object.entries(savedEnv)) {
