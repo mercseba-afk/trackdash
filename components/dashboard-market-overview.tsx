@@ -33,6 +33,27 @@ function releaseYear(release: ProductRelease): number | null {
   return Number.isFinite(value) ? value : null
 }
 
+/**
+ * Home is Release-first, but one Product family should not monopolize an entire
+ * block simply because several of its editions are liquid at the same time.
+ * Rank at Release level first, then keep the highest-ranked Release per Product.
+ * The same Product may still appear in a different block when a different
+ * Release genuinely deserves it under that block's own market criterion.
+ */
+function takeDistinctProducts(rows: MarketRow[], limit: number): MarketRow[] {
+  const productIds = new Set<string>()
+  const result: MarketRow[] = []
+
+  for (const row of rows) {
+    if (productIds.has(row.product.id)) continue
+    productIds.add(row.product.id)
+    result.push(row)
+    if (result.length >= limit) break
+  }
+
+  return result
+}
+
 function recentSalesLabel(signal: ReleaseMarketSignalView, it: boolean): string {
   if (signal.recentSoldUnits3m != null && signal.recentSoldPeriodStart && signal.recentSoldPeriodEnd) {
     const start = new Date(`${signal.recentSoldPeriodStart}T00:00:00Z`)
@@ -68,7 +89,7 @@ export function DashboardMarketOverview() {
 
   const active = React.useMemo(() => rows.filter((row) => hasMeaningfulActivity(row.signal)), [rows])
 
-  const vintage = React.useMemo(() => active
+  const vintage = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => {
       const year = releaseYear(row.release)
       return year != null && year <= 2000 && row.signal.valueEUR != null && row.signal.valueEUR > 0
@@ -79,23 +100,19 @@ export function DashboardMarketOverview() {
       const trendDelta = Math.abs(b.signal.trendPercent ?? 0) - Math.abs(a.signal.trendPercent ?? 0)
       if (trendDelta !== 0) return trendDelta
       return (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)
-    })
-    .slice(0, 4), [active])
+    }), 4), [active])
 
-  const highValue = React.useMemo(() => active
+  const highValue = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0)
-    .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0))
-    .slice(0, 4), [active])
+    .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)), 4), [active])
 
-  const movers = React.useMemo(() => rows
+  const movers = React.useMemo(() => takeDistinctProducts(rows
     .filter((row) => row.signal.trendPercent != null)
-    .sort((a, b) => Math.abs(b.signal.trendPercent ?? 0) - Math.abs(a.signal.trendPercent ?? 0))
-    .slice(0, 4), [rows])
+    .sort((a, b) => Math.abs(b.signal.trendPercent ?? 0) - Math.abs(a.signal.trendPercent ?? 0)), 4), [rows])
 
-  const mostTraded = React.useMemo(() => active
+  const mostTraded = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
-    .sort((a, b) => (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0))
-    .slice(0, 4), [active])
+    .sort((a, b) => (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0)), 4), [active])
 
   const sectionCount = [vintage, highValue, movers, mostTraded].filter((section) => section.length > 0).length
   if (sectionCount === 0) return null
@@ -160,8 +177,8 @@ export function DashboardMarketOverview() {
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         {it
-          ? "La liquidità è una stima dell'attività di scambio osservata, basata solo su vendite concluse recenti. Le soglie v1 verranno ricalibrate sul campione Vintage 100."
-          : "Liquidity estimates observed trading activity using recent completed sales only. The v1 thresholds will be recalibrated against the Vintage 100 sample."}
+          ? "La Home classifica le singole Release, non il Product generico. In ogni blocco viene mostrata al massimo la Release meglio classificata di ciascun Product, così una sola famiglia non può monopolizzare la sezione. La liquidità usa solo vendite concluse recenti; le soglie v1 verranno ricalibrate sul campione Vintage 100."
+          : "Home ranks individual Releases, not generic Products. Each block shows at most the highest-ranked Release from a given Product, so one family cannot monopolize a section. Liquidity uses recent completed sales only; v1 thresholds will be recalibrated against the Vintage 100 sample."}
       </p>
     </section>
   )
@@ -198,12 +215,14 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
   const year = releaseYear(row.release)
   const salesLabel = recentSalesLabel(row.signal, it)
   const liquidity = getMarketLiquidity(row.signal)
+  const showProductFamily = row.release.editionName.trim().toLowerCase() !== row.product.name.trim().toLowerCase()
 
   return (
     <Link href={href} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
       <ProductImage product={row.product} release={row.release} size="sm" className="h-12 w-16 shrink-0" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{row.release.editionName}</p>
+        {showProductFamily ? <p className="truncate text-[11px] text-muted-foreground">{row.product.name}</p> : null}
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
           {year != null ? <span className="text-xs text-muted-foreground">{year}</span> : null}
           <span className="text-xs text-muted-foreground">#{row.release.itemNumber ?? "—"}</span>
