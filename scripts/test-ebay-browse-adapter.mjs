@@ -98,3 +98,99 @@ ok("same eBay item surfaced in multiple marketplaces is counted once", () => {
 
 console.log(`${passed} passed, 0 failed`)
 console.log("EBAY BROWSE ADAPTER TEST PASSED")
+
+// Network is mocked: these are transport and isolation tests, never market data.
+const { searchEbayActiveListings, ebayEnvironment, ebayMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
+const originalFetch = globalThis.fetch
+const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET'].map(key => [key, process.env[key]]))
+const calls = []
+try {
+  delete process.env.EBAY_ENV
+  assert.equal(ebayEnvironment(), 'sandbox')
+  assert.equal(ebayMarketWritesAllowed(), false)
+  process.env.EBAY_CLIENT_ID = 'fixture-SBX-client'
+  process.env.EBAY_CLIENT_SECRET = 'fixture-only'
+  const sample = { itemId: 'v1|fixture|0', title: 'Tamiya 95467 kit', price: { value: '20', currency: 'EUR' }, condition: 'New', seller: { username: 'fixture-seller' }, itemWebUrl: 'https://example.com/item' }
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: new URL(url), options })
+    assert.equal(options.cache, 'no-store')
+    assert.equal(options.redirect, 'error')
+    if (String(url).includes('/identity/')) {
+      assert.equal(options.body.get('grant_type'), 'client_credentials')
+      assert.equal(options.body.get('scope'), 'https://api.ebay.com/oauth/api_scope')
+      return Response.json({ access_token: 'fixture-token', expires_in: 7200 })
+    }
+    assert.equal(new URL(url).searchParams.get('filter'), 'conditions:{NEW}')
+    return Response.json({ itemSummaries: [
+      { ...sample, shippingOptions: [{ shippingCost: { value: '0', currency: 'EUR' } }] },
+      { ...sample, itemId: 'paid', shippingOptions: [{ shippingCost: { value: '4.50', currency: 'EUR' } }] },
+      { ...sample, itemId: 'unknown' },
+      { ...sample, itemId: 'different-currency', shippingOptions: [{ shippingCost: { value: '5', currency: 'USD' } }] },
+    ] })
+  }
+  const rows = await searchEbayActiveListings(unique, 'EBAY_IT', 5)
+  assert.deepEqual(rows.map(row => row.shipping), [0, 4.5, null, null])
+  assert.equal(rows[0].seller, 'fixture-seller')
+  assert.equal(rows[0].itemWebUrl, sample.itemWebUrl)
+  assert.equal(rows[0].marketplace, 'EBAY_IT')
+  for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US']) {
+    await searchEbayActiveListings(unique, marketplace, 5)
+    assert.equal(calls.at(-1).options.headers['X-EBAY-C-MARKETPLACE-ID'], marketplace)
+  }
+  assert.equal(calls.filter(call => call.url.pathname.includes('/identity/')).length, 1)
+  assert.equal(calls.every(call => call.url.host === 'api.sandbox.ebay.com'), true)
+  console.log('ok: Sandbox routing, OAuth, four marketplaces, token reuse and shipping semantics')
+  process.env.EBAY_ENV = 'production'
+  const beforeMismatch = calls.length
+  await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), /EBAY_CREDENTIAL_ENV_MISMATCH/)
+  assert.equal(calls.length, beforeMismatch)
+  process.env.EBAY_CLIENT_ID = 'fixture-PRD-client'
+  await searchEbayActiveListings(unique, 'EBAY_US', 5)
+  assert.equal(calls.at(-2).url.host, 'api.ebay.com')
+  assert.equal(calls.at(-2).url.pathname, '/identity/v1/oauth2/token')
+  assert.equal(calls.at(-1).url.host, 'api.ebay.com')
+  process.env.EBAY_CLIENT_SECRET = 'fixture-rotated'
+  await searchEbayActiveListings(unique, 'EBAY_US', 5)
+  assert.equal(calls.at(-2).url.pathname, '/identity/v1/oauth2/token')
+  process.env.EBAY_ENV = 'invalid'
+  await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), /EBAY_ENV_INVALID/)
+  process.env.EBAY_ENV = 'sandbox'
+  await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), /EBAY_CREDENTIAL_ENV_MISMATCH/)
+  console.log('ok: environment switches, credential rotation and fail-closed configuration')
+  process.env.EBAY_CLIENT_ID = 'fixture-SBX-errors'
+  globalThis.fetch = async () => { throw new Error('PRIVATE RESPONSE MUST NOT ESCAPE') }
+  await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), { message: 'EBAY_OAUTH_NETWORK_ERROR' })
+  globalThis.fetch = async () => new Response('PRIVATE RESPONSE MUST NOT ESCAPE', { status: 401 })
+  await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), { message: 'EBAY_OAUTH_HTTP_401' })
+  globalThis.fetch = async (url) => String(url).includes('/identity/')
+    ? Response.json({ access_token: 'fixture-token', expires_in: 7200 })
+    : new Response('PRIVATE RESPONSE MUST NOT ESCAPE', { status: 403 })
+  await assert.rejects(() => searchEbayActiveListings(unique, 'EBAY_IT'), { message: 'EBAY_BROWSE_HTTP_403' })
+  console.log('ok: OAuth and Browse errors contain no response bodies or secrets')
+
+  // Execute the actual worker with database dependencies that fail on any use.
+  const { readFileSync } = await import('node:fs')
+  const { default: ts } = await import('typescript')
+  const { runInNewContext } = await import('node:vm')
+  let dbTouches = 0
+  const forbidden = () => { dbTouches++; throw new Error('Unexpected database access') }
+  const workerSource = readFileSync(new URL('../lib/market/automation/ebay-worker.ts', import.meta.url), 'utf8')
+  const workerModule = { exports: {} }
+  runInNewContext(ts.transpileModule(workerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, {
+    exports: workerModule.exports,
+    require(name) {
+      if (name === './ebay-browse-adapter') return { ebayBrowseConfigured: () => true, ebayMarketWritesAllowed }
+      return new Proxy({}, { get: () => forbidden })
+    },
+  })
+  await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SANDBOX_MARKET_WRITES_DISABLED/)
+  assert.equal(dbTouches, 0)
+  console.log('ok: Sandbox worker cannot create clients, claim jobs, write prices or recompute R3')
+} finally {
+  globalThis.fetch = originalFetch
+  for (const [key, value] of Object.entries(savedEnv)) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
+}
+console.log('EBAY TRANSPORT AND SANDBOX ISOLATION TESTS PASSED')

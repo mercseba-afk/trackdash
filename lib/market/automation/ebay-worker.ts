@@ -10,6 +10,7 @@ import {
   classifyEbayActiveListing,
   dedupeEbayListings,
   ebayBrowseConfigured,
+  ebayMarketWritesAllowed,
   searchEbayActiveListings,
   type EbayBrowseListing,
   type EbayMarketplaceId,
@@ -443,6 +444,9 @@ export async function runEbayActiveMarketScanBatch(limit = 2): Promise<EbayRunRe
     }
   }
 
+  // Sandbox is for standalone technical tests only. Stop before creating a DB
+  // client, claiming jobs, persisting candidates or recomputing any R3 signal.
+  if (!ebayMarketWritesAllowed()) throw new Error("EBAY_SANDBOX_MARKET_WRITES_DISABLED")
   const client = createAdminClient()
   const repo = new MarketR3Repository(client)
   const safeLimit = Math.max(1, Math.min(limit, 4))

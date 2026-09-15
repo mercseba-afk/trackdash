@@ -125,25 +125,46 @@ interface EbaySearchResponse {
   }>
 }
 
-let cachedToken: { value: string; expiresAt: number } | null = null
+export type EbayEnvironment = "sandbox" | "production"
+
+export function ebayEnvironment(): EbayEnvironment {
+  const value = process.env.EBAY_ENV ?? "sandbox"
+  if (value !== "sandbox" && value !== "production") throw new Error("EBAY_ENV_INVALID")
+  return value
+}
+
+export function ebayMarketWritesAllowed(): boolean {
+  return ebayEnvironment() === "production"
+}
+
+function apiOrigin(environment: EbayEnvironment): string {
+  return environment === "sandbox" ? "https://api.sandbox.ebay.com" : "https://api.ebay.com"
+}
+
+let cachedToken: { value: string; expiresAt: number; environment: EbayEnvironment; clientId: string; clientSecret: string } | null = null
 
 export function ebayBrowseConfigured(): boolean {
   return Boolean(process.env.EBAY_CLIENT_ID && process.env.EBAY_CLIENT_SECRET)
 }
 
-async function getApplicationToken(): Promise<string> {
-  if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) return cachedToken.value
-
+async function getApplicationToken(environment: EbayEnvironment): Promise<string> {
   const clientId = process.env.EBAY_CLIENT_ID
   const clientSecret = process.env.EBAY_CLIENT_SECRET
   if (!clientId || !clientSecret) throw new Error("EBAY_BROWSE_CREDENTIALS_NOT_CONFIGURED")
+  // Recognizable eBay keyset markers provide an extra guard against a wrong environment.
+  if ((environment === "production" && /-SBX-/i.test(clientId)) ||
+      (environment === "sandbox" && /-PRD-/i.test(clientId))) {
+    throw new Error("EBAY_CREDENTIAL_ENV_MISMATCH")
+  }
+  if (cachedToken && cachedToken.environment === environment && cachedToken.clientId === clientId &&
+      cachedToken.clientSecret === clientSecret && cachedToken.expiresAt > Date.now() + 60_000) return cachedToken.value
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
   const body = new URLSearchParams({
     grant_type: "client_credentials",
     scope: "https://api.ebay.com/oauth/api_scope",
   })
-  const response = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
+  const response = await fetch(`${apiOrigin(environment)}/identity/v1/oauth2/token`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${basic}`,
@@ -151,21 +172,25 @@ async function getApplicationToken(): Promise<string> {
     },
     body,
     cache: "no-store",
+    redirect: "error",
     signal: AbortSignal.timeout(12_000),
-  })
+  }).catch(() => { throw new Error("EBAY_OAUTH_NETWORK_ERROR") })
   if (!response.ok) throw new Error(`EBAY_OAUTH_HTTP_${response.status}`)
-  const json = await response.json() as EbayTokenResponse
-  if (!json.access_token || !json.expires_in) throw new Error("EBAY_OAUTH_INVALID_RESPONSE")
+  const json = await response.json().catch(() => { throw new Error("EBAY_OAUTH_INVALID_RESPONSE") }) as EbayTokenResponse
+  if (typeof json.access_token !== "string" || !json.access_token || !Number.isFinite(json.expires_in) || json.expires_in <= 0) throw new Error("EBAY_OAUTH_INVALID_RESPONSE")
   cachedToken = {
+    environment,
+    clientId,
+    clientSecret,
     value: json.access_token,
-    expiresAt: Date.now() + Math.max(60, json.expires_in - 120) * 1000,
+    expiresAt: Date.now() + json.expires_in * 1000,
   }
   return cachedToken.value
 }
 
-function toNumber(value: string | undefined): number | null {
-  const parsed = value == null ? NaN : Number(value)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+function toNumber(value: string | undefined, allowZero = false): number | null {
+  const parsed = value == null || value.trim() === "" ? NaN : Number(value)
+  return Number.isFinite(parsed) && (allowZero ? parsed >= 0 : parsed > 0) ? parsed : null
 }
 
 export async function searchEbayActiveListings(
@@ -173,30 +198,33 @@ export async function searchEbayActiveListings(
   marketplace: EbayMarketplaceId,
   limit = 50,
 ): Promise<EbayBrowseListing[]> {
-  const token = await getApplicationToken()
+  const environment = ebayEnvironment()
+  const token = await getApplicationToken(environment)
   const params = new URLSearchParams({
     q: buildEbayBrowseQuery(input),
     limit: String(Math.max(1, Math.min(limit, 100))),
     filter: "conditions:{NEW}",
   })
-  const response = await fetch(`https://api.ebay.com/buy/browse/v1/item_summary/search?${params}`, {
+  const response = await fetch(`${apiOrigin(environment)}/buy/browse/v1/item_summary/search?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       "X-EBAY-C-MARKETPLACE-ID": marketplace,
       Accept: "application/json",
     },
     cache: "no-store",
+    redirect: "error",
     signal: AbortSignal.timeout(15_000),
-  })
+  }).catch(() => { throw new Error("EBAY_BROWSE_NETWORK_ERROR") })
   if (!response.ok) throw new Error(`EBAY_BROWSE_HTTP_${response.status}`)
-  const json = await response.json() as EbaySearchResponse
+  const json = await response.json().catch(() => { throw new Error("EBAY_BROWSE_INVALID_RESPONSE") }) as EbaySearchResponse
 
   const results: EbayBrowseListing[] = []
   for (const row of json.itemSummaries ?? []) {
     const price = toNumber(row.price?.value)
     const currency = row.price?.currency?.toUpperCase()
     if (!row.itemId || !row.title || price == null || !currency) continue
-    const shipping = toNumber(row.shippingOptions?.[0]?.shippingCost?.value)
+    const shippingCost = row.shippingOptions?.[0]?.shippingCost
+    const shipping = shippingCost?.currency?.toUpperCase() === currency ? toNumber(shippingCost.value, true) : null
     results.push({
       itemId: row.itemId,
       title: row.title,
