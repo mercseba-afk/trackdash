@@ -19,6 +19,7 @@ export type Chassis =
   | "Type 1"
   | "Type 2"
   | "Type 3"
+  | "Type 4"
   | "Zero"
   | "FM"
   | "Super 1"
@@ -221,8 +222,8 @@ export interface Product {
    * The release considered authoritative for this model's identity —
    * normally its original historical release. May be undefined when no
    * release can be confidently identified as canonical (UNKNOWN >
-   * INVENTED — never force an arbitrary release to be canonical merely to
-   * populate this field). When set, `itemNumber`/`chassis`/
+   * INVENTED — never force an arbitrary release to be canonical merely
+   * to populate this field). When set, `itemNumber`/`chassis`/
    * `originalReleaseYear` above are always derived from this release;
    * see lib/data/products.ts's PRODUCTS.map() and
    * scripts/check-catalog-invariants.mjs, which both enforce this.
