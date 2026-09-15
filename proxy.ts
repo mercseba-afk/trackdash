@@ -25,6 +25,11 @@
 // browser session. Every cron handler must authenticate itself separately
 // (TrackDash market jobs require Authorization: Bearer <CRON_SECRET>).
 //
+// The eBay Marketplace Account Deletion callback is ungated too: eBay's
+// verification challenge and signed notifications are server-to-server calls
+// without a TrackDash user session. The handler performs its own signature
+// verification before processing notifications.
+//
 // Forgot/reset password (Images Phase 2 + Auth pass): /forgot-password
 // behaves exactly like /login and /signup -- reachable when signed out,
 // bounced to / when already signed in.
@@ -51,6 +56,7 @@ const UNGATED_PREFIXES = [
   "/api/dev",
   "/api/version",
   "/api/cron",
+  "/api/ebay/marketplace-account-deletion",
   "/auth/callback",
   "/update-password",
   "/manifest.webmanifest",
