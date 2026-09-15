@@ -106,8 +106,8 @@ export function DashboardMarketOverview() {
           <h2 id="market-now-title" className="text-lg font-semibold tracking-tight">{it ? "Il mercato adesso" : "Market now"}</h2>
           <p className="max-w-3xl text-sm text-muted-foreground">
             {it
-              ? "In evidenza solo Release con movimento reale: trend di vendite consolidato oppure almeno tre mesi consecutivi di venduto recente. Un prezzo alto, da solo, non basta."
-              : "Only Releases with real market activity are highlighted: a consolidated sales trend or at least three consecutive recent months of sold activity. A high price alone is not enough."}
+              ? "In evidenza solo Release con movimento reale: trend di vendite consolidato oppure una finestra recente di tre mesi consecutivi con almeno due vendite. Un prezzo alto, da solo, non basta."
+              : "Only Releases with real market activity are highlighted: a consolidated sales trend or a recent three-consecutive-month window with at least two sales. A high price alone is not enough."}
           </p>
         </div>
         <Button variant="ghost" size="sm" render={<Link href="/market" />}>
@@ -149,7 +149,7 @@ export function DashboardMarketOverview() {
         {mostTraded.length > 0 ? (
           <MarketBlock
             title={it ? "Più scambiate" : "Most traded"}
-            subtitle={it ? "Vendite sommate su tre mesi di calendario consecutivi e recenti." : "Sales summed across three consecutive recent calendar months."}
+            subtitle={it ? "Vendite sommate su una finestra recente di tre mesi di calendario consecutivi." : "Sales summed across a recent window of three consecutive calendar months."}
             rows={mostTraded}
             icon={Activity}
             it={it}
@@ -215,7 +215,7 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
       <div className="max-w-36 shrink-0 text-right">
         {row.signal.valueEUR != null ? (
           <>
-            <p className="text-[10px] text-muted-foreground">{it ? "Valore stimato" : "Est. value"}</p>
+            <p className="text-[10px] text-muted-foreground">{it ? "Valore di mercato stimato" : "Estimated market value"}</p>
             <p className="text-sm font-semibold tabular-nums">{formatMoney(row.signal.valueEUR)}</p>
           </>
         ) : (
