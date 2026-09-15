@@ -22,7 +22,7 @@ function originalRelease(input: {
   item: string
   name: string
   year: number
-  chassis: ProductRelease["chassis"]
+  chassis?: ProductRelease["chassis"]
   sources: ReleaseSource[]
   notes: string
 }): ProductRelease {
@@ -180,10 +180,13 @@ const vintageP1Products: Product[] = [
     name: "Crimson Glory",
     japaneseName: "クリムゾングローリー",
     series: "Racing Mini 4WD",
-    chassis: "Type 3",
+    // Tamiya identifies the historical chassis as FM. The current Chassis
+    // TypeScript vocabulary has FM-A but not historical FM, so this field is
+    // intentionally left unset rather than corrupting identity as FM-A.
+    chassis: undefined,
     originalReleaseYear: 1990,
     rarity: "Uncommon",
-    description: "A vintage Racing Mini 4WD release from late 1990. TrackDash keeps its exact original release separate from later market variants and lots.",
+    description: "A front-motor vintage Racing Mini 4WD release from late 1990. TrackDash preserves the historical FM identity without mislabelling it as the later FM-A chassis.",
     images: [img("18032")],
     canonicalReleaseId: "5132b078-5f0d-55bd-9673-d73efb7a601c",
     hasMultipleReleases: false,
@@ -194,9 +197,25 @@ const vintageP1Products: Product[] = [
         item: "18032",
         name: "Crimson Glory",
         year: 1990,
-        chassis: "FM-A",
-        notes: "Placeholder pending chassis re-verification before merge.",
-        sources: [],
+        notes: "Tamiya identifies ITEM 18032 as an FM-chassis machine. TrackDash's current controlled Chassis vocabulary lacks historical FM, so chassis remains unset instead of being incorrectly mapped to FM-A. Official release-month evidence places it in November 1990; exact day remains unset.",
+        sources: [
+          source(
+            "d7712d90-af26-5a74-957d-5be39dab0b97",
+            "5132b078-5f0d-55bd-9673-d73efb7a601c",
+            "official_manufacturer",
+            "https://www.tamiya.com/japan/products/18032/index.html",
+            ["itemNumber", "editionName"],
+            "Official Tamiya product page identifies ITEM 18032 Crimson Glory. It also states FM chassis, retained in notes until historical FM is added to TrackDash's chassis vocabulary.",
+          ),
+          source(
+            "1b0f9240-b769-54a9-9c3d-916e43f99a44",
+            "5132b078-5f0d-55bd-9673-d73efb7a601c",
+            "official_archive",
+            "https://www.tamiya.com/japan/newitems_month/list.html?current=199011",
+            ["releaseYear"],
+            "Tamiya official release-month archive places ITEM 18032 in November 1990. No exact day inferred.",
+          ),
+        ],
       }),
     ],
   },
@@ -208,10 +227,11 @@ const vintageP1Products: Product[] = [
     name: "Dash-02 Neo Burning Sun",
     japaneseName: "ダッシュ02号・新太陽（ネオ・バーニングサン）",
     series: "Dash! Yonkuro",
-    chassis: "FM-A",
+    // Historical FM is distinct from FM-A and is intentionally not coerced.
+    chassis: undefined,
     originalReleaseYear: 1991,
     rarity: "Uncommon",
-    description: "Dash-02 Neo Burning Sun, the front-motor successor in the Burning Sun lineage.",
+    description: "Dash-02 Neo Burning Sun, the front-motor successor in the Burning Sun lineage, originally built around Tamiya's historical FM chassis.",
     images: [img("18034")],
     canonicalReleaseId: "b6d59af9-6b3c-51be-8046-02faa28e7d97",
     hasMultipleReleases: false,
@@ -222,9 +242,25 @@ const vintageP1Products: Product[] = [
         item: "18034",
         name: "Dash-02 Neo Burning Sun",
         year: 1991,
-        chassis: "FM-A",
-        notes: "Placeholder pending chassis re-verification before merge.",
-        sources: [],
+        notes: "Tamiya identifies ITEM 18034 as an FM-chassis machine. TrackDash's current controlled Chassis vocabulary lacks historical FM, so chassis remains unset instead of being incorrectly mapped to FM-A. Official release-month evidence places it in June 1991; exact day remains unset.",
+        sources: [
+          source(
+            "2dddfb00-2327-59fc-89e3-e9d5c18014cd",
+            "b6d59af9-6b3c-51be-8046-02faa28e7d97",
+            "official_manufacturer",
+            "https://www.tamiya.com/japan/products/18034/index.html",
+            ["itemNumber", "editionName"],
+            "Official Tamiya product page identifies ITEM 18034 Dash-02 Neo Burning Sun. It also states FM chassis, retained in notes until historical FM is added to TrackDash's chassis vocabulary.",
+          ),
+          source(
+            "18e73dff-1194-55f3-b311-f2097ecda410",
+            "b6d59af9-6b3c-51be-8046-02faa28e7d97",
+            "official_archive",
+            "https://www.tamiya.com/japan/newitems_month/list.html?current=199106",
+            ["releaseYear"],
+            "Tamiya official release-month archive places ITEM 18034 in June 1991. No exact day inferred.",
+          ),
+        ],
       }),
     ],
   },
