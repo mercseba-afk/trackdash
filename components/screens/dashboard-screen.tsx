@@ -18,6 +18,7 @@ import { CATALOG_TARGET } from "@/lib/data/products"
 import { collectorLevel, formatMoney } from "@/lib/format"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
+import { DashboardMarketOverview } from "@/components/dashboard-market-overview"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,7 @@ export function DashboardScreen() {
     return (
       <div className="flex flex-col gap-6">
         <Header username={user?.username} />
+        <DashboardMarketOverview />
         <Empty className="rounded-lg border border-dashed border-border py-16">
           <EmptyHeader>
             <EmptyMedia variant="icon"><Boxes /></EmptyMedia>
@@ -64,6 +66,7 @@ export function DashboardScreen() {
   return (
     <div className="flex flex-col gap-6">
       <Header username={user?.username} />
+      <DashboardMarketOverview />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "valorizzati R3" : "valued by R3"}</span>} />

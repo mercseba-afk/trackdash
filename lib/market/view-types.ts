@@ -21,6 +21,9 @@ export interface ReleaseMarketSignalView {
   activeOfferCount: number
   currentOfferCount: number
   soldUnits: number
+  recentSoldUnits3m: number | null
+  recentSoldPeriodStart: string | null
+  recentSoldPeriodEnd: string | null
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | 6 | 12 | null
   computedAt: string
