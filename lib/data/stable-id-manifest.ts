@@ -2,9 +2,9 @@
 // point 5). This is the AUTHORITATIVE, APPEND-ONLY record of every
 // product/release UUID ever allocated as of a confirmed deployment. It is
 // deliberately a checked-in literal, NOT derived from lib/data/products.ts
-// at runtime -- so scripts/check-catalog-invariants.mjs can detect an id
-// that has DISAPPEARED or CHANGED (a runtime-derived floor could never
-// notice a deletion, since it would just re-derive the smaller set).
+// at runtime -- so scripts/check-catalog-invariants.mjs can detect an id that
+// has DISAPPEARED or CHANGED (a runtime-derived floor could never notice a
+// deletion, since it would just re-derive the smaller set).
 //
 // RULES:
 //   - APPEND-ONLY. When a migration that adds new legitimate rows is
@@ -12,7 +12,7 @@
 //     existing entry.
 //   - The invariant checker HARD-FAILS if any id listed here is missing
 //     from the current catalog, or if its product/release kind changed.
-//   - Current sealed floor: 38 products + 101 releases = 139 ids.
+//   - Current sealed floor: 43 products + 107 releases = 150 ids.
 
 export interface StableIdManifestEntry {
   id: string
@@ -166,4 +166,17 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "6c1d4fcf-7265-5a61-9be9-795e27eec353", kind: "release", label: "Avante Mk.II — Avante Mk.II V Special" },
   { id: "c819da54-1ebc-5a8b-a24f-77166cf70e8d", kind: "release", label: "Avante Mk.II — Avante Mk.II Pink Special (Clear Body)" },
   { id: "5489c586-0f2a-5393-9447-dcf36bed8f1a", kind: "release", label: "Avante Mk.II — Avante Mk.II Asia Challenge 2020 Special (Taiwan Final)" },
+
+  // ---- Vintage 100 P1 + Proto Emperor ZX 1992 split, sealed after live DB verification ----
+  { id: "a0bed8eb-2899-50f8-8746-a8d08f7a52b7", kind: "product", label: "Dash-5 Dancing Doll" },
+  { id: "033769c0-a8d7-554a-8e3d-b4049d505241", kind: "product", label: "Dash-01 Super Emperor" },
+  { id: "652fd9b9-5fea-5067-9432-3c09b24d5bfc", kind: "product", label: "Avante 2001 Jr." },
+  { id: "fb1e4d46-96e6-52e9-9017-baa3799ae060", kind: "product", label: "Crimson Glory" },
+  { id: "2a6f40df-f87d-5184-82b7-578c4ee857fc", kind: "product", label: "Dash-02 Neo Burning Sun" },
+  { id: "83e6ea7d-aa3d-5524-b640-73c407ee272a", kind: "release", label: "Proto Emperor ZX — Proto Emperor ZX (1992 Original)" },
+  { id: "0febe9c7-2a10-5766-9b87-1342121d3e38", kind: "release", label: "Dash-5 Dancing Doll — Dash-5 Dancing Doll" },
+  { id: "c8bdd30e-625d-511e-b92c-d132044b16b4", kind: "release", label: "Dash-01 Super Emperor — Dash-01 Super Emperor" },
+  { id: "d7d593b9-9451-5b68-b845-14aaecac4988", kind: "release", label: "Avante 2001 Jr. — Avante 2001 Jr." },
+  { id: "5132b078-5f0d-55bd-9673-d73efb7a601c", kind: "release", label: "Crimson Glory — Crimson Glory" },
+  { id: "b6d59af9-6b3c-51be-8046-02faa28e7d97", kind: "release", label: "Dash-02 Neo Burning Sun — Dash-02 Neo Burning Sun" },
 ]
