@@ -23,13 +23,34 @@ interface MarketRow {
 
 function hasMeaningfulActivity(signal: ReleaseMarketSignalView): boolean {
   if (signal.trendPercent != null) return true
-  return signal.soldUnits >= 2 && signal.currentOfferCount > 0
+  return signal.recentSoldUnits3m != null && signal.recentSoldUnits3m >= 2
 }
 
 function releaseYear(release: ProductRelease): number | null {
   if (release.releaseYear == null) return null
   const value = Number(release.releaseYear)
   return Number.isFinite(value) ? value : null
+}
+
+function recentSalesLabel(signal: ReleaseMarketSignalView, it: boolean): string {
+  if (signal.recentSoldUnits3m != null && signal.recentSoldPeriodStart && signal.recentSoldPeriodEnd) {
+    const start = new Date(`${signal.recentSoldPeriodStart}T00:00:00Z`)
+    const end = new Date(`${signal.recentSoldPeriodEnd}T00:00:00Z`)
+    const locale = it ? "it-IT" : "en-US"
+    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" })
+    const startMonth = monthFormatter.format(start).replace(".", "")
+    const endMonth = monthFormatter.format(end).replace(".", "")
+    const period = start.getUTCFullYear() === end.getUTCFullYear()
+      ? `${startMonth}–${endMonth} ${end.getUTCFullYear()}`
+      : `${startMonth} ${start.getUTCFullYear()}–${endMonth} ${end.getUTCFullYear()}`
+    return it
+      ? `${signal.recentSoldUnits3m} ${signal.recentSoldUnits3m === 1 ? "vendita" : "vendite"} · ${period}`
+      : `${signal.recentSoldUnits3m} ${signal.recentSoldUnits3m === 1 ? "sale" : "sales"} · ${period}`
+  }
+
+  return it
+    ? `${signal.soldUnits} ${signal.soldUnits === 1 ? "vendita osservata" : "vendite osservate"}`
+    : `${signal.soldUnits} observed ${signal.soldUnits === 1 ? "sale" : "sales"}`
 }
 
 export function DashboardMarketOverview() {
@@ -52,7 +73,8 @@ export function DashboardMarketOverview() {
       return year != null && year <= 2000 && row.signal.valueEUR != null && row.signal.valueEUR > 0
     })
     .sort((a, b) => {
-      if (b.signal.soldUnits !== a.signal.soldUnits) return b.signal.soldUnits - a.signal.soldUnits
+      const recentDelta = (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0)
+      if (recentDelta !== 0) return recentDelta
       const trendDelta = Math.abs(b.signal.trendPercent ?? 0) - Math.abs(a.signal.trendPercent ?? 0)
       if (trendDelta !== 0) return trendDelta
       return (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)
@@ -70,11 +92,8 @@ export function DashboardMarketOverview() {
     .slice(0, 4), [rows])
 
   const mostTraded = React.useMemo(() => active
-    .filter((row) => row.signal.soldUnits > 0)
-    .sort((a, b) => {
-      if (b.signal.soldUnits !== a.signal.soldUnits) return b.signal.soldUnits - a.signal.soldUnits
-      return b.signal.currentOfferCount - a.signal.currentOfferCount
-    })
+    .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
+    .sort((a, b) => (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0))
     .slice(0, 4), [active])
 
   const sectionCount = [vintage, highValue, movers, mostTraded].filter((section) => section.length > 0).length
@@ -87,8 +106,8 @@ export function DashboardMarketOverview() {
           <h2 id="market-now-title" className="text-lg font-semibold tracking-tight">{it ? "Il mercato adesso" : "Market now"}</h2>
           <p className="max-w-3xl text-sm text-muted-foreground">
             {it
-              ? "In evidenza solo Release con movimento reale: trend di vendite consolidato oppure vendite osservate insieme a disponibilità corrente. Un prezzo alto, da solo, non basta."
-              : "Only Releases with real market activity are highlighted: a consolidated sales trend, or observed sales together with current availability. A high price alone is not enough."}
+              ? "In evidenza solo Release con movimento reale: trend di vendite consolidato oppure almeno tre mesi consecutivi di venduto recente. Un prezzo alto, da solo, non basta."
+              : "Only Releases with real market activity are highlighted: a consolidated sales trend or at least three consecutive recent months of sold activity. A high price alone is not enough."}
           </p>
         </div>
         <Button variant="ghost" size="sm" render={<Link href="/market" />}>
@@ -120,7 +139,7 @@ export function DashboardMarketOverview() {
         {movers.length > 0 ? (
           <MarketBlock
             title="Movers"
-            subtitle={it ? "Movimenti pubblicati solo quando la serie temporale delle vendite è sufficiente." : "Moves are published only when completed-sale history is sufficient."}
+            subtitle={it ? "Movimenti pubblicati solo quando la serie temporale delle vendite è sufficiente e recente." : "Moves are published only when completed-sale history is sufficient and recent."}
             rows={movers}
             icon={TrendingUp}
             it={it}
@@ -130,7 +149,7 @@ export function DashboardMarketOverview() {
         {mostTraded.length > 0 ? (
           <MarketBlock
             title={it ? "Più scambiate" : "Most traded"}
-            subtitle={it ? "Classifica per vendite osservate nel campione di mercato corrente, con gate di attività." : "Ranked by observed sales in the current market sample, behind the activity gate."}
+            subtitle={it ? "Vendite sommate su tre mesi di calendario consecutivi e recenti." : "Sales summed across three consecutive recent calendar months."}
             rows={mostTraded}
             icon={Activity}
             it={it}
@@ -140,8 +159,8 @@ export function DashboardMarketOverview() {
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         {it
-          ? "Le vendite osservate indicano il volume del campione usato dal segnale TrackDash; non vengono attribuite a una finestra temporale specifica finché il dato non è disponibile in modo esplicito."
-          : "Observed sales indicate the volume of the sample used by the TrackDash signal; they are not assigned to a specific time window until that window is explicitly available in the data."}
+          ? "Quando compare un periodo (es. giu–ago 2026), il conteggio deriva da tre mesi consecutivi di segnali mensili R3. Negli altri casi mostriamo solo il volume del campione osservato, senza attribuirgli una finestra temporale non dimostrata."
+          : "When a period is shown (for example Jun–Aug 2026), the count comes from three consecutive monthly R3 signals. Otherwise only the observed sample volume is shown, without assigning an unsupported time window."}
       </p>
     </section>
   )
@@ -176,9 +195,7 @@ function MarketBlock({
 function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const year = releaseYear(row.release)
-  const salesLabel = it
-    ? `${row.signal.soldUnits} ${row.signal.soldUnits === 1 ? "vendita osservata" : "vendite osservate"}`
-    : `${row.signal.soldUnits} observed ${row.signal.soldUnits === 1 ? "sale" : "sales"}`
+  const salesLabel = recentSalesLabel(row.signal, it)
 
   return (
     <Link href={href} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
