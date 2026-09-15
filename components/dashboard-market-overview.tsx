@@ -33,13 +33,6 @@ function releaseYear(release: ProductRelease): number | null {
   return Number.isFinite(value) ? value : null
 }
 
-/**
- * Home is Release-first, but one Product family should not monopolize an entire
- * block simply because several of its editions are liquid at the same time.
- * Rank at Release level first, then keep the highest-ranked Release per Product.
- * The same Product may still appear in a different block when a different
- * Release genuinely deserves it under that block's own market criterion.
- */
 function takeDistinctProducts(rows: MarketRow[], limit: number): MarketRow[] {
   const productIds = new Set<string>()
   const result: MarketRow[] = []
@@ -124,8 +117,8 @@ export function DashboardMarketOverview() {
           <h2 id="market-now-title" className="text-lg font-semibold tracking-tight">{it ? "Il mercato adesso" : "Market now"}</h2>
           <p className="max-w-3xl text-sm text-muted-foreground">
             {it
-              ? "In evidenza solo Release con movimento reale: trend di vendite consolidato oppure una finestra recente di tre mesi consecutivi con almeno due vendite. Un prezzo alto, da solo, non basta."
-              : "Only Releases with real market activity are highlighted: a consolidated sales trend or a recent three-consecutive-month window with at least two sales. A high price alone is not enough."}
+              ? "Release con attività reale, valore interessante o movimenti di mercato verificabili."
+              : "Releases with real activity, meaningful value or verifiable market moves."}
           </p>
         </div>
         <Button variant="ghost" size="sm" render={<Link href="/market" />}>
@@ -137,7 +130,7 @@ export function DashboardMarketOverview() {
         {vintage.length > 0 ? (
           <MarketBlock
             title={it ? "Vintage in movimento" : "Vintage in motion"}
-            subtitle={it ? "Release fino al 2000 con attività di mercato verificabile." : "Releases through 2000 with verifiable market activity."}
+            subtitle={it ? "Release vintage con attività verificabile." : "Vintage Releases with verifiable activity."}
             rows={vintage}
             icon={History}
             it={it}
@@ -147,7 +140,7 @@ export function DashboardMarketOverview() {
         {highValue.length > 0 ? (
           <MarketBlock
             title={it ? "Valore alto & attivo" : "High value & active"}
-            subtitle={it ? "Le stime più alte tra le Release che stanno ancora mostrando attività." : "The highest estimates among Releases that are still showing activity."}
+            subtitle={it ? "Le stime più alte tra le Release ancora attive." : "The highest estimates among Releases that are still active."}
             rows={highValue}
             icon={Gem}
             it={it}
@@ -157,7 +150,7 @@ export function DashboardMarketOverview() {
         {movers.length > 0 ? (
           <MarketBlock
             title="Movers"
-            subtitle={it ? "Movimenti pubblicati solo quando la serie temporale delle vendite è sufficiente e recente." : "Moves are published only when completed-sale history is sufficient and recent."}
+            subtitle={it ? "Le Release con i movimenti di prezzo più significativi." : "Releases with the most meaningful price moves."}
             rows={movers}
             icon={TrendingUp}
             it={it}
@@ -167,19 +160,13 @@ export function DashboardMarketOverview() {
         {mostTraded.length > 0 ? (
           <MarketBlock
             title={it ? "Più scambiate" : "Most traded"}
-            subtitle={it ? "Vendite sommate su una finestra recente di tre mesi di calendario consecutivi." : "Sales summed across a recent window of three consecutive calendar months."}
+            subtitle={it ? "Le Release con più vendite recenti osservate." : "Releases with the most recently observed sales."}
             rows={mostTraded}
             icon={Activity}
             it={it}
           />
         ) : null}
       </div>
-
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        {it
-          ? "La Home classifica le singole Release, non il Product generico. In ogni blocco viene mostrata al massimo la Release meglio classificata di ciascun Product, così una sola famiglia non può monopolizzare la sezione. La liquidità usa solo vendite concluse recenti; le soglie v1 verranno ricalibrate sul campione Vintage 100."
-          : "Home ranks individual Releases, not generic Products. Each block shows at most the highest-ranked Release from a given Product, so one family cannot monopolize a section. Liquidity uses recent completed sales only; v1 thresholds will be recalibrated against the Vintage 100 sample."}
-      </p>
     </section>
   )
 }
