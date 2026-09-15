@@ -1,6 +1,6 @@
 # TrackDash Vintage 100 Pilot
 
-Status: research queue v1
+Status: P1 public-market discovery in progress
 
 ## Goal
 
@@ -15,6 +15,7 @@ Measure whether the collectible/vintage Mini 4WD market is liquid enough to supp
 - Reissues, Premium, MS/VS/Super-II variants, Black/Special editions and modern rereleases are separate Releases and must never be merged into the original.
 - When the same Tamiya Item Number is reused across commercial occurrences, Item Number alone is insufficient: require period/edition evidence (box, chassis, listing wording such as 当時物/初版, verified date, barcode when available, or equivalent provenance).
 - A broad marketplace search count is discovery evidence only; it is not an exact-release sales count until individual results are filtered.
+- Public search snippets are candidate evidence only. Do not write them into R3 until the exact listing/release match, condition, source date and currency provenance are validated.
 - If exact-release evidence is insufficient, fail closed rather than inventing a Market Value or liquidity level.
 
 ## Vintage Core 25
@@ -33,7 +34,7 @@ Measure whether the collectible/vintage Mini 4WD market is liquid enough to supp
 | 18031 | Avante 2001 Jr. — original Zero chassis | 1990 | missing | clear exact vintage sales observed in Japan |
 | 18032 | Crimson Glory — original FM | 1990 | missing | early FM / collector interest; multiple vintage sales observed |
 | 18034 | Dash-02 Neo Burning Sun — original FM | 1991 | missing | Dash/FM release; multiple vintage sales observed |
-| 18036 | Dash-001 Great Emperor — original Zero | **1991** | present, year correction required | official Tamiya release-month archive places it in Sep 1991 |
+| 18036 | Dash-001 Great Emperor — original Zero | **1991** | corrected / verified | corrected from stale 1990 / Type-3 data using official Tamiya evidence |
 | 18038 | Proto Emperor ZX — original Zero | 1992 | present / partial | strong collector signal; 2007 rerelease shares item number and must remain separate |
 
 ### P2 — expand after P1
@@ -70,22 +71,42 @@ For each exact Release collect:
 - observed ask/sold spread;
 - provenance and exclusion reason for every rejected ambiguous comp.
 
-## Initial public-market observations (discovery only)
+## Yahoo Auctions Japan — discovery pass 2026-09-15
 
-These are **not yet TrackDash Market Values**; they only justify P1 priority.
+The rows below are **candidate sold comps surfaced by public closed-search results**, not imported R3 evidence and not TrackDash Market Values. They are recorded to guide the deeper listing-level validation pass.
 
-- Proto Emperor ZX: Yahoo closed results expose several original-looking/unbuilt vintage sales around JPY 8,000–12,000, but the family search also includes Premium/reissues and must be filtered item-by-item.
-- Avante 2001 Jr.: Yahoo closed results show multiple original 18031 / vintage unbuilt examples, including sales around JPY 3,410–7,600, while Black Special and VS variants also appear and must be excluded from the standard 18031 release.
-- Crimson Glory: Yahoo closed results show original/vintage examples around JPY 7,500–12,650 and a two-kit lot at JPY 19,000; lots and incomplete items are not direct comps.
-- Neo Burning Sun: Yahoo closed results show original-looking vintage/unbuilt sales around JPY 10,050–11,538, but parts/body listings and unrelated variants must be excluded.
-- Broad Dash/Emperor/Horizon searches show meaningful activity, but their aggregate counts are family-level discovery signals only.
+| Item | Candidate clean-looking sold observations | Current read |
+|---|---|---|
+| 18012 | JPY 33,000 — unused, `小鹿`, Type-1, vintage collector listing; JPY 28,500 — unbuilt, No.12, `小鹿`, middle-band box | strong high-value signal; requires exact listing validation and separation from 18025/MS/Premium/specials |
+| 18014 | JPY 4,020 — unused, `小鹿・初期`, Type-2, vintage collector listing | one strong original-looking comp; insufficient alone for value/liquidity |
+| 18019 | JPY 3,410 — vintage 600-yen Shooting Star listing; JPY 2,926 — No.19 current/unknown-production listing | mixed provenance; needs box/production filtering before use |
+| 18022 | JPY 5,450 — unbuilt 1990 deadstock No.22; JPY 3,322 — unbuilt 1990 deadstock No.22; JPY 5,150 — unbuilt vintage item 18022 | multiple useful original-looking candidates |
+| 18023 | JPY 3,600 — unbuilt No.23; JPY 4,510 — item 18023; JPY 3,100 — item 18023; JPY 5,250 — unbuilt No.23; JPY 3,900 and JPY 2,750 — No.23/unopened listings | good volume signal but original production vs later stock must still be validated |
+| 18028 | JPY 3,500 and JPY 3,800 — unbuilt Racer Mini 4WD No.28 listings | useful candidates; provenance still too weak for R3 |
+| 18030 | JPY 6,350 — unbuilt 1990 deadstock No.30; JPY 5,000 — unbuilt vintage Horizon | multiple original-looking candidates; body-only and Special Kit results excluded |
+| 18031 | JPY 7,600 — unused `初版` Zero chassis; JPY 4,622 — item 18031; JPY 4,600 — unused/unbuilt vintage 18031; JPY 4,100 — unused/unbuilt No.31; JPY 2,390 — Zero chassis | strong volume signal; exclude Black Special and VS 18052 |
+| 18032 | JPY 11,000 — unbuilt FM; JPY 12,000 — unbuilt vintage; JPY 7,500 incomplete/no-box candidate is excluded | strong higher-value signal from at least two complete-looking sales |
+| 18034 | JPY 10,000 — unbuilt vintage; JPY 10,050 — unbuilt vintage; JPY 11,538 body-only listing is excluded | two strong complete-looking candidates around JPY 10k |
+| 18036 | public search is heavily mixed with Special Kits, bodies and modified/built cars | identity now corrected; deeper exact-release sold scan still needed |
+| 18038 | JPY 8,000 — unbuilt vintage Zero; JPY 12,000 — item 18038; JPY 8,000 — unbuilt Zero; JPY 9,250 — unused `初版` Zero; JPY 9,500 — unbuilt vintage | strongest current P1 cluster; 2007 item-18038 reissue and 95335 Premium must be excluded |
 
-## Known catalog correction discovered during pilot setup
+## Early interpretation — not valuation
 
-`18036 — Dash-001 Great Emperor` is currently stored as release year **1990** in the live catalog. Tamiya's official release-month archive lists item 18036 in **September 1991**. Correct this before using 18036 as pilot evidence.
+- The P1 set already shows meaningful price stratification: vintage collecting is not a flat market.
+- 18012 appears materially more expensive than most other P1 candidates, while 18038/18032/18034 currently show useful repeat-sale clusters.
+- 18023 and 18031 look promising for liquidity because several sold candidates surface in the recent Yahoo window even before eBay is added.
+- A Release with one high sale must not outrank a lower-priced Release with repeat recent sales solely because of ticket value.
+- eBay Product Research and listing-level Yahoo validation remain required before publishing Market Value, trend or liquidity from this pilot.
 
-Official reference:
+## Catalog correction completed during pilot setup
+
+`18036 — Dash-001 Great Emperor` was found in the live catalog as **1990 / Type 3**. Official Tamiya evidence establishes **September 1991 / Zero chassis**. TrackDash now preserves the same Product/Release UUIDs but uses 1991 / Zero, leaves the exact day unknown, and records both official Tamiya sources.
+
+Official references:
+- https://www.tamiya.com/japan/products/18036/index.html
 - https://tamiya.com/japan/newitems_month/list.html?catalog_open_month=201804&current=199109&genre_item=&sortkey=
+
+GitHub production fix: PR #79 / migration `0088_great_emperor_18036_history_fix.sql`.
 
 ## Expansion rule
 
