@@ -67,8 +67,9 @@ function deriveRecentSoldActivity(
   if (latestAgeDays > 90) return null
 
   const units = latestThree.reduce((sum, row) => sum + Math.max(0, row.soldUnits), 0)
-  if (units <= 0) return null
 
+  // A validated recent window with zero completed sales is meaningful evidence:
+  // it indicates very low observed liquidity rather than missing data.
   return {
     units,
     periodStart: `${keys[0]}-01`,
