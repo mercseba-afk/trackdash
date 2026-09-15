@@ -6,6 +6,7 @@ import { Activity, ArrowRight, Gem, History, TrendingUp } from "lucide-react"
 import { PRODUCTS } from "@/lib/data/corrected-products"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
+import { getMarketLiquidity, marketLiquidityLabel } from "@/lib/market/liquidity"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
@@ -159,8 +160,8 @@ export function DashboardMarketOverview() {
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         {it
-          ? "Quando compare un periodo (es. giu–ago 2026), il conteggio deriva da tre mesi consecutivi di segnali mensili R3. Negli altri casi mostriamo solo il volume del campione osservato, senza attribuirgli una finestra temporale non dimostrata."
-          : "When a period is shown (for example Jun–Aug 2026), the count comes from three consecutive monthly R3 signals. Otherwise only the observed sample volume is shown, without assigning an unsupported time window."}
+          ? "La liquidità è una stima dell'attività di scambio osservata, basata solo su vendite concluse recenti. Le soglie v1 verranno ricalibrate sul campione Vintage 100."
+          : "Liquidity estimates observed trading activity using recent completed sales only. The v1 thresholds will be recalibrated against the Vintage 100 sample."}
       </p>
     </section>
   )
@@ -196,6 +197,7 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const year = releaseYear(row.release)
   const salesLabel = recentSalesLabel(row.signal, it)
+  const liquidity = getMarketLiquidity(row.signal)
 
   return (
     <Link href={href} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
@@ -206,6 +208,7 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
           {year != null ? <span className="text-xs text-muted-foreground">{year}</span> : null}
           <span className="text-xs text-muted-foreground">#{row.release.itemNumber ?? "—"}</span>
           {row.release.rarity ? <RarityBadge rarity={row.release.rarity} /> : null}
+          {liquidity ? <Badge variant="outline">{it ? "Liquidità" : "Liquidity"}: {marketLiquidityLabel(liquidity.level, it)}</Badge> : null}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
           <span>{salesLabel}</span>
