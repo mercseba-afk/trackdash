@@ -12,7 +12,7 @@
 //     existing entry.
 //   - The invariant checker HARD-FAILS if any id listed here is missing
 //     from the current catalog, or if its product/release kind changed.
-//   - Current sealed floor: 43 products + 107 releases = 150 ids.
+//   - Current sealed floor: 48 products + 120 releases = 168 ids.
 
 export interface StableIdManifestEntry {
   id: string
@@ -179,4 +179,24 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "d7d593b9-9451-5b68-b845-14aaecac4988", kind: "release", label: "Avante 2001 Jr. — Avante 2001 Jr." },
   { id: "5132b078-5f0d-55bd-9673-d73efb7a601c", kind: "release", label: "Crimson Glory — Crimson Glory" },
   { id: "b6d59af9-6b3c-51be-8046-02faa28e7d97", kind: "release", label: "Dash-02 Neo Burning Sun — Dash-02 Neo Burning Sun" },
+
+  // ---- Vintage 100 P2 early Racing Mini 4WD, sealed after live DB verification ----
+  { id: "a8dddf2c-ba7d-56e8-9816-adde32fd8907", kind: "product", label: "Hotshot Jr." },
+  { id: "a508c0d6-651d-5469-92b6-002e86518a1a", kind: "product", label: "Hornet Jr." },
+  { id: "28b59956-2803-5602-ac02-ca3e58abd862", kind: "product", label: "Boomerang Jr." },
+  { id: "d8c1c423-ae93-5f15-9caa-b7e1b5016760", kind: "product", label: "Super Dragon Jr." },
+  { id: "9babb5d8-f8d0-5741-bb12-22e5a069015a", kind: "product", label: "Thunder Dragon Jr." },
+  { id: "aae2febe-da13-55d0-a5c7-3151c2b16778", kind: "release", label: "Hotshot Jr. — Hotshot Jr. — 1986 Original" },
+  { id: "24ecf550-ce34-5bed-a192-31ec8e857ea6", kind: "release", label: "Hotshot Jr. — Hotshot Jr. — 1998 Limited Reissue" },
+  { id: "42ee427f-60ed-598b-bc68-b07c2e2cb195", kind: "release", label: "Hornet Jr. — Hornet Jr. — 1986 Original" },
+  { id: "554acb0b-0987-551b-8619-c3bff7e3bab0", kind: "release", label: "Hornet Jr. — Hornet Jr. — 1998 Limited Reissue" },
+  { id: "676c2d8e-df56-5b73-9e6e-4ff732b4bbc4", kind: "release", label: "Boomerang Jr. — Boomerang Jr. — 1986 Original" },
+  { id: "855153e5-fa4b-548c-9ae3-464b9fe46e15", kind: "release", label: "Super Dragon Jr. — Super Dragon Jr. — 1987 Original" },
+  { id: "2514e6f0-9121-55db-899b-03976f4ec11f", kind: "release", label: "Super Dragon Jr. — Super Dragon Jr. — 1998 Memorial Reissue" },
+  { id: "9ce0c921-2bfe-5c34-b21f-d8b28c430104", kind: "release", label: "Super Dragon Jr. — Super Dragon Jr. — 2012 Reissue" },
+  { id: "a4208dcd-08fa-5391-ad03-3c1ebf481507", kind: "release", label: "Super Dragon Jr. — Super Dragon Premium — VS Chassis" },
+  { id: "ef8c9a34-a78f-5f47-9f48-79460a21d40b", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Jr. — 1987 Original" },
+  { id: "fcef2cc9-4f5e-5d09-8f80-5f2fcc644372", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Jr. — 1998 Memorial Reissue" },
+  { id: "a52d2eca-f226-5fc7-97bc-4437ad44feb9", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Jr. — 2012 Reissue" },
+  { id: "bbc9e062-ba69-5cf9-9228-de2de15640a6", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Premium — VS Chassis" },
 ]
