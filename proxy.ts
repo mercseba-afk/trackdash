@@ -44,8 +44,8 @@
 //
 // PWA bootstrap resources, brand assets and the build-version probe are
 // also ungated. Browsers must be able to fetch the web manifest, service
-// worker, public brand artwork and current deployment version before/
-// without an authenticated app page.
+// worker, offline fallback, public brand artwork and current deployment
+// version before/without an authenticated app page.
 const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password"]
 const UNGATED_PREFIXES = [
   "/api/dev",
@@ -55,6 +55,7 @@ const UNGATED_PREFIXES = [
   "/update-password",
   "/manifest.webmanifest",
   "/sw.js",
+  "/offline.html",
   "/brand-car-v5",
 ]
 
