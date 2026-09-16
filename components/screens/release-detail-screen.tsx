@@ -178,7 +178,7 @@ function MarketValuePanel({ signal, it }: { signal?: ReleaseMarketSignalView | n
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">TrackDash Market Value</p>
           <p className="mt-2 text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">{formatMoney(signal.valueEUR)}</p>
-          <p className="mt-1 text-sm text-[#607089]">{it ? "Kit nuovo / completo / non montato" : "New / complete / unbuilt kit"}</p>
+          <p className="mt-1 text-sm text-[#607089]">{it ? "Valore attuale stimato · Kit nuovo / completo / non montato" : "Estimated current value · New / complete / unbuilt kit"}</p>
         </div>
         <ConfidenceBadge value={signal.confidenceLabel} it={it} />
       </div>
