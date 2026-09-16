@@ -3,6 +3,7 @@ import { PublicShell } from "@/components/public-shell"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
 import { fetchCatalogProductById } from "@/lib/actions/catalog"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
+import { getPublicOpenOffersForRelease } from "@/lib/db/queries/public-sharing"
 import { getPublicMarketSignalForRelease } from "@/lib/market/public"
 
 export const revalidate = 45
@@ -14,7 +15,7 @@ export default async function ReleasePage({
 }) {
   const { id, releaseId } = await params
 
-  const [product, marketSignal, localizedCopy] = await Promise.all([
+  const [product, marketSignal, localizedCopy, collectorOffers] = await Promise.all([
     fetchCatalogProductById(id).catch((error) => {
       console.error("Failed to load product for release detail:", error)
       return null
@@ -26,6 +27,10 @@ export default async function ReleasePage({
     getCatalogLocalizedCopy(id).catch((error) => {
       console.error("Failed to load localized release copy:", error)
       return null
+    }),
+    getPublicOpenOffersForRelease(releaseId).catch((error) => {
+      console.error("Failed to load public collector offers for release detail:", error)
+      return []
     }),
   ])
 
@@ -42,6 +47,7 @@ export default async function ReleasePage({
           release={release}
           localizedDescription={localizedCopy?.releases[releaseId]}
           marketSignal={marketSignal}
+          collectorOffers={collectorOffers}
         />
       </div>
     </PublicShell>
