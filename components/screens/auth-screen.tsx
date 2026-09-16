@@ -36,7 +36,7 @@ function countryLabel(country: string, it: boolean) {
   return labels[country] ?? country
 }
 
-export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
+export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextPath?: string }) {
   const { locale, setLocale } = useI18n()
   const it = locale === "it"
   const highlights = [
@@ -71,7 +71,7 @@ export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
           </ul>
         </div>
         <p className="text-xs text-background/50">
-          {it ? "I valori di mercato mostrati sono stime demo indicative, non perizie." : "Market values shown are indicative demo estimates, not appraisals."}
+          {it ? "I valori di mercato mostrati sono stime indicative basate sui dati disponibili, non perizie." : "Market values are indicative estimates based on available data, not appraisals."}
         </p>
         <div
           aria-hidden
@@ -84,14 +84,14 @@ export function AuthScreen({ mode }: { mode: "login" | "signup" }) {
           <div className="mb-8 lg:hidden">
             <BrandMark />
           </div>
-          {mode === "login" ? <LoginForm /> : <SignupForm />}
+          {mode === "login" ? <LoginForm nextPath={nextPath} /> : <SignupForm />}
         </div>
       </main>
     </div>
   )
 }
 
-function LoginForm() {
+function LoginForm({ nextPath }: { nextPath?: string }) {
   const router = useRouter()
   const { locale } = useI18n()
   const it = locale === "it"
@@ -114,7 +114,7 @@ function LoginForm() {
       return
     }
     toast.success(it ? "Bentornato" : "Welcome back")
-    router.push("/")
+    router.push(nextPath ?? "/dashboard")
     router.refresh()
   }
 
