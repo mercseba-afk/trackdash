@@ -4,13 +4,14 @@ import { ProductDetailScreen } from "@/components/screens/product-detail-screen"
 import { fetchCatalogProductById, fetchCatalogProducts } from "@/lib/actions/catalog"
 import { getRelatedProducts } from "@/lib/data/products"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
+import { getReleaseCommunityCounts } from "@/lib/db/queries/sharing"
 
 export const revalidate = 45
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [product, localizedCopy] = await Promise.all([
+  const [product, localizedCopy, communityCounts] = await Promise.all([
     fetchCatalogProductById(id).catch((error) => {
       console.error("Failed to load product from the database:", error)
       return null
@@ -18,6 +19,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     getCatalogLocalizedCopy(id).catch((error) => {
       console.error("Failed to load localized catalog copy:", error)
       return null
+    }),
+    getReleaseCommunityCounts(id).catch((error) => {
+      console.error("Failed to load public Release community counts:", error)
+      return []
     }),
   ])
   if (!product) return notFound()
@@ -35,6 +40,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           product={product}
           related={related}
           descriptionIt={localizedCopy?.productDescriptionIt}
+          communityCounts={communityCounts}
         />
       </div>
     </PublicShell>
