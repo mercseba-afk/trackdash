@@ -1,13 +1,22 @@
-import { AppPage } from "@/components/app-page"
-import { DashboardDataGate } from "@/components/dashboard-data-gate"
-import { DashboardScreen } from "@/components/screens/dashboard-screen"
+import { PublicShell } from "@/components/public-shell"
+import { PublicHomeScreen } from "@/components/screens/public-home-screen"
+import { fetchCatalogProducts } from "@/lib/actions/catalog"
+import type { Product } from "@/lib/types"
 
-export default function Page() {
+export const revalidate = 45
+
+export default async function Page() {
+  let products: Product[] = []
+
+  try {
+    products = await fetchCatalogProducts()
+  } catch (error) {
+    console.error("Failed to load catalog data for public home:", error)
+  }
+
   return (
-    <AppPage>
-      <DashboardDataGate>
-        <DashboardScreen />
-      </DashboardDataGate>
-    </AppPage>
+    <PublicShell>
+      <PublicHomeScreen products={products} />
+    </PublicShell>
   )
 }
