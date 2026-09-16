@@ -23,13 +23,38 @@ export function ForgotPasswordScreen() {
       toast.error(it ? "Inserisci un'email valida" : "Enter a valid email")
       return
     }
+
     setPending(true)
-    const supabase = createClient()
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
-    })
-    setPending(false)
-    setSubmitted(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
+      })
+
+      if (error) {
+        const rateLimited = error.status === 429 || /rate.?limit|too many requests/i.test(error.message)
+        toast.error(
+          rateLimited
+            ? it
+              ? "Hai richiesto troppe email in poco tempo. Riprova più tardi."
+              : "Too many reset emails were requested in a short time. Please try again later."
+            : it
+              ? "Non siamo riusciti a inviare l'email di reset. Riprova tra poco."
+              : "We couldn't send the reset email. Please try again shortly.",
+        )
+        return
+      }
+
+      setSubmitted(true)
+    } catch {
+      toast.error(
+        it
+          ? "Non siamo riusciti a inviare l'email di reset. Riprova tra poco."
+          : "We couldn't send the reset email. Please try again shortly.",
+      )
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
