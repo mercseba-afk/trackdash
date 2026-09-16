@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Boxes, Menu, ScanLine, X } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { Boxes, LayoutDashboard, Menu, ScanLine, X } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
 import { PwaInstallButton } from "@/components/pwa-install-menu-item"
 import { useStore } from "@/lib/store"
@@ -15,8 +16,12 @@ const PUBLIC_NAV = [
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const { user } = useStore()
+  const pathname = usePathname()
   const [menuOpen, setMenuOpen] = React.useState(false)
+  const currentPath = pathname || "/"
+  const loginHref = `/login?next=${encodeURIComponent(currentPath)}`
   const scannerHref = user ? "/scanner" : "/login?next=%2Fscanner"
+  const supportHref = user ? "/support" : "/login?next=%2Fsupport"
 
   return (
     <div className="min-h-svh bg-[#f7f9fc] text-[#081a3a]">
@@ -45,10 +50,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             {user ? (
               <>
                 <Link
-                  href="/profile"
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-[#123f8f] transition-colors hover:bg-[#e8f0fd]"
+                  href="/dashboard"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold text-[#123f8f] transition-colors hover:bg-[#e8f0fd]"
                 >
-                  {user.username}
+                  <LayoutDashboard className="size-4" /> Dashboard
                 </Link>
                 <Link
                   href="/collection"
@@ -60,7 +65,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href={loginHref}
                   className="rounded-md px-3 py-2 text-sm font-semibold text-[#123f8f] transition-colors hover:bg-[#e8f0fd]"
                 >
                   Sign in
@@ -106,11 +111,11 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-[#e2e8f0] pt-3">
               <Link
-                href={user ? "/profile" : "/login"}
+                href={user ? "/dashboard" : loginHref}
                 className="rounded-md border border-[#d4dfed] px-3 py-2.5 text-center"
                 onClick={() => setMenuOpen(false)}
               >
-                {user ? "Account" : "Sign in"}
+                {user ? "Dashboard" : "Sign in"}
               </Link>
               <Link
                 href={user ? "/collection" : "/catalog"}
@@ -150,7 +155,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7a899e]">TrackDash</span>
               <Link href="/#how-it-works">How it works</Link>
-              <Link href="/support">Support</Link>
+              <Link href={supportHref}>Support</Link>
             </div>
           </div>
         </div>
