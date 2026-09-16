@@ -16,6 +16,7 @@ import {
   type EbayMarketplaceId,
 } from "./ebay-browse-adapter"
 import { guardAutomatedPrice } from "./price-guard"
+import { ebaySourceRecordKey, planMissingEbayOffers, type EbayMarketplaceFetchState, type ExistingEbayOfferIdentity } from "./ebay-lifecycle"
 
 const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US"]
 const SUPPORTED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
@@ -50,6 +51,29 @@ interface ExistingOffer {
   fxRateDate: string | null
 }
 
+interface EbayScanJobOptions {
+  marketplaceLimit?: number
+  maxAcceptedListings?: number
+  persistNonAccepted?: boolean
+  dryRun?: boolean
+  allowedAcceptedItemId?: string
+}
+
+export interface EbaySelectedListing {
+  itemId: string
+  title: string
+  url: string | null
+  marketplace: EbayMarketplaceId
+  price: number
+  currency: string
+  shipping: number | null
+  conditionId: string | null
+  condition: string | null
+  sellerFingerprint: string | null
+  decision: "accepted"
+  reasonCodes: string[]
+}
+
 export interface EbayJobResult {
   jobId: string
   releaseId: string
@@ -60,6 +84,10 @@ export interface EbayJobResult {
   rejected: number
   materialChange: boolean
   reasonCodes: string[]
+  rawByMarketplace: Partial<Record<EbayMarketplaceId, number>>
+  uniqueListings: number
+  lifecycleNeutralized: number
+  selectedListings: EbaySelectedListing[]
 }
 
 export interface EbayRunResult {
@@ -72,6 +100,13 @@ export interface EbayRunResult {
   rejectedListings: number
   failed: number
   results: EbayJobResult[]
+}
+
+export interface TargetedEbayScanInput {
+  jobId: string
+  releaseId: string
+  mode: "preview" | "execute"
+  expectedItemId?: string
 }
 
 function fail(error: { message?: string } | null, context: string): void {
@@ -143,6 +178,51 @@ async function loadExistingOffer(client: SupabaseClient, sourceId: string, sourc
   }
 }
 
+async function loadReleaseEbayOffers(
+  client: SupabaseClient,
+  releaseId: string,
+  sourceId: string,
+): Promise<Array<ExistingOffer & ExistingEbayOfferIdentity>> {
+  const { data: candidates, error: candidateError } = await client
+    .from("market_candidates")
+    .select("id,original_source,original_record_id")
+    .eq("source_id", sourceId)
+    .eq("resolved_release_id", releaseId)
+  fail(candidateError, "load Release eBay candidates")
+  if (!(candidates ?? []).length) return []
+
+  const candidateById = new Map((candidates ?? []).map((row: any) => [row.id, row]))
+  const { data: offers, error: offerError } = await client
+    .from("market_offer_states")
+    .select("candidate_id,release_id,availability,item_price,shipping_price,currency,item_price_eur,shipping_eur,fx_rate_to_eur,fx_rate_date")
+    .eq("release_id", releaseId)
+    .eq("source_id", sourceId)
+    .in("candidate_id", [...candidateById.keys()])
+  fail(offerError, "load Release eBay offer states")
+
+  return (offers ?? []).flatMap((row: any) => {
+    const candidate: any = candidateById.get(row.candidate_id)
+    if (!candidate?.original_record_id) return []
+    const originalMarketplace = MARKETPLACES.includes(candidate.original_source as EbayMarketplaceId)
+      ? candidate.original_source as EbayMarketplaceId
+      : null
+    return [{
+      candidateId: row.candidate_id,
+      releaseId: row.release_id,
+      itemId: candidate.original_record_id,
+      originalMarketplace,
+      availability: row.availability,
+      itemPrice: Number(row.item_price),
+      shippingPrice: n(row.shipping_price),
+      currency: row.currency,
+      itemPriceEUR: Number(row.item_price_eur),
+      shippingEUR: n(row.shipping_eur),
+      fxRateToEUR: n(row.fx_rate_to_eur),
+      fxRateDate: row.fx_rate_date,
+    }]
+  })
+}
+
 async function independentReferences(client: SupabaseClient, releaseId: string, currentSourceId: string) {
   const [{ data: signal, error: signalError }, { data: offers, error: offersError }] = await Promise.all([
     client
@@ -202,14 +282,17 @@ async function upsertCandidate(
     observedAt: string
   },
 ): Promise<string> {
-  const key = `ebay:${input.listing.itemId}`
+  const key = ebaySourceRecordKey(input.listing.itemId)
   const { data: existing, error: existingError } = await client
     .from("market_candidates")
-    .select("id,first_observed_at")
+    .select("id,first_observed_at,resolved_release_id")
     .eq("source_id", input.job.source_id)
     .eq("source_record_key", key)
     .maybeSingle()
   fail(existingError, "load existing eBay candidate")
+  if (existing?.resolved_release_id && existing.resolved_release_id !== input.release.id) {
+    throw new Error("EBAY_ITEM_ALREADY_ASSIGNED_TO_OTHER_RELEASE")
+  }
 
   const isAccepted = input.decision === "accepted"
   const payload = {
@@ -300,7 +383,12 @@ async function neutralizePrevious(repo: MarketR3Repository, job: ClaimedEbayJob,
   return true
 }
 
-async function scanJob(client: SupabaseClient, repo: MarketR3Repository, job: ClaimedEbayJob): Promise<EbayJobResult> {
+async function scanJob(
+  client: SupabaseClient,
+  repo: MarketR3Repository,
+  job: ClaimedEbayJob,
+  options: EbayScanJobOptions = {},
+): Promise<EbayJobResult> {
   const observedAt = new Date().toISOString()
   const release = await loadReleaseContext(client, job.release_id)
   const input = {
@@ -312,11 +400,25 @@ async function scanJob(client: SupabaseClient, repo: MarketR3Repository, job: Cl
 
   const fetched: EbayBrowseListing[] = []
   const sourceErrors: string[] = []
+  const rawByMarketplace: Partial<Record<EbayMarketplaceId, number>> = {}
+  const fetchStates: EbayMarketplaceFetchState[] = []
+  const marketplaceLimit = Math.max(1, Math.min(options.marketplaceLimit ?? 50, 200))
   for (const marketplace of MARKETPLACES) {
     try {
-      fetched.push(...await searchEbayActiveListings(input, marketplace, 50))
+      const rows = await searchEbayActiveListings(input, marketplace, marketplaceLimit)
+      rawByMarketplace[marketplace] = rows.length
+      fetched.push(...rows)
+      fetchStates.push({
+        marketplace,
+        succeeded: true,
+        // A full page can be truncated; absence is authoritative only when the
+        // response proves that this page exhausted the query.
+        complete: rows.length < marketplaceLimit,
+        itemIds: new Set(rows.map((row) => row.itemId)),
+      })
     } catch (error) {
       sourceErrors.push(`${marketplace}:${shortError(error)}`)
+      fetchStates.push({ marketplace, succeeded: false, complete: false, itemIds: new Set() })
     }
   }
   if (!fetched.length && sourceErrors.length === MARKETPLACES.length) {
@@ -328,35 +430,43 @@ async function scanJob(client: SupabaseClient, repo: MarketR3Repository, job: Cl
   let review = 0
   let rejected = 0
   let materialChange = false
+  const selectedListings: EbaySelectedListing[] = []
+  const maxAcceptedListings = options.maxAcceptedListings ?? Number.POSITIVE_INFINITY
+  const persistNonAccepted = options.persistNonAccepted ?? true
 
   for (const listing of listings) {
     const classification = classifyEbayActiveListing(listing, input, new Date(observedAt))
-    const key = `ebay:${listing.itemId}`
+    const key = ebaySourceRecordKey(listing.itemId)
     const previous = await loadExistingOffer(client, job.source_id, key)
 
     if (classification.decision !== "accepted") {
-      await upsertCandidate(client, {
-        job,
-        release,
-        listing,
-        decision: classification.decision === "rejected" ? "rejected" : "needs_review",
-        reasonCodes: classification.reasonCodes,
-        observedAt,
-      })
+      if (persistNonAccepted) {
+        await upsertCandidate(client, {
+          job,
+          release,
+          listing,
+          decision: classification.decision === "rejected" ? "rejected" : "needs_review",
+          reasonCodes: classification.reasonCodes,
+          observedAt,
+        })
+      }
       if (classification.decision === "needs_review") {
         review += 1
-        materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+        if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
       } else {
         rejected += 1
+        if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
       }
       continue
     }
 
     const currency = listing.currency.toUpperCase() as Currency
     if (!SUPPORTED_CURRENCIES.has(currency)) {
-      await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["UNSUPPORTED_CURRENCY"], observedAt })
+      if (persistNonAccepted) {
+        await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["UNSUPPORTED_CURRENCY"], observedAt })
+      }
       review += 1
-      materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+      if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
       continue
     }
 
@@ -365,9 +475,11 @@ async function scanJob(client: SupabaseClient, repo: MarketR3Repository, job: Cl
       ? null
       : await resolveHistoricalEurBasis(listing.shipping || 0.000001, currency, observedAt.slice(0, 10))
     if (itemFx.amountEUR == null) {
-      await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["FX_RATE_UNAVAILABLE"], observedAt })
+      if (persistNonAccepted) {
+        await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["FX_RATE_UNAVAILABLE"], observedAt })
+      }
       review += 1
-      materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+      if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
       continue
     }
 
@@ -380,11 +492,31 @@ async function scanJob(client: SupabaseClient, repo: MarketR3Repository, job: Cl
       headlineConfidence: refs.confidence,
     })
     if (guard.decision === "review") {
-      await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: guard.reasonCodes, observedAt })
+      if (persistNonAccepted) {
+        await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: guard.reasonCodes, observedAt })
+      }
       review += 1
-      materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+      if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
       continue
     }
+
+    if (options.allowedAcceptedItemId && listing.itemId !== options.allowedAcceptedItemId) continue
+    if (selectedListings.length >= maxAcceptedListings) continue
+    selectedListings.push({
+      itemId: listing.itemId,
+      title: listing.title,
+      url: listing.itemWebUrl,
+      marketplace: listing.marketplace,
+      price: listing.price,
+      currency: listing.currency,
+      shipping: listing.shipping,
+      conditionId: listing.conditionId,
+      condition: listing.condition,
+      sellerFingerprint: listing.seller ? `ebay:${listing.seller}` : null,
+      decision: "accepted",
+      reasonCodes: [],
+    })
+    if (options.dryRun) continue
 
     const candidateId = await upsertCandidate(client, { job, release, listing, decision: "accepted", reasonCodes: [], observedAt })
     const shippingEUR = listing.shipping == null ? null : listing.shipping === 0 ? 0 : shippingFx?.amountEUR ?? null
@@ -411,21 +543,159 @@ async function scanJob(client: SupabaseClient, repo: MarketR3Repository, job: Cl
     }
   }
 
-  if (materialChange || accepted > 0) {
+  let lifecycleNeutralized = 0
+  if (!options.dryRun) {
+    const existingOffers = await loadReleaseEbayOffers(client, job.release_id, job.source_id)
+    const missingCandidateIds = new Set(planMissingEbayOffers(job.release_id, existingOffers, fetchStates))
+    for (const offer of existingOffers) {
+      if (!missingCandidateIds.has(offer.candidateId)) continue
+      if (await neutralizePrevious(repo, job, offer, observedAt)) {
+        lifecycleNeutralized += 1
+        materialChange = true
+      }
+    }
+  }
+
+  if (!options.dryRun && (materialChange || accepted > 0)) {
     await recomputeReleaseMarketSignal(job.release_id, "new_complete_unbuilt", new Date(observedAt), repo)
   }
-  await finishJob(client, job.job_id, true, materialChange, null)
+  if (!options.dryRun) await finishJob(client, job.job_id, true, materialChange, null)
 
   return {
     jobId: job.job_id,
     releaseId: job.release_id,
-    status: review > 0 && accepted === 0 ? "review" : "accepted",
+    status: review > 0 && selectedListings.length === 0 ? "review" : "accepted",
     found: listings.length,
     accepted,
     review,
     rejected,
     materialChange,
     reasonCodes: sourceErrors,
+    rawByMarketplace,
+    uniqueListings: listings.length,
+    lifecycleNeutralized,
+    selectedListings,
+  }
+}
+
+async function loadTargetJob(client: SupabaseClient, jobId: string, releaseId: string): Promise<ClaimedEbayJob> {
+  const { data: queue, error: queueError } = await client
+    .from("market_scan_queue")
+    .select("id,release_id,source_id,scan_scope,activity_tier,priority,enabled")
+    .eq("id", jobId)
+    .eq("release_id", releaseId)
+    .single()
+  fail(queueError, "load exact eBay scan job")
+  if (!queue?.enabled || queue.scan_scope !== "active_marketplace") throw new Error("EBAY_TARGET_JOB_NOT_ELIGIBLE")
+
+  const [{ data: source, error: sourceError }, { data: policy, error: policyError }] = await Promise.all([
+    client.from("price_sources").select("slug").eq("id", queue.source_id).single(),
+    client.from("market_source_policies").select("adapter_status").eq("source_id", queue.source_id).single(),
+  ])
+  fail(sourceError, "load exact eBay source")
+  fail(policyError, "load exact eBay policy")
+  if (source?.slug !== "ebay_active_public" || policy?.adapter_status !== "ready") {
+    throw new Error("EBAY_TARGET_JOB_NOT_ELIGIBLE")
+  }
+
+  return {
+    job_id: queue.id,
+    release_id: queue.release_id,
+    source_id: queue.source_id,
+    source_slug: source.slug,
+    scan_scope: queue.scan_scope,
+    activity_tier: queue.activity_tier,
+    priority: queue.priority,
+  }
+}
+
+export async function runEbayActiveMarketScanForRelease(input: TargetedEbayScanInput): Promise<EbayRunResult> {
+  if (!ebayBrowseConfigured()) throw new Error("EBAY_BROWSE_NOT_CONFIGURED")
+  if (input.mode === "execute" && !ebayMarketWritesAllowed()) throw new Error("EBAY_MARKET_WRITES_DISABLED")
+  if (input.mode === "execute" && !input.expectedItemId) throw new Error("EBAY_EXPECTED_ITEM_ID_REQUIRED")
+
+  const client = createAdminClient()
+  const repo = new MarketR3Repository(client)
+  let job: ClaimedEbayJob
+
+  if (input.mode === "preview") {
+    job = await loadTargetJob(client, input.jobId, input.releaseId)
+  } else {
+    const { data, error } = await client.rpc("trackdash_claim_ebay_active_job", {
+      p_job_id: input.jobId,
+      p_release_id: input.releaseId,
+      p_lock_minutes: 10,
+    })
+    fail(error, "claim exact eBay active scan job")
+    const jobs = (data ?? []) as ClaimedEbayJob[]
+    if (jobs.length !== 1) throw new Error("EBAY_TARGET_JOB_NOT_CLAIMED")
+    job = jobs[0]
+  }
+
+  let runId: string | null = null
+  if (input.mode === "execute") {
+    const { data: run, error: runError } = await client
+      .from("market_scan_runs")
+      .insert({ status: "running", targets_attempted: 1 })
+      .select("id")
+      .single()
+    fail(runError, "create targeted eBay scan run")
+    runId = run?.id ?? null
+  }
+
+  let result: EbayJobResult
+  try {
+    result = await scanJob(client, repo, job, {
+      marketplaceLimit: 5,
+      maxAcceptedListings: 1,
+      persistNonAccepted: false,
+      dryRun: input.mode === "preview",
+      allowedAcceptedItemId: input.expectedItemId,
+    })
+  } catch (error) {
+    const message = shortError(error)
+    if (input.mode === "execute") {
+      try { await finishJob(client, job.job_id, false, false, message) } catch {}
+    }
+    if (runId) {
+      await client.from("market_scan_runs").update({
+        status: "failed",
+        finished_at: new Date().toISOString(),
+        targets_succeeded: 0,
+        candidates_found: 0,
+        accepted_count: 0,
+        review_count: 0,
+        rejected_count: 0,
+        error_summary: message.slice(0, 1000),
+      }).eq("id", runId)
+    }
+    throw error
+  }
+
+  if (runId) {
+    const { error } = await client.from("market_scan_runs").update({
+      status: "completed",
+      finished_at: new Date().toISOString(),
+      targets_succeeded: 1,
+      candidates_found: result.accepted + result.review + result.rejected,
+      accepted_count: result.accepted,
+      review_count: result.review,
+      rejected_count: result.rejected,
+      error_summary: result.reasonCodes.length ? result.reasonCodes.join(" | ").slice(0, 1000) : null,
+    }).eq("id", runId)
+    fail(error, "finish targeted eBay scan run")
+  }
+
+  return {
+    configured: true,
+    runId,
+    attempted: 1,
+    succeeded: 1,
+    acceptedListings: result.accepted,
+    reviewListings: result.review,
+    rejectedListings: result.rejected,
+    failed: 0,
+    results: [result],
   }
 }
 
@@ -482,6 +752,10 @@ export async function runEbayActiveMarketScanBatch(limit = 2): Promise<EbayRunRe
         rejected: 0,
         materialChange: false,
         reasonCodes: [message],
+        rawByMarketplace: {},
+        uniqueListings: 0,
+        lifecycleNeutralized: 0,
+        selectedListings: [],
       })
     }
   }
