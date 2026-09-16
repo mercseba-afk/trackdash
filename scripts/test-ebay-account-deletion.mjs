@@ -15,6 +15,10 @@ const {
   redactEbayIdentifiers,
   verifyEbayNotificationSignature,
 } = await import("../lib/ebay/account-deletion.ts")
+const {
+  formatEbayDeletionFailure,
+  safeEbayDeletionErrorCode,
+} = await import("../lib/ebay/account-deletion-diagnostics.ts")
 
 const challenge = "challenge-123"
 const expectedChallenge = createHash("sha256")
@@ -66,13 +70,43 @@ const fetchMock = async (url, options = {}) => {
   }), { status: 200 })
 }
 
-assert.equal(await verifyEbayNotificationSignature(JSON.stringify(message), signatureHeader, fetchMock), true)
+const verificationStages = []
+assert.equal(
+  await verifyEbayNotificationSignature(
+    JSON.stringify(message),
+    signatureHeader,
+    fetchMock,
+    (stage) => verificationStages.push(stage),
+  ),
+  true,
+)
+assert.deepEqual(verificationStages, [
+  "signature_header_parsed",
+  "oauth_token_ok",
+  "public_key_ok",
+  "signature_verified",
+])
 assert.equal(calls.length, 2)
 assert.equal(calls[0].authorization.startsWith("Basic "), true)
 assert.equal(calls[1].authorization, "Bearer test-access-token")
 
 const tampered = { ...message, notification: { ...message.notification, notificationId: "changed" } }
 assert.equal(await verifyEbayNotificationSignature(JSON.stringify(tampered), signatureHeader, fetchMock), false)
+
+assert.equal(safeEbayDeletionErrorCode(new Error("EBAY_PUBLIC_KEY_FETCH_FAILED")), "EBAY_PUBLIC_KEY_FETCH_FAILED")
+assert.equal(
+  safeEbayDeletionErrorCode(new Error("EBAY_USER_ERASURE_FAILED:load_market_candidates")),
+  "EBAY_USER_ERASURE_FAILED:load_market_candidates",
+)
+assert.equal(safeEbayDeletionErrorCode(new Error("Seller_Name token-1 test-secret")), "UNKNOWN")
+const safeFailure = formatEbayDeletionFailure(
+  "public_key_ok",
+  new Error("Seller_Name immutable-1 token-1 test-secret"),
+)
+assert.equal(safeFailure, "[ebay-account-deletion] failed stage=public_key_ok code=UNKNOWN")
+for (const sensitive of ["Seller_Name", "immutable-1", "token-1", "test-secret"]) {
+  assert.equal(safeFailure.includes(sensitive), false)
+}
 
 class Query {
   constructor(store, table) {
@@ -174,5 +208,20 @@ assert.equal(store.price_points[0].evidence_group_key, null)
 assert.deepEqual(store.price_points[0].quality_flags, ["seller_unknown"])
 assert.equal(store.market_aggregate_observations[0].raw_payload.records[0].seller, null)
 assert.equal(store.market_aggregate_observations[0].raw_payload.records[1].seller, "someone-else")
+
+const noOpStore = structuredClone(store)
+const noOpClient = { from: (table) => new Query(noOpStore, table) }
+const noOpResult = await eraseEbayUserData(noOpClient, {
+  username: "synthetic-no-match",
+  userId: "synthetic-user-id",
+})
+assert.deepEqual(noOpResult, {
+  candidatesUpdated: 0,
+  offersUpdated: 0,
+  pricePointsUpdated: 0,
+  aggregatePayloadsUpdated: 0,
+  monthlyPayloadsUpdated: 0,
+  affectedReleaseConditions: [],
+})
 
 console.log("eBay account-deletion compliance tests passed")
