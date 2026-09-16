@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { AppPage } from "@/components/app-page"
+import { PublicShell } from "@/components/public-shell"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
 import { fetchCatalogProductById } from "@/lib/actions/catalog"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
@@ -35,13 +35,15 @@ export default async function ReleasePage({
   if (!release) return notFound()
 
   return (
-    <AppPage>
-      <ReleaseDetailScreen
-        product={product}
-        release={release}
-        localizedDescription={localizedCopy?.releases[releaseId]}
-        marketSignal={marketSignal}
-      />
-    </AppPage>
+    <PublicShell>
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+        <ReleaseDetailScreen
+          product={product}
+          release={release}
+          localizedDescription={localizedCopy?.releases[releaseId]}
+          marketSignal={marketSignal}
+        />
+      </div>
+    </PublicShell>
   )
 }
