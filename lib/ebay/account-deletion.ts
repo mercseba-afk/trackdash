@@ -37,6 +37,14 @@ export interface EbayErasureResult {
 
 type FetchLike = typeof fetch
 
+export type EbayDeletionVerificationStage =
+  | "signature_header_parsed"
+  | "oauth_token_ok"
+  | "public_key_ok"
+  | "signature_verified"
+
+export type EbayDeletionStageObserver = (stage: EbayDeletionVerificationStage) => void
+
 function requiredProductionConfig() {
   if (process.env.EBAY_ENV !== "production") throw new Error("EBAY_DELETION_REQUIRES_PRODUCTION")
 
@@ -109,7 +117,10 @@ function parseSignatureHeader(signatureHeader: string): { kid: string; signature
   return { kid, signature }
 }
 
-async function getApplicationToken(fetchImpl: FetchLike): Promise<string> {
+async function getApplicationToken(
+  fetchImpl: FetchLike,
+  onStage?: EbayDeletionStageObserver,
+): Promise<string> {
   const { clientId, clientSecret } = requiredProductionConfig()
   const body = new URLSearchParams({ grant_type: "client_credentials", scope: EBAY_SCOPE })
   const response = await fetchImpl(EBAY_TOKEN_URL, {
@@ -126,14 +137,22 @@ async function getApplicationToken(fetchImpl: FetchLike): Promise<string> {
   const payload = await response.json() as { access_token?: unknown }
   const accessToken = nonEmptyString(payload.access_token, 10_000)
   if (!accessToken) throw new Error("EBAY_NOTIFICATION_OAUTH_INVALID")
+  onStage?.("oauth_token_ok")
   return accessToken
 }
 
-async function getEbayPublicKey(kid: string, fetchImpl: FetchLike): Promise<string> {
+async function getEbayPublicKey(
+  kid: string,
+  fetchImpl: FetchLike,
+  onStage?: EbayDeletionStageObserver,
+): Promise<string> {
   const cached = publicKeyCache.get(kid)
-  if (cached && cached.expiresAt > Date.now()) return cached.key
+  if (cached && cached.expiresAt > Date.now()) {
+    onStage?.("public_key_ok")
+    return cached.key
+  }
 
-  const accessToken = await getApplicationToken(fetchImpl)
+  const accessToken = await getApplicationToken(fetchImpl, onStage)
   const response = await fetchImpl(`${EBAY_PUBLIC_KEY_URL}${encodeURIComponent(kid)}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -150,6 +169,7 @@ async function getEbayPublicKey(kid: string, fetchImpl: FetchLike): Promise<stri
     .replace(/-----BEGIN PUBLIC KEY-----\s*/, "-----BEGIN PUBLIC KEY-----\n")
     .replace(/\s*-----END PUBLIC KEY-----/, "\n-----END PUBLIC KEY-----")
   publicKeyCache.set(kid, { key: formatted, expiresAt: Date.now() + PUBLIC_KEY_TTL_MS })
+  onStage?.("public_key_ok")
   return formatted
 }
 
@@ -157,6 +177,7 @@ export async function verifyEbayNotificationSignature(
   rawBody: string,
   signatureHeader: string,
   fetchImpl: FetchLike = fetch,
+  onStage?: EbayDeletionStageObserver,
 ): Promise<boolean> {
   if (Buffer.byteLength(rawBody, "utf8") > MAX_NOTIFICATION_BYTES) {
     throw new Error("EBAY_NOTIFICATION_TOO_LARGE")
@@ -170,11 +191,14 @@ export async function verifyEbayNotificationSignature(
   }
 
   const { kid, signature } = parseSignatureHeader(signatureHeader)
-  const publicKey = await getEbayPublicKey(kid, fetchImpl)
+  onStage?.("signature_header_parsed")
+  const publicKey = await getEbayPublicKey(kid, fetchImpl, onStage)
   const verifier = createVerify("ssl3-sha1")
   verifier.update(JSON.stringify(message))
   verifier.end()
-  return verifier.verify(publicKey, signature, "base64")
+  const verified = verifier.verify(publicKey, signature, "base64")
+  if (verified) onStage?.("signature_verified")
+  return verified
 }
 
 function identifierVariants(identifiers: EbayDeletionIdentifiers): string[] {
