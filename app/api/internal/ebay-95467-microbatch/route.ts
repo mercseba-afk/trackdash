@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { runEbayActiveMarketScanForRelease } from "@/lib/market/automation/ebay-worker"
+import { runEbayPreviewDiagnostics } from "@/lib/market/automation/ebay-preview-diagnostics"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -41,7 +42,10 @@ export async function POST(request: NextRequest) {
       mode: body.mode,
       expectedItemId,
     })
-    return NextResponse.json({ ok: true, result })
+    const diagnostics = body.mode === "preview"
+      ? await runEbayPreviewDiagnostics(RELEASE_ID, JOB_ID)
+      : undefined
+    return NextResponse.json({ ok: true, result, diagnostics })
   } catch (error) {
     const code = error instanceof Error ? error.message.split(":", 1)[0] : "EBAY_MICROBATCH_FAILED"
     console.error(`[ebay-95467-microbatch] failed code=${code.slice(0, 120)}`)
