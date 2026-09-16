@@ -4,6 +4,7 @@ import {
   classifyEbayActiveListing,
   dedupeEbayListings,
 } from "../lib/market/automation/ebay-browse-adapter.ts"
+import { ebaySourceRecordKey, planMissingEbayOffers } from "../lib/market/automation/ebay-lifecycle.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -111,6 +112,48 @@ ok("same eBay item surfaced in multiple marketplaces is counted once", () => {
     { ...base, marketplace: "EBAY_DE" },
   ])
   assert.equal(rows.length, 1)
+  assert.equal(ebaySourceRecordKey(rows[0].itemId), "ebay:v1|123|0")
+  assert.equal(new Set(rows.map((row) => ebaySourceRecordKey(row.itemId))).size, 1)
+})
+
+const targetReleaseId = "target-release"
+const knownOffer = {
+  candidateId: "candidate-1",
+  releaseId: targetReleaseId,
+  itemId: "v1|123|0",
+  originalMarketplace: "EBAY_IT",
+  availability: "in_stock",
+}
+const fetchState = (marketplace, { succeeded = true, complete = true, itemIds = [] } = {}) => ({
+  marketplace,
+  succeeded,
+  complete,
+  itemIds: new Set(itemIds),
+})
+
+ok("lifecycle keeps an offer that remains present", () => {
+  assert.deepEqual(planMissingEbayOffers(targetReleaseId, [knownOffer], [
+    fetchState("EBAY_IT", { itemIds: [knownOffer.itemId] }),
+  ]), [])
+})
+
+ok("lifecycle neutralizes absence only after a complete successful origin fetch", () => {
+  assert.deepEqual(planMissingEbayOffers(targetReleaseId, [knownOffer], [fetchState("EBAY_IT")]), [knownOffer.candidateId])
+})
+
+ok("lifecycle preserves an offer when its origin fetch fails or is truncated", () => {
+  assert.deepEqual(planMissingEbayOffers(targetReleaseId, [knownOffer], [
+    fetchState("EBAY_IT", { succeeded: false, complete: false }),
+  ]), [])
+  assert.deepEqual(planMissingEbayOffers(targetReleaseId, [knownOffer], [
+    fetchState("EBAY_IT", { complete: false }),
+  ]), [])
+})
+
+ok("lifecycle never touches a listing owned by another Release", () => {
+  assert.deepEqual(planMissingEbayOffers(targetReleaseId, [{ ...knownOffer, releaseId: "other-release" }], [
+    fetchState("EBAY_IT"),
+  ]), [])
 })
 
 console.log(`${passed} passed, 0 failed`)
@@ -226,6 +269,14 @@ try {
   await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SANDBOX_MARKET_WRITES_DISABLED/)
   assert.equal(dbTouches, 0)
   console.log('ok: Production worker remains blocked before DB access until writes are explicitly armed')
+  await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanForRelease({
+    jobId: 'fixture-job',
+    releaseId: 'fixture-release',
+    mode: 'execute',
+    expectedItemId: 'fixture-item',
+  }), /EBAY_MARKET_WRITES_DISABLED/)
+  assert.equal(dbTouches, 0)
+  console.log('ok: Targeted Production execution remains blocked before DB access until writes are explicitly armed')
 } finally {
   globalThis.fetch = originalFetch
   for (const [key, value] of Object.entries(savedEnv)) {
