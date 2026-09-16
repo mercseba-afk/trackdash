@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono"
 export const metadata: Metadata = {
   title: "TrackDash — Mini 4WD Collector, market value & wishlist",
   description:
-    "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog your models, track market value with honest data, and manage your wishlist.",
+    "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog exact releases, track honest market value, manage your collection and wishlist, and scan models faster.",
   generator: "TrackDash",
   applicationName: "TrackDash",
   manifest: "/manifest.webmanifest",
@@ -35,16 +35,13 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "TrackDash",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
 }
 
 export const viewport: Viewport = {
-  colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f9fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#07111f" },
-  ],
+  colorScheme: "light",
+  themeColor: "#f7f9fc",
 }
 
 export default async function RootLayout({
@@ -75,7 +72,7 @@ export default async function RootLayout({
             window.dispatchEvent(new Event("trackdash:pwa-available"));
           });
         `}</Script>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <StoreProvider>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
               <I18nProvider>
