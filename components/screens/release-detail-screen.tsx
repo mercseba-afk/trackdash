@@ -1,34 +1,43 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Check, Heart, Plus } from "lucide-react"
-import { useStore } from "@/lib/store"
-import { useI18n } from "@/lib/i18n"
-import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
-import { formatDate, formatMoney, formatPercent } from "@/lib/format"
-import type { Condition, Product, ProductRelease } from "@/lib/types"
-import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
+import { ArrowLeft, BarChart3, Check, Heart, Info, LockKeyhole, Plus, ShoppingBag, Tag } from "lucide-react"
+import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
+import { ProductImage } from "@/components/catalog/product-image"
+import { ReleaseCollectorOffers } from "@/components/release-collector-offers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ProductImage } from "@/components/catalog/product-image"
-import { MarketSignalCard } from "@/components/market-bits"
-import { MarketDataEmptyCard } from "@/components/market-data-empty-card"
-import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
-import { CollectorsSection } from "@/components/collectors-section"
+import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
+import { formatDate, formatMoney, formatPercent } from "@/lib/format"
+import { useI18n } from "@/lib/i18n"
+import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
+import { useStore } from "@/lib/store"
+import type { Condition, Currency, Product, ProductRelease } from "@/lib/types"
 import { cn } from "@/lib/utils"
+
+type PublicCollectorOffer = {
+  id: string
+  username: string
+  condition: Condition
+  askingPrice: number | null
+  askingCurrency: Currency | null
+  updatedAt: string
+}
 
 export function ReleaseDetailScreen({
   product,
   release,
   marketSignal,
   localizedDescription,
+  collectorOffers,
 }: {
   product: Product
   release: ProductRelease
   marketSignal?: ReleaseMarketSignalView | null
   localizedDescription?: { en: string | null; it: string | null }
+  collectorOffers: PublicCollectorOffer[]
 }) {
-  const { collection } = useStore()
+  const { collection, user } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
   const mine = collection.filter((item) => item.productId === product.id && item.releaseId === release.id)
@@ -36,81 +45,248 @@ export function ReleaseDetailScreen({
   const publicDescription = it
     ? localizedDescription?.it ?? localizedDescription?.en ?? product.description
     : localizedDescription?.en ?? product.description
+  const releasePath = `/catalog/${product.id}/releases/${release.id}`
+  const loginHref = `/login?next=${encodeURIComponent(releasePath)}`
 
   return (
-    <div className="flex flex-col gap-6">
-      <Button variant="ghost" size="sm" render={<Link href={`/catalog/${product.id}`} />} className="-ml-2 w-fit text-muted-foreground">
+    <div className="flex flex-col gap-7 pb-8">
+      <Button
+        variant="ghost"
+        size="sm"
+        render={<Link href={`/catalog/${product.id}`} />}
+        className="-ml-2 w-fit text-[#607089] hover:text-[#0f4bb4]"
+      >
         <ArrowLeft data-icon="inline-start" /> {it ? `Torna a ${product.name}` : `Back to ${product.name}`}
       </Button>
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+      <section className="grid gap-7 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:items-start">
         <div className="flex flex-col gap-3">
-          <ProductImage product={product} release={release} className="aspect-[4/3] w-full rounded-xl border" size="lg" />
-          <p className="text-xs text-muted-foreground">
+          <div className="overflow-hidden rounded-2xl border border-[#d8e3f0] bg-white p-3 shadow-sm">
+            <ProductImage product={product} release={release} className="aspect-[4/3] w-full rounded-xl" size="lg" />
+          </div>
+          <p className="px-1 text-xs leading-5 text-[#718198]">
             {hasExactImage
-              ? (it ? "Immagine esatta di questa release." : "Exact image for this release.")
-              : (it ? "L'immagine esatta di questa release non è ancora disponibile: viene mostrata l'immagine del modello." : "Exact image for this release is not available yet — showing the model image instead.")}
+              ? (it ? "Immagine esatta della Release." : "Exact image for this Release.")
+              : (it
+                  ? "L'immagine esatta della Release non è ancora disponibile: viene mostrata l'immagine del modello."
+                  : "The exact Release image is not available yet, so the model image is shown instead.")}
           </p>
         </div>
 
         <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3">
+          <div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{product.series}</Badge>
-              <Badge variant="outline">{releaseTypeLabel(release.releaseType, it)}</Badge>
-              {release.isOriginal
-                ? <Badge variant="outline">{it ? "Release originale" : "Original release"}</Badge>
-                : <Badge variant="secondary" className="bg-brand/15 text-brand">{it ? "Riedizione / edizione" : "Reissue / edition"}</Badge>}
+              <Badge variant="secondary" className="bg-[#eef4ff] text-[#0f4bb4]">{product.series}</Badge>
+              <Badge variant="outline" className="border-[#ccd8e7] text-[#53657f]">{releaseTypeLabel(release.releaseType, it)}</Badge>
+              {release.itemNumber ? (
+                <Badge variant="outline" className="border-[#ccd8e7] font-mono text-[#53657f]">#{release.itemNumber}</Badge>
+              ) : null}
               <ProductionBadge status={release.productionStatus} it={it} />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{release.editionName}</h1>
-            <p className="text-sm text-muted-foreground">
-              {it ? "Release di" : "Release of"}{" "}
-              <Link href={`/catalog/${product.id}`} className="font-medium text-foreground hover:text-brand hover:underline">{product.name}</Link>
+
+            <p className="mt-4 text-sm font-medium text-[#0f4bb4]">{product.name}</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-[-0.035em] text-balance text-[#081a3a] md:text-4xl">
+              {release.editionName}
+            </h1>
+            <p className="mt-2 text-sm text-[#718198]">
+              {release.releaseYear ? `${release.releaseYear} · ` : ""}{release.chassis ?? (it ? "Chassis da verificare" : "Chassis to verify")}
             </p>
-            {publicDescription ? <p className="leading-relaxed text-muted-foreground text-pretty">{publicDescription}</p> : null}
+            {publicDescription ? (
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-pretty text-[#53657f]">{publicDescription}</p>
+            ) : null}
           </div>
 
-          {marketSignal ? (
-            <MarketSignalCard
-              signal={marketSignal}
-              title={it ? "Valore attuale stimato" : "Estimated current value"}
-              rarity={release.rarity ?? null}
-            />
-          ) : (
-            <MarketDataEmptyCard title={it ? "Valore attuale stimato" : "Estimated current value"} />
-          )}
-
-          {mine.length > 0 ? (
-            <OwnedCopiesCard copies={mine} marketSignal={marketSignal} it={it} />
-          ) : null}
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
-            <Spec label={it ? "Codice articolo" : "Item no."} value={release.itemNumber ? `#${release.itemNumber}` : "—"} />
-            <Spec label={it ? "Data di uscita" : "Release date"} value={release.releaseDate ? formatDate(release.releaseDate) : release.releaseYear ? String(release.releaseYear) : "—"} />
-            <Spec label="Chassis" value={release.chassis ?? "—"} />
-            <Spec label={it ? "Colore" : "Color"} value={colorLabel(release.color, it)} />
-            <Spec label={it ? "Mercato" : "Market"} value={marketLabel(release.countryMarket, it)} />
-            <Spec label={it ? "Tipo edizione" : "Edition type"} value={editionTypeLabel(release.editionType, it)} />
-            <Spec label={it ? "Produzione" : "Production"} value={productionStatusLabel(release.productionStatus, it)} />
-            <Spec label="JAN barcode" value={release.barcodeJAN ?? "—"} />
-            <Spec label="MSRP" value={formatReleaseMsrp(release)} />
-          </div>
+          <MarketValuePanel signal={marketSignal} it={it} />
 
           <div className="flex flex-wrap gap-2">
-            <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-              <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
-            </AddToCollectionDialog>
-            <AddToWishlistDialog product={product} defaultReleaseId={release.id}>
-              <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> {it ? "Wishlist" : "Wishlist"}</Button>
-            </AddToWishlistDialog>
+            {user ? (
+              <>
+                <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+                  <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
+                </AddToCollectionDialog>
+                <AddToWishlistDialog product={product} defaultReleaseId={release.id}>
+                  <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> Wishlist</Button>
+                </AddToWishlistDialog>
+              </>
+            ) : (
+              <>
+                <Button render={<Link href={loginHref} />} className="gap-1.5">
+                  <LockKeyhole className="size-4" /> {it ? "Accedi e aggiungi alla collezione" : "Sign in and add to collection"}
+                </Button>
+                <Button variant="outline" render={<Link href={loginHref} />} className="gap-1.5">
+                  <Heart className="size-4" /> Wishlist
+                </Button>
+              </>
+            )}
           </div>
+
+          {mine.length > 0 ? <OwnedCopiesCard copies={mine} marketSignal={marketSignal} it={it} /> : null}
         </div>
+      </section>
+
+      <ReleaseCollectorOffers offers={collectorOffers} />
+
+      <section className="grid gap-5 lg:grid-cols-2">
+        <ExternalAvailabilityCard signal={marketSignal} it={it} />
+        <PriceIntelligenceCard signal={marketSignal} it={it} />
+      </section>
+
+      <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
+        <div className="flex items-center gap-2">
+          <Tag className="size-4 text-[#0f4bb4]" />
+          <h2 className="text-lg font-semibold text-[#081a3a]">{it ? "Dettagli della Release" : "Release details"}</h2>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-x-7 gap-y-5 text-sm sm:grid-cols-3 lg:grid-cols-5">
+          <Spec label={it ? "Codice articolo" : "Item no."} value={release.itemNumber ? `#${release.itemNumber}` : "—"} />
+          <Spec label={it ? "Data di uscita" : "Release date"} value={release.releaseDate ? formatDate(release.releaseDate) : release.releaseYear ? String(release.releaseYear) : "—"} />
+          <Spec label="Chassis" value={release.chassis ?? "—"} />
+          <Spec label={it ? "Colore" : "Color"} value={colorLabel(release.color, it)} />
+          <Spec label={it ? "Mercato" : "Market"} value={marketLabel(release.countryMarket, it)} />
+          <Spec label={it ? "Tipo edizione" : "Edition type"} value={editionTypeLabel(release.editionType, it)} />
+          <Spec label={it ? "Produzione" : "Production"} value={productionStatusLabel(release.productionStatus, it)} />
+          <Spec label="JAN barcode" value={release.barcodeJAN ?? "—"} />
+          <Spec label="MSRP" value={formatReleaseMsrp(release)} />
+          <Spec label={it ? "Rarità" : "Rarity"} value={release.rarity ?? "—"} />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function MarketValuePanel({ signal, it }: { signal?: ReleaseMarketSignalView | null; it: boolean }) {
+  if (!signal || signal.valueEUR == null) {
+    return (
+      <div className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">Market Value</p>
+        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Valore non ancora consolidato" : "Value not consolidated yet"}</p>
+        <p className="mt-2 text-sm leading-6 text-[#718198]">
+          {it ? "TrackDash non mostra un valore finché le evidenze disponibili non sono sufficienti." : "TrackDash withholds the value until the available evidence is sufficient."}
+        </p>
+      </div>
+    )
+  }
+
+  const range = signal.lowEUR != null && signal.highEUR != null
+    ? signal.lowEUR === signal.highEUR
+      ? formatMoney(signal.lowEUR)
+      : `${formatMoney(signal.lowEUR)} – ${formatMoney(signal.highEUR)}`
+    : "—"
+
+  return (
+    <div className="rounded-2xl border border-[#bfd2ee] bg-[linear-gradient(135deg,#f7fbff_0%,#eef5ff_100%)] p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">TrackDash Market Value</p>
+          <p className="mt-2 text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">{formatMoney(signal.valueEUR)}</p>
+          <p className="mt-1 text-sm text-[#607089]">{it ? "Kit nuovo / completo / non montato" : "New / complete / unbuilt kit"}</p>
+        </div>
+        <ConfidenceBadge value={signal.confidenceLabel} it={it} />
       </div>
 
-      <div id="collectors" className="scroll-mt-24">
-        <CollectorsSection releaseId={release.id} />
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Metric label={it ? "Range" : "Range"} value={range} />
+        <Metric label={it ? "Vendite osservate" : "Observed sold"} value={String(signal.soldUnits)} />
+        <Metric label={it ? "Offerte correnti" : "Current offers"} value={String(signal.currentOfferCount)} />
+        <Metric
+          label={it ? "Trend" : "Trend"}
+          value={signal.trendPercent != null ? formatPercent(signal.trendPercent) : "—"}
+        />
       </div>
+
+      <p className="mt-4 flex gap-2 text-xs leading-5 text-[#667991]">
+        <Info className="mt-0.5 size-3.5 shrink-0" />
+        {it
+          ? "Il Market Value è una stima TrackDash: le richieste dei venditori restano separate dalle vendite concluse e non possono gonfiare da sole il valore."
+          : "Market Value is a TrackDash estimate: seller asks stay separate from completed sales and cannot inflate the value on their own."}
+      </p>
+    </div>
+  )
+}
+
+function ExternalAvailabilityCard({ signal, it }: { signal?: ReleaseMarketSignalView | null; it: boolean }) {
+  const current = signal?.currentOfferCount ?? 0
+  const starting = signal?.startingItemPriceEUR ?? null
+
+  return (
+    <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
+      <div className="flex items-center gap-2">
+        <ShoppingBag className="size-4 text-[#0f4bb4]" />
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Mercato esterno" : "External market"}</p>
+      </div>
+      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Altre disponibilità sul mercato" : "Other market availability"}</h2>
+
+      {current > 0 && starting != null ? (
+        <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
+          <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Da" : "From"} {formatMoney(starting)}</p>
+          <p className="mt-1 text-xs text-[#718198]">{current} {it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}</p>
+        </div>
+      ) : (
+        <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
+          {it
+            ? "Nessuna disponibilità esterna qualificata è attualmente mostrata per questa Release. Gli ASK anomali o non sufficientemente affidabili restano fuori dalla superficie pubblica."
+            : "No qualified external availability is currently shown for this Release. Anomalous or insufficiently reliable asks stay off the public surface."}
+        </div>
+      )}
+
+      <p className="mt-4 text-xs leading-5 text-[#7a8aa0]">
+        {it ? "Le disponibilità esterne sono secondarie rispetto alle offerte dei collezionisti TrackDash." : "External availability is secondary to TrackDash collector offers."}
+      </p>
+    </section>
+  )
+}
+
+function PriceIntelligenceCard({ signal, it }: { signal?: ReleaseMarketSignalView | null; it: boolean }) {
+  return (
+    <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
+      <div className="flex items-center gap-2">
+        <BarChart3 className="size-4 text-[#0f4bb4]" />
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">Price Intelligence</p>
+      </div>
+      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Da cosa nasce il valore" : "What supports the value"}</h2>
+
+      {signal ? (
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <AnchorMetric label={it ? "Venduto" : "Sold"} value={signal.soldAnchorEUR} count={signal.soldUnits} />
+          <AnchorMetric label="Retail" value={signal.retailAnchorEUR} count={signal.retailSourceCount} />
+          <AnchorMetric label={it ? "ASK attive" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
+          <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
+        </div>
+      ) : (
+        <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato non ancora disponibili." : "Market evidence is not available yet."}</p>
+      )}
+
+      <Button variant="outline" size="sm" render={<Link href="/market" />} className="mt-5">
+        {it ? "Vedi il metodo Price Intelligence" : "View Price Intelligence method"}
+      </Button>
+    </section>
+  )
+}
+
+function AnchorMetric({ label, value, count }: { label: string; value: number | null; count: number }) {
+  return (
+    <div className="rounded-xl border border-[#e0e7f0] bg-[#fbfcfe] p-3">
+      <p className="text-xs text-[#718198]">{label}</p>
+      <p className="mt-1 font-semibold tabular-nums text-[#081a3a]">{value != null ? formatMoney(value) : "—"}</p>
+      <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {count === 1 ? "signal" : "signals"}</p>
+    </div>
+  )
+}
+
+function ConfidenceBadge({ value, it }: { value: ReleaseMarketSignalView["confidenceLabel"]; it: boolean }) {
+  const label = value === "high"
+    ? (it ? "Affidabilità alta" : "High confidence")
+    : value === "medium"
+      ? (it ? "Affidabilità media" : "Medium confidence")
+      : (it ? "Affidabilità bassa" : "Low confidence")
+  return <Badge variant="outline" className="border-[#aac4e9] bg-white/70 text-[#0f4bb4]">{label}</Badge>
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/80 bg-white/70 p-3">
+      <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#7a8aa0]">{label}</p>
+      <p className="mt-1 text-sm font-semibold tabular-nums text-[#081a3a]">{value}</p>
     </div>
   )
 }
@@ -127,7 +303,7 @@ function OwnedCopiesCard({
   const currentValue = marketSignal?.valueEUR ?? null
 
   return (
-    <div className="rounded-lg border border-success/30 bg-success/5 p-4">
+    <div className="rounded-xl border border-success/30 bg-success/5 p-4">
       <div className="mb-3 flex items-center gap-2">
         <Check className="size-4 text-success" />
         <p className="text-sm font-semibold">{it ? (copies.length === 1 ? "La tua copia" : "Le tue copie") : (copies.length === 1 ? "Your copy" : "Your copies")}</p>
@@ -187,7 +363,7 @@ function OwnedCopiesCard({
               ) : (
                 <p className="mt-2 border-t border-border/70 pt-2 text-[11px] text-muted-foreground">
                   {comparable
-                    ? (it ? "Valore R3 non ancora consolidato per questa release." : "R3 value is not consolidated for this release yet.")
+                    ? (it ? "Valore R3 non ancora consolidato per questa Release." : "R3 value is not consolidated for this Release yet.")
                     : (it ? "La condizione della tua copia non è confrontata con il valore R3 dei kit nuovi/non montati." : "Your copy's condition is not compared with the R3 new/unbuilt reference.")}
                 </p>
               )}
@@ -220,7 +396,7 @@ function ProductionBadge({ status, it }: { status: ProductRelease["productionSta
 }
 
 function Spec({ label, value }: { label: string; value: string }) {
-  return <div className="flex flex-col gap-0.5"><span className="text-xs text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div>
+  return <div className="flex flex-col gap-1"><span className="text-xs text-[#7a8aa0]">{label}</span><span className="font-medium text-[#1b2f4d]">{value}</span></div>
 }
 
 function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
