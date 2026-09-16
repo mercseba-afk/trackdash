@@ -16,24 +16,27 @@ The Release is the primary public landing page and the strongest identity/market
 - `/catalog/[productId]` — public Product family
 - `/catalog/[productId]/releases/[releaseId]` — public exact Release
 - `/market` — public Price Intelligence / market overview
-- `/collectors/[username]` — public collector profile where the owner has chosen public visibility
 - `/login`, `/signup`, `/forgot-password` — public auth entry points
 
 Public pages must never require a TrackDash session to render their useful content.
 
+Collector showcases remain protected in this first slice because the current read actions require an authenticated user context. A future public collector profile must get an explicit privacy-safe public read contract before `/collectors/[username]` is exposed without login.
+
 ## Account-required routes
 
+- `/dashboard`
 - `/collection`
 - `/collection/[id]`
 - `/wishlist`
 - `/scanner`
 - `/messages`
+- `/collectors/[username]` until the privacy-safe public read contract exists
 - `/profile`
 - `/settings`
 - `/onboarding`
 - `/support` when the action is account-specific
 
-When a signed-out visitor reaches a protected route or starts a personal action from a public page, authentication should preserve the intended destination/action and return the visitor to the same context.
+When a signed-out visitor reaches a protected route or starts a personal action from a public page, authentication preserves the intended destination and returns the visitor to the same context. A normal login with no requested destination opens `/dashboard`.
 
 ## Primary navigation
 
@@ -42,7 +45,7 @@ When a signed-out visitor reaches a protected route or starts a personal action 
 - Catalog
 - Price Intelligence
 - Scanner
-- Sign in / Account
+- Sign in / Dashboard
 - Primary CTA: Explore catalog (signed out) or My collection (signed in)
 
 ### Mobile public shell
@@ -51,13 +54,13 @@ Use a compact top header. A persistent app-style bottom navigation is reserved f
 
 ### Signed-in app shell target
 
-- Home
+- Dashboard
 - Catalog
 - Collection
 - Scanner
-- Account / More
+- Messages
 
-Wishlist, Marketplace/Messages, notifications and settings remain directly accessible without consuming every mobile primary-nav slot.
+Wishlist, collector marketplace actions, notifications and settings remain directly accessible without consuming every mobile primary-nav slot.
 
 ## Home hierarchy
 
@@ -91,11 +94,12 @@ Priority:
 
 1. Exact identity: brand, Item Number, year, edition, chassis, image
 2. TrackDash Market Value, range and confidence
-3. Personal actions: Collection / Wishlist (contextual auth when signed out)
-4. **TrackDash collector availability first**
+3. **TrackDash collector availability first**
+4. Contact / make-offer action with contextual auth
 5. External marketplace availability second (for example eBay)
 6. Price Intelligence evidence: completed sales, retail reference where relevant, active asks kept separate
-7. Related Releases / Product family navigation
+7. Personal save actions: Collection / Wishlist with contextual auth
+8. Related Releases / Product family navigation
 
 Seller asking price must never be presented as TrackDash Market Value.
 
@@ -120,18 +124,21 @@ Use the approved Figma direction as the reference:
 - strong Mini 4WD imagery
 - editorial typography and generous whitespace
 - no technical-grid / terminal / stock-market aesthetic
-- no dark mode in the first redesigned system
+- no dark mode in the first redesigned public system
 - no ecommerce/cart visual language for catalog cards
+
+The existing authenticated shell may retain its current theme support while it is progressively migrated; the public redesign itself stays light.
 
 ## Implementation order
 
 1. Public shell + public home + route access split
-2. Catalog redesign
-3. Product redesign
-4. Release redesign and TrackDash-offers-first hierarchy
-5. Contextual auth
-6. Collection / Wishlist
-7. Marketplace / Messages
-8. Scanner
-9. Price Intelligence / Method
-10. Profile / settings / Pro surfaces
+2. Contextual login destination + authenticated `/dashboard`
+3. Catalog redesign
+4. Product redesign
+5. Release redesign and TrackDash-offers-first hierarchy
+6. Privacy-safe public TrackDash offer read contract
+7. Collection / Wishlist
+8. Marketplace / Messages
+9. Scanner
+10. Price Intelligence / Method
+11. Profile / settings / Pro surfaces
