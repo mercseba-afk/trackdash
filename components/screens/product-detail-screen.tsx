@@ -2,223 +2,328 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Info, Plus, UsersRound } from "lucide-react"
-import { primaryRelease } from "@/lib/data/products"
-import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
-import { useStore } from "@/lib/store"
-import { useI18n } from "@/lib/i18n"
-import { useMarketSignals } from "@/lib/market/context"
-import { conditionUsesNewUnbuiltReference, enrichCollection, itemsForProduct } from "@/lib/analytics"
-import { formatMoney, formatDate } from "@/lib/format"
-import type { Product, ProductRelease } from "@/lib/types"
-import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Heart,
+  Layers3,
+  LockKeyhole,
+  Plus,
+  UsersRound,
+  Handshake,
+} from "lucide-react"
+import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
+import { ProductImage } from "@/components/catalog/product-image"
+import { MarketSignalInline } from "@/components/market-signal-inline"
+import { ProductCard } from "@/components/product-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProductImage } from "@/components/catalog/product-image"
-import { ProductCard } from "@/components/product-card"
-import { MarketSignalCard, RarityBadge, TrendIndicator } from "@/components/market-bits"
-import { MarketSignalInline } from "@/components/market-signal-inline"
-import { MarketDataEmptyCard } from "@/components/market-data-empty-card"
-import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
+import { primaryRelease } from "@/lib/data/products"
+import { formatDate, formatMoney } from "@/lib/format"
+import { useI18n } from "@/lib/i18n"
+import { useMarketSignals } from "@/lib/market/context"
+import { useStore } from "@/lib/store"
+import type { Product, ProductRelease } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-type CommunityCount = { collectors: number; openToOffers: number }
+type CommunityCount = {
+  releaseId: string
+  collectors: number
+  openToOffers: number
+}
 
 export function ProductDetailScreen({
   product,
   related,
   descriptionIt,
+  communityCounts,
 }: {
   product: Product
   related: Product[]
   descriptionIt?: string | null
+  communityCounts: CommunityCount[]
 }) {
-  const { collection, isInWishlist } = useStore()
-  const { locale, t } = useI18n()
+  const { collection, user, isInWishlist } = useStore()
+  const { locale } = useI18n()
   const marketSignals = useMarketSignals()
-  const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
-
+  const it = locale === "it"
   const primary = primaryRelease(product)
-  const primaryMarketSignal = marketSignals[primary.id] ?? null
-  const sortedReleases = React.useMemo(() => sortReleasesForDisplay(product.releases), [product.releases])
-  const owned = enrichCollection(collection, marketSignals)
-  const mine = itemsForProduct(owned, product.id)
+  const releases = React.useMemo(() => sortReleasesForDisplay(product.releases), [product.releases])
+  const community = React.useMemo(
+    () => new Map(communityCounts.map((row) => [row.releaseId, row])),
+    [communityCounts],
+  )
+  const ownedByRelease = React.useMemo(() => {
+    const map = new Map<string, number>()
+    for (const item of collection) {
+      if (item.productId !== product.id) continue
+      map.set(item.releaseId, (map.get(item.releaseId) ?? 0) + 1)
+    }
+    return map
+  }, [collection, product.id])
+  const mine = collection.filter((item) => item.productId === product.id)
   const wished = isInWishlist(product.id)
-  const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
+  const publicDescription = it && descriptionIt ? descriptionIt : product.description
+  const productPath = `/catalog/${product.id}`
+  const loginHref = `/login?next=${encodeURIComponent(productPath)}`
 
-  React.useEffect(() => {
-    let cancelled = false
-    getReleaseCommunityCountsAction(product.id)
-      .then((rows) => {
-        if (cancelled) return
-        setCommunityByRelease(new Map(rows.map((row) => [row.releaseId, { collectors: row.collectors, openToOffers: row.openToOffers }])))
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [product.id])
+  const valuedReleases = releases.filter((release) => marketSignals[release.id]?.valueEUR != null).length
+  const offerReleases = communityCounts.filter((row) => row.openToOffers > 0).length
 
   return (
-    <div className="flex flex-col gap-6">
-      <Button variant="ghost" size="sm" render={<Link href="/catalog" />} className="-ml-2 w-fit text-muted-foreground">
-        <ArrowLeft data-icon="inline-start" /> {t("product.back")}
+    <div className="flex flex-col gap-8 pb-8">
+      <Button
+        variant="ghost"
+        size="sm"
+        render={<Link href="/catalog" />}
+        className="-ml-2 w-fit text-[#607089] hover:text-[#0f4bb4]"
+      >
+        <ArrowLeft data-icon="inline-start" /> {it ? "Torna al catalogo" : "Back to catalog"}
       </Button>
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-        <div className="flex flex-col gap-4"><ProductImage product={product} className="aspect-[4/3] w-full rounded-xl border" size="lg" /></div>
+      <section className="grid gap-7 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] lg:items-start">
+        <div className="overflow-hidden rounded-2xl border border-[#d8e3f0] bg-white p-3 shadow-sm">
+          <ProductImage product={product} release={primary} className="aspect-[4/3] w-full rounded-xl" size="lg" />
+        </div>
+
         <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{product.series}</Badge></div>
-            <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{product.name}</h1>
-            {product.japaneseName && <p className="-mt-1 text-sm text-muted-foreground">{product.japaneseName}</p>}
-            {publicDescription ? <p className="leading-relaxed text-muted-foreground text-pretty">{publicDescription}</p> : null}
-            <Link href="#releases" className="group inline-flex w-fit items-center gap-2 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-brand/10">
-              <span className="font-semibold text-brand">{product.releases.length}</span>
-              <span>{locale === "it" ? "Release ed edizioni" : product.releases.length === 1 ? "Release" : "Releases & editions"}</span>
-              <ChevronDown className="size-4 text-brand transition-transform group-hover:translate-y-0.5" />
-            </Link>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="bg-[#eef4ff] text-[#0f4bb4]">{product.series}</Badge>
+              {product.hasMultipleReleases ? (
+                <Badge variant="outline" className="border-[#ccd8e7] text-[#53657f]">
+                  {product.releases.length} {it ? "Release" : "Releases"}
+                </Badge>
+              ) : null}
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-[-0.035em] text-balance text-[#081a3a] md:text-4xl">{product.name}</h1>
+            {product.japaneseName ? <p className="mt-1 text-sm text-[#718198]">{product.japaneseName}</p> : null}
+            {publicDescription ? <p className="mt-4 max-w-2xl text-[15px] leading-7 text-pretty text-[#53657f]">{publicDescription}</p> : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
-            <Spec label={t("product.firstReleased")} value={product.originalReleaseYear ? String(product.originalReleaseYear) : "—"} />
-            <Spec label={t("product.chassisOriginal")} value={product.chassis ?? "—"} />
-            <Spec label={t("product.itemOriginal")} value={primary.itemNumber ? `#${primary.itemNumber}` : "—"} />
-            <Spec label={t("product.series")} value={product.series} />
+          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[#d8e3f0] bg-white p-4 shadow-sm sm:grid-cols-4">
+            <SummaryMetric label={it ? "Prima uscita" : "First release"} value={String(product.originalReleaseYear ?? "—")} />
+            <SummaryMetric label={it ? "Chassis originale" : "Original chassis"} value={product.chassis ?? "—"} />
+            <SummaryMetric label={it ? "Release valorizzate" : "Valued Releases"} value={`${valuedReleases}/${releases.length}`} />
+            <SummaryMetric label={it ? "Aperte a offerte" : "Open to offers"} value={String(offerReleases)} />
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <AddToCollectionDialog product={product}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
-            <AddToWishlistDialog product={product}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
+            {user ? (
+              <>
+                <AddToCollectionDialog product={product}>
+                  <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
+                </AddToCollectionDialog>
+                <AddToWishlistDialog product={product}>
+                  <Button variant="outline" className={cn("gap-1.5", wished && "border-[#1558e8] text-[#1558e8]")}>
+                    <Heart className={cn("size-4", wished && "fill-current")} /> {wished ? (it ? "In Wishlist" : "On Wishlist") : "Wishlist"}
+                  </Button>
+                </AddToWishlistDialog>
+              </>
+            ) : (
+              <>
+                <Button render={<Link href={loginHref} />} className="gap-1.5">
+                  <LockKeyhole className="size-4" /> {it ? "Accedi per aggiungere" : "Sign in to add"}
+                </Button>
+                <Button variant="outline" render={<Link href={loginHref} />} className="gap-1.5">
+                  <Heart className="size-4" /> Wishlist
+                </Button>
+              </>
+            )}
           </div>
-        </div>
-      </div>
 
-      <section id="releases" className="scroll-mt-20">
-        <Card>
-          <CardHeader className="gap-1.5">
-            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">{t("product.releasesTitle")}<Badge variant="secondary">{product.releases.length}</Badge></CardTitle>
-            <p className="text-sm text-muted-foreground">{t("product.releasesDesc")}</p>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {sortedReleases.map((release) => (
-              <ReleaseRow
-                key={release.id}
-                product={product}
-                release={release}
-                ownedCount={mine.filter((entry) => entry.release.id === release.id).length}
-                community={communityByRelease.get(release.id)}
-                marketSignals={marketSignals}
-              />
-            ))}
-          </CardContent>
-        </Card>
+          <p className="text-xs leading-5 text-[#718198]">
+            {it
+              ? "Il modello raccoglie più Release distinte. Valore di mercato, disponibilità e offerte sono sempre attribuiti alla singola Release, non al nome generico del modello."
+              : "A model can contain multiple distinct Releases. Market value, availability and offers always belong to the exact Release, not the generic model name."}
+          </p>
+        </div>
       </section>
 
-      {mine.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">{locale === "it" ? "La tua collezione" : "Your collection"}</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            {mine.map((entry) => (
-              <div key={entry.item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{entry.item.condition} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(entry.item.acquisitionDate)}</p></div></div>
-                <CollectionMarketValue entry={entry} it={locale === "it"} />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {primaryMarketSignal ? (
-          <MarketSignalCard signal={primaryMarketSignal} title={t("product.marketOriginal")} msrp={product.msrpEUR} />
-        ) : (
-          <MarketDataEmptyCard title={t("product.marketOriginal")} msrp={product.msrpEUR} />
-        )}
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {t("product.howValue")}</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground"><p>{t("product.valueText1")}</p><p>{t("product.valueText2")}</p></CardContent>
-        </Card>
-      </div>
-
-      {related.length > 0 && <section className="flex flex-col gap-4 pt-2"><h2 className="text-lg font-semibold tracking-tight">{t("product.related")}</h2><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{related.map((relatedProduct) => <ProductCard key={relatedProduct.id} product={relatedProduct} />)}</div></section>}
-    </div>
-  )
-}
-
-function CollectionMarketValue({ entry, it }: { entry: ReturnType<typeof enrichCollection>[number]; it: boolean }) {
-  if (!conditionUsesNewUnbuiltReference(entry.item.condition)) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Condizione non ancora valorizzata" : "Condition not valued yet"}</p>
-  }
-  if (!entry.marketSignal) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
-  }
-  if (entry.marketValue == null) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Valore non consolidato" : "Value not consolidated"}</p>
-  }
-  return (
-    <div className="text-right">
-      <p className="font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
-      {entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}
-    </div>
-  )
-}
-
-function ReleaseRow({ product, release, ownedCount, community, marketSignals }: { product: Product; release: ProductRelease; ownedCount: number; community?: CommunityCount; marketSignals: ReleaseMarketSignalMap }) {
-  const { locale, t } = useI18n()
-  const marketSignal = marketSignals[release.id] ?? null
-  const releaseHref = `/catalog/${product.id}/releases/${release.id}`
-  const collectorsHref = `${releaseHref}#collectors`
-  const owned = ownedCount > 0
-  const ownershipLabel = locale === "it"
-    ? (ownedCount === 1 ? "1 copia tua" : `${ownedCount} copie tue`)
-    : (ownedCount === 1 ? "1 copy owned" : `${ownedCount} copies owned`)
-
-  return (
-    <div className="rounded-xl border border-border bg-background p-3 sm:p-4">
-      <div className="grid grid-cols-[minmax(112px,36%)_minmax(0,1fr)] gap-x-3 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-4">
-        <Link href={releaseHref} className="block shrink-0 sm:row-span-2"><ProductImage product={product} release={release} className="aspect-[4/3] h-full min-h-24 w-full max-h-32 rounded-lg sm:h-24 sm:min-h-0 sm:w-32" size="md" /></Link>
-        <div className="min-w-0 sm:self-start sm:pt-0.5">
-          <Link href={releaseHref} className="font-medium leading-snug hover:text-brand hover:underline">{release.editionName}</Link>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {release.isOriginal ? <Badge variant="outline">{t("common.original")}</Badge> : <Badge variant="secondary" className="bg-brand/15 text-brand">{t("common.reissue")}</Badge>}
-            {owned ? <Badge className="gap-1 bg-success/15 text-success"><Check className="size-3" />{ownershipLabel}</Badge> : null}
+      <section id="releases" className="scroll-mt-24">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">{it ? "Identità esatta" : "Exact identity"}</p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#081a3a]">{it ? "Release ed edizioni" : "Releases & editions"}</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#607089]">
+              {it ? "Scegli l'edizione corretta per vedere Market Value, offerte TrackDash e disponibilità di mercato." : "Choose the correct edition to see Market Value, TrackDash offers and market availability."}
+            </p>
           </div>
+          <Badge variant="secondary" className="w-fit bg-[#eef4ff] text-[#0f4bb4]">{releases.length} {it ? "Release" : "Releases"}</Badge>
         </div>
-        <div className="col-span-2 flex flex-col gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline" className="text-[10px] font-medium">{locale === "it" ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
-            <ProductionBadge release={release} locale={locale} />
+
+        <div className="mt-5 grid gap-4">
+          {releases.map((release) => (
+            <ReleaseCard
+              key={release.id}
+              product={product}
+              release={release}
+              ownedCount={ownedByRelease.get(release.id) ?? 0}
+              community={community.get(release.id)}
+              signal={marketSignals[release.id] ?? null}
+              user={Boolean(user)}
+              it={it}
+            />
+          ))}
+        </div>
+      </section>
+
+      {mine.length > 0 ? (
+        <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
+          <div className="flex items-center gap-2">
+            <Check className="size-4 text-success" />
+            <h2 className="text-lg font-semibold text-[#081a3a]">{it ? "Le tue copie di questo modello" : "Your copies of this model"}</h2>
+            <Badge variant="secondary">{mine.length}</Badge>
           </div>
+          <div className="mt-4 grid gap-2">
+            {mine.map((item) => {
+              const release = product.releases.find((candidate) => candidate.id === item.releaseId) ?? primary
+              const signal = marketSignals[release.id] ?? null
+              return (
+                <div key={item.id} className="flex items-center gap-3 rounded-xl border border-[#e0e7f0] bg-[#fbfcfe] p-3">
+                  <ProductImage product={product} release={release} size="sm" className="size-12 shrink-0 rounded-lg" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[#1b2f4d]">{release.editionName}</p>
+                    <p className="mt-0.5 text-xs text-[#718198]">{item.condition}{item.acquisitionDate ? ` · ${formatDate(item.acquisitionDate)}` : ""}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-wide text-[#8391a4]">Market Value</p>
+                    <p className="text-sm font-semibold tabular-nums text-[#081a3a]">{signal?.valueEUR != null ? formatMoney(signal.valueEUR) : "—"}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {related.length > 0 ? (
+        <section>
+          <div className="flex items-center gap-2">
+            <Layers3 className="size-4 text-[#0f4bb4]" />
+            <h2 className="text-xl font-semibold text-[#081a3a]">{it ? "Modelli correlati" : "Related models"}</h2>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {related.map((relatedProduct) => <ProductCard key={relatedProduct.id} product={relatedProduct} />)}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
+function ReleaseCard({
+  product,
+  release,
+  ownedCount,
+  community,
+  signal,
+  user,
+  it,
+}: {
+  product: Product
+  release: ProductRelease
+  ownedCount: number
+  community?: CommunityCount
+  signal: ReturnType<typeof useMarketSignals>[string] | null
+  user: boolean
+  it: boolean
+}) {
+  const releaseHref = `/catalog/${product.id}/releases/${release.id}`
+  const offersHref = `${releaseHref}#trackdash-offers`
+  const loginHref = `/login?next=${encodeURIComponent(releaseHref)}`
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-[#d8e3f0] bg-white shadow-sm transition hover:border-[#b7cbea] hover:shadow-md">
+      <div className="grid gap-0 md:grid-cols-[190px_minmax(0,1fr)_220px]">
+        <Link href={releaseHref} className="block bg-[#f6f8fb] p-3">
+          <ProductImage product={product} release={release} className="aspect-[4/3] h-full min-h-36 w-full rounded-xl" size="md" />
+        </Link>
+
+        <div className="flex min-w-0 flex-col p-4 md:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={release.isOriginal ? "outline" : "secondary"} className={release.isOriginal ? "border-[#cdd8e5]" : "bg-[#eef4ff] text-[#0f4bb4]"}>
+              {release.isOriginal ? (it ? "Originale" : "Original") : releaseTypeLabel(release.releaseType, it)}
+            </Badge>
+            {release.productionStatus === "discontinued" ? <Badge variant="secondary">{it ? "Fuori produzione" : "Discontinued"}</Badge> : null}
+            {ownedCount > 0 ? <Badge className="gap-1 bg-success/15 text-success"><Check className="size-3" />{ownedCount} {it ? "tue" : "owned"}</Badge> : null}
+          </div>
+
+          <Link href={releaseHref} className="mt-3 w-fit max-w-full text-lg font-semibold leading-snug text-[#081a3a] hover:text-[#0f4bb4] hover:underline">
+            {release.editionName}
+          </Link>
+          <p className="mt-1 text-sm text-[#718198]">
+            {release.itemNumber ? `#${release.itemNumber}` : "—"} · {release.releaseYear ?? "—"} · {release.chassis ?? "—"}
+          </p>
+
           {community && community.collectors > 0 ? (
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-              <Link href={collectorsHref} className="w-fit text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">{t("common.collectors")}</Link>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <Link href={collectorsHref} className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"><UsersRound className="size-3.5" />{community.collectors}</Link>
-                {community.openToOffers > 0 ? <Link href={collectorsHref} className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand/25 bg-brand/10 px-2 text-xs font-semibold text-brand transition-colors hover:bg-brand/15"><Handshake className="size-3.5" />{community.openToOffers} {t("common.acceptingOffers")}</Link> : null}
-              </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#dce5ef] bg-[#f8fafc] px-2.5 py-1.5 text-xs font-medium text-[#53657f]">
+                <UsersRound className="size-3.5" /> {community.collectors} {it ? (community.collectors === 1 ? "collezionista" : "collezionisti") : (community.collectors === 1 ? "collector" : "collectors")}
+              </span>
+              {community.openToOffers > 0 ? (
+                <Link href={offersHref} className="inline-flex items-center gap-1.5 rounded-lg border border-[#bcd1f0] bg-[#eef5ff] px-2.5 py-1.5 text-xs font-semibold text-[#0f4bb4] hover:bg-[#e2edff]">
+                  <Handshake className="size-3.5" /> {community.openToOffers} {it ? "aperto a offerte" : "open to offers"}
+                </Link>
+              ) : null}
             </div>
           ) : null}
         </div>
-        <div className="col-span-2 flex items-center justify-between gap-3 border-t border-border pt-3 sm:col-span-1 sm:col-start-3 sm:row-span-2 sm:row-start-1 sm:ml-auto sm:flex-col sm:items-end sm:justify-center sm:border-0 sm:pt-0">
-          <div className="text-left sm:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice /></div>
-          <div className="flex items-center gap-2"><Button size="sm" variant="outline" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button><AddToCollectionDialog product={product} defaultReleaseId={release.id}><Button size="sm" variant={owned ? "outline" : "default"} className="gap-1.5">{owned ? <Check className="size-4" /> : <Plus className="size-4" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button></AddToCollectionDialog></div>
+
+        <div className="flex flex-col justify-between gap-4 border-t border-[#e1e8f0] bg-[#fbfcfe] p-4 md:border-l md:border-t-0 md:p-5">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8391a4]">Market Value</p>
+            <div className="mt-1"><MarketSignalInline signal={signal} showStartingPrice /></div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button size="sm" render={<Link href={releaseHref} />} className="w-full justify-between">
+              {it ? "Vedi Release" : "View Release"} <ArrowRight className="size-4" />
+            </Button>
+            {user ? (
+              <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+                <Button size="sm" variant="outline" className="w-full gap-1.5">
+                  <Plus className="size-4" /> {ownedCount > 0 ? (it ? "Aggiungi un'altra" : "Add another") : (it ? "Aggiungi alla collezione" : "Add to collection")}
+                </Button>
+              </AddToCollectionDialog>
+            ) : (
+              <Button size="sm" variant="outline" render={<Link href={loginHref} />} className="w-full gap-1.5">
+                <LockKeyhole className="size-4" /> {it ? "Accedi per aggiungere" : "Sign in to add"}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
+    </article>
+  )
+}
+
+function SummaryMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#8391a4]">{label}</p>
+      <p className="mt-1 text-base font-semibold text-[#1b2f4d]">{value}</p>
     </div>
   )
 }
 
-function ProductionBadge({ release, locale }: { release: ProductRelease; locale: string }) {
-  if (release.productionStatus === "unknown") return null
-  const it = locale === "it"
-  if (release.productionStatus === "discontinued") {
-    return <Badge variant="secondary" className="text-[10px] font-semibold">{it ? "Fuori produzione" : "Discontinued"}</Badge>
+function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
+  if (!it) return value
+  const labels: Record<ProductRelease["releaseType"], string> = {
+    Original: "Originale",
+    Reissue: "Riedizione",
+    "Special Edition": "Edizione speciale",
+    "Limited Edition": "Edizione limitata",
+    "Anniversary Edition": "Edizione anniversario",
+    "Japan Cup Edition": "Edizione Japan Cup",
+    "Color Special": "Color Special",
+    "Clear Body": "Carrozzeria trasparente",
+    Premium: "Premium",
+    "Chassis Variant": "Variante chassis",
+    Other: "Altro",
   }
-  if (release.productionStatus === "active") {
-    return <Badge variant="outline" className="text-[10px] font-medium">{it ? "In produzione" : "In production"}</Badge>
-  }
-  return <Badge variant="outline" className="text-[10px] font-medium">{it ? "Annunciata" : "Announced"}</Badge>
+  return labels[value]
 }
 
 function sortReleasesForDisplay(releases: ProductRelease[]): ProductRelease[] {
@@ -232,8 +337,4 @@ function sortReleasesForDisplay(releases: ProductRelease[]): ProductRelease[] {
     if (dateA !== dateB) return dateA.localeCompare(dateB)
     return a.editionName.localeCompare(b.editionName)
   })
-}
-
-function Spec({ label, value }: { label: string; value: string }) {
-  return <div className="flex flex-col gap-0.5"><span className="text-xs text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div>
 }
