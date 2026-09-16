@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Boxes, LayoutDashboard, Menu, ScanLine, X } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
+import { PwaInstallBanner } from "@/components/pwa-install-banner"
 import { PwaInstallButton } from "@/components/pwa-install-menu-item"
 import { useStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
@@ -131,6 +132,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
+
+      <PwaInstallBanner />
 
       <main>{children}</main>
 
