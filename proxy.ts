@@ -30,6 +30,10 @@
 // without a TrackDash user session. The handler performs its own signature
 // verification before processing notifications.
 //
+// The temporary 95467 eBay micro-batch endpoint is also server-to-server.
+// It remains fail-closed behind its dedicated EBAY_MICROBATCH_SECRET Bearer
+// check and will be removed after the controlled Production pilot completes.
+//
 // Forgot/reset password (Images Phase 2 + Auth pass): /forgot-password
 // behaves exactly like /login and /signup -- reachable when signed out,
 // bounced to / when already signed in.
@@ -57,6 +61,7 @@ const UNGATED_PREFIXES = [
   "/api/version",
   "/api/cron",
   "/api/ebay/marketplace-account-deletion",
+  "/api/internal/ebay-95467-microbatch",
   "/auth/callback",
   "/update-password",
   "/manifest.webmanifest",
