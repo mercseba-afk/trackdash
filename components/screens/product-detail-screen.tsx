@@ -19,6 +19,7 @@ import { MarketSignalInline } from "@/components/market-signal-inline"
 import { ProductCard } from "@/components/product-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
 import { primaryRelease } from "@/lib/data/products"
 import { formatDate, formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
@@ -180,6 +181,7 @@ export function ProductDetailScreen({
             {mine.map((item) => {
               const release = product.releases.find((candidate) => candidate.id === item.releaseId) ?? primary
               const signal = marketSignals[release.id] ?? null
+              const comparableToMarket = conditionUsesNewUnbuiltReference(item.condition)
               return (
                 <div key={item.id} className="flex items-center gap-3 rounded-xl border border-[#e0e7f0] bg-[#fbfcfe] p-3">
                   <ProductImage product={product} release={release} size="sm" className="size-12 shrink-0 rounded-lg" />
@@ -189,7 +191,14 @@ export function ProductDetailScreen({
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] uppercase tracking-wide text-[#8391a4]">Market Value</p>
-                    <p className="text-sm font-semibold tabular-nums text-[#081a3a]">{signal?.valueEUR != null ? formatMoney(signal.valueEUR) : "—"}</p>
+                    <p className="text-sm font-semibold tabular-nums text-[#081a3a]">
+                      {comparableToMarket && signal?.valueEUR != null ? formatMoney(signal.valueEUR) : "—"}
+                    </p>
+                    {!comparableToMarket ? (
+                      <p className="mt-0.5 max-w-32 text-[10px] leading-4 text-[#8391a4]">
+                        {it ? "Riferimento: nuovo/non montato" : "Reference: new/unbuilt"}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               )
