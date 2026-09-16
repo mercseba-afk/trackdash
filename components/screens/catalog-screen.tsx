@@ -34,7 +34,13 @@ export function CatalogScreen({ products }: { products: Product[] }) {
 
   const releaseCount = React.useMemo(() => products.reduce((sum, product) => sum + product.releases.length, 0), [products])
   const chassisOptions = React.useMemo(
-    () => Array.from(new Set(products.map((product) => product.chassis).filter((value): value is string => Boolean(value)))).sort(),
+    () => Array.from(
+      new Set(
+        products
+          .map((product) => product.chassis)
+          .filter((value): value is NonNullable<Product["chassis"]> => value !== undefined),
+      ),
+    ).sort(),
     [products],
   )
   const seriesOptions = React.useMemo(() => Array.from(new Set(products.map((product) => product.series))).sort(), [products])
@@ -212,14 +218,10 @@ function CatalogListRow({ product, owned, border, it }: { product: Product; owne
           <p className="truncate font-semibold text-[#081a3a] hover:text-[#0f4bb4]">{product.name}</p>
           {owned ? <Badge className="gap-1 bg-success/15 text-success"><Check className="size-3" />{it ? "In collezione" : "Owned"}</Badge> : null}
         </div>
-        <p className="mt-1 text-xs text-[#718198]">
-          {product.series} · {product.originalReleaseYear ?? "—"} · {product.chassis ?? "—"}
-        </p>
+        <p className="mt-1 text-xs text-[#718198]">{product.series} · {product.originalReleaseYear ?? "—"} · {product.chassis ?? "—"}</p>
         <p className="mt-1 text-xs font-medium text-[#53657f]">{product.releases.length} {it ? "Release distinte" : "distinct Releases"}</p>
       </Link>
-      <Button size="sm" variant="outline" render={<Link href={href} />} className="shrink-0">
-        {it ? "Vedi" : "View"}
-      </Button>
+      <Button size="sm" variant="outline" render={<Link href={href} />} className="shrink-0">{it ? "Vedi" : "View"}</Button>
     </article>
   )
 }
@@ -228,13 +230,7 @@ function CatalogStat({ label, value }: { label: string; value: number }) {
   return <div><p className="text-2xl font-semibold tabular-nums text-[#081a3a]">{value}</p><p className="text-xs text-[#718198]">{label}</p></div>
 }
 
-function FilterSelect({
-  value,
-  onChange,
-  options,
-  optionLabels,
-  allLabel,
-}: {
+function FilterSelect({ value, onChange, options, optionLabels, allLabel }: {
   value: string
   onChange: (value: string) => void
   options: readonly string[]
@@ -242,10 +238,9 @@ function FilterSelect({
   allLabel: string
 }) {
   const labelFor = (selected: string) => selected === "all" ? allLabel : (optionLabels?.[selected] ?? selected)
-
   return (
     <Select value={value} onValueChange={(selected) => onChange(selected as string)}>
-      <SelectTrigger size="sm" className={cn("border-[#d4deea]", value !== "all" && "border-[#9ebce4] bg-[#f2f7ff] text-[#0f4bb4]") }>
+      <SelectTrigger size="sm" className={cn("border-[#d4deea]", value !== "all" && "border-[#9ebce4] bg-[#f2f7ff] text-[#0f4bb4]")}>
         <SelectValue>{(selected: string) => labelFor(selected)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
