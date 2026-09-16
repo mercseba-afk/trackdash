@@ -24,19 +24,32 @@ ok("query leads with Tamiya and exact item number", () => {
   assert.equal(query.startsWith("Tamiya 95467"), true)
 })
 
-ok("unique exact new complete-looking listing is accepted", () => {
+ok("localized New display text is accepted when conditionId is 1000", () => {
   const result = classifyEbayActiveListing({
-    title: "Tamiya 95467 Dyna-Hawk GX Super XX Special Mini 4WD New",
-    condition: "New",
+    title: "Tamiya 95467 Dyna-Hawk GX Super XX Special Mini 4WD",
+    condition: "Neuf",
+    conditionId: "1000",
     itemEndDate: "2027-01-01T00:00:00.000Z",
   }, unique, new Date("2026-09-14T00:00:00Z"))
   assert.equal(result.decision, "accepted")
 })
 
+ok("structured non-new condition is rejected regardless of display text", () => {
+  const result = classifyEbayActiveListing({
+    title: "Tamiya 95467 Dyna-Hawk GX Super XX Special Mini 4WD",
+    condition: "New",
+    conditionId: "3000",
+    itemEndDate: null,
+  }, unique)
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("NOT_NEW_CONDITION"), true)
+})
+
 ok("parts and body-only listings are rejected", () => {
   const result = classifyEbayActiveListing({
     title: "Tamiya 95467 Dyna-Hawk GX clear body only",
-    condition: "New",
+    condition: "Neuf",
+    conditionId: "1000",
     itemEndDate: null,
   }, unique)
   assert.equal(result.decision, "rejected")
@@ -46,7 +59,8 @@ ok("parts and body-only listings are rejected", () => {
 ok("item number absent from title is rejected", () => {
   const result = classifyEbayActiveListing({
     title: "Tamiya Dyna-Hawk GX Super XX Special",
-    condition: "New",
+    condition: "Neuf",
+    conditionId: "1000",
     itemEndDate: null,
   }, unique)
   assert.equal(result.decision, "rejected")
@@ -55,7 +69,8 @@ ok("item number absent from title is rejected", () => {
 ok("shared item number stays quarantined even with an exact number", () => {
   const result = classifyEbayActiveListing({
     title: "Tamiya 18074 Proto Emperor Premium Sanfrecce Hiroshima Special",
-    condition: "New",
+    condition: "Neuf",
+    conditionId: "1000",
     itemEndDate: null,
   }, {
     itemNumber: "18074",
@@ -70,7 +85,8 @@ ok("shared item number stays quarantined even with an exact number", () => {
 ok("ended listing is rejected from active asks", () => {
   const result = classifyEbayActiveListing({
     title: "Tamiya 95467 Dyna-Hawk GX Super XX Special",
-    condition: "New",
+    condition: "Neuf",
+    conditionId: "1000",
     itemEndDate: "2026-01-01T00:00:00.000Z",
   }, unique, new Date("2026-09-14T00:00:00Z"))
   assert.equal(result.decision, "rejected")
@@ -85,7 +101,8 @@ ok("same eBay item surfaced in multiple marketplaces is counted once", () => {
     price: 20,
     currency: "EUR",
     shipping: null,
-    condition: "New",
+    condition: "Neuf",
+    conditionId: "1000",
     seller: "seller-a",
     itemEndDate: null,
   }
@@ -111,7 +128,7 @@ try {
   assert.equal(ebayMarketWritesAllowed(), false)
   process.env.EBAY_CLIENT_ID = 'fixture-SBX-client'
   process.env.EBAY_CLIENT_SECRET = 'fixture-only'
-  const sample = { itemId: 'v1|fixture|0', title: 'Tamiya 95467 kit', price: { value: '20', currency: 'EUR' }, condition: 'New', seller: { username: 'fixture-seller' }, itemWebUrl: 'https://example.com/item' }
+  const sample = { itemId: 'v1|fixture|0', title: 'Tamiya 95467 kit', price: { value: '20', currency: 'EUR' }, condition: 'Neuf', conditionId: '1000', seller: { username: 'fixture-seller' }, itemWebUrl: 'https://example.com/item' }
   globalThis.fetch = async (url, options) => {
     calls.push({ url: new URL(url), options })
     assert.equal(options.cache, 'no-store')
@@ -121,7 +138,7 @@ try {
       assert.equal(options.body.get('scope'), 'https://api.ebay.com/oauth/api_scope')
       return Response.json({ access_token: 'fixture-token', expires_in: 7200 })
     }
-    assert.equal(new URL(url).searchParams.get('filter'), 'conditions:{NEW}')
+    assert.equal(new URL(url).searchParams.get('filter'), 'conditionIds:{1000}')
     return Response.json({ itemSummaries: [
       { ...sample, shippingOptions: [{ shippingCost: { value: '0', currency: 'EUR' } }] },
       { ...sample, itemId: 'paid', shippingOptions: [{ shippingCost: { value: '4.50', currency: 'EUR' } }] },
@@ -134,13 +151,15 @@ try {
   assert.equal(rows[0].seller, 'fixture-seller')
   assert.equal(rows[0].itemWebUrl, sample.itemWebUrl)
   assert.equal(rows[0].marketplace, 'EBAY_IT')
+  assert.equal(rows[0].condition, 'Neuf')
+  assert.equal(rows[0].conditionId, '1000')
   for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US']) {
     await searchEbayActiveListings(unique, marketplace, 5)
     assert.equal(calls.at(-1).options.headers['X-EBAY-C-MARKETPLACE-ID'], marketplace)
   }
   assert.equal(calls.filter(call => call.url.pathname.includes('/identity/')).length, 1)
   assert.equal(calls.every(call => call.url.host === 'api.sandbox.ebay.com'), true)
-  console.log('ok: Sandbox routing, OAuth, four marketplaces, token reuse and shipping semantics')
+  console.log('ok: Sandbox routing, OAuth, four marketplaces, token reuse, condition ID and shipping semantics')
 
   process.env.EBAY_ENV = 'production'
   assert.equal(ebayMarketWritesAllowed(), false)
