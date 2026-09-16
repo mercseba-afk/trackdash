@@ -40,8 +40,11 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: "light",
-  themeColor: "#f7f9fc",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f9fc" },
+    { media: "(prefers-color-scheme: dark)", color: "#07111f" },
+  ],
 }
 
 export default async function RootLayout({
@@ -72,7 +75,7 @@ export default async function RootLayout({
             window.dispatchEvent(new Event("trackdash:pwa-available"));
           });
         `}</Script>
-        <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <StoreProvider>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
               <I18nProvider>
