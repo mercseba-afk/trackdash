@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono"
 export const metadata: Metadata = {
   title: "TrackDash — Mini 4WD Collector, market value & wishlist",
   description:
-    "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog your models, track market value with honest data, and manage your wishlist.",
+    "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog exact releases, track honest market value, manage your collection and wishlist, and scan models faster.",
   generator: "TrackDash",
   applicationName: "TrackDash",
   manifest: "/manifest.webmanifest",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "TrackDash",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
 }
 
