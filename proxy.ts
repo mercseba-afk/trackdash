@@ -6,7 +6,7 @@ import { updateSession } from "@/lib/supabase/proxy"
 // Collection, Wishlist, Scanner, Messages and account tools remain protected.
 const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/"]
-const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/collectors"]
+const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market"]
 
 // Server-to-server and bootstrap routes authenticate/guard themselves where
 // required and must not depend on a browser Supabase session.
@@ -55,7 +55,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && isAuthPath) {
-    const destination = safeInternalNext(request.nextUrl.searchParams.get("next")) ?? "/"
+    const destination = safeInternalNext(request.nextUrl.searchParams.get("next")) ?? "/dashboard"
     return NextResponse.redirect(new URL(destination, request.url))
   }
 
