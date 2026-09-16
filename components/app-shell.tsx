@@ -38,7 +38,7 @@ import { initials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const NAV = [
-  { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/catalog", labelKey: "nav.catalog", icon: LibraryBig },
   { href: "/collection", labelKey: "nav.collection", icon: Boxes },
   { href: "/scanner", labelKey: "nav.scanner", icon: ScanLine },
@@ -46,7 +46,7 @@ const NAV = [
 ]
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/"
+  if (href === "/dashboard") return pathname === "/dashboard"
   if (href === "/catalog" && (pathname === "/market" || pathname.startsWith("/market/"))) return true
   return pathname === href || pathname.startsWith(href + "/")
 }
@@ -201,7 +201,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-svh bg-background">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center px-5">
-          <Link href="/" aria-label="TrackDash home">
+          <Link href="/dashboard" aria-label="TrackDash dashboard">
             <BrandMark />
           </Link>
         </div>
@@ -234,7 +234,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="lg:pl-60">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
-          <Link href="/" className="flex h-full items-center lg:hidden" aria-label="TrackDash home">
+          <Link href="/dashboard" className="flex h-full items-center lg:hidden" aria-label="TrackDash dashboard">
             <BrandMark className="translate-y-[1px]" />
           </Link>
           <div className="hidden text-sm text-muted-foreground lg:block">
