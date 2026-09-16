@@ -15,6 +15,7 @@ export interface EbayBrowseListing {
   currency: string
   shipping: number | null
   condition: string | null
+  conditionId: string | null
   seller: string | null
   marketplace: EbayMarketplaceId
   itemEndDate: string | null
@@ -69,7 +70,7 @@ export function buildEbayBrowseQuery(input: EbayReleaseSearchInput): string {
 }
 
 export function classifyEbayActiveListing(
-  listing: Pick<EbayBrowseListing, "title" | "condition" | "itemEndDate">,
+  listing: Pick<EbayBrowseListing, "title" | "condition" | "conditionId" | "itemEndDate">,
   release: EbayReleaseSearchInput,
   now = new Date(),
 ): EbayListingDecision {
@@ -84,8 +85,12 @@ export function classifyEbayActiveListing(
     return { decision: "rejected", reasonCodes: ["PART_OR_BODY_ONLY"] }
   }
 
-  const condition = normalizeText(listing.condition ?? "")
-  if (condition && !condition.includes("new")) {
+  // eBay's human-readable condition is localized (for example "Neuf"), so it
+  // must never be used as the authoritative NEW test. Condition ID 1000 is the
+  // stable structured value for New across marketplaces. Browse requests are
+  // also filtered to conditionIds:{1000}; this check protects callers that do
+  // receive a structured ID without re-interpreting localized display text.
+  if (listing.conditionId != null && listing.conditionId !== "1000") {
     return { decision: "rejected", reasonCodes: ["NOT_NEW_CONDITION"] }
   }
 
@@ -120,6 +125,7 @@ interface EbaySearchResponse {
     price?: { value?: string; currency?: string }
     shippingOptions?: Array<{ shippingCost?: { value?: string; currency?: string } }>
     condition?: string
+    conditionId?: string
     seller?: { username?: string }
     itemEndDate?: string
   }>
@@ -206,7 +212,7 @@ export async function searchEbayActiveListings(
   const params = new URLSearchParams({
     q: buildEbayBrowseQuery(input),
     limit: String(Math.max(1, Math.min(limit, 100))),
-    filter: "conditions:{NEW}",
+    filter: "conditionIds:{1000}",
   })
   const response = await fetch(`${apiOrigin(environment)}/buy/browse/v1/item_summary/search?${params}`, {
     headers: {
@@ -236,6 +242,7 @@ export async function searchEbayActiveListings(
       currency,
       shipping,
       condition: row.condition ?? null,
+      conditionId: row.conditionId ?? null,
       seller: row.seller?.username ?? null,
       marketplace,
       itemEndDate: row.itemEndDate ?? null,
