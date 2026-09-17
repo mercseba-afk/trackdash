@@ -1,7 +1,7 @@
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
 import { cookies } from "next/headers"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Instrument_Sans, JetBrains_Mono } from "next/font/google"
 import Script from "next/script"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -15,8 +15,8 @@ import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
+const trackDashSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-trackdash-sans" })
+const trackDashMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-trackdash-mono" })
 
 export const metadata: Metadata = {
   title: "TrackDash — Mini 4WD Collector, market value & wishlist",
@@ -40,11 +40,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f9fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#07111f" },
-  ],
+  colorScheme: "light",
+  themeColor: "#f8fafc",
 }
 
 export default async function RootLayout({
@@ -66,7 +63,7 @@ export default async function RootLayout({
 
   return (
     <html lang={initialLocale} suppressHydrationWarning className="bg-background">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>
         <Script id="trackdash-pwa-install-capture" strategy="beforeInteractive">{`
           window.__trackdashInstallPrompt = null;
           window.addEventListener("beforeinstallprompt", function (event) {
@@ -75,7 +72,7 @@ export default async function RootLayout({
             window.dispatchEvent(new Event("trackdash:pwa-available"));
           });
         `}</Script>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <StoreProvider>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
               <I18nProvider>
