@@ -11,7 +11,7 @@ import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge } from "@/components/market-bits"
 import { MarketSignalInline } from "@/components/market-signal-inline"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -110,8 +110,8 @@ export function ScannerScreen() {
     const Detector = (window as ScannerWindow).BarcodeDetector
     if (!Detector) {
       setCameraError(it
-        ? "La scansione barcode non è supportata da questo browser. Puoi comunque cercare il codice qui sopra."
-        : "Barcode scanning isn't supported by this browser. You can still search the code above.")
+        ? "La scansione barcode non è supportata da questo browser. Puoi comunque cercare il codice manualmente."
+        : "Barcode scanning isn't supported by this browser. You can still search the code manually.")
       setCameraStarting(false)
       return
     }
@@ -123,10 +123,7 @@ export function ScannerScreen() {
 
     try {
       detectorRef.current = new Detector()
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      })
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false })
       streamRef.current = stream
       const video = videoRef.current
       if (!video) throw new Error("camera_unavailable")
@@ -140,7 +137,7 @@ export function ScannerScreen() {
       const denied = error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "SecurityError")
       setCameraError(denied
         ? (it ? "Permesso fotocamera negato. Abilitalo nelle impostazioni del browser e riprova." : "Camera permission denied. Enable it in browser settings and try again.")
-        : (it ? "Non riesco ad avviare la fotocamera. Usa la ricerca per codice." : "Couldn't start the camera. Use code search instead."))
+        : (it ? "Non riesco ad avviare la fotocamera. Usa la ricerca manuale." : "Couldn't start the camera. Use manual search instead."))
     }
   }
 
@@ -151,89 +148,92 @@ export function ScannerScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{it ? "Trova un modello" : "Find a model"}</h1>
-        <p className="text-sm text-muted-foreground">
-          {it ? "Cerca subito per codice articolo oppure inquadra il barcode della scatola." : "Search by item number or scan the barcode on the box."}
-        </p>
-      </div>
-
-      <Card className="border-brand/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><Search className="size-4 text-brand" />{it ? "Cerca per codice" : "Search by code"}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-2">
-          <form onSubmit={submitManual}>
-            <InputGroup className="h-12">
-              <InputGroupInput
-                inputMode="search"
-                autoComplete="off"
-                placeholder={it ? "Codice articolo o barcode, es. 95467" : "Item number or barcode, e.g. 95467"}
-                value={manual}
-                onChange={(event) => setManual(event.target.value)}
-              />
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton type="submit" disabled={!manual.trim()}>{it ? "Cerca" : "Search"}</InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          </form>
-          <p className="text-xs text-muted-foreground">
-            {it ? "Accetta item number TrackDash e barcode JAN/EAN presenti nel catalogo." : "Accepts TrackDash item numbers and JAN/EAN barcodes in the catalog."}
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
+      <header className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-white via-white to-brand/5 px-5 py-6 shadow-[0_12px_40px_rgba(15,23,42,0.05)] sm:px-7 sm:py-8">
+        <div className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full border border-brand/10" />
+        <div className="pointer-events-none absolute -right-4 top-8 size-36 rounded-full border border-brand/10" />
+        <div className="relative max-w-2xl">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">Scanner</p>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+            {it ? <>Trova la <span className="text-brand">Release esatta.</span></> : <>Find the <span className="text-brand">exact Release.</span></>}
+          </h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+            {it
+              ? "Inquadra il barcode della scatola oppure inserisci Item Number o JAN/EAN. TrackDash mantiene separate le Release anche quando un codice articolo è stato riutilizzato."
+              : "Scan the box barcode or enter an Item Number or JAN/EAN. TrackDash keeps Releases separate even when an item number has been reused."}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </header>
 
-      <div className="flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-        <span className="h-px flex-1 bg-border" /><span>{it ? "oppure" : "or"}</span><span className="h-px flex-1 bg-border" />
-      </div>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,.75fr)] lg:items-start">
+        <section className="flex flex-col gap-4">
+          <Card className="overflow-hidden rounded-3xl border-border/70 py-0 shadow-[0_12px_35px_rgba(15,23,42,0.06)]">
+            <CardContent className="relative flex aspect-[4/3] min-h-72 items-center justify-center bg-slate-950 p-0 text-white sm:aspect-video lg:min-h-[420px]">
+              <video ref={videoRef} muted playsInline autoPlay className="absolute inset-0 size-full object-cover" />
+              <div className="pointer-events-none absolute inset-7 sm:inset-10">
+                {["left-0 top-0 border-l-[3px] border-t-[3px]", "right-0 top-0 border-r-[3px] border-t-[3px]", "left-0 bottom-0 border-l-[3px] border-b-[3px]", "right-0 bottom-0 border-r-[3px] border-b-[3px]"].map((position) => (
+                  <span key={position} className={`absolute size-12 rounded-[5px] border-brand ${position}`} />
+                ))}
+              </div>
+              {cameraActive ? <span className="pointer-events-none absolute inset-x-12 top-1/2 h-px bg-brand shadow-[0_0_18px_3px_var(--brand)]" /> : null}
+              {!cameraActive ? (
+                <div className="z-10 flex max-w-md flex-col items-center gap-4 px-8 text-center">
+                  <span className="grid size-14 place-items-center rounded-2xl border border-white/10 bg-white/5"><ScanBarcode className="size-7 text-white/80" /></span>
+                  <div>
+                    <p className="font-medium">{it ? "Inquadra il barcode della confezione" : "Frame the barcode on the box"}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-white/60">{it ? "Se il codice identifica una Release univoca, TrackDash apre direttamente quella corretta." : "When the code identifies one unique Release, TrackDash opens the correct one directly."}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-1.5 text-xs font-semibold text-slate-950 backdrop-blur">
+                  {it ? "Cerco il barcode…" : "Looking for barcode…"}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-      <Card className="overflow-hidden py-0">
-        <CardContent className="relative flex aspect-video min-h-52 items-center justify-center bg-foreground/95 p-0 text-background">
-          <video ref={videoRef} muted playsInline autoPlay className="absolute inset-0 size-full object-cover" />
-          <div className="pointer-events-none absolute inset-6 rounded-lg">
-            {["left-0 top-0 border-l-2 border-t-2", "right-0 top-0 border-r-2 border-t-2", "left-0 bottom-0 border-l-2 border-b-2", "right-0 bottom-0 border-r-2 border-b-2"].map((position) => (
-              <span key={position} className={`absolute size-8 rounded-[3px] border-brand ${position}`} />
-            ))}
+          <div className="grid gap-2 sm:grid-cols-2">
+            {cameraActive ? (
+              <Button variant="outline" size="lg" className="sm:col-span-2" onClick={stopCamera}><CameraOff />{it ? "Chiudi fotocamera" : "Close camera"}</Button>
+            ) : (
+              <Button size="lg" className="sm:col-span-2 rounded-xl" onClick={() => void startCamera()} disabled={cameraStarting}><Camera />{cameraStarting ? (it ? "Avvio fotocamera…" : "Starting camera…") : (it ? "Scansiona barcode" : "Scan barcode")}</Button>
+            )}
+            {cameraError ? <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground sm:col-span-2">{cameraError}</p> : null}
           </div>
-          {cameraActive ? <span className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 bg-brand shadow-[0_0_14px_2px_var(--brand)]" /> : null}
-          {!cameraActive ? (
-            <div className="z-10 flex max-w-sm flex-col items-center gap-3 px-6 text-center">
-              <ScanBarcode className="size-10 text-background/75" />
-              <p className="text-sm text-background/75">
-                {it ? "Inquadra il barcode della confezione: TrackDash proverà a identificare la Release esatta." : "Frame the box barcode and TrackDash will try to identify the exact Release."}
-              </p>
-            </div>
-          ) : (
-            <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-background/85 px-3 py-1 text-xs font-medium text-foreground backdrop-blur">
-              {it ? "Cerco il barcode…" : "Looking for barcode…"}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </section>
 
-      <div className="grid gap-2">
-        {cameraActive ? (
-          <Button variant="outline" size="lg" onClick={stopCamera}><CameraOff />{it ? "Chiudi fotocamera" : "Close camera"}</Button>
-        ) : (
-          <Button size="lg" onClick={() => void startCamera()} disabled={cameraStarting}><Camera />{cameraStarting ? (it ? "Avvio fotocamera…" : "Starting camera…") : (it ? "Scansiona barcode" : "Scan barcode")}</Button>
-        )}
-        {cameraError ? <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">{cameraError}</p> : null}
-        <p className="text-center text-[11px] text-muted-foreground">
-          {it ? "Riconoscimento del modello dalla sola immagine: previsto in una fase successiva." : "Image-only model recognition is planned for a later phase."}
-        </p>
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+          <Card className="rounded-3xl border-brand/15 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
+            <CardContent className="flex flex-col gap-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">{it ? "Ricerca manuale" : "Manual search"}</p>
+                <h2 className="mt-1 text-lg font-semibold">{it ? "Hai già il codice?" : "Already have the code?"}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{it ? "Inserisci Item Number, barcode JAN/EAN o nome modello." : "Enter an Item Number, JAN/EAN barcode or model name."}</p>
+              </div>
+              <form onSubmit={submitManual}>
+                <InputGroup className="h-12 rounded-xl">
+                  <InputGroupInput inputMode="search" autoComplete="off" placeholder={it ? "Es. 95467" : "E.g. 95467"} value={manual} onChange={(event) => setManual(event.target.value)} />
+                  <InputGroupAddon align="inline-end"><InputGroupButton type="submit" disabled={!manual.trim()}><Search />{it ? "Cerca" : "Search"}</InputGroupButton></InputGroupAddon>
+                </InputGroup>
+              </form>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">{it ? "Se un Item Number è condiviso da più Release, TrackDash non ne seleziona una arbitrariamente: ti chiede di scegliere l'edizione corretta." : "If an Item Number belongs to multiple Releases, TrackDash never picks one arbitrarily: you choose the correct edition."}</p>
+            </CardContent>
+          </Card>
+
+          <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+            {it ? "Il riconoscimento del modello dalla sola immagine è previsto in una fase successiva. Oggi lo Scanner usa codici strutturati e ricerca catalogo." : "Image-only model recognition is planned for a later phase. Today the Scanner uses structured codes and catalog search."}
+          </div>
+        </aside>
       </div>
 
       {notFoundCode ? (
-        <Card>
+        <Card className="rounded-2xl">
           <CardContent className="grid gap-3 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
             <div className="flex items-center gap-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground"><X className="size-4" /></span>
               <div><p className="text-sm font-medium">{it ? "Nessuna corrispondenza" : "No match"}</p><p className="text-xs text-muted-foreground">{it ? `Codice cercato: ${notFoundCode}` : `Searched code: ${notFoundCode}`}</p></div>
             </div>
-            <Button variant="outline" size="sm" render={<Link href={`/support?category=model_release_request&query=${encodeURIComponent(notFoundCode)}`} />}>
-              <PackageSearch />{it ? "Richiedi inserimento" : "Request model"}
-            </Button>
+            <Button variant="outline" size="sm" render={<Link href={`/support?category=model_release_request&query=${encodeURIComponent(notFoundCode)}`} />}><PackageSearch />{it ? "Richiedi inserimento" : "Request model"}</Button>
           </CardContent>
         </Card>
       ) : null}
@@ -254,15 +254,15 @@ function ScanResult({ product, matchedReleaseId, onScanAgain }: { product: Produ
   const releaseHref = `/catalog/${product.id}/releases/${release.id}`
 
   return (
-    <Card className="border-brand/40">
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-brand"><Sparkles className="size-4" /><span className="text-sm font-medium">{matchedReleaseId ? (it ? "Release identificata" : "Release identified") : (it ? "Modello trovato" : "Model found")}</span></div>
-        <div className="flex gap-4">
-          <ProductImage product={product} release={release} className="h-24 w-36 shrink-0" />
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <Link href={releaseHref} className="font-semibold leading-tight hover:text-brand">{release.editionName}</Link>
-            <p className="text-xs text-muted-foreground">{it ? "Modello" : "Model"}: <Link href={`/catalog/${product.id}`} className="hover:text-foreground">{product.name}</Link></p>
-            <p className="text-xs text-muted-foreground">#{release.itemNumber ?? "—"} · {release.chassis ?? "—"} · {release.releaseYear ?? "—"}</p>
+    <Card className="overflow-hidden rounded-3xl border-brand/30 shadow-[0_12px_35px_rgba(15,23,42,0.05)]">
+      <CardContent className="flex flex-col gap-5 p-5 sm:p-6">
+        <div className="flex items-center gap-2 text-brand"><Sparkles className="size-4" /><span className="text-xs font-semibold uppercase tracking-[0.14em]">{matchedReleaseId ? (it ? "Release identificata" : "Release identified") : (it ? "Modello trovato" : "Model found")}</span></div>
+        <div className="grid gap-5 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-start">
+          <ProductImage product={product} release={release} className="aspect-[4/3] w-full rounded-2xl bg-muted/20" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <Link href={releaseHref} className="text-xl font-semibold tracking-tight hover:text-brand">{release.editionName}</Link>
+            <p className="text-sm text-muted-foreground">{product.name}</p>
+            <p className="font-mono text-xs text-muted-foreground">#{release.itemNumber ?? "—"} · {release.releaseYear ?? "—"} · {release.chassis ?? "—"}</p>
             <div className="flex flex-wrap items-center gap-1.5"><RarityBadge rarity={release.rarity ?? product.rarity} /><Badge variant="outline">{product.series}</Badge></div>
             <div className="mt-1"><MarketSignalInline signal={marketSignal} showStartingPrice /></div>
           </div>
@@ -270,14 +270,14 @@ function ScanResult({ product, matchedReleaseId, onScanAgain }: { product: Produ
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-muted-foreground">{it ? "Release / edizione" : "Release / edition"}</span>
           <Select value={releaseId} onValueChange={(value) => value && setReleaseId(value as string)}>
-            <SelectTrigger className="w-full"><SelectValue>{(value: string) => { const candidate = product.releases.find((item) => item.id === value); return candidate ? `${candidate.releaseYear ?? "—"} · ${candidate.releaseType} · #${candidate.itemNumber ?? "—"}` : t("scanner.selectRelease") }}</SelectValue></SelectTrigger>
+            <SelectTrigger className="w-full rounded-xl"><SelectValue>{(value: string) => { const candidate = product.releases.find((item) => item.id === value); return candidate ? `${candidate.releaseYear ?? "—"} · ${candidate.releaseType} · #${candidate.itemNumber ?? "—"}` : t("scanner.selectRelease") }}</SelectValue></SelectTrigger>
             <SelectContent>{product.releases.map((candidate) => <SelectItem key={candidate.id} value={candidate.id}>{candidate.releaseYear ?? "—"} · {candidate.releaseType} · #{candidate.itemNumber ?? "—"}</SelectItem>)}</SelectContent>
           </Select>
           {product.hasMultipleReleases ? <p className="text-[11px] text-muted-foreground">{it ? "Controlla l'edizione prima di aggiungerla alla collezione." : "Check the edition before adding it to your collection."}</p> : null}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <AddToCollectionDialog product={product} defaultReleaseId={releaseId}><Button className="flex-1">{t("product.addCollection")}</Button></AddToCollectionDialog>
-          <AddToWishlistDialog product={product} defaultReleaseId={releaseId}><Button variant="outline" className="flex-1">{it ? "Wishlist" : "Wishlist"}</Button></AddToWishlistDialog>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <AddToCollectionDialog product={product} defaultReleaseId={releaseId}><Button className="flex-1 rounded-xl">{t("product.addCollection")}</Button></AddToCollectionDialog>
+          <AddToWishlistDialog product={product} defaultReleaseId={releaseId}><Button variant="outline" className="flex-1 rounded-xl">Wishlist</Button></AddToWishlistDialog>
           <Button variant="ghost" onClick={onScanAgain}>{it ? "Scansiona ancora" : "Scan again"}</Button>
         </div>
       </CardContent>
