@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Boxes, CalendarDays, ExternalLink, Globe, Handshake, Heart, Settings, Trophy } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
+import { useMarketSignals } from "@/lib/market/context"
 import { enrichCollection, portfolioSummary } from "@/lib/analytics"
 import { collectorLevel, formatMoney } from "@/lib/format"
 import { getMyCollectionSharesAction } from "@/lib/actions/sharing"
@@ -23,7 +24,8 @@ type MyShare = Awaited<ReturnType<typeof getMyCollectionSharesAction>>[number]
 export function ProfileScreen() {
   const { user, collection, wishlist, updateUser } = useStore()
   const { locale, t } = useI18n()
-  const enriched = React.useMemo(() => enrichCollection(collection), [collection])
+  const marketSignals = useMarketSignals()
+  const enriched = React.useMemo(() => enrichCollection(collection, marketSignals), [collection, marketSignals])
   const summary = React.useMemo(() => portfolioSummary(enriched), [enriched])
   const level = collectorLevel(summary.uniqueProducts)
 
@@ -53,6 +55,7 @@ export function ProfileScreen() {
   const joined = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(locale === "it" ? "it-IT" : "en-GB", { month: "long", year: "numeric" })
     : "—"
+  const marketValueLabel = summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -77,10 +80,11 @@ export function ProfileScreen() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardContent className="flex flex-col gap-5 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <Avatar className="size-16 shrink-0">
+      <Card className="overflow-hidden border-border/70">
+        <CardContent className="relative flex flex-col gap-5 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div aria-hidden className="pointer-events-none absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-brand/5" />
+          <div className="relative flex min-w-0 items-center gap-4">
+            <Avatar className="size-16 shrink-0 ring-4 ring-brand/5">
               <AvatarImage src={user?.avatarUrl} alt="" />
               <AvatarFallback className="bg-brand/10 text-lg font-semibold text-brand">
                 {(user?.username ?? "MG").slice(0, 2).toUpperCase()}
@@ -99,7 +103,7 @@ export function ProfileScreen() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="relative flex flex-wrap gap-2">
             {shares.length > 0 && user?.username ? (
               <Button variant="outline" render={<Link href={`/collectors/${encodeURIComponent(user.username)}`} />}>
                 <ExternalLink data-icon="inline-start" /> {t("profile.viewPublic")}
@@ -122,7 +126,7 @@ export function ProfileScreen() {
         <ProfileStat label={t("profile.shared")} value={String(shares.length)} icon={Globe} />
         <ProfileStat label={t("profile.offers")} value={String(offers)} icon={Handshake} />
         <ProfileStat label={t("profile.wishlist")} value={String(wishlist.length)} icon={Heart} />
-        <ProfileStat label={t("profile.value")} value={formatMoney(summary.marketValue)} icon={Trophy} />
+        <ProfileStat label={t("profile.value")} value={marketValueLabel} icon={Trophy} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">

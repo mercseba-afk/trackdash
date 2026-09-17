@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Download } from "lucide-react"
+import { CheckCircle2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { useI18n } from "@/lib/i18n"
@@ -31,10 +31,10 @@ function isChromiumInstallBrowser() {
 function canOfferInstall() {
   if (typeof window === "undefined" || isStandalone()) return false
 
-  // On Chromium, expose the TrackDash install action only after the browser
-  // has supplied a real beforeinstallprompt event. This guarantees that the
-  // next tap can open the native PWA/WebAPK install dialog instead of falling
-  // back to a plain browser shortcut or a waiting state.
+  // On Chromium, expose the compact shell action only after the browser
+  // has supplied a real beforeinstallprompt event. The Settings action below
+  // stays available even without it so the manager can show browser-specific
+  // manual instructions instead of leaving the user with no path forward.
   if (isChromiumInstallBrowser()) return Boolean(window.__trackdashInstallPrompt)
 
   // Safari installs through its browser-native manual flow.
@@ -65,6 +65,27 @@ function usePwaInstallVisibility() {
   }, [])
 
   return visible
+}
+
+function useStandaloneState() {
+  const [installed, setInstalled] = React.useState(false)
+
+  React.useEffect(() => {
+    const refresh = () => setInstalled(isStandalone())
+    refresh()
+    window.addEventListener("trackdash:pwa-state-change", refresh)
+    window.addEventListener("trackdash:pwa-installed", refresh)
+    window.addEventListener("pageshow", refresh)
+    window.addEventListener("focus", refresh)
+    return () => {
+      window.removeEventListener("trackdash:pwa-state-change", refresh)
+      window.removeEventListener("trackdash:pwa-installed", refresh)
+      window.removeEventListener("pageshow", refresh)
+      window.removeEventListener("focus", refresh)
+    }
+  }, [])
+
+  return installed
 }
 
 function requestInstall() {
@@ -104,5 +125,18 @@ export function PwaInstallMenuItem() {
       <Download />
       {locale === "it" ? "Installa TrackDash" : "Install TrackDash"}
     </DropdownMenuItem>
+  )
+}
+
+export function PwaInstallSettingsButton() {
+  const { locale } = useI18n()
+  const installed = useStandaloneState()
+  const it = locale === "it"
+
+  return (
+    <Button variant="outline" onClick={requestInstall} disabled={installed} className="min-w-36 justify-center">
+      {installed ? <CheckCircle2 data-icon="inline-start" /> : <Download data-icon="inline-start" />}
+      {installed ? (it ? "Già installata" : "Already installed") : (it ? "Installa TrackDash" : "Install TrackDash")}
+    </Button>
   )
 }
