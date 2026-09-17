@@ -24,6 +24,9 @@ declare global {
   interface WindowEventMap {
     beforeinstallprompt: BeforeInstallPromptEvent
   }
+  interface Window {
+    __trackdashInstallPrompt?: BeforeInstallPromptEvent | null
+  }
   interface Navigator {
     standalone?: boolean
   }
@@ -79,12 +82,14 @@ export function PwaInstallManager() {
 
   const clearPrompt = React.useCallback(() => {
     deferredPrompt.current = null
+    window.__trackdashInstallPrompt = null
     setNativeReadyOpen(false)
     emitStateChange()
   }, [])
 
   const markInstalled = React.useCallback(() => {
     deferredPrompt.current = null
+    window.__trackdashInstallPrompt = null
     setNativeReadyOpen(false)
     setWaitingOpen(false)
     window.dispatchEvent(new Event("trackdash:pwa-installed"))
@@ -92,7 +97,7 @@ export function PwaInstallManager() {
   }, [])
 
   const runNativePrompt = React.useCallback(async () => {
-    const promptEvent = deferredPrompt.current
+    const promptEvent = deferredPrompt.current ?? window.__trackdashInstallPrompt ?? null
     if (!promptEvent) return false
 
     setNativeReadyOpen(false)
@@ -110,6 +115,8 @@ export function PwaInstallManager() {
   }, [clearPrompt, markInstalled])
 
   React.useEffect(() => {
+    window.__trackdashInstallPrompt = null
+
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
@@ -121,6 +128,7 @@ export function PwaInstallManager() {
     const onBeforeInstall = (event: BeforeInstallPromptEvent) => {
       event.preventDefault()
       deferredPrompt.current = event
+      window.__trackdashInstallPrompt = event
       setWaitingOpen(false)
       setNativeReadyOpen(true)
       window.dispatchEvent(new Event("trackdash:pwa-available"))
@@ -135,7 +143,7 @@ export function PwaInstallManager() {
         return
       }
 
-      if (deferredPrompt.current) {
+      if (deferredPrompt.current ?? window.__trackdashInstallPrompt) {
         await runNativePrompt()
         return
       }
