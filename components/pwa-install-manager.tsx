@@ -65,7 +65,7 @@ function detectBrowser(): BrowserKind {
   return "other"
 }
 
-function supportsDeferredInstallPrompt(browser: BrowserKind) {
+function isChromiumInstallBrowser(browser: BrowserKind) {
   if (isIOSFamily()) return false
   return browser === "chrome" || browser === "edge" || browser === "samsung"
 }
@@ -91,8 +91,6 @@ export function PwaInstallManager() {
   const it = locale === "it"
   const deferredPrompt = React.useRef<BeforeInstallPromptEvent | null>(null)
   const [installReady, setInstallReady] = React.useState(false)
-  const [waitingOpen, setWaitingOpen] = React.useState(false)
-  const [waitingAndroid, setWaitingAndroid] = React.useState(false)
   const [iosInstructionsOpen, setIosInstructionsOpen] = React.useState(false)
   const [macInstructionsOpen, setMacInstructionsOpen] = React.useState(false)
   const [fallbackOpen, setFallbackOpen] = React.useState(false)
@@ -112,7 +110,7 @@ export function PwaInstallManager() {
     deferredPrompt.current = null
     window.__trackdashInstallPrompt = null
     setInstallReady(false)
-    setWaitingOpen(false)
+    setFallbackOpen(false)
     localStorage.setItem("trackdash.pwa.installed", "1")
     window.dispatchEvent(new Event("trackdash:pwa-installed"))
     emitStateChange()
@@ -136,7 +134,7 @@ export function PwaInstallManager() {
 
   React.useEffect(() => {
     if ("serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {})
+      void navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(() => navigator.serviceWorker.ready).then(() => emitStateChange()).catch(() => {})
     }
 
     const initialPrompt = window.__trackdashInstallPrompt ?? null
@@ -192,13 +190,10 @@ export function PwaInstallManager() {
         return
       }
 
-      const browser = detectBrowser()
-      if (supportsDeferredInstallPrompt(browser)) {
-        setWaitingAndroid(isAndroid())
-        setWaitingOpen(true)
-        return
-      }
-
+      // A site cannot force Chromium to expose beforeinstallprompt. If Chrome,
+      // Edge or Samsung Internet has not supplied it for this tab, show an
+      // actionable browser-menu fallback immediately instead of trapping the
+      // user behind an indefinitely disabled "Not ready yet" button.
       showManualInstructions()
     }
 
@@ -223,37 +218,39 @@ export function PwaInstallManager() {
     }
   }, [markInstalled, runNativePrompt])
 
-  const waitingCopy = waitingAndroid
-    ? {
-        title: it ? "Installa TrackDash sul telefono" : "Install TrackDash on your phone",
-        description: installReady
-          ? (it ? "TrackDash è pronta per essere installata come vera app." : "TrackDash is ready to be installed as a real app.")
-          : (it
-              ? "Il browser sta verificando l'installabilità di TrackDash. Lascia questa finestra aperta qualche secondo: appena il prompt nativo è disponibile, il pulsante Installa ora si attiva automaticamente."
-              : "The browser is checking whether TrackDash can be installed. Keep this window open for a few seconds: as soon as the native prompt is available, Install now will enable automatically."),
-        note: it
-          ? "Se resta in attesa, continua a usare TrackDash per un po' e riprova. Su Chrome puoi anche controllare ⋮ → Installa app. Evita una semplice scorciatoia web."
-          : "If it keeps waiting, use TrackDash for a little while and try again. In Chrome you can also check ⋮ → Install app. Avoid a plain web shortcut.",
-      }
-    : {
-        title: it ? "Installa TrackDash" : "Install TrackDash",
-        description: installReady
-          ? (it ? "Il browser ha reso disponibile il prompt nativo di installazione." : "The browser has exposed the native install prompt.")
-          : (it
-              ? "Il browser non ha ancora reso disponibile il prompt PWA. Questa finestra resta in ascolto e si aggiorna appena diventa disponibile."
-              : "The browser has not exposed the PWA prompt yet. This window keeps listening and updates as soon as it becomes available."),
-        note: it
-          ? "Puoi anche usare la voce Installa app del browser quando compare."
-          : "You can also use the browser's Install app command when it appears.",
-      }
-
   const manualCopy = (() => {
     if (fallbackAndroid && fallbackBrowser === "firefox") {
       return {
-        description: it ? "Per l'installazione PWA completa su Android usa Chrome o Samsung Internet." : "For the full PWA installation on Android, use Chrome or Samsung Internet.",
+        description: it
+          ? "Firefox su Android non espone il prompt PWA usato da TrackDash. Per l'installazione completa apri il sito in Chrome o Samsung Internet."
+          : "Firefox on Android does not expose the PWA prompt TrackDash uses. For the full installation, open the site in Chrome or Samsung Internet.",
         first: it ? "Apri trackdash.it in Chrome" : "Open trackdash.it in Chrome",
-        second: it ? "Tocca Installa TrackDash" : "Tap Install TrackDash",
-        note: it ? "Il pulsante seguirà lo stato reale del prompt di installazione." : "The button will follow the real install prompt state.",
+        second: it ? "Apri il menu ⋮ e cerca Installa app" : "Open the ⋮ menu and look for Install app",
+        note: it ? "Quando Chrome rende disponibile il prompt nativo, il pulsante TrackDash lo aprirà direttamente." : "When Chrome exposes the native prompt, the TrackDash button will open it directly.",
+      }
+    }
+
+    if (fallbackAndroid && isChromiumInstallBrowser(fallbackBrowser)) {
+      return {
+        description: it
+          ? "Il browser non ha fornito a TrackDash il prompt nativo di installazione in questa scheda. Non serve lasciare una finestra in attesa."
+          : "The browser has not supplied TrackDash with its native install prompt in this tab. You do not need to leave a window waiting.",
+        first: it ? "Apri il menu ⋮ del browser" : "Open the browser's ⋮ menu",
+        second: it ? "Tocca Installa app, se disponibile" : "Tap Install app, if available",
+        note: it
+          ? "Se Installa app non compare, il browser non sta offrendo l'installazione in questo momento. Continua a usare TrackDash e riprova dal menu più tardi."
+          : "If Install app is not shown, the browser is not offering installation right now. Keep using TrackDash and try again from the menu later.",
+      }
+    }
+
+    if (!fallbackAndroid && (fallbackBrowser === "chrome" || fallbackBrowser === "edge")) {
+      return {
+        description: it
+          ? "Il prompt nativo non è disponibile in questa scheda, ma puoi controllare direttamente il comando del browser."
+          : "The native prompt is not available in this tab, but you can check the browser command directly.",
+        first: it ? "Apri il menu del browser" : "Open the browser menu",
+        second: it ? "Cerca Installa TrackDash o Installa app" : "Look for Install TrackDash or Install app",
+        note: it ? "Se il comando non compare, il browser non sta offrendo l'installazione in questo momento." : "If the command is missing, the browser is not offering installation right now.",
       }
     }
 
@@ -278,30 +275,6 @@ export function PwaInstallManager() {
             <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {it ? "Aprila oppure rimetti la sua icona nella Home" : "Open it or add its icon back to the Home screen"}</p><p className="text-xs text-muted-foreground">{it ? "La PWA installata si apre senza la normale barra URL." : "The installed PWA opens without the normal URL bar."}</p></div></div>
           </div>
           <DialogFooter><DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} /></DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={waitingOpen} onOpenChange={setWaitingOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Download className="size-4" />{waitingCopy.title}</DialogTitle>
-            <DialogDescription>{waitingCopy.description}</DialogDescription>
-          </DialogHeader>
-          <div className="rounded-lg border p-3 text-sm">
-            <div className="flex items-start gap-3">
-              <span className={`mt-1.5 size-2 shrink-0 rounded-full ${installReady ? "bg-emerald-500" : "animate-pulse bg-brand"}`} />
-              <div>
-                <p className="font-medium">{installReady ? (it ? "Installazione pronta" : "Installation ready") : (it ? "In attesa del browser…" : "Waiting for the browser…")}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{waitingCopy.note}</p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline">{it ? "Chiudi" : "Close"}</Button>} />
-            <Button onClick={() => void runNativePrompt()} disabled={!installReady}>
-              {installReady ? (it ? "Installa ora" : "Install now") : (it ? "Non ancora disponibile" : "Not ready yet")}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -344,7 +317,10 @@ export function PwaInstallManager() {
             <div className="flex items-start gap-3 rounded-lg border p-3"><EllipsisVertical className="mt-0.5 size-4 shrink-0 text-brand" /><p className="font-medium">1. {manualCopy.first}</p></div>
             <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {manualCopy.second}</p><p className="mt-1 text-xs text-muted-foreground">{manualCopy.note}</p></div></div>
           </div>
-          <DialogFooter><DialogClose render={<Button>{it ? "Chiudi" : "Close"}</Button>} /></DialogFooter>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline">{it ? "Chiudi" : "Close"}</Button>} />
+            {installReady ? <Button onClick={() => void runNativePrompt()}>{it ? "Installa ora" : "Install now"}</Button> : null}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
