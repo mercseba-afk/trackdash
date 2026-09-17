@@ -47,6 +47,7 @@ export function ReleaseDetailScreen({
     : localizedDescription?.en ?? product.description
   const releasePath = `/catalog/${product.id}/releases/${release.id}`
   const loginHref = `/login?next=${encodeURIComponent(releasePath)}`
+  const showAdvancedMarketEvidence = Boolean(user)
 
   return (
     <div className="flex flex-col gap-7 pb-8">
@@ -96,7 +97,7 @@ export function ReleaseDetailScreen({
             ) : null}
           </div>
 
-          <MarketValuePanel signal={marketSignal} it={it} />
+          <MarketValuePanel signal={marketSignal} it={it} showAdvanced={showAdvancedMarketEvidence} />
 
           <div className="flex flex-wrap gap-2">
             {user ? (
@@ -127,8 +128,13 @@ export function ReleaseDetailScreen({
       <ReleaseCollectorOffers offers={collectorOffers} />
 
       <section className="grid gap-5 lg:grid-cols-2">
-        <ExternalAvailabilityCard signal={marketSignal} it={it} />
-        <PriceIntelligenceCard signal={marketSignal} it={it} />
+        <ExternalAvailabilityCard signal={marketSignal} it={it} showAdvanced={showAdvancedMarketEvidence} />
+        <PriceIntelligenceCard
+          signal={marketSignal}
+          it={it}
+          authenticated={showAdvancedMarketEvidence}
+          loginHref={loginHref}
+        />
       </section>
 
       <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
@@ -153,7 +159,15 @@ export function ReleaseDetailScreen({
   )
 }
 
-function MarketValuePanel({ signal, it }: { signal?: ReleaseMarketSignalView | null; it: boolean }) {
+function MarketValuePanel({
+  signal,
+  it,
+  showAdvanced,
+}: {
+  signal?: ReleaseMarketSignalView | null
+  it: boolean
+  showAdvanced: boolean
+}) {
   if (!signal || signal.valueEUR == null) {
     return (
       <div className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm">
@@ -183,10 +197,10 @@ function MarketValuePanel({ signal, it }: { signal?: ReleaseMarketSignalView | n
         <ConfidenceBadge value={signal.confidenceLabel} it={it} />
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className={cn("mt-5 grid grid-cols-2 gap-3", showAdvanced ? "sm:grid-cols-4" : "sm:grid-cols-2")}>
         <Metric label={it ? "Range" : "Range"} value={range} />
-        <Metric label={it ? "Vendite osservate" : "Observed sold"} value={String(signal.soldUnits)} />
-        <Metric label={it ? "Offerte correnti" : "Current offers"} value={String(signal.currentOfferCount)} />
+        {showAdvanced ? <Metric label={it ? "Vendite osservate" : "Observed sold"} value={String(signal.soldUnits)} /> : null}
+        {showAdvanced ? <Metric label={it ? "Offerte correnti" : "Current offers"} value={String(signal.currentOfferCount)} /> : null}
         <Metric
           label={it ? "Trend" : "Trend"}
           value={signal.trendPercent != null ? formatPercent(signal.trendPercent) : "—"}
@@ -203,7 +217,15 @@ function MarketValuePanel({ signal, it }: { signal?: ReleaseMarketSignalView | n
   )
 }
 
-function ExternalAvailabilityCard({ signal, it }: { signal?: ReleaseMarketSignalView | null; it: boolean }) {
+function ExternalAvailabilityCard({
+  signal,
+  it,
+  showAdvanced,
+}: {
+  signal?: ReleaseMarketSignalView | null
+  it: boolean
+  showAdvanced: boolean
+}) {
   const current = signal?.currentOfferCount ?? 0
   const starting = signal?.startingItemPriceEUR ?? null
 
@@ -219,7 +241,11 @@ function ExternalAvailabilityCard({ signal, it }: { signal?: ReleaseMarketSignal
         <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Da" : "From"} {formatMoney(starting)}</p>
-          <p className="mt-1 text-xs text-[#718198]">{current} {it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}</p>
+          <p className="mt-1 text-xs text-[#718198]">
+            {showAdvanced
+              ? `${current} ${it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}`
+              : (it ? "Spedizione esclusa" : "Shipping excluded")}
+          </p>
         </div>
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
@@ -236,7 +262,17 @@ function ExternalAvailabilityCard({ signal, it }: { signal?: ReleaseMarketSignal
   )
 }
 
-function PriceIntelligenceCard({ signal, it }: { signal?: ReleaseMarketSignalView | null; it: boolean }) {
+function PriceIntelligenceCard({
+  signal,
+  it,
+  authenticated,
+  loginHref,
+}: {
+  signal?: ReleaseMarketSignalView | null
+  it: boolean
+  authenticated: boolean
+  loginHref: string
+}) {
   return (
     <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
       <div className="flex items-center gap-2">
@@ -245,20 +281,43 @@ function PriceIntelligenceCard({ signal, it }: { signal?: ReleaseMarketSignalVie
       </div>
       <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Da cosa nasce il valore" : "What supports the value"}</h2>
 
-      {signal ? (
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <AnchorMetric label={it ? "Venduto" : "Sold"} value={signal.soldAnchorEUR} count={signal.soldUnits} />
-          <AnchorMetric label="Retail" value={signal.retailAnchorEUR} count={signal.retailSourceCount} />
-          <AnchorMetric label={it ? "ASK attive" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
-          <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
-        </div>
+      {authenticated ? (
+        signal ? (
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <AnchorMetric label={it ? "Venduto" : "Sold"} value={signal.soldAnchorEUR} count={signal.soldUnits} />
+            <AnchorMetric label="Retail" value={signal.retailAnchorEUR} count={signal.retailSourceCount} />
+            <AnchorMetric label={it ? "ASK attive" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
+            <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
+          </div>
+        ) : (
+          <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato non ancora disponibili." : "Market evidence is not available yet."}</p>
+        )
       ) : (
-        <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato non ancora disponibili." : "Market evidence is not available yet."}</p>
+        <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
+          <div className="flex items-start gap-3">
+            <LockKeyhole className="mt-0.5 size-4 shrink-0 text-[#0f4bb4]" />
+            <div>
+              <p className="text-sm font-semibold text-[#1b2f4d]">{it ? "Dettaglio dei segnali riservato agli utenti" : "Signal details are available to signed-in users"}</p>
+              <p className="mt-1 text-xs leading-5 text-[#718198]">
+                {it
+                  ? "Market Value, range, trend e prezzo “Da” restano pubblici. Accedi per vedere gli anchor Sold, Retail e ASK che supportano il valore."
+                  : "Market Value, range, trend and the From price stay public. Sign in to see the Sold, Retail and ASK anchors supporting the value."}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
-      <Button variant="outline" size="sm" render={<Link href="/market" />} className="mt-5">
-        {it ? "Vedi il metodo Price Intelligence" : "View Price Intelligence method"}
-      </Button>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {!authenticated ? (
+          <Button size="sm" render={<Link href={loginHref} />}>
+            <LockKeyhole className="size-4" /> {it ? "Accedi ai dettagli" : "Sign in for details"}
+          </Button>
+        ) : null}
+        <Button variant="outline" size="sm" render={<Link href="/market" />}>
+          {it ? "Vedi il metodo Price Intelligence" : "View Price Intelligence method"}
+        </Button>
+      </div>
     </section>
   )
 }
