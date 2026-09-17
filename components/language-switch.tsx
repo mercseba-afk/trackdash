@@ -1,12 +1,10 @@
 "use client"
 
-import { Languages } from "lucide-react"
 import { useI18n, type AppLocale } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 export function LanguageSwitch({
   className,
-  compact = false,
 }: {
   className?: string
   compact?: boolean
@@ -27,7 +25,6 @@ export function LanguageSwitch({
       role="group"
       aria-label={label}
     >
-      {!compact ? <Languages className="ml-1.5 size-3.5 text-muted-foreground" aria-hidden /> : null}
       {(["it", "en"] as const).map((option) => (
         <button
           key={option}
