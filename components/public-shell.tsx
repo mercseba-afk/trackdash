@@ -25,7 +25,7 @@ const FOOTER_LINK_CLASS =
   "-mx-2 inline-flex min-h-10 items-center rounded-md px-2 text-foreground transition-colors hover:bg-brand-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
-  const { user, hydrated } = useStore()
+  const { user } = useStore()
   const { locale } = useI18n()
   const pathname = usePathname()
   const router = useRouter()
@@ -36,10 +36,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const supportHref = user ? "/support" : "/login?next=%2Fsupport"
 
   React.useEffect(() => {
-    if (hydrated && user && currentPath === "/") router.replace("/dashboard")
-  }, [currentPath, hydrated, router, user])
+    if (user && currentPath === "/") router.replace("/dashboard")
+  }, [currentPath, router, user])
 
-  if (!hydrated || (user && currentPath === "/")) {
+  if (user && currentPath === "/") {
     return (
       <div className="grid min-h-svh place-items-center bg-background">
         <Spinner className="size-6 text-muted-foreground" />
