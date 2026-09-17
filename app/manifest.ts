@@ -12,10 +12,6 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#f8fafc",
     theme_color: "#f8fafc",
     orientation: "portrait-primary",
-    prefer_related_applications: false,
-    related_applications: [
-      { platform: "webapp", url: "/manifest.webmanifest" },
-    ],
     icons: [
       { src: "/pwa/icon-v5-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/pwa/icon-v5.png", sizes: "512x512", type: "image/png", purpose: "any" },
