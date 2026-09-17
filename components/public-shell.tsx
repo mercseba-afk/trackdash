@@ -16,6 +16,12 @@ const PUBLIC_NAV = [
   { href: "/market", key: "price" as const },
 ]
 
+const BRAND_HOME_LINK_CLASS =
+  "-m-1 inline-flex shrink-0 rounded-md p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+
+const FOOTER_LINK_CLASS =
+  "-mx-2 inline-flex min-h-10 items-center rounded-md px-2 text-foreground transition-colors hover:bg-brand-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const { user } = useStore()
   const { locale } = useI18n()
@@ -70,7 +76,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-svh bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-5 px-4 md:h-[72px] md:px-6 lg:px-8">
-          <Link href="/" aria-label="TrackDash home" className="shrink-0">
+          <Link href="/" aria-label="TrackDash home" className={BRAND_HOME_LINK_CLASS}>
             <BrandMark />
           </Link>
 
@@ -188,26 +194,28 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border bg-white">
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 md:grid-cols-[1.2fr_2fr] md:px-6 lg:px-8">
           <div>
-            <BrandMark />
+            <Link href="/" aria-label="TrackDash home" className={BRAND_HOME_LINK_CLASS}>
+              <BrandMark />
+            </Link>
             <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{copy.footerTagline}</p>
           </div>
           <div className="grid grid-cols-2 gap-6 text-sm sm:grid-cols-3">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.explore}</span>
-              <Link href="/catalog">{copy.catalog}</Link>
-              <Link href="/market">{copy.price}</Link>
-              <Link href={scannerHref}>{copy.scanner}</Link>
+              <Link href="/catalog" className={FOOTER_LINK_CLASS}>{copy.catalog}</Link>
+              <Link href="/market" className={FOOTER_LINK_CLASS}>{copy.price}</Link>
+              <Link href={scannerHref} className={FOOTER_LINK_CLASS}>{copy.scanner}</Link>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.account}</span>
-              <Link href={user ? "/collection" : "/login?next=%2Fcollection"}>{copy.collection}</Link>
-              <Link href={user ? "/wishlist" : "/login?next=%2Fwishlist"}>{copy.wishlist}</Link>
-              <Link href={user ? "/messages" : "/login?next=%2Fmessages"}>{copy.messages}</Link>
+              <Link href={user ? "/collection" : "/login?next=%2Fcollection"} className={FOOTER_LINK_CLASS}>{copy.collection}</Link>
+              <Link href={user ? "/wishlist" : "/login?next=%2Fwishlist"} className={FOOTER_LINK_CLASS}>{copy.wishlist}</Link>
+              <Link href={user ? "/messages" : "/login?next=%2Fmessages"} className={FOOTER_LINK_CLASS}>{copy.messages}</Link>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">TrackDash</span>
-              <Link href="/#how-it-works">{copy.how}</Link>
-              <Link href={supportHref}>{copy.support}</Link>
+              <Link href="/#how-it-works" className={FOOTER_LINK_CLASS}>{copy.how}</Link>
+              <Link href={supportHref} className={FOOTER_LINK_CLASS}>{copy.support}</Link>
             </div>
           </div>
         </div>
