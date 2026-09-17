@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/catalog`, changeFrequency: "daily", priority: 0.95 },
-    { url: `${SITE_URL}/price-intelligence`, changeFrequency: "weekly", priority: 0.75 },
+    { url: `${SITE_URL}/market`, changeFrequency: "weekly", priority: 0.75 },
   ]
 
   const products = await fetchCatalogProducts().catch((error) => {
