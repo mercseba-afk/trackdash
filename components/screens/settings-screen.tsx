@@ -2,13 +2,13 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Bell, ChevronRight, Globe2, LogOut, MonitorCog, UserRound, WalletCards } from "lucide-react"
-import { useTheme } from "next-themes"
+import { Bell, ChevronRight, Globe2, LogOut, Smartphone, UserRound } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { getMyProfileAction, updateMyProfileAction } from "@/lib/actions/profile"
 import { useStore } from "@/lib/store"
 import { useI18n, type AppLocale } from "@/lib/i18n"
 import { CURRENCIES, type Currency } from "@/lib/types"
+import { PwaInstallSettingsButton } from "@/components/pwa-install-menu-item"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,11 +20,11 @@ export function SettingsScreen() {
   const { user, logout } = useStore()
   const { locale, setLocale, t } = useI18n()
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
   const [currency, setCurrency] = React.useState<Currency>("EUR")
   const [loadingProfile, setLoadingProfile] = React.useState(true)
   const [savingCurrency, setSavingCurrency] = React.useState(false)
   const [savingLocale, setSavingLocale] = React.useState(false)
+  const it = locale === "it"
 
   React.useEffect(() => {
     let cancelled = false
@@ -71,28 +71,26 @@ export function SettingsScreen() {
     router.push("/login")
   }
 
-  const themeLabel = (value: string) => value === "light" ? t("settings.light") : value === "dark" ? t("settings.dark") : t("settings.system")
   const localeLabel = (value: AppLocale) => value === "it" ? `🇮🇹 ${t("settings.italian")}` : `🇬🇧 ${t("settings.english")}`
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t("settings.title")}</h1>
         <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><MonitorCog className="size-4 text-muted-foreground" /> {t("settings.appearance")}</CardTitle></CardHeader>
-        <CardContent className="flex flex-col">
-          <SettingRow label={t("settings.theme")} description={t("settings.themeDesc")}>
-            <Select value={theme ?? "system"} onValueChange={(v) => v && setTheme(v as string)}>
-              <SelectTrigger className="w-32"><SelectValue>{(value: string) => themeLabel(value)}</SelectValue></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">{t("settings.light")}</SelectItem>
-                <SelectItem value="dark">{t("settings.dark")}</SelectItem>
-                <SelectItem value="system">{t("settings.system")}</SelectItem>
-              </SelectContent>
-            </Select>
+      <Card className="overflow-hidden border-brand/15 bg-gradient-to-br from-brand/[0.055] via-white to-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base"><Smartphone className="size-4 text-brand" /> {it ? "TrackDash come app" : "TrackDash as an app"}</CardTitle>
+          <CardDescription>{it ? "Installa TrackDash sul dispositivo per aprirla dalla Home con un'esperienza più simile a un'app nativa." : "Install TrackDash on your device to open it from your Home screen with a more app-like experience."}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SettingRow
+            label={it ? "Installazione" : "Installation"}
+            description={it ? "Il pulsante usa il prompt nativo quando disponibile; altrimenti mostra le istruzioni corrette per il browser che stai usando." : "The button uses the native prompt when available; otherwise it shows the correct instructions for your current browser."}
+          >
+            <PwaInstallSettingsButton />
           </SettingRow>
         </CardContent>
       </Card>
@@ -137,27 +135,30 @@ export function SettingsScreen() {
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2 text-base"><UserRound className="size-4 text-muted-foreground" /> {t("settings.account")}</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-1">
-          <Link href="/profile" className="flex items-center justify-between gap-4 rounded-lg px-1 py-3 text-sm hover:bg-muted/50">
+          <Link href="/profile" className="flex items-center justify-between gap-4 rounded-lg px-1 py-3 text-sm transition-colors hover:bg-muted/50">
             <div><p className="font-medium">{t("settings.profile")}</p><p className="text-xs text-muted-foreground">{t("settings.profileDesc")}</p></div>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Link>
+          <Separator />
+          <Link href="/support" className="flex items-center justify-between gap-4 rounded-lg px-1 py-3 text-sm transition-colors hover:bg-muted/50">
+            <div><p className="font-medium">{it ? "Assistenza e suggerimenti" : "Support & suggestions"}</p><p className="text-xs text-muted-foreground">{it ? "Problemi, richieste di Release e suggerimenti restano tracciati nel tuo account." : "Problems, Release requests and suggestions stay tracked in your account."}</p></div>
             <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
           <Separator />
           <div className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="text-sm font-medium">{t("settings.email")}</p><p className="truncate text-xs text-muted-foreground">{user?.email || "—"}</p></div></div>
           <Separator />
-          <div className="flex items-center justify-between gap-4 py-3">
+          <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="text-sm font-medium">{t("menu.signOut")}</p><p className="text-xs text-muted-foreground">{t("settings.signOutDesc")}</p></div>
             <Button variant="outline" onClick={handleLogout}><LogOut data-icon="inline-start" /> {t("menu.signOut")}</Button>
           </div>
         </CardContent>
       </Card>
-
-      <Card className="border-dashed"><CardContent className="flex items-start gap-3 py-4 text-sm text-muted-foreground"><WalletCards className="mt-0.5 size-4 shrink-0" /><p>{t("settings.demoNotice")}</p></CardContent></Card>
     </div>
   )
 }
 
 function SettingRow({ label, description, children }: { label: string; description: string; children: React.ReactNode }) {
-  return <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><div className="flex min-w-0 flex-col gap-0.5"><span className="text-sm font-medium">{label}</span><span className="max-w-2xl text-xs text-muted-foreground">{description}</span></div><div className="shrink-0">{children}</div></div>
+  return <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><div className="flex min-w-0 flex-col gap-0.5"><span className="text-sm font-medium">{label}</span><span className="max-w-2xl text-xs leading-relaxed text-muted-foreground">{description}</span></div><div className="shrink-0">{children}</div></div>
 }
 
 function ComingSoonRow({ label, description, text }: { label: string; description: string; text: string }) {
