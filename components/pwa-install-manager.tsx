@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Download, ExternalLink, Share, SquarePlus } from "lucide-react"
+import { Download, ExternalLink, MoreVertical, Share, SquarePlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -77,7 +77,7 @@ export function PwaInstallManager() {
   const [nativeReadyOpen, setNativeReadyOpen] = React.useState(false)
   const [iosOpen, setIosOpen] = React.useState(false)
   const [macOpen, setMacOpen] = React.useState(false)
-  const [waitingOpen, setWaitingOpen] = React.useState(false)
+  const [chromeManualOpen, setChromeManualOpen] = React.useState(false)
   const [unsupportedOpen, setUnsupportedOpen] = React.useState(false)
 
   const clearPrompt = React.useCallback(() => {
@@ -91,7 +91,7 @@ export function PwaInstallManager() {
     deferredPrompt.current = null
     window.__trackdashInstallPrompt = null
     setNativeReadyOpen(false)
-    setWaitingOpen(false)
+    setChromeManualOpen(false)
     window.dispatchEvent(new Event("trackdash:pwa-installed"))
     emitStateChange()
   }, [])
@@ -115,7 +115,12 @@ export function PwaInstallManager() {
   }, [clearPrompt, markInstalled])
 
   React.useEffect(() => {
-    window.__trackdashInstallPrompt = null
+    const capturedPrompt = window.__trackdashInstallPrompt ?? null
+    if (capturedPrompt) {
+      deferredPrompt.current = capturedPrompt
+      window.dispatchEvent(new Event("trackdash:pwa-available"))
+      emitStateChange()
+    }
 
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker
@@ -129,8 +134,7 @@ export function PwaInstallManager() {
       event.preventDefault()
       deferredPrompt.current = event
       window.__trackdashInstallPrompt = event
-      setWaitingOpen(false)
-      setNativeReadyOpen(true)
+      setChromeManualOpen(false)
       window.dispatchEvent(new Event("trackdash:pwa-available"))
       emitStateChange()
     }
@@ -159,7 +163,7 @@ export function PwaInstallManager() {
       }
 
       if (isAndroid() && isChromiumFamily()) {
-        setWaitingOpen(true)
+        setChromeManualOpen(true)
         return
       }
 
@@ -202,8 +206,8 @@ export function PwaInstallManager() {
           </DialogHeader>
           <div className="rounded-lg border bg-muted/30 p-3 text-sm leading-relaxed text-muted-foreground">
             {it
-              ? "L'installazione userà il prompt nativo del browser e aprirà TrackDash in modalità standalone, con la sua icona e senza la normale barra URL."
-              : "Installation will use the browser's native prompt and open TrackDash in standalone mode, with its own icon and without the normal URL bar."}
+              ? "Il pulsante apre il prompt nativo di Chrome. Dopo la conferma TrackDash verrà installata come app standalone, non come semplice scorciatoia."
+              : "The button opens Chrome's native prompt. After confirmation TrackDash will be installed as a standalone app, not as a plain shortcut."}
           </div>
           <DialogFooter>
             <DialogClose render={<Button variant="outline">{it ? "Non ora" : "Not now"}</Button>} />
@@ -212,23 +216,23 @@ export function PwaInstallManager() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={waitingOpen} onOpenChange={setWaitingOpen}>
+      <Dialog open={chromeManualOpen} onOpenChange={setChromeManualOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Download className="size-4" />
-              {it ? "Installazione PWA in preparazione" : "PWA installation is getting ready"}
+              <MoreVertical className="size-4" />
+              {it ? "Installa TrackDash da Chrome" : "Install TrackDash from Chrome"}
             </DialogTitle>
             <DialogDescription>
               {it
-                ? "TrackDash non creerà un semplice collegamento. Il pulsante di installazione diretta si attiverà solo quando il browser rende disponibile il prompt nativo della vera app PWA."
-                : "TrackDash will not create a plain shortcut. Direct install becomes available only when the browser exposes the native prompt for the real PWA."}
+                ? "Chrome non ha esposto il prompt diretto alla pagina, ma puoi usare il comando di installazione nativo del browser."
+                : "Chrome did not expose the direct prompt to the page, but you can use the browser's native installation command."}
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border bg-muted/30 p-3 text-sm leading-relaxed text-muted-foreground">
             {it
-              ? "Quando Chrome rende disponibile l'installazione nativa, TrackDash mostrerà automaticamente il pulsante Installa ora."
-              : "When Chrome makes native installation available, TrackDash will automatically show the Install now button."}
+              ? "Apri il menu ⋮ di Chrome e scegli “Installa”. Se vedi anche “Crea scorciatoia”, non scegliere quella voce: “Installa” è il comando per la PWA standalone."
+              : "Open Chrome's ⋮ menu and choose “Install”. If you also see “Create shortcut”, do not choose that option: “Install” is the standalone PWA command."}
           </div>
           <DialogFooter>
             <DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} />

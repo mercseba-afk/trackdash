@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckCircle2, Download, LoaderCircle } from "lucide-react"
+import { CheckCircle2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { useI18n } from "@/lib/i18n"
@@ -67,14 +67,15 @@ function requestInstall() {
   window.dispatchEvent(new Event("trackdash:pwa-request-install"))
 }
 
+function canShowInstallControl(state: PwaState) {
+  return state === "ready" || state === "manual" || (state === "waiting" && isAndroidChromium())
+}
+
 export function PwaInstallButton() {
   const { locale } = useI18n()
   const state = usePwaState()
 
-  // Never advertise a direct install on Chromium until the browser has
-  // actually supplied beforeinstallprompt. This prevents a shortcut flow
-  // from being presented as if it were the real standalone PWA install.
-  if (state !== "ready" && state !== "manual") return null
+  if (!canShowInstallControl(state)) return null
 
   const label = locale === "it" ? "Installa TrackDash" : "Install TrackDash"
 
@@ -96,7 +97,7 @@ export function PwaInstallMenuItem() {
   const { locale } = useI18n()
   const state = usePwaState()
 
-  if (state !== "ready" && state !== "manual") return null
+  if (!canShowInstallControl(state)) return null
 
   return (
     <DropdownMenuItem onClick={requestInstall}>
@@ -116,15 +117,6 @@ export function PwaInstallSettingsButton() {
       <Button variant="outline" disabled className="min-w-36 justify-center">
         <CheckCircle2 data-icon="inline-start" />
         {it ? "Già installata" : "Already installed"}
-      </Button>
-    )
-  }
-
-  if (state === "waiting") {
-    return (
-      <Button variant="outline" disabled className="min-w-44 justify-center">
-        <LoaderCircle data-icon="inline-start" className="animate-spin" />
-        {it ? "Installazione in preparazione" : "Preparing installation"}
       </Button>
     )
   }

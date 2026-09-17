@@ -17,6 +17,28 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 const trackDashSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-trackdash-sans" })
 const trackDashMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-trackdash-mono" })
 
+const pwaPromptCaptureScript = `
+(() => {
+  if (window.__trackdashPwaPromptCaptureInstalled) return;
+  window.__trackdashPwaPromptCaptureInstalled = true;
+
+  const emit = (name) => window.dispatchEvent(new Event(name));
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    window.__trackdashInstallPrompt = event;
+    emit("trackdash:pwa-available");
+    emit("trackdash:pwa-state-change");
+  });
+
+  window.addEventListener("appinstalled", () => {
+    window.__trackdashInstallPrompt = null;
+    emit("trackdash:pwa-installed");
+    emit("trackdash:pwa-state-change");
+  });
+})();
+`
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://trackdash.it"),
   title: "TrackDash — Mini 4WD Collector, market value & wishlist",
@@ -63,6 +85,9 @@ export default async function RootLayout({
 
   return (
     <html lang={initialLocale} suppressHydrationWarning className="bg-background">
+      <head>
+        <script id="trackdash-pwa-prompt-capture" dangerouslySetInnerHTML={{ __html: pwaPromptCaptureScript }} />
+      </head>
       <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <StoreProvider>
