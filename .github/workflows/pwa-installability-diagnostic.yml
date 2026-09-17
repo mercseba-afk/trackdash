@@ -47,102 +47,92 @@ jobs:
           const CDP = require('chrome-remote-interface')
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-          const original = await (await fetch('https://trackdash.it/manifest.webmanifest', { cache: 'no-store' })).json()
-          const variants = {
-            baselineDirect: null,
-            baselineRefetched: original,
-            legacyV4: {
-              ...original,
-              icons: [
-                { src: '/pwa/icon-v4.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-                { src: '/pwa/icon-v4.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-              ],
-            },
-            v5SingleAny512: {
-              ...original,
-              icons: [{ src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png', purpose: 'any' }],
-            },
-            v5PurposeOmitted: {
-              ...original,
-              icons: [
-                { src: '/pwa/icon-v5-192.png', sizes: '192x192', type: 'image/png' },
-                { src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png' },
-              ],
-            },
-            minimalAbsoluteV4: {
-              id: '/',
-              name: 'TrackDash',
-              short_name: 'TrackDash',
-              start_url: '/',
-              scope: '/',
-              display: 'standalone',
-              icons: [{ src: 'https://trackdash.it/pwa/icon-v4.png', sizes: '512x512' }],
-            },
-            minimalAbsoluteV5: {
-              id: '/',
-              name: 'TrackDash',
-              short_name: 'TrackDash',
-              start_url: '/',
-              scope: '/',
-              display: 'standalone',
-              icons: [{ src: 'https://trackdash.it/pwa/icon-v5.png', sizes: '512x512' }],
-            },
-          }
-
-          async function inspect(name, replacement) {
-            const target = await CDP.New({ port: 9222, url: 'about:blank' })
-            const client = await CDP({ port: 9222, target: target.id })
-            const { Page, Network, Emulation, Fetch } = client
-
-            try {
-              await Promise.all([Page.enable(), Network.enable()])
-              await Network.setCacheDisabled({ cacheDisabled: true })
-              await Emulation.setDeviceMetricsOverride({ width: 412, height: 915, deviceScaleFactor: 2.75, mobile: true })
-              await Network.setUserAgentOverride({
-                userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36',
-                platform: 'Android',
-              })
-
-              if (replacement) {
-                Fetch.requestPaused(({ requestId, request }) => {
-                  ;(async () => {
-                    if (request.url === 'https://trackdash.it/manifest.webmanifest') {
-                      await Fetch.fulfillRequest({
-                        requestId,
-                        responseCode: 200,
-                        responseHeaders: [
-                          { name: 'Content-Type', value: 'application/manifest+json' },
-                          { name: 'Cache-Control', value: 'no-store' },
-                        ],
-                        body: Buffer.from(JSON.stringify(replacement)).toString('base64'),
-                      })
-                    } else {
-                      await Fetch.continueRequest({ requestId })
-                    }
-                  })().catch(async () => { try { await Fetch.continueRequest({ requestId }) } catch {} })
-                })
-                await Fetch.enable({ patterns: [{ urlPattern: '*manifest.webmanifest*', requestStage: 'Request' }] })
-              }
-
-              await Page.navigate({ url: `https://trackdash.it/?pwa-fresh=${encodeURIComponent(name)}&t=${Date.now()}` })
-              await sleep(7000)
-              const manifest = await Page.getAppManifest()
-              const installability = await Page.getInstallabilityErrors()
-              const primary = await Page.getManifestIcons().catch((error) => ({ error: String(error) }))
-              return {
-                manifestErrors: manifest.errors,
-                manifestBody: manifest.data ? JSON.parse(manifest.data) : null,
-                parsedIcons: manifest.manifest?.icons ?? null,
-                installabilityErrors: installability.installabilityErrors,
-                hasPrimaryIcon: Boolean(primary?.primaryIcon),
-              }
-            } finally {
-              await client.close()
-              await CDP.Close({ port: 9222, id: target.id }).catch(() => {})
-            }
-          }
-
           ;(async () => {
+            const original = await (await fetch('https://trackdash.it/manifest.webmanifest', { cache: 'no-store' })).json()
+            const variants = {
+              baselineDirect: null,
+              baselineRefetched: original,
+              legacyV4: {
+                ...original,
+                icons: [
+                  { src: '/pwa/icon-v4.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+                  { src: '/pwa/icon-v4.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+                ],
+              },
+              v5SingleAny512: {
+                ...original,
+                icons: [{ src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png', purpose: 'any' }],
+              },
+              v5PurposeOmitted: {
+                ...original,
+                icons: [
+                  { src: '/pwa/icon-v5-192.png', sizes: '192x192', type: 'image/png' },
+                  { src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png' },
+                ],
+              },
+              minimalAbsoluteV4: {
+                id: '/', name: 'TrackDash', short_name: 'TrackDash', start_url: '/', scope: '/', display: 'standalone',
+                icons: [{ src: 'https://trackdash.it/pwa/icon-v4.png', sizes: '512x512' }],
+              },
+              minimalAbsoluteV5: {
+                id: '/', name: 'TrackDash', short_name: 'TrackDash', start_url: '/', scope: '/', display: 'standalone',
+                icons: [{ src: 'https://trackdash.it/pwa/icon-v5.png', sizes: '512x512' }],
+              },
+            }
+
+            async function inspect(name, replacement) {
+              const target = await CDP.New({ port: 9222, url: 'about:blank' })
+              const client = await CDP({ port: 9222, target: target.id })
+              const { Page, Network, Emulation, Fetch } = client
+
+              try {
+                await Promise.all([Page.enable(), Network.enable()])
+                await Network.setCacheDisabled({ cacheDisabled: true })
+                await Emulation.setDeviceMetricsOverride({ width: 412, height: 915, deviceScaleFactor: 2.75, mobile: true })
+                await Network.setUserAgentOverride({
+                  userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36',
+                  platform: 'Android',
+                })
+
+                if (replacement) {
+                  Fetch.requestPaused(({ requestId, request }) => {
+                    ;(async () => {
+                      if (request.url === 'https://trackdash.it/manifest.webmanifest') {
+                        await Fetch.fulfillRequest({
+                          requestId,
+                          responseCode: 200,
+                          responseHeaders: [
+                            { name: 'Content-Type', value: 'application/manifest+json' },
+                            { name: 'Cache-Control', value: 'no-store' },
+                          ],
+                          body: Buffer.from(JSON.stringify(replacement)).toString('base64'),
+                        })
+                      } else {
+                        await Fetch.continueRequest({ requestId })
+                      }
+                    })().catch(async () => { try { await Fetch.continueRequest({ requestId }) } catch {} })
+                  })
+                  await Fetch.enable({ patterns: [{ urlPattern: '*manifest.webmanifest*', requestStage: 'Request' }] })
+                }
+
+                await Page.navigate({ url: `https://trackdash.it/?pwa-fresh=${encodeURIComponent(name)}&t=${Date.now()}` })
+                await sleep(7000)
+                const manifest = await Page.getAppManifest()
+                const installability = await Page.getInstallabilityErrors()
+                const primary = await Page.getManifestIcons().catch((error) => ({ error: String(error) }))
+                return {
+                  manifestErrors: manifest.errors,
+                  manifestBody: manifest.data ? JSON.parse(manifest.data) : null,
+                  parsedIcons: manifest.manifest?.icons ?? null,
+                  installabilityErrors: installability.installabilityErrors,
+                  hasPrimaryIcon: Boolean(primary?.primaryIcon),
+                }
+              } finally {
+                await client.close()
+                await CDP.Close({ port: 9222, id: target.id }).catch(() => {})
+              }
+            }
+
             const results = {}
             for (const [name, replacement] of Object.entries(variants)) {
               results[name] = await inspect(name, replacement)
