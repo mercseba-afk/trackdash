@@ -8,8 +8,8 @@ const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/"]
 const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market"]
 
-// Server-to-server and bootstrap routes authenticate/guard themselves where
-// required and must not depend on a browser Supabase session.
+// Server-to-server, bootstrap and crawler discovery routes authenticate/guard
+// themselves where required and must not depend on a browser Supabase session.
 const UNGATED_PREFIXES = [
   "/api/dev",
   "/api/version",
@@ -19,6 +19,8 @@ const UNGATED_PREFIXES = [
   "/auth/callback",
   "/update-password",
   "/manifest.webmanifest",
+  "/robots.txt",
+  "/sitemap.xml",
   "/sw.js",
   "/offline.html",
   "/brand-car-v5",
