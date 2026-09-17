@@ -2,11 +2,13 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Boxes, LayoutDashboard, Menu, ScanLine, X } from "lucide-react"
+import { AppShell } from "@/components/app-shell"
 import { BrandMark } from "@/components/brand-mark"
 import { LanguageSwitch } from "@/components/language-switch"
 import { PwaInstallButton } from "@/components/pwa-install-menu-item"
+import { Spinner } from "@/components/ui/spinner"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
@@ -26,11 +28,28 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const { user } = useStore()
   const { locale } = useI18n()
   const pathname = usePathname()
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = React.useState(false)
   const currentPath = pathname || "/"
   const loginHref = `/login?next=${encodeURIComponent(currentPath)}`
   const scannerHref = user ? "/scanner" : "/login?next=%2Fscanner"
   const supportHref = user ? "/support" : "/login?next=%2Fsupport"
+
+  React.useEffect(() => {
+    if (user && currentPath === "/") router.replace("/dashboard")
+  }, [currentPath, router, user])
+
+  if (user && currentPath === "/") {
+    return (
+      <div className="grid min-h-svh place-items-center bg-background">
+        <Spinner className="size-6 text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (user) {
+    return <AppShell contentMode="public">{children}</AppShell>
+  }
 
   const copy = locale === "it"
     ? {
@@ -108,37 +127,20 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           <div className="hidden items-center gap-2 md:flex">
             <LanguageSwitch />
             <PwaInstallButton />
-            {user ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
-                >
-                  <LayoutDashboard className="size-4" /> {copy.dashboard}
-                </Link>
-                <Link
-                  href="/collection"
-                  className="inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
-                >
-                  <Boxes className="size-4" /> {copy.myCollection}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href={loginHref}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
-                >
-                  {copy.signIn}
-                </Link>
-                <Link
-                  href="/catalog"
-                  className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
-                >
-                  {copy.exploreCatalog} →
-                </Link>
-              </>
-            )}
+            <>
+              <Link
+                href={loginHref}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
+              >
+                {copy.signIn}
+              </Link>
+              <Link
+                href="/catalog"
+                className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
+              >
+                {copy.exploreCatalog} →
+              </Link>
+            </>
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden">
@@ -171,18 +173,18 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
               <Link
-                href={user ? "/dashboard" : loginHref}
+                href={loginHref}
                 className="rounded-md border border-border px-3 py-2.5 text-center text-navy"
                 onClick={() => setMenuOpen(false)}
               >
-                {user ? copy.dashboard : copy.signIn}
+                {copy.signIn}
               </Link>
               <Link
-                href={user ? "/collection" : "/catalog"}
+                href="/catalog"
                 className="rounded-md bg-brand px-3 py-2.5 text-center text-white"
                 onClick={() => setMenuOpen(false)}
               >
-                {user ? copy.collection : copy.catalog}
+                {copy.catalog}
               </Link>
             </div>
           </nav>
@@ -208,9 +210,9 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.account}</span>
-              <Link href={user ? "/collection" : "/login?next=%2Fcollection"} className={FOOTER_LINK_CLASS}>{copy.collection}</Link>
-              <Link href={user ? "/wishlist" : "/login?next=%2Fwishlist"} className={FOOTER_LINK_CLASS}>{copy.wishlist}</Link>
-              <Link href={user ? "/messages" : "/login?next=%2Fmessages"} className={FOOTER_LINK_CLASS}>{copy.messages}</Link>
+              <Link href="/login?next=%2Fcollection" className={FOOTER_LINK_CLASS}>{copy.collection}</Link>
+              <Link href="/login?next=%2Fwishlist" className={FOOTER_LINK_CLASS}>{copy.wishlist}</Link>
+              <Link href="/login?next=%2Fmessages" className={FOOTER_LINK_CLASS}>{copy.messages}</Link>
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">TrackDash</span>
