@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Boxes, Heart, ScanLine, TrendingUp } from "lucide-react"
+import { ArrowRight, Boxes, Eye, EyeOff, Heart, ScanLine, TrendingUp } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useI18n } from "@/lib/i18n"
 import { BrandMark } from "@/components/brand-mark"
@@ -90,6 +90,7 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
   const it = locale === "it"
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+  const [showPassword, setShowPassword] = React.useState(false)
   const [pending, setPending] = React.useState(false)
 
   async function submit(e: React.FormEvent) {
@@ -97,11 +98,13 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
     if (!email.includes("@")) return toast.error(it ? "Inserisci un'email valida" : "Enter a valid email")
     setPending(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     setPending(false)
     if (error) return toast.error(error.message)
     toast.success(it ? "Bentornato" : "Welcome back")
-    router.push(nextPath ?? "/dashboard")
+
+    const needsOnboarding = data.user?.user_metadata?.onboarding_completed === false
+    router.push(needsOnboarding ? withNext("/onboarding", nextPath) : nextPath ?? "/dashboard")
     router.refresh()
   }
 
@@ -116,7 +119,12 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
         <Field><FieldLabel htmlFor="email">Email</FieldLabel><Input id="email" className="h-11 rounded-xl" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
         <Field>
           <div className="flex items-center justify-between"><FieldLabel htmlFor="password">Password</FieldLabel><Link href="/forgot-password" className="text-xs font-medium text-brand hover:underline">{it ? "Password dimenticata?" : "Forgot password?"}</Link></div>
-          <Input id="password" className="h-11 rounded-xl" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <div className="relative">
+            <Input id="password" className="h-11 rounded-xl pr-11" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="button" className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? (it ? "Nascondi password" : "Hide password") : (it ? "Mostra password" : "Show password")} title={showPassword ? (it ? "Nascondi password" : "Hide password") : (it ? "Mostra password" : "Show password")}>
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
         </Field>
       </FieldGroup>
       <Button type="submit" size="lg" className="rounded-xl" disabled={pending}>{pending ? (it ? "Accesso…" : "Signing in…") : it ? "Accedi" : "Sign in"}<ArrowRight /></Button>
@@ -133,6 +141,7 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
   const [username, setUsername] = React.useState("")
   const [country, setCountry] = React.useState("Japan")
   const [password, setPassword] = React.useState("")
+  const [showPassword, setShowPassword] = React.useState(false)
   const [pending, setPending] = React.useState(false)
   const [confirmationSent, setConfirmationSent] = React.useState(false)
 
@@ -144,13 +153,17 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
 
     setPending(true)
     const supabase = createClient()
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim(), country } } })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username: username.trim(), country, onboarding_completed: false } },
+    })
     setPending(false)
     if (error) return toast.error(error.message)
 
     if (data.session) {
       toast.success(it ? "Account creato" : "Account created")
-      router.push(nextPath ?? "/onboarding")
+      router.push(withNext("/onboarding", nextPath))
       router.refresh()
       return
     }
@@ -160,7 +173,7 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
   if (confirmationSent) {
     return (
       <div className="flex flex-col gap-5">
-        <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Quasi fatto" : "Almost there"}</p><h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"} <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per completare la creazione dell'account, poi accedi." : "Follow it to finish creating your account, then sign in."}</p></div>
+        <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Quasi fatto" : "Almost there"}</p><h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"} <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per completare la creazione dell'account, poi accedi: prima di entrare in TrackDash completerai il breve onboarding." : "Follow it to finish creating your account, then sign in: you'll complete the short onboarding before entering TrackDash."}</p></div>
         <Button variant="outline" className="rounded-xl" render={<Link href={withNext("/login", nextPath)} />}>{it ? "Torna all'accesso" : "Back to sign in"}</Button>
       </div>
     )
@@ -168,12 +181,21 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account e poi torna alla Release da cui sei partito." : "Create your account, then return to the Release you started from.") : (it ? "Salva Release, Wishlist e strumenti personali senza bloccare l'esplorazione pubblica." : "Save Releases, Wishlist and personal tools without blocking public browsing.")}</p></div>
+      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account, completa il breve onboarding e poi torna alla Release da cui sei partito." : "Create your account, complete the short onboarding, then return to the Release you started from.") : (it ? "Salva Release, Wishlist e strumenti personali senza bloccare l'esplorazione pubblica." : "Save Releases, Wishlist and personal tools without blocking public browsing.")}</p></div>
       <FieldGroup>
         <Field><FieldLabel htmlFor="username">Username</FieldLabel><Input id="username" className="h-11 rounded-xl" autoComplete="username" placeholder="speedstar" value={username} onChange={(e) => setUsername(e.target.value)} /></Field>
         <Field><FieldLabel htmlFor="signup-email">Email</FieldLabel><Input id="signup-email" className="h-11 rounded-xl" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
         <Field><FieldLabel htmlFor="country">{it ? "Paese" : "Country"}</FieldLabel><Select value={country} onValueChange={(v) => setCountry(v as string)}><SelectTrigger id="country" className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger><SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{countryLabel(c, it)}</SelectItem>)}</SelectContent></Select></Field>
-        <Field><FieldLabel htmlFor="signup-password">Password</FieldLabel><Input id="signup-password" className="h-11 rounded-xl" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /><FieldDescription>{it ? "Almeno 6 caratteri." : "At least 6 characters."}</FieldDescription></Field>
+        <Field>
+          <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+          <div className="relative">
+            <Input id="signup-password" className="h-11 rounded-xl pr-11" type={showPassword ? "text" : "password"} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="button" className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? (it ? "Nascondi password" : "Hide password") : (it ? "Mostra password" : "Show password")} title={showPassword ? (it ? "Nascondi password" : "Hide password") : (it ? "Mostra password" : "Show password")}>
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+          <FieldDescription>{it ? "Almeno 6 caratteri. Puoi usare l'icona a destra per controllarla prima di continuare." : "At least 6 characters. Use the icon on the right to check it before continuing."}</FieldDescription>
+        </Field>
       </FieldGroup>
       <Button type="submit" size="lg" className="rounded-xl" disabled={pending}>{pending ? (it ? "Creazione account…" : "Creating account…") : it ? "Crea account" : "Create account"}<ArrowRight /></Button>
       <p className="text-center text-sm text-muted-foreground">{it ? "Hai già un account?" : "Already have an account?"} <Link href={withNext("/login", nextPath)} className="font-medium text-brand hover:underline">{it ? "Accedi" : "Sign in"}</Link></p>
