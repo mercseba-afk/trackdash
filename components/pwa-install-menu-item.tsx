@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { useI18n } from "@/lib/i18n"
 
+const INSTALLED_MARKER = "trackdash.pwa.installed"
+
 function isStandalone() {
   if (typeof window === "undefined") return false
   return window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
@@ -28,24 +30,44 @@ function isChromiumInstallBrowser() {
   return /Chrome|Chromium|Edg|SamsungBrowser/i.test(ua) && !/OPR|Firefox/i.test(ua)
 }
 
+function isMobileInstallSurface() {
+  if (typeof navigator === "undefined") return false
+  if (isIOSFamily()) return true
+  return /android|mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+}
+
+function hasKnownInstalledMarker() {
+  if (typeof window === "undefined") return false
+  try {
+    return window.localStorage.getItem(INSTALLED_MARKER) === "1"
+  } catch {
+    return false
+  }
+}
+
 function canOfferInstall() {
-  if (typeof window === "undefined" || isStandalone()) return false
+  if (typeof window === "undefined" || isStandalone() || hasKnownInstalledMarker()) return false
 
-  // On Chromium, expose the compact shell action only after the browser
-  // has supplied a real beforeinstallprompt event. The Settings action below
-  // stays available even without it so the manager can show browser-specific
-  // manual instructions instead of leaving the user with no path forward.
+  // Chromium exposes a native prompt only after beforeinstallprompt. Safari
+  // uses a browser-native manual flow.
   if (isChromiumInstallBrowser()) return Boolean(window.__trackdashInstallPrompt)
-
-  // Safari installs through its browser-native manual flow.
   return isIOSFamily() || isMacSafari()
+}
+
+function canShowShellInstallAction() {
+  if (typeof window === "undefined" || isStandalone() || hasKnownInstalledMarker()) return false
+
+  // On phones/tablets the install affordance stays visible even when the
+  // browser has not exposed a native prompt. PwaInstallManager already owns
+  // the safe fallback flow and will show browser-specific instructions.
+  return canOfferInstall() || isMobileInstallSurface()
 }
 
 function usePwaInstallVisibility() {
   const [visible, setVisible] = React.useState(false)
 
   React.useEffect(() => {
-    const refresh = () => setVisible(canOfferInstall())
+    const refresh = () => setVisible(canShowShellInstallAction())
     const hide = () => setVisible(false)
 
     refresh()
@@ -71,7 +93,7 @@ function useStandaloneState() {
   const [installed, setInstalled] = React.useState(false)
 
   React.useEffect(() => {
-    const refresh = () => setInstalled(isStandalone())
+    const refresh = () => setInstalled(isStandalone() || hasKnownInstalledMarker())
     refresh()
     window.addEventListener("trackdash:pwa-state-change", refresh)
     window.addEventListener("trackdash:pwa-installed", refresh)
