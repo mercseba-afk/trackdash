@@ -5,17 +5,20 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Boxes, LayoutDashboard, Menu, ScanLine, X } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
+import { LanguageSwitch } from "@/components/language-switch"
 import { PwaInstallButton } from "@/components/pwa-install-menu-item"
+import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 const PUBLIC_NAV = [
-  { href: "/catalog", label: "Catalog" },
-  { href: "/market", label: "Price Intelligence" },
+  { href: "/catalog", key: "catalog" as const },
+  { href: "/market", key: "price" as const },
 ]
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const { user } = useStore()
+  const { locale } = useI18n()
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = React.useState(false)
   const currentPath = pathname || "/"
@@ -23,69 +26,122 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const scannerHref = user ? "/scanner" : "/login?next=%2Fscanner"
   const supportHref = user ? "/support" : "/login?next=%2Fsupport"
 
+  const copy = locale === "it"
+    ? {
+        catalog: "Catalogo",
+        price: "Price Intelligence",
+        scanner: "Scanner",
+        how: "Come funziona",
+        dashboard: "Dashboard",
+        myCollection: "La mia collezione",
+        collection: "Collezione",
+        signIn: "Accedi",
+        exploreCatalog: "Esplora catalogo",
+        footerTagline: "La casa digitale dei collezionisti Mini 4WD: Release esatte, Collezione, Scanner e contesto di mercato trasparente.",
+        explore: "Esplora",
+        account: "Account",
+        wishlist: "Desideri",
+        messages: "Messaggi",
+        support: "Assistenza",
+        openNav: "Apri navigazione",
+        closeNav: "Chiudi navigazione",
+      }
+    : {
+        catalog: "Catalog",
+        price: "Price Intelligence",
+        scanner: "Scanner",
+        how: "How it works",
+        dashboard: "Dashboard",
+        myCollection: "My collection",
+        collection: "Collection",
+        signIn: "Sign in",
+        exploreCatalog: "Explore catalog",
+        footerTagline: "The digital home for Mini 4WD collectors: exact Releases, Collection, Scanner and honest market context.",
+        explore: "Explore",
+        account: "Account",
+        wishlist: "Wishlist",
+        messages: "Messages",
+        support: "Support",
+        openNav: "Open navigation",
+        closeNav: "Close navigation",
+      }
+
   return (
-    <div className="min-h-svh bg-[#f7f9fc] text-[#081a3a]">
-      <header className="sticky top-0 z-50 border-b border-[#dbe4ef] bg-[#f7f9fc]/95 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-4 md:px-6 lg:px-8">
+    <div className="min-h-svh bg-background text-foreground">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-5 px-4 md:h-[72px] md:px-6 lg:px-8">
           <Link href="/" aria-label="TrackDash home" className="shrink-0">
             <BrandMark />
           </Link>
 
-          <nav className="hidden items-center gap-7 text-sm font-medium text-[#41536d] md:flex">
-            {PUBLIC_NAV.map((item) => (
-              <Link key={item.href} href={item.href} className="transition-colors hover:text-[#0f4bb4]">
-                {item.label}
-              </Link>
-            ))}
-            <Link href={scannerHref} className="transition-colors hover:text-[#0f4bb4]">
-              Scanner
+          <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
+            {PUBLIC_NAV.map((item) => {
+              const active = currentPath === item.href || currentPath.startsWith(`${item.href}/`)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "relative py-2 transition-colors hover:text-navy",
+                    active && "text-navy after:absolute after:inset-x-0 after:-bottom-[22px] after:h-0.5 after:bg-brand-red",
+                  )}
+                >
+                  {copy[item.key]}
+                </Link>
+              )
+            })}
+            <Link href={scannerHref} className="py-2 transition-colors hover:text-navy">
+              {copy.scanner}
             </Link>
-            <Link href="/#how-it-works" className="transition-colors hover:text-[#0f4bb4]">
-              How it works
+            <Link href="/#how-it-works" className="py-2 transition-colors hover:text-navy">
+              {copy.how}
             </Link>
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
+            <LanguageSwitch />
             <PwaInstallButton />
             {user ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold text-[#123f8f] transition-colors hover:bg-[#e8f0fd]"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
                 >
-                  <LayoutDashboard className="size-4" /> Dashboard
+                  <LayoutDashboard className="size-4" /> {copy.dashboard}
                 </Link>
                 <Link
                   href="/collection"
-                  className="inline-flex h-10 items-center gap-2 rounded-md bg-[#1558e8] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
+                  className="inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
                 >
-                  <Boxes className="size-4" /> My collection
+                  <Boxes className="size-4" /> {copy.myCollection}
                 </Link>
               </>
             ) : (
               <>
                 <Link
                   href={loginHref}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-[#123f8f] transition-colors hover:bg-[#e8f0fd]"
+                  className="rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
                 >
-                  Sign in
+                  {copy.signIn}
                 </Link>
                 <Link
                   href="/catalog"
-                  className="inline-flex h-10 items-center rounded-md bg-[#1558e8] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
+                  className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
                 >
-                  Explore catalog →
+                  {copy.exploreCatalog} →
                 </Link>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-1 md:hidden">
+          <div className="flex items-center gap-1.5 md:hidden">
+            <LanguageSwitch compact />
             <PwaInstallButton />
             <button
               type="button"
-              className="inline-flex size-10 items-center justify-center rounded-md border border-[#d4dfed] bg-white text-[#153d7d]"
-              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              className="inline-flex size-10 items-center justify-center rounded-md border border-border bg-white text-navy transition-colors hover:bg-brand-muted"
+              aria-label={menuOpen ? copy.closeNav : copy.openNav}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((value) => !value)}
             >
@@ -94,38 +150,33 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <div
-          className={cn(
-            "border-t border-[#dbe4ef] bg-white md:hidden",
-            menuOpen ? "block" : "hidden",
-          )}
-        >
+        <div className={cn("border-t border-border bg-white md:hidden", menuOpen ? "block" : "hidden")}>
           <nav className="mx-auto flex max-w-7xl flex-col px-4 py-3 text-sm font-semibold text-[#24446f]">
             {PUBLIC_NAV.map((item) => (
               <Link key={item.href} href={item.href} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
-                {item.label}
+                {copy[item.key]}
               </Link>
             ))}
             <Link href={scannerHref} className="flex items-center gap-2 rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
-              <ScanLine className="size-4" /> Scanner
+              <ScanLine className="size-4" /> {copy.scanner}
             </Link>
             <Link href="/#how-it-works" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
-              How it works
+              {copy.how}
             </Link>
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-[#e2e8f0] pt-3">
+            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
               <Link
                 href={user ? "/dashboard" : loginHref}
-                className="rounded-md border border-[#d4dfed] px-3 py-2.5 text-center"
+                className="rounded-md border border-border px-3 py-2.5 text-center text-navy"
                 onClick={() => setMenuOpen(false)}
               >
-                {user ? "Dashboard" : "Sign in"}
+                {user ? copy.dashboard : copy.signIn}
               </Link>
               <Link
                 href={user ? "/collection" : "/catalog"}
-                className="rounded-md bg-[#1558e8] px-3 py-2.5 text-center text-white"
+                className="rounded-md bg-brand px-3 py-2.5 text-center text-white"
                 onClick={() => setMenuOpen(false)}
               >
-                {user ? "Collection" : "Catalog"}
+                {user ? copy.collection : copy.catalog}
               </Link>
             </div>
           </nav>
@@ -134,31 +185,29 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
 
       <main>{children}</main>
 
-      <footer className="border-t border-[#dbe4ef] bg-white">
+      <footer className="border-t border-border bg-white">
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 md:grid-cols-[1.2fr_2fr] md:px-6 lg:px-8">
           <div>
             <BrandMark />
-            <p className="mt-3 max-w-sm text-sm leading-6 text-[#617087]">
-              The digital home for Mini 4WD collectors: exact Releases, Collection, Scanner and honest market context.
-            </p>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{copy.footerTagline}</p>
           </div>
           <div className="grid grid-cols-2 gap-6 text-sm sm:grid-cols-3">
             <div className="flex flex-col gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7a899e]">Explore</span>
-              <Link href="/catalog">Catalog</Link>
-              <Link href="/market">Price Intelligence</Link>
-              <Link href={scannerHref}>Scanner</Link>
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.explore}</span>
+              <Link href="/catalog">{copy.catalog}</Link>
+              <Link href="/market">{copy.price}</Link>
+              <Link href={scannerHref}>{copy.scanner}</Link>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7a899e]">Account</span>
-              <Link href={user ? "/collection" : "/login?next=%2Fcollection"}>Collection</Link>
-              <Link href={user ? "/wishlist" : "/login?next=%2Fwishlist"}>Wishlist</Link>
-              <Link href={user ? "/messages" : "/login?next=%2Fmessages"}>Messages</Link>
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.account}</span>
+              <Link href={user ? "/collection" : "/login?next=%2Fcollection"}>{copy.collection}</Link>
+              <Link href={user ? "/wishlist" : "/login?next=%2Fwishlist"}>{copy.wishlist}</Link>
+              <Link href={user ? "/messages" : "/login?next=%2Fmessages"}>{copy.messages}</Link>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7a899e]">TrackDash</span>
-              <Link href="/#how-it-works">How it works</Link>
-              <Link href={supportHref}>Support</Link>
+              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">TrackDash</span>
+              <Link href="/#how-it-works">{copy.how}</Link>
+              <Link href={supportHref}>{copy.support}</Link>
             </div>
           </div>
         </div>
