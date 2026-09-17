@@ -1,3 +1,4 @@
+import { PwaRootLaunchRedirect } from "@/components/pwa-root-launch-redirect"
 import { PublicShell } from "@/components/public-shell"
 import { PublicHomeScreen } from "@/components/screens/public-home-screen"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
@@ -16,6 +17,7 @@ export default async function Page() {
 
   return (
     <PublicShell>
+      <PwaRootLaunchRedirect />
       <PublicHomeScreen products={products} />
     </PublicShell>
   )
