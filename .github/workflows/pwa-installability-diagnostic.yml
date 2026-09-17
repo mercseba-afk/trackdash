@@ -1,0 +1,122 @@
+name: PWA installability diagnostic
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pwa-installability-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect TrackDash with Chrome DevTools Protocol
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          if [ -z "$CHROME_BIN" ]; then
+            echo "No Chrome/Chromium binary found on runner"
+            exit 1
+          fi
+
+          "$CHROME_BIN" --version
+          npm install --no-save --ignore-scripts chrome-remote-interface@0.33.3
+
+          "$CHROME_BIN" \
+            --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --disable-dev-shm-usage \
+            --remote-debugging-address=127.0.0.1 \
+            --remote-debugging-port=9222 \
+            --user-data-dir=/tmp/trackdash-pwa-profile \
+            about:blank >/tmp/trackdash-chrome.log 2>&1 &
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:9222/json/version >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          node <<'NODE'
+          const CDP = require('chrome-remote-interface')
+
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+          ;(async () => {
+            const client = await CDP({ port: 9222 })
+            const { Page, Network, Emulation, Runtime, Input } = client
+
+            try {
+              await Promise.all([Page.enable(), Network.enable(), Runtime.enable()])
+              await Emulation.setDeviceMetricsOverride({
+                width: 412,
+                height: 915,
+                deviceScaleFactor: 2.75,
+                mobile: true,
+              })
+              await Network.setUserAgentOverride({
+                userAgent:
+                  'Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36',
+                platform: 'Android',
+              })
+
+              await Page.navigate({ url: 'https://trackdash.it/' })
+              await sleep(10000)
+
+              // Real input plus enough dwell time to satisfy Chrome engagement heuristics.
+              await Input.dispatchMouseEvent({ type: 'mousePressed', x: 20, y: 120, button: 'left', clickCount: 1 })
+              await Input.dispatchMouseEvent({ type: 'mouseReleased', x: 20, y: 120, button: 'left', clickCount: 1 })
+              await sleep(35000)
+
+              const [manifest, installability, appId, runtime] = await Promise.all([
+                Page.getAppManifest(),
+                Page.getInstallabilityErrors(),
+                Page.getAppId(),
+                Runtime.evaluate({
+                  expression: `JSON.stringify({
+                    url: location.href,
+                    secureContext: isSecureContext,
+                    standalone: matchMedia('(display-mode: standalone)').matches,
+                    beforeInstallPromptCached: Boolean(window.__trackdashInstallPrompt),
+                    serviceWorkerController: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller),
+                    userAgent: navigator.userAgent
+                  })`,
+                  returnByValue: true,
+                }),
+              ])
+
+              console.log('TRACKDASH_PWA_DIAGNOSTIC_START')
+              console.log(JSON.stringify({
+                manifest: {
+                  url: manifest.url,
+                  errors: manifest.errors,
+                  data: manifest.data ? JSON.parse(manifest.data) : null,
+                },
+                installability,
+                appId,
+                runtime: runtime.result && runtime.result.value ? JSON.parse(runtime.result.value) : null,
+              }, null, 2))
+              console.log('TRACKDASH_PWA_DIAGNOSTIC_END')
+            } finally {
+              await client.close()
+            }
+          })().catch((error) => {
+            console.error(error)
+            process.exit(1)
+          })
+          NODE
+
+          echo "--- Chrome log tail ---"
+          tail -80 /tmp/trackdash-chrome.log || true
