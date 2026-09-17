@@ -80,15 +80,18 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          <button
-            type="button"
-            className="inline-flex size-10 items-center justify-center rounded-md border border-[#d4dfed] bg-white text-[#153d7d] md:hidden"
-            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((value) => !value)}
-          >
-            {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
+          <div className="flex items-center gap-1 md:hidden">
+            <PwaInstallButton />
+            <button
+              type="button"
+              className="inline-flex size-10 items-center justify-center rounded-md border border-[#d4dfed] bg-white text-[#153d7d]"
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((value) => !value)}
+            >
+              {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
+          </div>
         </div>
 
         <div
