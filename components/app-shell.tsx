@@ -107,22 +107,22 @@ function UserMenu() {
         </div>
         <DropdownMenuSeparator />
         <div className="flex flex-col gap-0.5" role="group">
-          <a href="/profile" className={ACCOUNT_LINK_CLASS} role="menuitem">
+          <Link href="/profile" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <UserIcon />
             {t("menu.profile")}
-          </a>
-          <a href="/wishlist" className={ACCOUNT_LINK_CLASS} role="menuitem">
+          </Link>
+          <Link href="/wishlist" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <Heart />
             {t("nav.wishlist")}
-          </a>
-          <a href="/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
+          </Link>
+          <Link href="/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <Settings />
             {t("menu.settings")}
-          </a>
-          <a href="/support" className={ACCOUNT_LINK_CLASS} role="menuitem">
+          </Link>
+          <Link href="/support" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <LifeBuoy />
             {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
-          </a>
+          </Link>
         </div>
         <DropdownMenuSeparator />
         <PwaInstallMenuItem />
