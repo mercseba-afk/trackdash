@@ -22,16 +22,21 @@ function isMacSafari() {
   return /Macintosh|Mac OS X/i.test(ua) && /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua)
 }
 
+function isChromiumInstallBrowser() {
+  if (typeof navigator === "undefined" || isIOSFamily()) return false
+  const ua = navigator.userAgent
+  return /Chrome|Chromium|Edg|SamsungBrowser/i.test(ua) && !/OPR|Firefox/i.test(ua)
+}
+
 function canOfferInstall() {
   if (typeof window === "undefined" || isStandalone()) return false
 
-  // Chromium should only expose our install CTA after beforeinstallprompt has
-  // actually fired. Showing it earlier produces a misleading fallback because
-  // Chrome applies installability/user-engagement checks before emitting it.
-  if (window.__trackdashInstallPrompt) return true
+  // Keep the install action visible on Chromium even before
+  // beforeinstallprompt fires. The manager will show a live readiness state
+  // and enable the native prompt as soon as the browser exposes it.
+  if (isChromiumInstallBrowser()) return true
 
-  // Safari does not expose beforeinstallprompt. On Apple platforms we keep the
-  // CTA visible because installation is a manual browser action instead.
+  // Safari installs through browser-native manual actions.
   return isIOSFamily() || isMacSafari()
 }
 
