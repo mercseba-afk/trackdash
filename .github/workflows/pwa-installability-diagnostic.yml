@@ -56,7 +56,7 @@ jobs:
 
           ;(async () => {
             const client = await CDP({ port: 9222 })
-            const { Page, Network, Emulation, Runtime, Input } = client
+            const { Page, Network, Emulation, Runtime } = client
 
             try {
               await Promise.all([Page.enable(), Network.enable(), Runtime.enable()])
@@ -73,29 +73,23 @@ jobs:
               })
 
               await Page.navigate({ url: 'https://trackdash.it/' })
-              await sleep(10000)
+              await sleep(8000)
 
-              // Real input plus enough dwell time to satisfy Chrome engagement heuristics.
-              await Input.dispatchMouseEvent({ type: 'mousePressed', x: 20, y: 120, button: 'left', clickCount: 1 })
-              await Input.dispatchMouseEvent({ type: 'mouseReleased', x: 20, y: 120, button: 'left', clickCount: 1 })
-              await sleep(35000)
-
-              const [manifest, installability, appId, runtime] = await Promise.all([
-                Page.getAppManifest(),
-                Page.getInstallabilityErrors(),
-                Page.getAppId(),
-                Runtime.evaluate({
-                  expression: `JSON.stringify({
-                    url: location.href,
-                    secureContext: isSecureContext,
-                    standalone: matchMedia('(display-mode: standalone)').matches,
-                    beforeInstallPromptCached: Boolean(window.__trackdashInstallPrompt),
-                    serviceWorkerController: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller),
-                    userAgent: navigator.userAgent
-                  })`,
-                  returnByValue: true,
-                }),
-              ])
+              const manifest = await Page.getAppManifest()
+              const installability = await Page.getInstallabilityErrors()
+              const appId = await Page.getAppId()
+              const manifestIcons = await Page.getManifestIcons().catch((error) => ({ error: String(error) }))
+              const runtime = await Runtime.evaluate({
+                expression: `JSON.stringify({
+                  url: location.href,
+                  secureContext: isSecureContext,
+                  standalone: matchMedia('(display-mode: standalone)').matches,
+                  beforeInstallPromptCached: Boolean(window.__trackdashInstallPrompt),
+                  serviceWorkerController: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller),
+                  userAgent: navigator.userAgent
+                })`,
+                returnByValue: true,
+              })
 
               console.log('TRACKDASH_PWA_DIAGNOSTIC_START')
               console.log(JSON.stringify({
@@ -103,6 +97,12 @@ jobs:
                   url: manifest.url,
                   errors: manifest.errors,
                   data: manifest.data ? JSON.parse(manifest.data) : null,
+                  parsedManifest: manifest.manifest ?? manifest.parsed ?? null,
+                },
+                manifestIcons: {
+                  hasPrimaryIcon: Boolean(manifestIcons && manifestIcons.primaryIcon),
+                  primaryIconBytesBase64: manifestIcons && manifestIcons.primaryIcon ? manifestIcons.primaryIcon.length : 0,
+                  error: manifestIcons && manifestIcons.error ? manifestIcons.error : null,
                 },
                 installability,
                 appId,
