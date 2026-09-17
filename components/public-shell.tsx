@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Boxes, LayoutDashboard, Menu, ScanLine, X } from "lucide-react"
+import { Menu, ScanLine, X } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { BrandMark } from "@/components/brand-mark"
 import { LanguageSwitch } from "@/components/language-switch"
@@ -25,7 +25,7 @@ const FOOTER_LINK_CLASS =
   "-mx-2 inline-flex min-h-10 items-center rounded-md px-2 text-foreground transition-colors hover:bg-brand-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
-  const { user } = useStore()
+  const { user, hydrated } = useStore()
   const { locale } = useI18n()
   const pathname = usePathname()
   const router = useRouter()
@@ -36,10 +36,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const supportHref = user ? "/support" : "/login?next=%2Fsupport"
 
   React.useEffect(() => {
-    if (user && currentPath === "/") router.replace("/dashboard")
-  }, [currentPath, router, user])
+    if (hydrated && user && currentPath === "/") router.replace("/dashboard")
+  }, [currentPath, hydrated, router, user])
 
-  if (user && currentPath === "/") {
+  if (!hydrated || (user && currentPath === "/")) {
     return (
       <div className="grid min-h-svh place-items-center bg-background">
         <Spinner className="size-6 text-muted-foreground" />
@@ -127,20 +127,18 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           <div className="hidden items-center gap-2 md:flex">
             <LanguageSwitch />
             <PwaInstallButton />
-            <>
-              <Link
-                href={loginHref}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
-              >
-                {copy.signIn}
-              </Link>
-              <Link
-                href="/catalog"
-                className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
-              >
-                {copy.exploreCatalog} →
-              </Link>
-            </>
+            <Link
+              href={loginHref}
+              className="rounded-md px-3 py-2 text-sm font-semibold text-navy transition-colors hover:bg-brand-muted"
+            >
+              {copy.signIn}
+            </Link>
+            <Link
+              href="/catalog"
+              className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
+            >
+              {copy.exploreCatalog} →
+            </Link>
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden">
