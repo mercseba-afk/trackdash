@@ -31,12 +31,13 @@ function isChromiumInstallBrowser() {
 function canOfferInstall() {
   if (typeof window === "undefined" || isStandalone()) return false
 
-  // Keep the install action visible on Chromium even before
-  // beforeinstallprompt fires. The manager will show a live readiness state
-  // and enable the native prompt as soon as the browser exposes it.
-  if (isChromiumInstallBrowser()) return true
+  // On Chromium, expose the TrackDash install action only after the browser
+  // has supplied a real beforeinstallprompt event. This guarantees that the
+  // next tap can open the native PWA/WebAPK install dialog instead of falling
+  // back to a plain browser shortcut or a waiting state.
+  if (isChromiumInstallBrowser()) return Boolean(window.__trackdashInstallPrompt)
 
-  // Safari installs through browser-native manual actions.
+  // Safari installs through its browser-native manual flow.
   return isIOSFamily() || isMacSafari()
 }
 
