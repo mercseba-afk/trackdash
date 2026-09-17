@@ -14,11 +14,11 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inspect TrackDash with Chrome DevTools Protocol
+      - name: A/B test TrackDash manifest icon selection in Chrome
         shell: bash
         run: |
           set -euo pipefail
@@ -51,15 +51,77 @@ jobs:
 
           node <<'NODE'
           const CDP = require('chrome-remote-interface')
-
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+          const variants = {
+            baseline: (manifest) => manifest,
+            legacyV4: (manifest) => ({
+              ...manifest,
+              icons: [
+                { src: '/pwa/icon-v4.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+                { src: '/pwa/icon-v4.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+              ],
+            }),
+            v5SingleAny512: (manifest) => ({
+              ...manifest,
+              icons: [
+                { src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+              ],
+            }),
+            v5PurposeOmitted: (manifest) => ({
+              ...manifest,
+              icons: [
+                { src: '/pwa/icon-v5-192.png', sizes: '192x192', type: 'image/png' },
+                { src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png' },
+              ],
+            }),
+            v5AnyMaskable: (manifest) => ({
+              ...manifest,
+              icons: [
+                { src: '/pwa/icon-v5-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+                { src: '/pwa/icon-v5.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+              ],
+            }),
+            v5SizeAny: (manifest) => ({
+              ...manifest,
+              icons: [
+                { src: '/pwa/icon-v5.png', sizes: 'any', type: 'image/png', purpose: 'any' },
+              ],
+            }),
+          }
 
           ;(async () => {
             const client = await CDP({ port: 9222 })
-            const { Page, Network, Emulation, Runtime } = client
+            const { Page, Network, Emulation, Fetch } = client
+            let activeVariant = 'baseline'
+
+            Fetch.requestPaused(({ requestId, request }) => {
+              ;(async () => {
+                if (request.url === 'https://trackdash.it/manifest.webmanifest') {
+                  const response = await fetch(request.url, { cache: 'no-store' })
+                  const original = await response.json()
+                  const body = JSON.stringify(variants[activeVariant](original))
+                  await Fetch.fulfillRequest({
+                    requestId,
+                    responseCode: 200,
+                    responseHeaders: [
+                      { name: 'Content-Type', value: 'application/manifest+json' },
+                      { name: 'Cache-Control', value: 'no-store' },
+                    ],
+                    body: Buffer.from(body).toString('base64'),
+                  })
+                  return
+                }
+                await Fetch.continueRequest({ requestId })
+              })().catch(async (error) => {
+                console.error('intercept error', activeVariant, error)
+                try { await Fetch.continueRequest({ requestId }) } catch {}
+              })
+            })
 
             try {
-              await Promise.all([Page.enable(), Network.enable(), Runtime.enable()])
+              await Promise.all([Page.enable(), Network.enable()])
+              await Network.setCacheDisabled({ cacheDisabled: true })
               await Emulation.setDeviceMetricsOverride({
                 width: 412,
                 height: 915,
@@ -71,44 +133,28 @@ jobs:
                   'Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36',
                 platform: 'Android',
               })
+              await Fetch.enable({ patterns: [{ urlPattern: '*manifest.webmanifest*', requestStage: 'Request' }] })
 
-              await Page.navigate({ url: 'https://trackdash.it/' })
-              await sleep(8000)
+              const results = {}
+              for (const variant of Object.keys(variants)) {
+                activeVariant = variant
+                await Page.navigate({ url: `https://trackdash.it/?pwa-ab=${encodeURIComponent(variant)}&t=${Date.now()}` })
+                await sleep(5000)
+                const manifest = await Page.getAppManifest()
+                const installability = await Page.getInstallabilityErrors()
+                const icons = await Page.getManifestIcons().catch((error) => ({ error: String(error) }))
+                results[variant] = {
+                  manifestErrors: manifest.errors,
+                  parsedIcons: (manifest.manifest && manifest.manifest.icons) || null,
+                  installabilityErrors: installability.installabilityErrors,
+                  hasPrimaryIcon: Boolean(icons && icons.primaryIcon),
+                  manifestBody: manifest.data ? JSON.parse(manifest.data).icons : null,
+                }
+              }
 
-              const manifest = await Page.getAppManifest()
-              const installability = await Page.getInstallabilityErrors()
-              const appId = await Page.getAppId()
-              const manifestIcons = await Page.getManifestIcons().catch((error) => ({ error: String(error) }))
-              const runtime = await Runtime.evaluate({
-                expression: `JSON.stringify({
-                  url: location.href,
-                  secureContext: isSecureContext,
-                  standalone: matchMedia('(display-mode: standalone)').matches,
-                  beforeInstallPromptCached: Boolean(window.__trackdashInstallPrompt),
-                  serviceWorkerController: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller),
-                  userAgent: navigator.userAgent
-                })`,
-                returnByValue: true,
-              })
-
-              console.log('TRACKDASH_PWA_DIAGNOSTIC_START')
-              console.log(JSON.stringify({
-                manifest: {
-                  url: manifest.url,
-                  errors: manifest.errors,
-                  data: manifest.data ? JSON.parse(manifest.data) : null,
-                  parsedManifest: manifest.manifest ?? manifest.parsed ?? null,
-                },
-                manifestIcons: {
-                  hasPrimaryIcon: Boolean(manifestIcons && manifestIcons.primaryIcon),
-                  primaryIconBytesBase64: manifestIcons && manifestIcons.primaryIcon ? manifestIcons.primaryIcon.length : 0,
-                  error: manifestIcons && manifestIcons.error ? manifestIcons.error : null,
-                },
-                installability,
-                appId,
-                runtime: runtime.result && runtime.result.value ? JSON.parse(runtime.result.value) : null,
-              }, null, 2))
-              console.log('TRACKDASH_PWA_DIAGNOSTIC_END')
+              console.log('TRACKDASH_PWA_AB_START')
+              console.log(JSON.stringify(results, null, 2))
+              console.log('TRACKDASH_PWA_AB_END')
             } finally {
               await client.close()
             }
@@ -117,6 +163,3 @@ jobs:
             process.exit(1)
           })
           NODE
-
-          echo "--- Chrome log tail ---"
-          tail -80 /tmp/trackdash-chrome.log || true
