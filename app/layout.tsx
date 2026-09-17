@@ -17,71 +17,6 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 const trackDashSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-trackdash-sans" })
 const trackDashMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-trackdash-mono" })
 
-const pwaBootstrapScript = `
-(function () {
-  var existingDiagnostics = window.__trackdashPwaDiagnostics || {};
-  var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-
-  window.__trackdashInstallPrompt = window.__trackdashInstallPrompt || null;
-  window.__trackdashPwaDiagnostics = Object.assign(existingDiagnostics, {
-    bootstrapAt: Date.now(),
-    secureContext: window.isSecureContext,
-    serviceWorkerSupported: "serviceWorker" in navigator,
-    standaloneAtBootstrap: standalone,
-    beforeInstallPromptSeen: Boolean(existingDiagnostics.beforeInstallPromptSeen),
-    serviceWorkerControllerAtBootstrap: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller)
-  });
-
-  if (standalone && window.location.pathname === "/") {
-    window.location.replace("/dashboard");
-    return;
-  }
-
-  window.addEventListener("beforeinstallprompt", function (event) {
-    event.preventDefault();
-    window.__trackdashInstallPrompt = event;
-    window.__trackdashPwaDiagnostics.beforeInstallPromptSeen = true;
-    window.__trackdashPwaDiagnostics.beforeInstallPromptAt = Date.now();
-    window.dispatchEvent(new Event("trackdash:pwa-available"));
-    window.dispatchEvent(new Event("trackdash:pwa-state-change"));
-  });
-
-  window.addEventListener("appinstalled", function () {
-    window.__trackdashInstallPrompt = null;
-    window.__trackdashPwaDiagnostics.installedAt = Date.now();
-    window.dispatchEvent(new Event("trackdash:pwa-installed"));
-    window.dispatchEvent(new Event("trackdash:pwa-state-change"));
-  });
-
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.addEventListener("controllerchange", function () {
-      window.__trackdashPwaDiagnostics.serviceWorkerController = Boolean(navigator.serviceWorker.controller);
-      window.__trackdashPwaDiagnostics.controllerChangedAt = Date.now();
-      window.dispatchEvent(new Event("trackdash:pwa-state-change"));
-    });
-
-    navigator.serviceWorker
-      .register("/sw.js", { scope: "/" })
-      .then(function (registration) {
-        window.__trackdashPwaDiagnostics.serviceWorkerRegistered = true;
-        window.__trackdashPwaDiagnostics.serviceWorkerScope = registration.scope;
-        return navigator.serviceWorker.ready;
-      })
-      .then(function (registration) {
-        window.__trackdashPwaDiagnostics.serviceWorkerReady = true;
-        window.__trackdashPwaDiagnostics.serviceWorkerReadyScope = registration.scope;
-        window.__trackdashPwaDiagnostics.serviceWorkerController = Boolean(navigator.serviceWorker.controller);
-        window.__trackdashPwaDiagnostics.serviceWorkerReadyAt = Date.now();
-        window.dispatchEvent(new Event("trackdash:pwa-state-change"));
-      })
-      .catch(function (error) {
-        window.__trackdashPwaDiagnostics.serviceWorkerError = String(error);
-        window.dispatchEvent(new Event("trackdash:pwa-state-change"));
-      });
-  }
-})();
-`
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://trackdash.it"),
   title: "TrackDash — Mini 4WD Collector, market value & wishlist",
@@ -128,9 +63,6 @@ export default async function RootLayout({
 
   return (
     <html lang={initialLocale} suppressHydrationWarning className="bg-background">
-      <head>
-        <script id="trackdash-pwa-bootstrap" dangerouslySetInnerHTML={{ __html: pwaBootstrapScript }} />
-      </head>
       <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <StoreProvider>
