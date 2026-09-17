@@ -74,6 +74,7 @@ export function PwaInstallManager() {
   const { locale } = useI18n()
   const it = locale === "it"
   const deferredPrompt = React.useRef<BeforeInstallPromptEvent | null>(null)
+  const [nativeReadyOpen, setNativeReadyOpen] = React.useState(false)
   const [iosOpen, setIosOpen] = React.useState(false)
   const [macOpen, setMacOpen] = React.useState(false)
   const [waitingOpen, setWaitingOpen] = React.useState(false)
@@ -82,12 +83,14 @@ export function PwaInstallManager() {
   const clearPrompt = React.useCallback(() => {
     deferredPrompt.current = null
     window.__trackdashInstallPrompt = null
+    setNativeReadyOpen(false)
     emitStateChange()
   }, [])
 
   const markInstalled = React.useCallback(() => {
     deferredPrompt.current = null
     window.__trackdashInstallPrompt = null
+    setNativeReadyOpen(false)
     setWaitingOpen(false)
     window.dispatchEvent(new Event("trackdash:pwa-installed"))
     emitStateChange()
@@ -96,6 +99,8 @@ export function PwaInstallManager() {
   const runNativePrompt = React.useCallback(async () => {
     const promptEvent = deferredPrompt.current ?? window.__trackdashInstallPrompt ?? null
     if (!promptEvent) return false
+
+    setNativeReadyOpen(false)
 
     try {
       await promptEvent.prompt()
@@ -113,6 +118,7 @@ export function PwaInstallManager() {
     const initialPrompt = window.__trackdashInstallPrompt ?? null
     if (initialPrompt) {
       deferredPrompt.current = initialPrompt
+      setNativeReadyOpen(true)
       window.dispatchEvent(new Event("trackdash:pwa-available"))
       emitStateChange()
     }
@@ -121,6 +127,8 @@ export function PwaInstallManager() {
       event.preventDefault()
       deferredPrompt.current = event
       window.__trackdashInstallPrompt = event
+      setWaitingOpen(false)
+      setNativeReadyOpen(true)
       window.dispatchEvent(new Event("trackdash:pwa-available"))
       emitStateChange()
     }
@@ -149,9 +157,6 @@ export function PwaInstallManager() {
       }
 
       if (isAndroid() && isChromiumFamily()) {
-        // Chromium only allows a page-triggered install after it has emitted
-        // beforeinstallprompt. Do not send users to "Add to Home screen":
-        // that can create a plain shortcut instead of the standalone PWA.
         setWaitingOpen(true)
         return
       }
@@ -175,6 +180,31 @@ export function PwaInstallManager() {
 
   return (
     <>
+      <Dialog open={nativeReadyOpen} onOpenChange={setNativeReadyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="size-4" />
+              {it ? "Installa TrackDash" : "Install TrackDash"}
+            </DialogTitle>
+            <DialogDescription>
+              {it
+                ? "TrackDash è pronta per essere installata come vera app sul dispositivo."
+                : "TrackDash is ready to be installed as a real app on this device."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border bg-muted/30 p-3 text-sm leading-relaxed text-muted-foreground">
+            {it
+              ? "L'installazione userà il prompt nativo del browser e aprirà TrackDash in modalità standalone, con la sua icona e senza la normale barra URL."
+              : "Installation will use the browser's native prompt and open TrackDash in standalone mode, with its own icon and without the normal URL bar."}
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline">{it ? "Non ora" : "Not now"}</Button>} />
+            <Button onClick={() => void runNativePrompt()}>{it ? "Installa ora" : "Install now"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={waitingOpen} onOpenChange={setWaitingOpen}>
         <DialogContent>
           <DialogHeader>
@@ -190,8 +220,8 @@ export function PwaInstallManager() {
           </DialogHeader>
           <div className="rounded-lg border bg-muted/30 p-3 text-sm leading-relaxed text-muted-foreground">
             {it
-              ? "Continua a usare TrackDash in questa scheda. Quando il browser abilita l'installazione, comparirà l'azione “Installa TrackDash” e aprirà direttamente la conferma nativa. Evita “Aggiungi alla schermata Home” se il browser lo presenta come semplice collegamento."
-              : "Keep using TrackDash in this tab. When the browser enables installation, the “Install TrackDash” action will appear and open the native confirmation directly. Avoid “Add to Home Screen” when the browser offers it only as a shortcut."}
+              ? "Continua a usare TrackDash in questa scheda. Quando il browser abilita l'installazione, comparirà automaticamente il popup di installazione. Evita “Aggiungi alla schermata Home” se il browser lo presenta come semplice collegamento."
+              : "Keep using TrackDash in this tab. When the browser enables installation, the install popup will appear automatically. Avoid “Add to Home Screen” when the browser offers it only as a shortcut."}
           </div>
           <DialogFooter>
             <DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} />
