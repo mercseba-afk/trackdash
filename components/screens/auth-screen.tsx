@@ -3,88 +3,81 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Boxes, Heart, ScanLine, TrendingUp } from "lucide-react"
+import { ArrowRight, Boxes, Heart, ScanLine, TrendingUp } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useI18n } from "@/lib/i18n"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 
 const COUNTRIES = ["Japan", "United States", "Germany", "France", "United Kingdom", "Italy", "Spain", "Other"]
 
 function countryLabel(country: string, it: boolean) {
   if (!it) return country
-  const labels: Record<string, string> = {
-    Japan: "Giappone",
-    "United States": "Stati Uniti",
-    Germany: "Germania",
-    France: "Francia",
-    "United Kingdom": "Regno Unito",
-    Italy: "Italia",
-    Spain: "Spagna",
-    Other: "Altro",
-  }
+  const labels: Record<string, string> = { Japan: "Giappone", "United States": "Stati Uniti", Germany: "Germania", France: "Francia", "United Kingdom": "Regno Unito", Italy: "Italia", Spain: "Spagna", Other: "Altro" }
   return labels[country] ?? country
+}
+
+function withNext(path: string, nextPath?: string) {
+  return nextPath ? `${path}?next=${encodeURIComponent(nextPath)}` : path
 }
 
 export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextPath?: string }) {
   const { locale, setLocale } = useI18n()
   const it = locale === "it"
   const highlights = [
-    { icon: Boxes, label: it ? "Cataloga tutti i modelli che possiedi" : "Catalog every model you own" },
-    { icon: TrendingUp, label: it ? "Tieni sotto controllo il valore di mercato" : "Track honest market value" },
-    { icon: Heart, label: it ? "Crea una lista desideri con prezzi obiettivo" : "Build a wishlist with targets" },
-    { icon: ScanLine, label: it ? "Identifica i modelli dalla scatola" : "Scan boxes to identify" },
+    { icon: Boxes, label: it ? "Organizza ogni Release che possiedi" : "Organize every Release you own" },
+    { icon: TrendingUp, label: it ? "Segui il Market Value senza confondere ASK e SOLD" : "Track Market Value without mixing ASK and SOLD" },
+    { icon: Heart, label: it ? "Tieni una Wishlist legata alla Release corretta" : "Keep a Wishlist tied to the correct Release" },
+    { icon: ScanLine, label: it ? "Identifica Item Number e barcode in pochi secondi" : "Identify Item Numbers and barcodes in seconds" },
   ]
 
   return (
-    <div className="relative grid min-h-svh lg:grid-cols-2">
-      <div className="absolute right-4 top-4 z-20 flex items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur">
-        <Button size="sm" variant={locale === "en" ? "secondary" : "ghost"} onClick={() => setLocale("en")}>EN</Button>
-        <Button size="sm" variant={locale === "it" ? "secondary" : "ghost"} onClick={() => setLocale("it")}>IT</Button>
+    <div className="relative min-h-svh bg-background lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,.95fr)]">
+      <div className="absolute right-4 top-4 z-30 flex items-center rounded-full border border-border/70 bg-white/90 p-1 shadow-sm backdrop-blur">
+        <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "en" ? "secondary" : "ghost"} onClick={() => setLocale("en")}>EN</Button>
+        <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "it" ? "secondary" : "ghost"} onClick={() => setLocale("it")}>IT</Button>
       </div>
 
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-foreground p-10 text-background lg:flex">
-        <BrandMark tone="invert" />
-        <div className="flex flex-col gap-6">
-          <h2 className="max-w-sm text-3xl font-semibold leading-tight text-balance">
-            {it ? "Il database per collezionisti di Tamiya Mini 4WD." : "The collector's database for Tamiya Mini 4WD."}
-          </h2>
-          <ul className="flex flex-col gap-3">
+      <aside className="relative hidden min-h-svh overflow-hidden border-r border-border/10 bg-[#0b3275] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-12">
+        <div className="relative z-10"><BrandMark tone="invert" /></div>
+        <div className="relative z-10 max-w-xl py-10">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">{it ? "Il tuo Mini 4WD, insieme" : "Your Mini 4WD, together"}</p>
+          <h1 className="max-w-lg text-4xl font-semibold leading-[1.02] tracking-[-0.04em] xl:text-5xl">
+            {it ? <>Entra nel tuo <span className="text-[#8fb5ff]">TrackDash.</span></> : <>Enter your <span className="text-[#8fb5ff]">TrackDash.</span></>}
+          </h1>
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-white/65">
+            {it ? "Catalogo, Collection, Scanner e Price Intelligence nello stesso sistema, costruito attorno alla Release esatta." : "Catalog, Collection, Scanner and Price Intelligence in one system, built around the exact Release."}
+          </p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {highlights.map((h) => (
-              <li key={h.label} className="flex items-center gap-3 text-sm text-background/80">
-                <span className="grid size-9 place-items-center rounded-lg bg-brand/15 text-brand">
-                  <h.icon className="size-4" />
-                </span>
-                {h.label}
-              </li>
+              <div key={h.label} className="flex min-h-20 items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-[#9fc0ff]"><h.icon className="size-4" /></span>
+                <span className="text-sm leading-relaxed text-white/75">{h.label}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
-        <p className="text-xs text-background/50">
-          {it ? "I valori di mercato mostrati sono stime indicative basate sui dati disponibili, non perizie." : "Market values are indicative estimates based on available data, not appraisals."}
+        <p className="relative z-10 max-w-lg text-xs leading-relaxed text-white/45">
+          {it ? "I valori di mercato sono stime indicative basate sui dati disponibili e non costituiscono perizie." : "Market values are indicative estimates based on available data and are not appraisals."}
         </p>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-brand/20 blur-3xl"
-        />
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-16 size-80 rounded-full border border-white/10" />
+        <div aria-hidden className="pointer-events-none absolute -right-8 top-20 size-56 rounded-full border border-white/10" />
+        <div aria-hidden className="pointer-events-none absolute bottom-[-180px] left-[-60px] size-[420px] rounded-full bg-[#1558e8]/25 blur-3xl" />
       </aside>
 
-      <main className="flex flex-col items-center justify-center px-5 py-10">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 lg:hidden">
-            <BrandMark />
+      <main className="flex min-h-svh items-center justify-center px-5 py-16 sm:px-8 lg:min-h-0 lg:px-12">
+        <div className="w-full max-w-md">
+          <div className="mb-10 lg:hidden"><BrandMark /></div>
+          <div className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-8">
+            {mode === "login" ? <LoginForm nextPath={nextPath} /> : <SignupForm nextPath={nextPath} />}
           </div>
-          {mode === "login" ? <LoginForm nextPath={nextPath} /> : <SignupForm />}
+          <Link href="/catalog" className="mx-auto mt-5 flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            {it ? "Continua a esplorare il catalogo" : "Continue browsing the catalog"}<ArrowRight className="size-3.5" />
+          </Link>
         </div>
       </main>
     </div>
@@ -101,18 +94,12 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.includes("@")) {
-      toast.error(it ? "Inserisci un'email valida" : "Enter a valid email")
-      return
-    }
+    if (!email.includes("@")) return toast.error(it ? "Inserisci un'email valida" : "Enter a valid email")
     setPending(true)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setPending(false)
-    if (error) {
-      toast.error(error.message)
-      return
-    }
+    if (error) return toast.error(error.message)
     toast.success(it ? "Bentornato" : "Welcome back")
     router.push(nextPath ?? "/dashboard")
     router.refresh()
@@ -120,51 +107,25 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">{it ? "Accedi" : "Sign in"}</h1>
-        <p className="text-sm text-muted-foreground">{it ? "Continua nel tuo garage." : "Continue to your garage."}</p>
+      <div>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Bentornato" : "Welcome back"}</p>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Accedi a TrackDash." : "Sign in to TrackDash."}</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Dopo l'accesso tornerai esattamente dove eri." : "After signing in, you'll return exactly where you were.") : (it ? "Continua nella tua Collection e nei tuoi strumenti personali." : "Continue to your Collection and personal tools.")}</p>
       </div>
       <FieldGroup>
+        <Field><FieldLabel htmlFor="email">Email</FieldLabel><Input id="email" className="h-11 rounded-xl" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
         <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Field>
-          <div className="flex items-center justify-between">
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Link href="/forgot-password" className="text-xs font-medium text-brand hover:underline">
-              {it ? "Password dimenticata?" : "Forgot password?"}
-            </Link>
-          </div>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="flex items-center justify-between"><FieldLabel htmlFor="password">Password</FieldLabel><Link href="/forgot-password" className="text-xs font-medium text-brand hover:underline">{it ? "Password dimenticata?" : "Forgot password?"}</Link></div>
+          <Input id="password" className="h-11 rounded-xl" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
       </FieldGroup>
-      <Button type="submit" size="lg" disabled={pending}>
-        {pending ? (it ? "Accesso…" : "Signing in…") : it ? "Accedi" : "Sign in"}
-      </Button>
-      <p className="text-center text-sm text-muted-foreground">
-        {it ? "Non hai ancora un account?" : "New here?"}{" "}
-        <Link href="/signup" className="font-medium text-brand hover:underline">
-          {it ? "Crea un account" : "Create an account"}
-        </Link>
-      </p>
+      <Button type="submit" size="lg" className="rounded-xl" disabled={pending}>{pending ? (it ? "Accesso…" : "Signing in…") : it ? "Accedi" : "Sign in"}<ArrowRight /></Button>
+      <p className="text-center text-sm text-muted-foreground">{it ? "Non hai ancora un account?" : "New here?"} <Link href={withNext("/signup", nextPath)} className="font-medium text-brand hover:underline">{it ? "Crea un account" : "Create an account"}</Link></p>
     </form>
   )
 }
 
-function SignupForm() {
+function SignupForm({ nextPath }: { nextPath?: string }) {
   const router = useRouter()
   const { locale } = useI18n()
   const it = locale === "it"
@@ -183,109 +144,39 @@ function SignupForm() {
 
     setPending(true)
     const supabase = createClient()
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { username: username.trim(), country } },
-    })
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim(), country } } })
     setPending(false)
-
-    if (error) {
-      toast.error(error.message)
-      return
-    }
+    if (error) return toast.error(error.message)
 
     if (data.session) {
       toast.success(it ? "Account creato" : "Account created")
-      router.push("/onboarding")
+      router.push(nextPath ?? "/onboarding")
       router.refresh()
       return
     }
-
     setConfirmationSent(true)
   }
 
   if (confirmationSent) {
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1>
-          <p className="text-sm text-muted-foreground text-pretty">
-            {it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"}{" "}
-            <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per completare la creazione dell'account, poi accedi." : "Follow it to finish creating your account, then sign in."}
-          </p>
-        </div>
-        <Button variant="outline" render={<Link href="/login" />}>
-          {it ? "Torna all'accesso" : "Back to sign in"}
-        </Button>
+      <div className="flex flex-col gap-5">
+        <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Quasi fatto" : "Almost there"}</p><h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"} <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per completare la creazione dell'account, poi accedi." : "Follow it to finish creating your account, then sign in."}</p></div>
+        <Button variant="outline" className="rounded-xl" render={<Link href={withNext("/login", nextPath)} />}>{it ? "Torna all'accesso" : "Back to sign in"}</Button>
       </div>
     )
   }
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">{it ? "Crea il tuo account" : "Create your account"}</h1>
-        <p className="text-sm text-muted-foreground">{it ? "Inizia a catalogare la tua collezione Mini 4WD." : "Start cataloguing your Mini 4WD collection."}</p>
-      </div>
+      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account e poi torna alla Release da cui sei partito." : "Create your account, then return to the Release you started from.") : (it ? "Salva Release, Wishlist e strumenti personali senza bloccare l'esplorazione pubblica." : "Save Releases, Wishlist and personal tools without blocking public browsing.")}</p></div>
       <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="username">Username</FieldLabel>
-          <Input
-            id="username"
-            autoComplete="username"
-            placeholder="speedstar"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="signup-email">Email</FieldLabel>
-          <Input
-            id="signup-email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="country">{it ? "Paese" : "Country"}</FieldLabel>
-          <Select value={country} onValueChange={(v) => setCountry(v as string)}>
-            <SelectTrigger id="country" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {COUNTRIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {countryLabel(c, it)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="signup-password">Password</FieldLabel>
-          <Input
-            id="signup-password"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <FieldDescription>{it ? "Almeno 6 caratteri." : "At least 6 characters."}</FieldDescription>
-        </Field>
+        <Field><FieldLabel htmlFor="username">Username</FieldLabel><Input id="username" className="h-11 rounded-xl" autoComplete="username" placeholder="speedstar" value={username} onChange={(e) => setUsername(e.target.value)} /></Field>
+        <Field><FieldLabel htmlFor="signup-email">Email</FieldLabel><Input id="signup-email" className="h-11 rounded-xl" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+        <Field><FieldLabel htmlFor="country">{it ? "Paese" : "Country"}</FieldLabel><Select value={country} onValueChange={(v) => setCountry(v as string)}><SelectTrigger id="country" className="h-11 w-full rounded-xl"><SelectValue /></SelectTrigger><SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{countryLabel(c, it)}</SelectItem>)}</SelectContent></Select></Field>
+        <Field><FieldLabel htmlFor="signup-password">Password</FieldLabel><Input id="signup-password" className="h-11 rounded-xl" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /><FieldDescription>{it ? "Almeno 6 caratteri." : "At least 6 characters."}</FieldDescription></Field>
       </FieldGroup>
-      <Button type="submit" size="lg" disabled={pending}>
-        {pending ? (it ? "Creazione account…" : "Creating account…") : it ? "Crea account" : "Create account"}
-      </Button>
-      <p className="text-center text-sm text-muted-foreground">
-        {it ? "Hai già un account?" : "Already have an account?"}{" "}
-        <Link href="/login" className="font-medium text-brand hover:underline">
-          {it ? "Accedi" : "Sign in"}
-        </Link>
-      </p>
+      <Button type="submit" size="lg" className="rounded-xl" disabled={pending}>{pending ? (it ? "Creazione account…" : "Creating account…") : it ? "Crea account" : "Create account"}<ArrowRight /></Button>
+      <p className="text-center text-sm text-muted-foreground">{it ? "Hai già un account?" : "Already have an account?"} <Link href={withNext("/login", nextPath)} className="font-medium text-brand hover:underline">{it ? "Accedi" : "Sign in"}</Link></p>
     </form>
   )
 }
