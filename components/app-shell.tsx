@@ -141,7 +141,12 @@ function UserMenu() {
   )
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+type AppShellProps = {
+  children: React.ReactNode
+  contentMode?: "app" | "public"
+}
+
+export function AppShell({ children, contentMode = "app" }: AppShellProps) {
   const pathname = usePathname()
   const { user } = useStore()
   const { t } = useI18n()
@@ -226,7 +231,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-24 pt-6 md:px-6 md:pt-8 lg:px-8 lg:pb-12">{children}</main>
+      <main
+        className={cn(
+          contentMode === "app"
+            ? "mx-auto w-full max-w-7xl px-4 pb-24 pt-6 md:px-6 md:pt-8 lg:px-8 lg:pb-12"
+            : "w-full pb-24 lg:pb-12",
+        )}
+      >
+        {children}
+      </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/96 pb-[max(env(safe-area-inset-bottom),0px)] backdrop-blur-md lg:hidden">
         {MOBILE_NAV.map((item) => {
