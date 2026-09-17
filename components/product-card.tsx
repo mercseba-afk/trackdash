@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Check, Heart } from "lucide-react"
+import { ArrowRight, Check, Heart, LockKeyhole } from "lucide-react"
 import type { Product, ReleaseType } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
@@ -39,7 +39,7 @@ export function getCatalogProductMeta(product: Product, it: boolean) {
 }
 
 export function ProductCard({ product }: { product: Product }) {
-  const { isInCollection, isInWishlist } = useStore()
+  const { isInCollection, isInWishlist, user } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
   const owned = isInCollection(product.id)
@@ -47,6 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
   const release = primaryRelease(product)
   const meta = getCatalogProductMeta(product, it)
   const href = `/catalog/${product.id}`
+  const loginHref = `/login?next=${encodeURIComponent(href)}`
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
@@ -94,16 +95,28 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
 
         <div className="mt-auto flex items-center gap-2 pt-3">
-          <AddToWishlistDialog product={product}>
+          {user ? (
+            <AddToWishlistDialog product={product}>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label={it ? "Aggiungi ai desideri" : "Add to wishlist"}
+                className={cn("shrink-0 rounded-xl bg-white", wished && "border-brand text-brand")}
+              >
+                <Heart className={cn(wished && "fill-brand")} />
+              </Button>
+            </AddToWishlistDialog>
+          ) : (
             <Button
               variant="outline"
               size="icon-sm"
-              aria-label={it ? "Aggiungi ai desideri" : "Add to wishlist"}
-              className={cn("shrink-0 rounded-xl bg-white", wished && "border-brand text-brand")}
+              aria-label={it ? "Accedi per aggiungere ai desideri" : "Sign in to add to wishlist"}
+              className="shrink-0 rounded-xl bg-white"
+              render={<Link href={loginHref} />}
             >
-              <Heart className={cn(wished && "fill-brand")} />
+              <LockKeyhole />
             </Button>
-          </AddToWishlistDialog>
+          )}
           <Button size="sm" className="flex-1 rounded-xl" render={<Link href={href} />}>
             {it ? "Vedi modello" : "View model"}
             <ArrowRight className="size-4" />

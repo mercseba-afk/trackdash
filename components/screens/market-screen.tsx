@@ -11,12 +11,14 @@ import {
   CircleHelp,
   Info,
   LineChart,
+  LockKeyhole,
   ShoppingBag,
   TrendingUp,
 } from "lucide-react"
 import { PRODUCTS } from "@/lib/data/corrected-products"
 import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
+import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
 import type { Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
@@ -35,8 +37,10 @@ interface Row {
 
 export function MarketScreen() {
   const { locale } = useI18n()
+  const { user } = useStore()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
+  const liveLoginHref = `/login?next=${encodeURIComponent("/market#live-market")}`
 
   const rows = React.useMemo<Row[]>(() => PRODUCTS.flatMap((product) =>
     product.releases.flatMap((release) => {
@@ -126,9 +130,15 @@ export function MarketScreen() {
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-6 text-[#55708f] md:text-base md:leading-7">{copy.intro}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <a href="#live-market" className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-                {copy.explore} <ArrowRight className="size-4" />
-              </a>
+              {user ? (
+                <a href="#live-market" className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                  {copy.explore} <ArrowRight className="size-4" />
+                </a>
+              ) : (
+                <Link href={liveLoginHref} className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                  <LockKeyhole className="size-4" /> {copy.explore} <ArrowRight className="size-4" />
+                </Link>
+              )}
               <Link href="/catalog" className="inline-flex h-11 items-center rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
                 {copy.catalog}
               </Link>
@@ -202,24 +212,43 @@ export function MarketScreen() {
           </div>
         </div>
 
-        <Alert className="mb-5 bg-white"><Info /><AlertTitle>Market Method v1</AlertTitle><AlertDescription>{it ? "Questa sezione usa solo segnali R3 reali. Le richieste dei venditori non possono creare o gonfiare il Valore di mercato e un trend compare soltanto con una serie temporale sufficiente di vendite concluse." : "This section uses real R3 signals only. Seller asks cannot create or inflate Market Value, and a trend appears only when sufficient completed-sale history exists."}</AlertDescription></Alert>
+        {user ? (
+          <>
+            <Alert className="mb-5 bg-white"><Info /><AlertTitle>Market Method v1</AlertTitle><AlertDescription>{it ? "Questa sezione usa solo segnali R3 reali. Le richieste dei venditori non possono creare o gonfiare il Valore di mercato e un trend compare soltanto con una serie temporale sufficiente di vendite concluse." : "This section uses real R3 signals only. Seller asks cannot create or inflate Market Value, and a trend appears only when sufficient completed-sale history exists."}</AlertDescription></Alert>
 
-        <Tabs defaultValue="values">
-          <TabsList className="bg-white"><TabsTrigger value="values"><Activity data-icon="inline-start" />{it ? "Valori" : "Values"}</TabsTrigger><TabsTrigger value="trends"><TrendingUp data-icon="inline-start" />{it ? "Trend" : "Trends"}</TabsTrigger></TabsList>
-          <TabsContent value="values" className="mt-4">
-            <div className="grid gap-4 lg:grid-cols-2">
-              <MarketListCard title={it ? "Valore di mercato consolidato" : "Consolidated Market Value"} rows={valued} />
-              <MarketListCard title={it ? "Mercato in formazione" : "Market forming"} rows={forming} forming />
-            </div>
-          </TabsContent>
-          <TabsContent value="trends" className="mt-4">
-            {trends.length === 0 ? (
-              <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend vendite ancora consolidato" : "No consolidated sales trend yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "È corretto così: TrackDash non genera trend da prezzi richiesti o da pochi snapshot. Appariranno quando avremo una serie temporale sufficiente di vendite concluse per la singola Release." : "This is intentional: TrackDash does not generate trends from asking prices or a few snapshots. Trends will appear once enough completed-sale history exists for the exact Release."}</p></CardContent></Card>
-            ) : (
-              <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((row) => (row.signal.trendPercent ?? 0) >= 0)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((row) => (row.signal.trendPercent ?? 0) < 0)} icon={ArrowDownRight} /></div>
-            )}
-          </TabsContent>
-        </Tabs>
+            <Tabs defaultValue="values">
+              <TabsList className="bg-white"><TabsTrigger value="values"><Activity data-icon="inline-start" />{it ? "Valori" : "Values"}</TabsTrigger><TabsTrigger value="trends"><TrendingUp data-icon="inline-start" />{it ? "Trend" : "Trends"}</TabsTrigger></TabsList>
+              <TabsContent value="values" className="mt-4">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <MarketListCard title={it ? "Valore di mercato consolidato" : "Consolidated Market Value"} rows={valued} />
+                  <MarketListCard title={it ? "Mercato in formazione" : "Market forming"} rows={forming} forming />
+                </div>
+              </TabsContent>
+              <TabsContent value="trends" className="mt-4">
+                {trends.length === 0 ? (
+                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend vendite ancora consolidato" : "No consolidated sales trend yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "È corretto così: TrackDash non genera trend da prezzi richiesti o da pochi snapshot. Appariranno quando avremo una serie temporale sufficiente di vendite concluse per la singola Release." : "This is intentional: TrackDash does not generate trends from asking prices or a few snapshots. Trends will appear once enough completed-sale history exists for the exact Release."}</p></CardContent></Card>
+                ) : (
+                  <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((row) => (row.signal.trendPercent ?? 0) >= 0)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((row) => (row.signal.trendPercent ?? 0) < 0)} icon={ArrowDownRight} /></div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-[#d7e2f0] bg-white px-5 py-8 text-center shadow-sm md:px-8">
+            <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-brand-muted text-brand">
+              <LockKeyhole className="size-5" />
+            </span>
+            <h3 className="mt-4 text-xl font-semibold text-navy">{it ? "Accedi per esplorare i segnali live" : "Sign in to explore live signals"}</h3>
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              {it
+                ? "La metodologia resta pubblica. I segnali live Release per Release richiedono invece un account TrackDash; in seguito questa area potrà rientrare nelle funzionalità Pro."
+                : "The methodology stays public. Release-level live signals require a TrackDash account; this area can later become part of Pro."}
+            </p>
+            <Link href={liveLoginHref} className="mt-5 inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+              <LockKeyhole className="size-4" /> {it ? "Accedi" : "Sign in"}
+            </Link>
+          </div>
+        )}
       </section>
     </div>
   )

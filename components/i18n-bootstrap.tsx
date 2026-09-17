@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { useI18n, type AppLocale } from "@/lib/i18n"
 import { Spinner } from "@/components/ui/spinner"
 
@@ -16,6 +17,10 @@ function writeLocaleCookie(locale: AppLocale) {
   document.cookie = `${COOKIE_NAME}=${locale}; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax`
 }
 
+function isPublicSeoRoute(pathname: string) {
+  return pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/") || pathname === "/market"
+}
+
 export function I18nBootstrap({
   children,
   initialLocale,
@@ -26,8 +31,10 @@ export function I18nBootstrap({
   hasLocaleCookie: boolean
 }) {
   const { locale, setLocale } = useI18n()
+  const pathname = usePathname()
   const bootstrapped = React.useRef(false)
   const [ready, setReady] = React.useState(() => hasLocaleCookie && locale === initialLocale)
+  const publicSeoRoute = isPublicSeoRoute(pathname || "/")
 
   React.useEffect(() => {
     if (bootstrapped.current) return
@@ -51,7 +58,7 @@ export function I18nBootstrap({
     writeLocaleCookie(locale)
   }, [locale, ready])
 
-  if (!ready) {
+  if (!ready && !publicSeoRoute) {
     return (
       <div className="grid min-h-svh place-items-center bg-background" aria-hidden>
         <Spinner className="size-6 text-muted-foreground" />
