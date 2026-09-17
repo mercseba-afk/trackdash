@@ -19,6 +19,7 @@ const trackDashSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-tr
 const trackDashMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-trackdash-mono" })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://trackdash.it"),
   title: "TrackDash — Mini 4WD Collector, market value & wishlist",
   description:
     "TrackDash is the collector's database for Tamiya Mini 4WD. Catalog exact releases, track honest market value, manage your collection and wishlist, and scan models faster.",
