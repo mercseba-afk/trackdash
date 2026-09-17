@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Info, Plus, UsersRound } from "lucide-react"
+import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Info, LockKeyhole, Plus, UsersRound } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
@@ -34,7 +34,7 @@ export function ProductDetailScreen({
   related: Product[]
   descriptionIt?: string | null
 }) {
-  const { collection, isInWishlist } = useStore()
+  const { collection, isInWishlist, user } = useStore()
   const { locale, t } = useI18n()
   const marketSignals = useMarketSignals()
   const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
@@ -46,6 +46,8 @@ export function ProductDetailScreen({
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
   const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
+  const productPath = `/catalog/${product.id}`
+  const loginHref = `/login?next=${encodeURIComponent(productPath)}`
 
   React.useEffect(() => {
     let cancelled = false
@@ -87,8 +89,21 @@ export function ProductDetailScreen({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <AddToCollectionDialog product={product}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
-            <AddToWishlistDialog product={product}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
+            {user ? (
+              <>
+                <AddToCollectionDialog product={product}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
+                <AddToWishlistDialog product={product}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
+              </>
+            ) : (
+              <>
+                <Button render={<Link href={loginHref} />} className="gap-1.5">
+                  <LockKeyhole className="size-4" /> {locale === "it" ? "Accedi e aggiungi alla collezione" : "Sign in and add to collection"}
+                </Button>
+                <Button variant="outline" render={<Link href={loginHref} />} className="gap-1.5">
+                  <LockKeyhole className="size-4" /> Wishlist
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -113,6 +128,7 @@ export function ProductDetailScreen({
                 ownedCount={mine.filter((entry) => entry.release.id === release.id).length}
                 community={communityByRelease.get(release.id)}
                 marketSignals={marketSignals}
+                isAuthed={Boolean(user)}
               />
             ))}
           </CardContent>
@@ -168,11 +184,26 @@ function CollectionMarketValue({ entry, it }: { entry: ReturnType<typeof enrichC
   )
 }
 
-function ReleaseRow({ product, release, ownedCount, community, marketSignals }: { product: Product; release: ProductRelease; ownedCount: number; community?: CommunityCount; marketSignals: ReleaseMarketSignalMap }) {
+function ReleaseRow({
+  product,
+  release,
+  ownedCount,
+  community,
+  marketSignals,
+  isAuthed,
+}: {
+  product: Product
+  release: ProductRelease
+  ownedCount: number
+  community?: CommunityCount
+  marketSignals: ReleaseMarketSignalMap
+  isAuthed: boolean
+}) {
   const { locale, t } = useI18n()
   const marketSignal = marketSignals[release.id] ?? null
   const releaseHref = `/catalog/${product.id}/releases/${release.id}`
   const collectorsHref = `${releaseHref}#collectors`
+  const loginHref = `/login?next=${encodeURIComponent(releaseHref)}`
   const owned = ownedCount > 0
   const ownershipLabel = locale === "it"
     ? (ownedCount === 1 ? "1 copia tua" : `${ownedCount} copie tue`)
@@ -224,9 +255,15 @@ function ReleaseRow({ product, release, ownedCount, community, marketSignals }: 
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto md:flex-col md:items-stretch md:justify-end">
             <Button size="sm" variant="outline" className="flex-1 rounded-xl bg-white md:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
-            <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-              <Button size="sm" variant={owned ? "outline" : "default"} className="flex-1 gap-1.5 rounded-xl md:flex-none">{owned ? <Check className="size-4" /> : <Plus className="size-4" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
-            </AddToCollectionDialog>
+            {isAuthed ? (
+              <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+                <Button size="sm" variant={owned ? "outline" : "default"} className="flex-1 gap-1.5 rounded-xl md:flex-none">{owned ? <Check className="size-4" /> : <Plus className="size-4" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
+              </AddToCollectionDialog>
+            ) : (
+              <Button size="sm" className="flex-1 gap-1.5 rounded-xl md:flex-none" render={<Link href={loginHref} />}>
+                <LockKeyhole className="size-4" /> {locale === "it" ? "Accedi per aggiungere" : "Sign in to add"}
+              </Button>
+            )}
           </div>
         </div>
       </div>
