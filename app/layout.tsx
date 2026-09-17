@@ -65,13 +65,33 @@ export default async function RootLayout({
   return (
     <html lang={initialLocale} suppressHydrationWarning className="bg-background">
       <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>
-        <Script id="trackdash-pwa-install-capture" strategy="beforeInteractive">{`
+        <Script id="trackdash-pwa-bootstrap" strategy="beforeInteractive">{`
           window.__trackdashInstallPrompt = null;
+
           window.addEventListener("beforeinstallprompt", function (event) {
             event.preventDefault();
             window.__trackdashInstallPrompt = event;
             window.dispatchEvent(new Event("trackdash:pwa-available"));
+            window.dispatchEvent(new Event("trackdash:pwa-state-change"));
           });
+
+          window.addEventListener("appinstalled", function () {
+            window.__trackdashInstallPrompt = null;
+            window.dispatchEvent(new Event("trackdash:pwa-installed"));
+            window.dispatchEvent(new Event("trackdash:pwa-state-change"));
+          });
+
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker
+              .register("/sw.js", { scope: "/" })
+              .then(function () { return navigator.serviceWorker.ready; })
+              .then(function () {
+                window.dispatchEvent(new Event("trackdash:pwa-state-change"));
+              })
+              .catch(function () {
+                window.dispatchEvent(new Event("trackdash:pwa-state-change"));
+              });
+          }
         `}</Script>
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <StoreProvider>
