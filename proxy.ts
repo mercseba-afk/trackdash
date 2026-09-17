@@ -8,7 +8,7 @@ const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/"]
 const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market"]
 
-// Server-to-server, bootstrap and crawler discovery routes authenticate/guard
+// Server-to-server, bootstrap, diagnostics and crawler discovery routes authenticate/guard
 // themselves where required and must not depend on a browser Supabase session.
 const UNGATED_PREFIXES = [
   "/api/dev",
@@ -18,6 +18,7 @@ const UNGATED_PREFIXES = [
   "/api/internal/ebay-95467-microbatch",
   "/auth/callback",
   "/update-password",
+  "/pwa-debug",
   "/manifest.webmanifest",
   "/robots.txt",
   "/sitemap.xml",
