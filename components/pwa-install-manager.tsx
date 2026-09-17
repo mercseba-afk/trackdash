@@ -24,9 +24,6 @@ declare global {
   interface WindowEventMap {
     beforeinstallprompt: BeforeInstallPromptEvent
   }
-  interface Window {
-    __trackdashInstallPrompt?: BeforeInstallPromptEvent | null
-  }
   interface Navigator {
     standalone?: boolean
   }
@@ -82,14 +79,12 @@ export function PwaInstallManager() {
 
   const clearPrompt = React.useCallback(() => {
     deferredPrompt.current = null
-    window.__trackdashInstallPrompt = null
     setNativeReadyOpen(false)
     emitStateChange()
   }, [])
 
   const markInstalled = React.useCallback(() => {
     deferredPrompt.current = null
-    window.__trackdashInstallPrompt = null
     setNativeReadyOpen(false)
     setWaitingOpen(false)
     window.dispatchEvent(new Event("trackdash:pwa-installed"))
@@ -97,7 +92,7 @@ export function PwaInstallManager() {
   }, [])
 
   const runNativePrompt = React.useCallback(async () => {
-    const promptEvent = deferredPrompt.current ?? window.__trackdashInstallPrompt ?? null
+    const promptEvent = deferredPrompt.current
     if (!promptEvent) return false
 
     setNativeReadyOpen(false)
@@ -115,18 +110,17 @@ export function PwaInstallManager() {
   }, [clearPrompt, markInstalled])
 
   React.useEffect(() => {
-    const initialPrompt = window.__trackdashInstallPrompt ?? null
-    if (initialPrompt) {
-      deferredPrompt.current = initialPrompt
-      setNativeReadyOpen(true)
-      window.dispatchEvent(new Event("trackdash:pwa-available"))
-      emitStateChange()
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then(() => navigator.serviceWorker.ready)
+        .then(() => emitStateChange())
+        .catch(() => emitStateChange())
     }
 
     const onBeforeInstall = (event: BeforeInstallPromptEvent) => {
       event.preventDefault()
       deferredPrompt.current = event
-      window.__trackdashInstallPrompt = event
       setWaitingOpen(false)
       setNativeReadyOpen(true)
       window.dispatchEvent(new Event("trackdash:pwa-available"))
@@ -141,7 +135,7 @@ export function PwaInstallManager() {
         return
       }
 
-      if (deferredPrompt.current ?? window.__trackdashInstallPrompt) {
+      if (deferredPrompt.current) {
         await runNativePrompt()
         return
       }
@@ -168,8 +162,13 @@ export function PwaInstallManager() {
     window.addEventListener("appinstalled", onInstalled)
     window.addEventListener("trackdash:pwa-request-install", onRequest)
 
-    if (isStandalone()) markInstalled()
-    else emitStateChange()
+    if (isStandalone() && window.location.pathname === "/") {
+      window.location.replace("/dashboard")
+    } else if (isStandalone()) {
+      markInstalled()
+    } else {
+      emitStateChange()
+    }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstall)
@@ -220,8 +219,8 @@ export function PwaInstallManager() {
           </DialogHeader>
           <div className="rounded-lg border bg-muted/30 p-3 text-sm leading-relaxed text-muted-foreground">
             {it
-              ? "Continua a usare TrackDash in questa scheda. Quando il browser abilita l'installazione, comparirà automaticamente il popup di installazione. Evita “Aggiungi alla schermata Home” se il browser lo presenta come semplice collegamento."
-              : "Keep using TrackDash in this tab. When the browser enables installation, the install popup will appear automatically. Avoid “Add to Home Screen” when the browser offers it only as a shortcut."}
+              ? "Quando Chrome rende disponibile l'installazione nativa, TrackDash mostrerà automaticamente il pulsante Installa ora."
+              : "When Chrome makes native installation available, TrackDash will automatically show the Install now button."}
           </div>
           <DialogFooter>
             <DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} />
