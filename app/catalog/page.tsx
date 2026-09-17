@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { PublicShell } from "@/components/public-shell"
 import { CatalogAreaNav } from "@/components/catalog-area-nav"
 import { CatalogScreen } from "@/components/screens/catalog-screen"
@@ -5,6 +6,32 @@ import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import type { Product } from "@/lib/types"
 
 export const revalidate = 45
+
+const title = "Tamiya Mini 4WD Catalog — Models & Releases | TrackDash"
+const description = "Explore the TrackDash Tamiya Mini 4WD catalog by exact model and Release, with item numbers, years, chassis, editions and public Market Value data."
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "https://trackdash.it/catalog" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  openGraph: {
+    type: "website",
+    url: "https://trackdash.it/catalog",
+    siteName: "TrackDash",
+    title,
+    description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
+}
 
 export default async function CatalogPage() {
   let products: Product[] = []
