@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "TrackDash",
     short_name: "TrackDash",
     description: "Mini 4WD collection, marketplace and Price Intelligence.",
-    start_url: "/dashboard",
+    start_url: "/",
     scope: "/",
     display: "standalone",
     background_color: "#f8fafc",
