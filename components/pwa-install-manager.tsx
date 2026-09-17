@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 type InstallChoice = { outcome: "accepted" | "dismissed"; platform: string }
-type BrowserKind = "chrome" | "firefox" | "edge" | "samsung" | "other"
+type BrowserKind = "chrome" | "firefox" | "edge" | "samsung" | "safari" | "other"
 type InstalledRelatedApp = { platform?: string; id?: string; url?: string; version?: string }
 
 type BeforeInstallPromptEvent = Event & {
@@ -33,14 +33,25 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true
 }
 
-function isIOS() {
+function isIOSFamily() {
   if (typeof navigator === "undefined") return false
-  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
 }
 
 function isAndroid() {
   if (typeof navigator === "undefined") return false
   return /android/i.test(navigator.userAgent)
+}
+
+function isSafariBrowser() {
+  if (typeof navigator === "undefined") return false
+  const ua = navigator.userAgent
+  return /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|EdgiOS|OPR|Firefox|FxiOS/i.test(ua)
+}
+
+function isMacSafari() {
+  if (typeof navigator === "undefined" || isIOSFamily()) return false
+  return /Macintosh|Mac OS X/i.test(navigator.userAgent) && isSafariBrowser()
 }
 
 function detectBrowser(): BrowserKind {
@@ -50,7 +61,12 @@ function detectBrowser(): BrowserKind {
   if (/samsungbrowser/i.test(ua)) return "samsung"
   if (/edg|edga|edgios/i.test(ua)) return "edge"
   if (/chrome|crios/i.test(ua)) return "chrome"
+  if (isSafariBrowser()) return "safari"
   return "other"
+}
+
+function emitStateChange() {
+  window.dispatchEvent(new Event("trackdash:pwa-state-change"))
 }
 
 async function hasInstalledTrackDashPwa() {
@@ -69,11 +85,13 @@ export function PwaInstallManager() {
   const { locale } = useI18n()
   const it = locale === "it"
   const deferredPrompt = React.useRef<BeforeInstallPromptEvent | null>(null)
-  const [instructionsOpen, setInstructionsOpen] = React.useState(false)
+  const [iosInstructionsOpen, setIosInstructionsOpen] = React.useState(false)
+  const [macInstructionsOpen, setMacInstructionsOpen] = React.useState(false)
   const [fallbackOpen, setFallbackOpen] = React.useState(false)
   const [alreadyInstalledOpen, setAlreadyInstalledOpen] = React.useState(false)
   const [fallbackBrowser, setFallbackBrowser] = React.useState<BrowserKind>("other")
   const [fallbackAndroid, setFallbackAndroid] = React.useState(false)
+  const [iosSafari, setIosSafari] = React.useState(false)
 
   React.useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -83,6 +101,7 @@ export function PwaInstallManager() {
     if (window.__trackdashInstallPrompt) {
       deferredPrompt.current = window.__trackdashInstallPrompt
       window.dispatchEvent(new Event("trackdash:pwa-available"))
+      emitStateChange()
     }
 
     const onBeforeInstall = (event: BeforeInstallPromptEvent) => {
@@ -90,6 +109,7 @@ export function PwaInstallManager() {
       deferredPrompt.current = event
       window.__trackdashInstallPrompt = event
       window.dispatchEvent(new Event("trackdash:pwa-available"))
+      emitStateChange()
     }
 
     const onInstalled = () => {
@@ -97,6 +117,7 @@ export function PwaInstallManager() {
       window.__trackdashInstallPrompt = null
       localStorage.setItem("trackdash.pwa.installed", "1")
       window.dispatchEvent(new Event("trackdash:pwa-installed"))
+      emitStateChange()
     }
 
     const showManualInstructions = () => {
@@ -125,15 +146,23 @@ export function PwaInstallManager() {
           if (choice.outcome === "accepted") onInstalled()
           deferredPrompt.current = null
           window.__trackdashInstallPrompt = null
+          emitStateChange()
           return
         } catch {
           deferredPrompt.current = null
           window.__trackdashInstallPrompt = null
+          emitStateChange()
         }
       }
 
-      if (isIOS()) setInstructionsOpen(true)
-      else showManualInstructions()
+      if (isIOSFamily()) {
+        setIosSafari(isSafariBrowser())
+        setIosInstructionsOpen(true)
+      } else if (isMacSafari()) {
+        setMacInstructionsOpen(true)
+      } else {
+        showManualInstructions()
+      }
     }
 
     window.addEventListener("beforeinstallprompt", onBeforeInstall)
@@ -146,6 +175,7 @@ export function PwaInstallManager() {
       localStorage.removeItem("trackdash.pwa.installed")
       void hasInstalledTrackDashPwa().then((installed) => {
         if (installed) onInstalled()
+        else emitStateChange()
       })
     }
 
@@ -160,43 +190,43 @@ export function PwaInstallManager() {
     if (fallbackAndroid && fallbackBrowser === "firefox") {
       return {
         description: it
-          ? "Firefox su Android può aggiungere TrackDash alla schermata Home, ma non offre la stessa installazione WebAPK di Chrome. Per avere TrackDash come vera app standalone usa Chrome o Samsung Internet."
-          : "Firefox on Android can add TrackDash to the Home screen, but it does not provide the same WebAPK installation as Chrome. For the full standalone app experience, use Chrome or Samsung Internet.",
-        first: it ? "Apri TrackDash in Chrome" : "Open TrackDash in Chrome",
-        second: it ? "Usa Installa TrackDash o la voce “Installa app” di Chrome" : "Use Install TrackDash or Chrome's Install app option",
-        note: it ? "Evita “Aggiungi alla schermata Home” se crea soltanto una scorciatoia con la barra URL." : "Avoid Add to Home Screen when it only creates a browser shortcut with an address bar.",
+          ? "Per l'installazione più completa di TrackDash su Android consigliamo Chrome o Samsung Internet."
+          : "For the most complete TrackDash installation on Android, use Chrome or Samsung Internet.",
+        first: it ? "Apri trackdash.it in Chrome" : "Open trackdash.it in Chrome",
+        second: it ? "Usa “Installa TrackDash” quando compare" : "Use Install TrackDash when it appears",
+        note: it ? "Chrome mostra il comando quando ha verificato che la PWA è installabile." : "Chrome shows the command after it has verified that the PWA is installable.",
       }
     }
 
-    if (fallbackAndroid && fallbackBrowser === "chrome") {
+    if (fallbackAndroid && (fallbackBrowser === "chrome" || fallbackBrowser === "edge" || fallbackBrowser === "samsung")) {
       return {
         description: it
-          ? "Chrome non ha reso disponibile il prompt PWA in questa scheda. Non creare una semplice scorciatoia: non è equivalente all'app TrackDash installata."
-          : "Chrome has not exposed the PWA install prompt in this tab. Do not create a plain shortcut: it is not equivalent to the installed TrackDash app.",
-        first: it ? "Apri il menu ⋮ di Chrome" : "Open Chrome's ⋮ menu",
-        second: it ? "Usa solo “Installa app” / “Installa TrackDash” se presente" : "Use only Install app / Install TrackDash if it is available",
-        note: it ? "Se vedi solo “Crea scorciatoia” o “Aggiungi alla schermata Home”, chiudi il menu: quello aprirebbe TrackDash come sito web." : "If you only see Create shortcut or Add to Home Screen, close the menu: that would open TrackDash as a normal website.",
+          ? "Il browser non ha ancora reso disponibile il prompt nativo di installazione in questa scheda."
+          : "The browser has not exposed its native install prompt in this tab yet.",
+        first: it ? "Continua a usare TrackDash per qualche secondo" : "Keep using TrackDash for a few seconds",
+        second: it ? "Quando “Installa TrackDash” ricompare, toccalo" : "When Install TrackDash appears again, tap it",
+        note: it ? "Il pulsante viene mostrato solo quando il browser conferma che può aprire il vero flusso di installazione." : "The button is shown only when the browser confirms that it can open the real install flow.",
       }
     }
 
-    if (!fallbackAndroid && fallbackBrowser === "chrome") {
+    if (!fallbackAndroid && (fallbackBrowser === "chrome" || fallbackBrowser === "edge")) {
       return {
         description: it
-          ? "Il prompt automatico non è disponibile, ma su Chrome desktop puoi installare TrackDash come app dal menu del browser."
-          : "The automatic prompt is not available, but on desktop Chrome you can install TrackDash as an app from the browser menu.",
-        first: it ? "Apri il menu ⋮ di Chrome" : "Open Chrome's ⋮ menu",
-        second: it ? "Trasmetti, salva e condividi → Installa questa pagina come app" : "Cast, save and share → Install page as app",
-        note: it ? "Se compare l'icona Installa nella barra degli indirizzi puoi usare direttamente quella." : "If the Install icon appears in the address bar, you can use it directly.",
+          ? "Il prompt nativo non è disponibile in questo momento. Chrome ed Edge lo espongono solo quando la pagina soddisfa i criteri di installazione."
+          : "The native prompt is not available right now. Chrome and Edge expose it only after the page meets their install criteria.",
+        first: it ? "Continua a usare TrackDash e riprova più tardi" : "Keep using TrackDash and try again shortly",
+        second: it ? "Puoi anche cercare “Installa” nel menu del browser" : "You can also look for Install in the browser menu",
+        note: it ? "Quando il prompt nativo è disponibile, il pulsante TrackDash lo apre direttamente." : "When the native prompt is available, the TrackDash button opens it directly.",
       }
     }
 
     return {
       description: it
-        ? "Questo browser non ha reso disponibile il prompt di installazione come app. Una scorciatoia web non offre la stessa esperienza standalone di TrackDash."
-        : "This browser has not exposed the app install prompt. A web shortcut does not provide the same standalone TrackDash experience.",
-      first: it ? "Cerca una voce “Installa app” nel menu del browser" : "Look for an Install app option in the browser menu",
-      second: it ? "Se compare solo una scorciatoia, usa Chrome o Samsung Internet su Android" : "If only a shortcut is offered, use Chrome or Samsung Internet on Android",
-      note: it ? "L'obiettivo è aprire TrackDash senza barra URL e con l'icona ufficiale dell'app." : "The goal is to open TrackDash without an address bar and with the official app icon.",
+        ? "Questo browser non espone un prompt di installazione controllabile dal sito."
+        : "This browser does not expose an install prompt that the site can trigger.",
+      first: it ? "Apri il menu del browser" : "Open the browser menu",
+      second: it ? "Cerca una voce per installare o aggiungere TrackDash come app" : "Look for an option to install or add TrackDash as an app",
+      note: it ? "Su Android, Chrome è il percorso consigliato per l'installazione PWA." : "On Android, Chrome is the recommended path for PWA installation.",
     }
   })()
 
@@ -206,26 +236,46 @@ export function PwaInstallManager() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Download className="size-4" />{it ? "TrackDash è già installata" : "TrackDash is already installed"}</DialogTitle>
-            <DialogDescription>{it ? "Chrome vede già la vera app TrackDash sul telefono e per questo non propone un secondo prompt di installazione." : "Chrome already sees the real TrackDash app on this device, so it will not offer a second install prompt."}</DialogDescription>
+            <DialogDescription>{it ? "Il browser vede già TrackDash come app installata su questo dispositivo e non propone una seconda installazione." : "The browser already sees TrackDash as installed on this device, so it will not offer a second installation."}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-1 text-sm">
-            <div className="flex items-start gap-3 rounded-lg border p-3"><Search className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">1. {it ? "Cerca TrackDash tra tutte le app del telefono" : "Find TrackDash in your phone's app drawer"}</p><p className="text-xs text-muted-foreground">{it ? "Oppure vai in Impostazioni → App e cerca TrackDash." : "Or open Settings → Apps and look for TrackDash."}</p></div></div>
-            <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {it ? "Aprila oppure rimetti la sua icona nella Home" : "Open it or add its icon back to the Home screen"}</p><p className="text-xs text-muted-foreground">{it ? "Quella è l'app standalone: niente barra URL e icona TrackDash corretta." : "That is the standalone app: no address bar and the correct TrackDash icon."}</p></div></div>
+            <div className="flex items-start gap-3 rounded-lg border p-3"><Search className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">1. {it ? "Cerca TrackDash tra le app del dispositivo" : "Find TrackDash in your device's apps"}</p><p className="text-xs text-muted-foreground">{it ? "Puoi cercarla anche dalle impostazioni delle app." : "You can also look for it in app settings."}</p></div></div>
+            <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {it ? "Aprila oppure rimetti la sua icona nella Home" : "Open it or add its icon back to the Home screen"}</p><p className="text-xs text-muted-foreground">{it ? "La versione installata si apre in modalità app." : "The installed version opens in app mode."}</p></div></div>
           </div>
-          <p className="text-xs text-muted-foreground">{it ? "Se vuoi reinstallarla da zero, disinstalla TrackDash da Impostazioni → App (non limitarti a rimuovere l'icona dalla Home), poi torna in Chrome, aggiorna TrackDash e premi di nuovo Installa TrackDash." : "To reinstall from scratch, uninstall TrackDash from Settings → Apps (do not only remove its Home icon), then return to Chrome, reload TrackDash and tap Install TrackDash again."}</p>
           <DialogFooter><DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} /></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={instructionsOpen} onOpenChange={setInstructionsOpen}>
+      <Dialog open={iosInstructionsOpen} onOpenChange={setIosInstructionsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Download className="size-4" />{it ? "Installa TrackDash" : "Install TrackDash"}</DialogTitle>
-            <DialogDescription>{it ? "Su iPhone e iPad l'installazione passa da Safari e dal menu Condividi." : "On iPhone and iPad, installation uses Safari and the Share menu."}</DialogDescription>
+            <DialogTitle className="flex items-center gap-2"><Download className="size-4" />{it ? "Installa TrackDash su iPhone o iPad" : "Install TrackDash on iPhone or iPad"}</DialogTitle>
+            <DialogDescription>
+              {iosSafari
+                ? (it ? "Su iPhone e iPad Safari installa TrackDash dal menu Condividi." : "On iPhone and iPad, Safari installs TrackDash from the Share menu.")
+                : (it ? "Su iPhone e iPad l'installazione della web app va completata in Safari." : "On iPhone and iPad, web app installation must be completed in Safari.")}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-1 text-sm">
-            <div className="flex items-start gap-3 rounded-lg border p-3"><Share className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">1. {it ? "Apri TrackDash in Safari e tocca Condividi" : "Open TrackDash in Safari and tap Share"}</p><p className="text-xs text-muted-foreground">{it ? "Il pulsante con il quadrato e la freccia verso l'alto." : "The square button with the upward arrow."}</p></div></div>
-            <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {it ? "Aggiungi alla schermata Home" : "Add to Home Screen"}</p><p className="text-xs text-muted-foreground">{it ? "Conferma e TrackDash si aprirà come un'app." : "Confirm and TrackDash will open like an app."}</p></div></div>
+            {!iosSafari ? (
+              <div className="flex items-start gap-3 rounded-lg border p-3"><Share className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">1. {it ? "Apri trackdash.it in Safari" : "Open trackdash.it in Safari"}</p><p className="text-xs text-muted-foreground">{it ? "Chrome, Edge e Firefox su iOS non possono aprire il prompt PWA nativo." : "Chrome, Edge and Firefox on iOS cannot open the native PWA install prompt."}</p></div></div>
+            ) : null}
+            <div className="flex items-start gap-3 rounded-lg border p-3"><Share className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">{iosSafari ? "1." : "2."} {it ? "Tocca Condividi" : "Tap Share"}</p><p className="text-xs text-muted-foreground">{it ? "È il pulsante con il quadrato e la freccia verso l'alto." : "It's the square button with the upward arrow."}</p></div></div>
+            <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">{iosSafari ? "2." : "3."} {it ? "Aggiungi alla schermata Home" : "Add to Home Screen"}</p><p className="text-xs text-muted-foreground">{it ? "Conferma e TrackDash si aprirà dalla Home come app." : "Confirm and TrackDash will open from your Home Screen like an app."}</p></div></div>
+          </div>
+          <DialogFooter><DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} /></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={macInstructionsOpen} onOpenChange={setMacInstructionsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Download className="size-4" />{it ? "Aggiungi TrackDash al Dock" : "Add TrackDash to the Dock"}</DialogTitle>
+            <DialogDescription>{it ? "Su Safari per Mac l'installazione non usa il prompt di Chrome: macOS crea la web app tramite “Aggiungi al Dock”." : "Safari on Mac does not use Chrome's install prompt: macOS creates the web app through Add to Dock."}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-1 text-sm">
+            <div className="flex items-start gap-3 rounded-lg border p-3"><EllipsisVertical className="mt-0.5 size-4 shrink-0 text-brand" /><p className="font-medium">1. {it ? "In Safari scegli File → Aggiungi al Dock" : "In Safari choose File → Add to Dock"}</p></div>
+            <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {it ? "Conferma con Aggiungi" : "Confirm with Add"}</p><p className="mt-1 text-xs text-muted-foreground">{it ? "TrackDash verrà salvata tra le applicazioni e sarà avviabile dal Dock o da Spotlight." : "TrackDash will be saved with your applications and can be launched from the Dock or Spotlight."}</p></div></div>
           </div>
           <DialogFooter><DialogClose render={<Button>{it ? "Ho capito" : "Got it"}</Button>} /></DialogFooter>
         </DialogContent>
@@ -241,7 +291,6 @@ export function PwaInstallManager() {
             <div className="flex items-start gap-3 rounded-lg border p-3"><EllipsisVertical className="mt-0.5 size-4 shrink-0 text-brand" /><p className="font-medium">1. {manualCopy.first}</p></div>
             <div className="flex items-start gap-3 rounded-lg border p-3"><SquarePlus className="mt-0.5 size-4 shrink-0 text-brand" /><div><p className="font-medium">2. {manualCopy.second}</p><p className="mt-1 text-xs text-muted-foreground">{manualCopy.note}</p></div></div>
           </div>
-          <p className="text-xs text-muted-foreground">{it ? "TrackDash considera riuscita l'installazione solo quando il browser crea la vera PWA/app standalone, non una semplice scorciatoia web." : "TrackDash only treats installation as complete when the browser creates the real standalone PWA/app, not a plain web shortcut."}</p>
           <DialogFooter><DialogClose render={<Button>{it ? "Chiudi" : "Close"}</Button>} /></DialogFooter>
         </DialogContent>
       </Dialog>

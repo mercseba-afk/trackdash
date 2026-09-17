@@ -11,26 +11,54 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 }
 
-function usePwaInstalledState() {
-  const [installed, setInstalled] = React.useState(true)
+function isIOSFamily() {
+  if (typeof navigator === "undefined") return false
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+}
+
+function isMacSafari() {
+  if (typeof navigator === "undefined" || isIOSFamily()) return false
+  const ua = navigator.userAgent
+  return /Macintosh|Mac OS X/i.test(ua) && /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua)
+}
+
+function canOfferInstall() {
+  if (typeof window === "undefined" || isStandalone()) return false
+
+  // Chromium should only expose our install CTA after beforeinstallprompt has
+  // actually fired. Showing it earlier produces a misleading fallback because
+  // Chrome applies installability/user-engagement checks before emitting it.
+  if (window.__trackdashInstallPrompt) return true
+
+  // Safari does not expose beforeinstallprompt. On Apple platforms we keep the
+  // CTA visible because installation is a manual browser action instead.
+  return isIOSFamily() || isMacSafari()
+}
+
+function usePwaInstallVisibility() {
+  const [visible, setVisible] = React.useState(false)
 
   React.useEffect(() => {
-    const refresh = () => setInstalled(isStandalone())
-    const markInstalled = () => setInstalled(true)
+    const refresh = () => setVisible(canOfferInstall())
+    const hide = () => setVisible(false)
 
     refresh()
-    window.addEventListener("trackdash:pwa-installed", markInstalled)
+    window.addEventListener("trackdash:pwa-available", refresh)
+    window.addEventListener("trackdash:pwa-state-change", refresh)
+    window.addEventListener("trackdash:pwa-installed", hide)
     window.addEventListener("pageshow", refresh)
     window.addEventListener("focus", refresh)
 
     return () => {
-      window.removeEventListener("trackdash:pwa-installed", markInstalled)
+      window.removeEventListener("trackdash:pwa-available", refresh)
+      window.removeEventListener("trackdash:pwa-state-change", refresh)
+      window.removeEventListener("trackdash:pwa-installed", hide)
       window.removeEventListener("pageshow", refresh)
       window.removeEventListener("focus", refresh)
     }
   }, [])
 
-  return installed
+  return visible
 }
 
 function requestInstall() {
@@ -39,9 +67,9 @@ function requestInstall() {
 
 export function PwaInstallButton() {
   const { locale } = useI18n()
-  const installed = usePwaInstalledState()
+  const visible = usePwaInstallVisibility()
 
-  if (installed) return null
+  if (!visible) return null
 
   const label = locale === "it" ? "Installa TrackDash" : "Install TrackDash"
 
@@ -61,9 +89,9 @@ export function PwaInstallButton() {
 
 export function PwaInstallMenuItem() {
   const { locale } = useI18n()
-  const installed = usePwaInstalledState()
+  const visible = usePwaInstallVisibility()
 
-  if (installed) return null
+  if (!visible) return null
 
   return (
     <DropdownMenuItem onClick={requestInstall}>
