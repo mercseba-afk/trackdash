@@ -251,16 +251,16 @@ export function AppShell({ children, contentMode = "app" }: AppShellProps) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-h-16 flex-1 flex-col items-center justify-center gap-1 px-1 text-[10px] font-semibold transition-colors",
+                "relative flex min-h-16 flex-1 flex-col items-center justify-center gap-1 px-1 text-[10px] font-semibold transition-colors",
                 active ? "text-brand" : "text-muted-foreground",
               )}
             >
               <span className="relative">
                 <item.icon className="size-5" />
                 {isMessages ? <UnreadBadge count={unreadMessages} compact /> : null}
-                {active ? <span className="absolute -bottom-2 left-1/2 h-0.5 w-5 -translate-x-1/2 bg-brand-red" /> : null}
               </span>
               <span className="max-w-[68px] truncate">{t(item.labelKey)}</span>
+              {active ? <span className="absolute bottom-1.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-brand-red" /> : null}
             </Link>
           )
         })}
