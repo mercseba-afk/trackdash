@@ -75,6 +75,20 @@ function totalSoldUnits(evidence: SoldMarketEvidence[]): number {
   return evidence.reduce((sum, row) => sum + Math.max(0, row.salesCount), 0)
 }
 
+function knownSellerDiversity(evidence: SoldMarketEvidence[]): number | null {
+  const bySource = new Map<string, number>()
+  let hasKnownSellerCount = false
+
+  for (const row of evidence) {
+    if (row.sellerCount == null || !Number.isFinite(row.sellerCount) || row.sellerCount < 1) continue
+    hasKnownSellerCount = true
+    bySource.set(row.sourceId, Math.max(bySource.get(row.sourceId) ?? 0, Math.floor(row.sellerCount)))
+  }
+
+  if (!hasKnownSellerCount) return null
+  return [...bySource.values()].reduce((sum, count) => sum + count, 0)
+}
+
 function pricesBroadlyCorroborate(a: number | null, b: number | null, tolerance = 0.3): boolean {
   if (a == null || b == null || a <= 0 || b <= 0) return false
   return Math.abs(a - b) / Math.max(a, b) <= tolerance
@@ -97,6 +111,13 @@ export function publicSoldConfidence(
 
   let score = Math.round(Math.min(100, volume + diversity + freshness + quality.points))
   if (!quality.hasVerified) score = Math.min(score, 70)
+
+  // Repeated sales from one known seller prove that transactions happened,
+  // but they do not represent broad market agreement. Keep the price as real
+  // sold evidence while preventing a single merchant from reaching Medium
+  // confidence on its own.
+  const sellerDiversity = knownSellerDiversity(evidence)
+  if (!quality.hasVerified && sellerDiversity === 1) score = Math.min(score, 49)
 
   return { score, label: confidenceLabel(score) }
 }
