@@ -8,7 +8,7 @@ export const maxDuration = 60
 
 // Temporary, GET-only migration surface. The plaintext token is never stored in
 // the repository; only its SHA-256 digest is committed. Remove after v3 rollout.
-const TOKEN_SHA256 = "8b8af74cd863da7b82fe705d4635b81a57dd40ab518dafcba26614344288b49e"
+const TOKEN_SHA256 = "1851ba7db4b133d6c588fe494bae597d7baa41b1fb20bd910f5d99f0483d7371"
 
 function authorized(request: NextRequest): boolean {
   const supplied = request.nextUrl.searchParams.get("token")
