@@ -107,6 +107,7 @@ export interface TargetedEbayScanInput {
   releaseId: string
   mode: "preview" | "execute"
   expectedItemId?: string
+  allowTargetedPilotWrite?: boolean
 }
 
 function fail(error: { message?: string } | null, context: string): void {
@@ -611,7 +612,9 @@ async function loadTargetJob(client: SupabaseClient, jobId: string, releaseId: s
 
 export async function runEbayActiveMarketScanForRelease(input: TargetedEbayScanInput): Promise<EbayRunResult> {
   if (!ebayBrowseConfigured()) throw new Error("EBAY_BROWSE_NOT_CONFIGURED")
-  if (input.mode === "execute" && !ebayMarketWritesAllowed()) throw new Error("EBAY_MARKET_WRITES_DISABLED")
+  if (input.mode === "execute" && !ebayMarketWritesAllowed() && !input.allowTargetedPilotWrite) {
+    throw new Error("EBAY_MARKET_WRITES_DISABLED")
+  }
   if (input.mode === "execute" && !input.expectedItemId) throw new Error("EBAY_EXPECTED_ITEM_ID_REQUIRED")
 
   const client = createAdminClient()
