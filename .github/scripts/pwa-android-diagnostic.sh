@@ -145,11 +145,24 @@ fi
 adb logcat -c || true
 
 if [ "$TARGET_HOST" = "squoosh.app" ]; then
-  echo '=== SQUOOSH DIRECT INSTALL CONTROL ==='
-  if tap_matching_text "Install"; then
-    sleep 3
-    dump_ui >/tmp/squoosh-install-dialog-ui.txt
-    echo '=== SQUOOSH INSTALL DIALOG ==='
+  echo '=== SQUOOSH CHROME INSTALL MENU CONTROL ==='
+  MENU_BOUNDS="$(python3 - <<'PY'
+import re, xml.etree.ElementTree as ET
+root=ET.parse('/tmp/window.xml').getroot()
+for node in root.iter('node'):
+    if node.attrib.get('resource-id') == 'com.android.chrome:id/menu_button':
+        m=re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', node.attrib.get('bounds',''))
+        if m:
+            x1,y1,x2,y2=map(int,m.groups())
+            print(f"{(x1+x2)//2},{(y1+y2)//2}")
+            break
+PY
+)"
+  if [ -n "$MENU_BOUNDS" ]; then
+    adb shell input tap "${MENU_BOUNDS%,*}" "${MENU_BOUNDS#*,}"
+    sleep 2
+    dump_ui >/tmp/squoosh-chrome-menu-ui.txt
+    echo '=== SQUOOSH CHROME MENU ITEMS ==='
     python3 - <<'PY'
 import xml.etree.ElementTree as ET
 root=ET.parse('/tmp/window.xml').getroot()
@@ -162,17 +175,48 @@ for node in root.iter('node'):
         seen.add(value)
         print(value)
 PY
-    if tap_matching_text "Install"; then
-      echo 'SQUOOSH_NATIVE_INSTALL_CONFIRMED'
+
+    installed=0
+    for label in 'Install app' 'Install Squoosh' 'Install'; do
+      if tap_matching_text "$label"; then
+        echo "SQUOOSH_MENU_INSTALL_TAPPED: $label"
+        sleep 3
+        dump_ui >/tmp/squoosh-install-dialog-ui.txt
+        echo '=== SQUOOSH INSTALL DIALOG ==='
+        python3 - <<'PY'
+import xml.etree.ElementTree as ET
+root=ET.parse('/tmp/window.xml').getroot()
+seen=set()
+for node in root.iter('node'):
+    text=(node.attrib.get('text') or '').strip()
+    desc=(node.attrib.get('content-desc') or '').strip()
+    value=text or desc
+    if value and value not in seen:
+        seen.add(value)
+        print(value)
+PY
+        for confirm in 'Install' 'Add'; do
+          if tap_matching_text "$confirm"; then
+            echo "SQUOOSH_NATIVE_INSTALL_CONFIRMED: $confirm"
+            installed=1
+            break
+          fi
+        done
+        break
+      fi
+    done
+
+    if [ "$installed" -eq 1 ]; then
       sleep 20
       echo '=== SQUOOSH WEBAPK PACKAGES AFTER INSTALL ==='
       adb shell pm list packages | grep -Ei 'webapk|squoosh' || true
       adb shell pm list packages -3 | grep -Ei 'webapk|squoosh' || true
     else
-      echo 'SQUOOSH_NATIVE_INSTALL_CONFIRM_NOT_FOUND'
+      echo 'SQUOOSH_NO_NATIVE_INSTALL_MENU_ITEM'
+      adb shell input keyevent 4 || true
     fi
   else
-    echo 'SQUOOSH_PAGE_INSTALL_BUTTON_NOT_FOUND'
+    echo 'SQUOOSH_CHROME_MENU_BUTTON_NOT_FOUND'
   fi
 else
 echo '=== CHROME INSTALL MENU ==='
