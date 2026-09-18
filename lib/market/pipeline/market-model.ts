@@ -26,6 +26,8 @@ export interface CurrentOfferEvidence {
   sourceId: string
   channel: MarketChannel
   sellerFingerprint?: string | null
+  merchantKey?: string | null
+  marketRegion?: "europe" | "japan" | "north_america" | "asia_pacific" | "global" | "internal" | null
   availability: AvailabilityStatus
   itemPriceEUR: number
   shippingEUR?: number | null
@@ -77,7 +79,10 @@ export interface MarketSignalDraft {
   currentOfferCount: number
   soldUnits: number
   soldSourceCount: number
+  soldSellerCount: number | null
   soldEvidenceCount: number
+  retailRegionCount: number
+  retailRegionalSpreadRatio: number | null
   shippingKnownRatio: number
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | null
@@ -96,6 +101,8 @@ interface OfferRepresentative {
   sourceId: string
   channel: MarketChannel
   sellerFingerprint: string | null
+  merchantKey: string | null
+  marketRegion: CurrentOfferEvidence["marketRegion"]
   itemPriceEUR: number
   shippingEUR: number | null
   effectiveCostEUR: number | null
@@ -200,6 +207,8 @@ function chooseRepresentative(offers: CurrentOfferEvidence[]): OfferRepresentati
       sourceId: offer.sourceId,
       channel: offer.channel,
       sellerFingerprint: offer.sellerFingerprint ?? null,
+      merchantKey: offer.merchantKey ?? null,
+      marketRegion: offer.marketRegion ?? "global",
       itemPriceEUR: cost.itemPriceEUR,
       shippingEUR: cost.shippingEUR,
       effectiveCostEUR: cost.effectiveCostEUR,
@@ -232,9 +241,10 @@ function buildOfferRepresentatives(offers: CurrentOfferEvidence[]): {
 
   for (const offer of current) {
     if (offer.channel === "retail") {
-      const bucket = retailGroups.get(offer.sourceId) ?? []
+      const key = offer.merchantKey || `source:${offer.sourceId}`
+      const bucket = retailGroups.get(key) ?? []
       bucket.push(offer)
-      retailGroups.set(offer.sourceId, bucket)
+      retailGroups.set(key, bucket)
       continue
     }
 
@@ -262,6 +272,48 @@ function anchorForOffers(reps: OfferRepresentative[]): number | null {
   // confidence, but never gets added to the public retail/active market anchors.
   if (!reps.length) return null
   return round2(median(reps.map((rep) => rep.itemPriceEUR)))
+}
+
+function retailAnchorStats(reps: OfferRepresentative[]): {
+  anchorEUR: number | null
+  regionCount: number
+  regionalSpreadRatio: number | null
+} {
+  if (!reps.length) return { anchorEUR: null, regionCount: 0, regionalSpreadRatio: null }
+
+  const byRegion = new Map<string, number[]>()
+  for (const rep of reps) {
+    const region = rep.marketRegion || "global"
+    const bucket = byRegion.get(region) ?? []
+    bucket.push(rep.itemPriceEUR)
+    byRegion.set(region, bucket)
+  }
+
+  const regionalAnchors = [...byRegion.values()].map((values) => median(values))
+  const anchorEUR = round2(median(regionalAnchors))
+  const regionalSpreadRatio = regionalAnchors.length >= 2
+    ? round2(Math.max(...regionalAnchors) / Math.min(...regionalAnchors))
+    : null
+
+  return {
+    anchorEUR,
+    regionCount: regionalAnchors.length,
+    regionalSpreadRatio,
+  }
+}
+
+function knownSoldSellerCount(evidence: SoldMarketEvidence[]): number | null {
+  const bySource = new Map<string, number>()
+  let known = false
+
+  for (const row of evidence) {
+    if (row.sellerCount == null || !Number.isFinite(row.sellerCount) || row.sellerCount < 1) continue
+    known = true
+    bySource.set(row.sourceId, Math.max(bySource.get(row.sourceId) ?? 0, Math.floor(row.sellerCount)))
+  }
+
+  if (!known) return null
+  return [...bySource.values()].reduce((sum, count) => sum + count, 0)
 }
 
 function ageDays(periodEnd: string, asOfDate: string): number {
@@ -529,7 +581,8 @@ export function computeCurrentMarketSignal(input: {
   asOfDate: string
 }): MarketSignalDraft {
   const offers = buildOfferRepresentatives(input.offers)
-  const retailAnchorEUR = anchorForOffers(offers.retail)
+  const retailStats = retailAnchorStats(offers.retail)
+  const retailAnchorEUR = retailStats.anchorEUR
   const activeAnchorEUR = anchorForOffers(offers.active)
   const soldAnchorEUR = soldAnchor(input.soldEvidence, input.asOfDate)
   const retailSourceCount = new Set(offers.retail.map((item) => item.sourceId)).size
@@ -537,6 +590,7 @@ export function computeCurrentMarketSignal(input: {
   const currentOfferCount = offers.current.length
   const soldUnits = input.soldEvidence.reduce((sum, item) => sum + Math.max(0, item.salesCount), 0)
   const soldSourceCount = new Set(input.soldEvidence.map((item) => item.sourceId)).size
+  const soldSellerCount = knownSoldSellerCount(input.soldEvidence)
   const soldEvidenceCount = input.soldEvidence.length
   const shippingKnownCount = offers.current.filter((item) => item.costBasis === "delivered").length
   const shippingKnownRatio = currentOfferCount ? round2(shippingKnownCount / currentOfferCount) : 0
@@ -597,7 +651,10 @@ export function computeCurrentMarketSignal(input: {
     currentOfferCount,
     soldUnits,
     soldSourceCount,
+    soldSellerCount,
     soldEvidenceCount,
+    retailRegionCount: retailStats.regionCount,
+    retailRegionalSpreadRatio: retailStats.regionalSpreadRatio,
     shippingKnownRatio,
     trendPercent: trend.percent,
     trendWindowMonths: trend.window,
