@@ -8,6 +8,7 @@ export const maxDuration = 60
 
 const RELEASE_ID = "ace0d1b1-aaf3-589a-977c-a3df07c83c73"
 const JOB_ID = "c4e0e98c-3c88-43d2-a405-9a33bdee0a8f"
+const EXPECTED_ITEM_ID = "v1|305388775226|0"
 const TOKEN_SHA256 = "b263e5d7c81c3972dde24fba190dcd673043977f5a74763b426d39adb72f2307"
 
 function authorized(request: NextRequest): boolean {
@@ -24,13 +25,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const mode = request.nextUrl.searchParams.get("mode") === "execute" ? "execute" : "preview"
     const result = await runEbayActiveMarketScanForRelease({
       releaseId: RELEASE_ID,
       jobId: JOB_ID,
-      mode: "preview",
+      mode,
+      expectedItemId: mode === "execute" ? EXPECTED_ITEM_ID : undefined,
+      allowTargetedPilotWrite: mode === "execute",
     })
-    const diagnostics = await runEbayPreviewDiagnostics(RELEASE_ID, JOB_ID)
-    return NextResponse.json({ ok: true, result, diagnostics })
+    const diagnostics = mode === "preview"
+      ? await runEbayPreviewDiagnostics(RELEASE_ID, JOB_ID)
+      : undefined
+    return NextResponse.json({ ok: true, mode, result, diagnostics })
   } catch (error) {
     const code = error instanceof Error ? error.message.split(":", 1)[0] : "EBAY_95467_PREVIEW_FAILED"
     console.error("[ebay-95467-preview] failed", code)
