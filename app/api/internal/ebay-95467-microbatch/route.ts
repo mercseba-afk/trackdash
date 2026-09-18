@@ -6,7 +6,7 @@ import { runEbayPreviewDiagnostics } from "@/lib/market/automation/ebay-preview-
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-// Production endpoint is intentionally POST-only and protected by EBAY_MICROBATCH_SECRET.
+// Production surface is intentionally POST-only and protected by EBAY_MICROBATCH_SECRET.
 
 const RELEASE_ID = "ace0d1b1-aaf3-589a-977c-a3df07c83c73"
 const JOB_ID = "c4e0e98c-3c88-43d2-a405-9a33bdee0a8f"
