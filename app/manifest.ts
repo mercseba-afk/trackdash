@@ -2,20 +2,19 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    id: "/",
     name: "TrackDash",
     short_name: "TrackDash",
     description: "Mini 4WD collection, marketplace and Price Intelligence.",
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f8fafc",
-    theme_color: "#f8fafc",
+    background_color: "#080d18",
+    theme_color: "#080d18",
     orientation: "portrait-primary",
     icons: [
-      { src: "/pwa/icon-v5-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/pwa/icon-v5.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/pwa/icon-v5-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/pwa/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/pwa/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png", purpose: "any" },
     ],
   }
 }
