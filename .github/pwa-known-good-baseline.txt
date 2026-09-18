@@ -1,0 +1,2 @@
+Historical PWA baseline for isolated diagnostic preview.
+Base commit: e443a222ce582bc0789b92bf6dd63d8c6dd0b0d5
