@@ -50,7 +50,7 @@ adb shell am force-stop com.android.chrome
 # A fresh Play Store emulator can ignore the first VIEW intent while Chrome
 # initializes. Launch twice before inspecting the first-run UI.
 for attempt in 1 2; do
-  adb shell am start -a android.intent.action.VIEW -d "https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA&android-diag=fre-$attempt" com.android.chrome || true
+  adb shell am start -a android.intent.action.VIEW -d "https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA" com.android.chrome || true
   sleep 5
 done
 
@@ -92,7 +92,7 @@ if [ "$chrome_ready" -ne 1 ]; then
 fi
 
 # Open TrackDash again only after the first-run experience is cleared.
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA&android-diag=ready' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d 'https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA' com.android.chrome
 sleep 15
 
 echo '=== ANDROID CHROME ENGAGEMENT GATE ==='
@@ -103,7 +103,7 @@ adb shell input tap 540 1300
 sleep 35
 
 echo '=== RELOAD AFTER ENGAGEMENT ==='
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA&android-diag=post-engagement' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d 'https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA' com.android.chrome
 sleep 12
 
 echo '=== TRACKDASH CHROME UI ==='
@@ -231,7 +231,7 @@ else
 fi
 
 # Return to the TrackDash browser tab before CDP inspection.
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA&android-diag=cdp' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d 'https://trackdash-6u4em0df8-mercseba-8773.vercel.app/?_vercel_share=I8wntxxrcQGoC6Zw6Cb4oV0wEImWqrFA' com.android.chrome
 sleep 8
 
 echo '=== CDP SOCKETS ==='
