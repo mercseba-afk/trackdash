@@ -36,7 +36,7 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect
           emulator-boot-timeout: 600
           script: |
-            set -euo pipefail
+            set -eu
 
             echo '=== ANDROID BUILD ==='
             adb shell getprop ro.build.version.release
