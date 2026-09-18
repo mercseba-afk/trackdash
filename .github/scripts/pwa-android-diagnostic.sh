@@ -142,11 +142,93 @@ for node in root.iter('node'):
         seen.add(value)
         print(value)
 PY
-  adb shell input keyevent 4
-  sleep 1
+
+  echo '=== OPEN ADD TO HOME SCREEN ==='
+  if tap_matching_text "Add to Home screen"; then
+    sleep 3
+    dump_ui >/tmp/a2hs-dialog-ui.txt
+    python3 - <<'PY'
+import xml.etree.ElementTree as ET
+root=ET.parse('/tmp/window.xml').getroot()
+seen=set()
+for node in root.iter('node'):
+    text=(node.attrib.get('text') or '').strip()
+    desc=(node.attrib.get('content-desc') or '').strip()
+    value=text or desc
+    if value and value not in seen:
+        seen.add(value)
+        print(value)
+PY
+
+    echo '=== CONFIRM A2HS/INSTALL ==='
+    confirmed=0
+    for label in 'Install' 'Add to Home screen' 'Add'; do
+      if tap_matching_text "$label"; then
+        confirmed=1
+        echo "Confirmed with: $label"
+        break
+      fi
+    done
+
+    if [ "$confirmed" -eq 1 ]; then
+      sleep 15
+      echo '=== WEBAPK PACKAGES AFTER INSTALL ==='
+      adb shell pm list packages | grep -Ei 'webapk|trackdash' || true
+      adb shell pm list packages -3 | grep -Ei 'webapk|trackdash' || true
+
+      echo '=== LAUNCHER AFTER INSTALL ==='
+      adb shell input keyevent 3
+      sleep 3
+      dump_ui >/tmp/launcher-after-install.txt
+      python3 - <<'PY'
+import xml.etree.ElementTree as ET
+root=ET.parse('/tmp/window.xml').getroot()
+for node in root.iter('node'):
+    text=(node.attrib.get('text') or '').strip()
+    desc=(node.attrib.get('content-desc') or '').strip()
+    if 'trackdash' in (text + ' ' + desc).lower():
+        print('TRACKDASH_LAUNCHER_NODE', node.attrib)
+PY
+
+      WEBAPK_PACKAGE="$(adb shell pm list packages | sed 's/^package://' | grep -Ei 'webapk|trackdash' | head -1 | tr -d '\r' || true)"
+      if [ -n "$WEBAPK_PACKAGE" ]; then
+        echo "=== LAUNCH INSTALLED PACKAGE: $WEBAPK_PACKAGE ==="
+        adb shell monkey -p "$WEBAPK_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+        sleep 8
+        dump_ui >/tmp/installed-app-ui.txt
+        python3 - <<'PY'
+import xml.etree.ElementTree as ET
+root=ET.parse('/tmp/window.xml').getroot()
+ids=[]
+texts=[]
+for node in root.iter('node'):
+    rid=node.attrib.get('resource-id') or ''
+    if rid:
+        ids.append(rid)
+    text=(node.attrib.get('text') or '').strip()
+    if text:
+        texts.append(text)
+print('HAS_CHROME_URL_BAR', any('url_bar' in x for x in ids))
+print('HAS_CHROME_TOOLBAR', any('toolbar' in x and 'chrome' in x for x in ids))
+print('VISIBLE_TEXT_SAMPLE', texts[:25])
+PY
+      else
+        echo 'NO_WEBAPK_PACKAGE_FOUND'
+      fi
+    else
+      echo 'NO_CONFIRM_BUTTON_FOUND'
+    fi
+  else
+    echo 'ADD_TO_HOME_SCREEN_MENU_ITEM_NOT_FOUND'
+    adb shell input keyevent 4
+  fi
 else
   echo 'CHROME_MENU_BUTTON_NOT_FOUND'
 fi
+
+# Return to the TrackDash browser tab before CDP inspection.
+adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=cdp' com.android.chrome
+sleep 8
 
 echo '=== CDP SOCKETS ==='
 adb shell cat /proc/net/unix | grep -E 'chrome.*devtools|devtools.*chrome' || true
