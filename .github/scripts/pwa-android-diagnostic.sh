@@ -81,6 +81,14 @@ sleep 15
 echo '=== TRACKDASH CHROME UI ==='
 dump_ui
 
+echo '=== SATISFY CHROME INSTALL ENGAGEMENT ==='
+# A trusted tap on non-interactive hero text plus >30s viewing time satisfies
+# Chrome's documented beforeinstallprompt engagement heuristic.
+adb shell input tap 500 1000
+sleep 35
+echo '=== TRACKDASH UI AFTER ENGAGEMENT ==='
+dump_ui
+
 echo '=== CHROME INSTALL MENU ==='
 MENU_BOUNDS="$(python3 - <<'PY'
 import re, xml.etree.ElementTree as ET
