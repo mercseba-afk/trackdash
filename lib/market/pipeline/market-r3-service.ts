@@ -59,9 +59,9 @@ export async function recomputeReleaseMarketSignal(
     asOfDate,
   })
 
-  // Public v2 keeps demonstrated sold value, verified retail and current seller
-  // asks as separate concepts. Confidence is recalibrated from the completed-sale
-  // evidence behind the headline, not from unrelated asking-price volume.
+  // Public v3 keeps completed-sale value primary, uses region-aware current retail
+  // as corroboration/fallback, and keeps active seller ASK prices separate from
+  // Market Value. Confidence follows the evidence behind the published headline.
   const signal = applyPublicMarketPublicationPolicy(computedSignal, soldEvidence, asOfDate)
 
   await repo.upsertReleaseSignal(releaseId, condition, signal)
