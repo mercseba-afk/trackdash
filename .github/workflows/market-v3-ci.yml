@@ -1,0 +1,37 @@
+name: Market Method v3 CI
+
+on:
+  push:
+    branches:
+      - feat/market-method-v3-public-20260918
+    paths:
+      - ".github/workflows/market-v3-ci.yml"
+      - "lib/market/**"
+      - "lib/db/schema/market-r3.ts"
+      - "components/market-bits.tsx"
+      - "components/market-signal-inline.tsx"
+      - "components/screens/release-detail-screen.tsx"
+      - "scripts/test-market-*.mjs"
+      - "package.json"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm market:r3:test
+      - run: pnpm market:method:test
+      - run: pnpm market:public:test
