@@ -38,6 +38,37 @@ ok("18069 shadow: region-balanced retail plus sold context gives a sane current 
   assert.equal(audit.reasons.includes("HISTORICAL_SOLD_CORROBORATES_RETAIL"), true)
 })
 
+
+ok("two strongly split retail regions do not manufacture a global midpoint", () => {
+  const audit = buildMarketAudit({
+    retailOffers: [
+      { stableId: "jp-a", sourceId: "jp-a", merchantKey: "jp-a", region: "japan", availability: "in_stock", itemPriceEUR: 5.5 },
+      { stableId: "eu-a", sourceId: "eu-a", merchantKey: "eu-a", region: "europe", availability: "in_stock", itemPriceEUR: 17.7 },
+    ],
+    currentSoldEvidence: [],
+  })
+  assert.equal(audit.retailMerchantCount, 2)
+  assert.equal(audit.retailRegionCount, 2)
+  assert.ok(audit.regionalRetailSpreadRatio >= 3)
+  assert.equal(audit.reasons.includes("REGIONAL_RETAIL_SPLIT"), true)
+  assert.equal(audit.suggestedValueEUR, null)
+  assert.equal(audit.status, "thin")
+})
+
+ok("three regions use the regional median instead of letting one cheap region dominate", () => {
+  const audit = buildMarketAudit({
+    retailOffers: [
+      { stableId: "jp-a", sourceId: "jp-a", merchantKey: "jp-a", region: "japan", availability: "in_stock", itemPriceEUR: 5.5 },
+      { stableId: "eu-a", sourceId: "eu-a", merchantKey: "eu-a", region: "europe", availability: "in_stock", itemPriceEUR: 17.7 },
+      { stableId: "us-a", sourceId: "us-a", merchantKey: "us-a", region: "north_america", availability: "in_stock", itemPriceEUR: 16.2 },
+    ],
+    currentSoldEvidence: [],
+  })
+  assert.equal(audit.status, "ready")
+  assert.equal(audit.suggestedValueEUR, 16.2)
+  assert.equal(audit.reasons.includes("REGIONAL_RETAIL_SPLIT"), true)
+})
+
 ok("same merchant on two storefronts gets one retail vote", () => {
   const audit = buildMarketAudit({
     retailOffers: [

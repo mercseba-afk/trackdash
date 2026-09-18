@@ -53,6 +53,7 @@ export interface MarketAuditResult {
   activeAskAnchorEUR: number | null
   retailMerchantCount: number
   retailRegionCount: number
+  regionalRetailSpreadRatio: number | null
   soldUnits: number
   soldSourceCount: number
   knownSoldSellerCount: number | null
@@ -188,15 +189,28 @@ export function buildMarketAudit(input: MarketAuditInput): MarketAuditResult {
     (hasVerifiedCurrentSale || soldSourceCount >= 2 || (sellerCount != null && sellerCount >= 2))
   const retailQualified = retail.anchor != null && retail.merchantCount >= 2
   const retailRegionDiverse = retail.regionCount >= 2
+  const regionalValues = retail.regionalRetail.map((row) => row.medianEUR).filter((value) => value > 0)
+  const regionalRetailSpreadRatio = regionalValues.length >= 2
+    ? round2(Math.max(...regionalValues) / Math.min(...regionalValues))
+    : null
+  const severeRegionalSplit = regionalRetailSpreadRatio != null && regionalRetailSpreadRatio >= 1.75
 
   const reasons: string[] = []
   if (currentSoldAnchorEUR != null && sellerCount === 1 && !hasVerifiedCurrentSale) reasons.push("SOLD_SINGLE_SELLER_CONCENTRATION")
   if (retail.anchor != null && retail.merchantCount < 2) reasons.push("RETAIL_SINGLE_MERCHANT")
   if (retailQualified && !retailRegionDiverse) reasons.push("RETAIL_SINGLE_REGION")
+  if (severeRegionalSplit) reasons.push("REGIONAL_RETAIL_SPLIT")
   if (asks.anchor != null && !retailQualified && !soldQualified) reasons.push("ASK_ONLY_CONTEXT")
 
+  // Two strongly divergent regional retail markets must not be averaged into a
+  // fake global price. With 3+ regions the median remains robust to one extreme
+  // regional lane; with only two regions we need completed-sale corroboration.
+  const retailCanHeadline =
+    retailQualified &&
+    (!severeRegionalSplit || retail.regionCount >= 3 || soldQualified)
+
   const headlineAnchors: number[] = []
-  if (retailQualified && retail.anchor != null) headlineAnchors.push(retail.anchor)
+  if (retailCanHeadline && retail.anchor != null) headlineAnchors.push(retail.anchor)
   if (soldQualified && currentSoldAnchorEUR != null) headlineAnchors.push(currentSoldAnchorEUR)
 
   // Broad historical sold evidence may corroborate a current retail-led market,
@@ -228,7 +242,7 @@ export function buildMarketAudit(input: MarketAuditInput): MarketAuditResult {
 
   let status: MarketAuditStatus = "insufficient"
   if (conflictGap != null && conflictGap > 0.5) status = "conflict"
-  else if (suggestedValueEUR != null && (retailQualified || soldQualified)) status = "ready"
+  else if (suggestedValueEUR != null && (retailCanHeadline || soldQualified)) status = "ready"
   else if (observed.length) status = "thin"
 
   let confidence: MarketAuditConfidence = "low"
@@ -266,6 +280,7 @@ export function buildMarketAudit(input: MarketAuditInput): MarketAuditResult {
     activeAskAnchorEUR: asks.anchor,
     retailMerchantCount: retail.merchantCount,
     retailRegionCount: retail.regionCount,
+    regionalRetailSpreadRatio,
     soldUnits,
     soldSourceCount,
     knownSoldSellerCount: sellerCount,
