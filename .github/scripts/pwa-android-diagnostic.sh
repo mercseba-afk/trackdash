@@ -56,7 +56,8 @@ adb shell am force-stop com.android.chrome
 # A fresh Play Store emulator can ignore the first VIEW intent while Chrome
 # initializes. Launch twice before inspecting the first-run UI.
 for attempt in 1 2; do
-  adb shell am start -a android.intent.action.VIEW -d "${TARGET_ORIGIN}/?android-diag=fre-$attempt" com.android.chrome || true
+  BOOT_URL="${TARGET_BOOTSTRAP_URL:-${TARGET_ORIGIN}/?android-diag=fre-$attempt}"
+  adb shell am start -a android.intent.action.VIEW -d "$BOOT_URL" com.android.chrome || true
   sleep 5
 done
 
