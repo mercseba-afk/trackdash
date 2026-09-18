@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    id: "/",
     name: "TrackDash",
     short_name: "TrackDash",
     description: "Mini 4WD collection, marketplace and Price Intelligence.",
