@@ -57,22 +57,39 @@ done
 echo '=== INITIAL CHROME UI ==='
 dump_ui
 
-# Complete any Chrome first-run/sign-in screens. Refresh the UI dump after
-# every tap because the next page can use a different button label.
-for round in 1 2 3 4 5; do
+# Chrome's first-run UI can appear several seconds after the VIEW intent.
+# Poll until the normal toolbar exists instead of assuming the first dump is final.
+chrome_ready=0
+for round in $(seq 1 20); do
+  dump_ui >/tmp/chrome-fre-ui.txt
+
+  if grep -q 'com.android.chrome:id/url_bar' /tmp/window.xml 2>/dev/null; then
+    chrome_ready=1
+    echo "Chrome main UI ready on round $round"
+    break
+  fi
+
   handled=0
   for label in 'Use without an account' 'Accept & continue' 'No thanks' 'Got it'; do
     if tap_matching_text "$label"; then
       handled=1
-      sleep 4
-      dump_ui
+      echo "Handled Chrome first-run control: $label"
+      sleep 3
       break
     fi
   done
+
   if [ "$handled" -eq 0 ]; then
-    break
+    echo "Waiting for Chrome first-run UI (round $round)"
+    sleep 3
   fi
 done
+
+if [ "$chrome_ready" -ne 1 ]; then
+  echo 'CHROME_FIRST_RUN_DID_NOT_COMPLETE'
+  dump_ui
+  exit 4
+fi
 
 # Open TrackDash again only after the first-run experience is cleared.
 adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=ready' com.android.chrome
