@@ -200,6 +200,7 @@ export class MarketR3Repository {
       .eq("condition", condition)
       .eq("status", "active")
       .eq("needs_revalidation", false)
+      .eq("valuation_eligible", true)
       .not("market_price_eur", "is", null)
     fail(pointError, "load R3 granular sold evidence")
 
@@ -207,7 +208,7 @@ export class MarketR3Repository {
     const candidateIds = (points ?? []).map((row: any) => row.candidate_id)
     const { data: candidates, error: candidateError } = await this.client
       .from("market_candidates")
-      .select("id,source_record_key,decision,reason_codes")
+      .select("id,source_record_key,decision,reason_codes,seller_fingerprint")
       .in("id", candidateIds)
     fail(candidateError, "load R3 sold candidate audit state")
 
@@ -222,6 +223,7 @@ export class MarketR3Repository {
         sourceId: row.source_id,
         averagePriceEUR: price,
         salesCount: 1,
+        sellerCount: candidate.seller_fingerprint ? 1 : null,
         periodStart: row.sold_on,
         periodEnd: row.sold_on,
         grain: "event" as const,
@@ -233,7 +235,7 @@ export class MarketR3Repository {
   async listAggregateSoldEvidence(releaseId: string, condition: MarketCondition): Promise<StoredAggregateEvidence[]> {
     const { data, error } = await this.client
       .from("market_aggregate_observations")
-      .select("id,release_id,item_number,source_id,attribution_status,grain,period_start,period_end,query_key,sales_count,market_average_eur,evidence_grade")
+      .select("id,release_id,item_number,source_id,attribution_status,grain,period_start,period_end,query_key,sales_count,seller_count,market_average_eur,evidence_grade")
       .eq("release_id", releaseId)
       .eq("condition", condition)
       .in("attribution_status", ["release_exact", "release_matched"])
@@ -253,6 +255,7 @@ export class MarketR3Repository {
         sourceId: row.source_id,
         averagePriceEUR: price,
         salesCount: row.sales_count,
+        sellerCount: row.seller_count,
         periodStart: row.period_start,
         periodEnd: row.period_end,
         grain: row.grain as Exclude<SoldEvidenceGrain, "event">,
