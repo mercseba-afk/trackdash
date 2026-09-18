@@ -3,7 +3,7 @@ name: PWA Android Chrome diagnostic
 on:
   push:
     branches:
-      - main
+      - diag/pwa-current-without-id
     paths:
       - ".github/workflows/pwa-android-chrome-diagnostic.yml"
       - ".github/scripts/pwa-android-diagnostic.sh"
@@ -14,19 +14,11 @@ permissions:
 
 jobs:
   inspect-android-chrome:
-    name: inspect-android-chrome (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 18
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - label: trackdash
-            target_origin: https://trackdash.it
-          - label: squoosh-control
-            target_origin: https://squoosh.app
     env:
-      TARGET_ORIGIN: ${{ matrix.target_origin }}
+      TARGET_ORIGIN: https://trackdash-jxlgiby15-mercseba-8773.vercel.app
+      TARGET_BOOTSTRAP_URL: https://trackdash-jxlgiby15-mercseba-8773.vercel.app/?_vercel_share=cKgoAkhGMMGvX1WiwNp4bmneVAJpe4wT
     steps:
       - uses: actions/checkout@v4
 
