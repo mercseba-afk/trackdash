@@ -1,0 +1,33 @@
+name: eBay 95467 preview probe
+
+on:
+  push:
+    branches:
+      - diag/ebay-95467-preview-20260918
+    paths:
+      - ".github/workflows/ebay-95467-preview-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EBAY_MICROBATCH_SECRET: ${{ secrets.EBAY_MICROBATCH_SECRET }}
+    steps:
+      - name: Verify secret exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$EBAY_MICROBATCH_SECRET" || { echo "EBAY_MICROBATCH_SECRET_MISSING"; exit 2; }
+      - name: Run production preview only
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o preview.json -w "%{http_code}"             -X POST "https://trackdash.it/api/internal/ebay-95467-microbatch"             -H "Authorization: Bearer $EBAY_MICROBATCH_SECRET"             -H "Content-Type: application/json"             --data '{"mode":"preview"}')"
+          echo "HTTP_STATUS=$code"
+          cat preview.json
+          echo
+          test "$code" = "200"
