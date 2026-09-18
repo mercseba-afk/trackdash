@@ -118,11 +118,48 @@ dump_ui
 echo '=== SATISFY CHROME INSTALL ENGAGEMENT ==='
 # A trusted tap on non-interactive hero text plus >30s viewing time satisfies
 # Chrome's documented beforeinstallprompt engagement heuristic.
-adb shell input tap 500 1000
+if [ "$TARGET_HOST" = "squoosh.app" ]; then
+  adb shell input tap 540 1800
+else
+  adb shell input tap 500 1000
+fi
 sleep 35
 echo '=== TRACKDASH UI AFTER ENGAGEMENT ==='
 dump_ui
 
+adb logcat -c || true
+
+if [ "$TARGET_HOST" = "squoosh.app" ]; then
+  echo '=== SQUOOSH DIRECT INSTALL CONTROL ==='
+  if tap_matching_text "Install"; then
+    sleep 3
+    dump_ui >/tmp/squoosh-install-dialog-ui.txt
+    echo '=== SQUOOSH INSTALL DIALOG ==='
+    python3 - <<'PY'
+import xml.etree.ElementTree as ET
+root=ET.parse('/tmp/window.xml').getroot()
+seen=set()
+for node in root.iter('node'):
+    text=(node.attrib.get('text') or '').strip()
+    desc=(node.attrib.get('content-desc') or '').strip()
+    value=text or desc
+    if value and value not in seen:
+        seen.add(value)
+        print(value)
+PY
+    if tap_matching_text "Install"; then
+      echo 'SQUOOSH_NATIVE_INSTALL_CONFIRMED'
+      sleep 20
+      echo '=== SQUOOSH WEBAPK PACKAGES AFTER INSTALL ==='
+      adb shell pm list packages | grep -Ei 'webapk|squoosh' || true
+      adb shell pm list packages -3 | grep -Ei 'webapk|squoosh' || true
+    else
+      echo 'SQUOOSH_NATIVE_INSTALL_CONFIRM_NOT_FOUND'
+    fi
+  else
+    echo 'SQUOOSH_PAGE_INSTALL_BUTTON_NOT_FOUND'
+  fi
+else
 echo '=== CHROME INSTALL MENU ==='
 MENU_BOUNDS="$(python3 - <<'PY'
 import re, xml.etree.ElementTree as ET
@@ -235,6 +272,11 @@ PY
 else
   echo 'CHROME_MENU_BUTTON_NOT_FOUND'
 fi
+
+fi
+
+echo '=== WEBAPK/INSTALL LOGCAT ==='
+adb logcat -d | grep -Ei 'webapk|add.?to.?home|installable|shortcut' | tail -200 || true
 
 # Return to the TrackDash browser tab before CDP inspection.
 adb shell am start -a android.intent.action.VIEW -d "${TARGET_ORIGIN}/?android-diag=cdp" com.android.chrome
