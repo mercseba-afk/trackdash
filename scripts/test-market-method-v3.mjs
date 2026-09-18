@@ -91,10 +91,16 @@ ok("18614: liquid standard kit follows the recent 10-sale window", () => {
   assert.equal(result.confidenceLabel, "medium")
 })
 
-ok("95467: five sales from one known seller do not create a broad public value alone", () => {
-  const selected = [
-    sold({ id: "95467-current", price: 14.92, count: 5, sellerCount: 1, start: "2026-06-12", end: "2026-08-20", grain: "rolling_window" }),
-  ]
+ok("95467: a recent window inherits proven single-seller concentration from its covering history", () => {
+  const selected = selectCurrentSoldEvidence({
+    granular: [],
+    aggregate: [
+      sold({ id: "95467-history", price: 13.25, count: 37, sellerCount: 1, start: "2023-09-10", end: "2026-08-20" }),
+      sold({ id: "95467-current", price: 14.92, count: 5, sellerCount: null, start: "2026-06-12", end: "2026-08-20", grain: "rolling_window" }),
+    ],
+    asOfDate,
+  })
+  assert.equal(selected[0].sellerCount, 1)
   const result = publish(selected)
   assert.equal(result.soldAnchorEUR, 14.92)
   assert.equal(result.marketValueEUR, null)
