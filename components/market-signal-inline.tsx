@@ -31,7 +31,7 @@ export function MarketSignalInline({
     <div className="flex flex-col gap-1">
       {hasValue ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-lg font-semibold tabular-nums">{formatMoney(signal.valueEUR!)}</span>
+          <span className="text-lg font-semibold tabular-nums">≈ {formatMoney(signal.valueEUR!)}</span>
           {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} /> : null}
         </div>
       ) : hasCleanActiveAsk ? (
@@ -46,7 +46,7 @@ export function MarketSignalInline({
       )}
       {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
         <span className="text-xs text-muted-foreground">
-          {it ? "Da" : "From"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
+          {it ? "Disponibile da" : "Available from"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
         </span>
       ) : null}
     </div>
