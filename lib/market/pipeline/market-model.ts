@@ -585,7 +585,8 @@ export function computeCurrentMarketSignal(input: {
   const retailAnchorEUR = retailStats.anchorEUR
   const activeAnchorEUR = anchorForOffers(offers.active)
   const soldAnchorEUR = soldAnchor(input.soldEvidence, input.asOfDate)
-  const retailSourceCount = new Set(offers.retail.map((item) => item.sourceId)).size
+  // Retail representatives are already deduplicated by economic merchant.
+  const retailSourceCount = offers.retail.length
   const activeOfferCount = offers.active.length
   const currentOfferCount = offers.current.length
   const soldUnits = input.soldEvidence.reduce((sum, item) => sum + Math.max(0, item.salesCount), 0)
