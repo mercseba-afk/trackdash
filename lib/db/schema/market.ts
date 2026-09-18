@@ -33,6 +33,8 @@ export const priceSources = pgTable(
     sourceType: text("source_type").notNull(),
     origin: text("origin").notNull().default("external_market"),
     ingestionMode: text("ingestion_mode").notNull().default("disabled"),
+    marketRegion: text("market_region").notNull().default("global"),
+    merchantKey: text("merchant_key"),
     isActive: boolean("is_active").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -43,7 +45,11 @@ export const priceSources = pgTable(
     ),
     check(
       "price_sources_ingestion_mode_check",
-      sql`${table.ingestionMode} in ('api', 'licensed_feed', 'manual', 'internal', 'disabled')`,
+      sql`${table.ingestionMode} in ('api', 'licensed_feed', 'public_web', 'manual', 'internal', 'disabled')`,
+    ),
+    check(
+      "price_sources_market_region_check",
+      sql`${table.marketRegion} in ('europe', 'japan', 'north_america', 'asia_pacific', 'global', 'internal')`,
     ),
     pgPolicy("price_sources_public_read", {
       for: "select",
