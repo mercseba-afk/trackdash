@@ -20,7 +20,6 @@ adb shell pm enable com.android.chrome || true
 
 adb shell am force-stop com.android.chrome
 adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=1' com.android.chrome
-sleep 8
 
 dump_ui() {
   adb shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 || true
@@ -49,15 +48,33 @@ raise SystemExit(1)
 PY
 }
 
-echo '=== INITIAL CHROME UI ==='
-dump_ui
+echo '=== COMPLETE CHROME FIRST RUN ==='
+for attempt in $(seq 1 12); do
+  sleep 3
+  dump_ui >/tmp/chrome-ui.txt || true
 
-for label in 'Accept & continue' 'Use without an account' 'No thanks' 'Got it'; do
-  if tap_matching_text "$label"; then
-    sleep 4
-    dump_ui
+  handled=0
+  for label in 'Accept & continue' 'Use without an account' 'No thanks' 'Got it'; do
+    if tap_matching_text "$label"; then
+      echo "Handled Chrome first-run control: $label"
+      handled=1
+      sleep 3
+      break
+    fi
+  done
+
+  if grep -q 'com.android.chrome:id/url_bar' /tmp/window.xml 2>/dev/null; then
+    echo 'Chrome main UI is ready'
+    break
+  fi
+
+  if [ "$handled" -eq 0 ]; then
+    echo "Waiting for Chrome first-run UI (attempt $attempt)"
   fi
 done
+
+echo '=== CHROME UI AFTER FIRST RUN ==='
+dump_ui
 
 adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=2' com.android.chrome
 sleep 15
