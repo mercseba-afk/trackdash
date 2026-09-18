@@ -11,6 +11,7 @@ on:
       - "components/market-bits.tsx"
       - "components/market-signal-inline.tsx"
       - "components/screens/release-detail-screen.tsx"
+      - "app/api/internal/recompute-market-v3/route.ts"
       - "scripts/test-market-*.mjs"
       - "package.json"
 
