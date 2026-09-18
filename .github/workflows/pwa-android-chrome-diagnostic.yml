@@ -14,8 +14,19 @@ permissions:
 
 jobs:
   inspect-android-chrome:
+    name: inspect-android-chrome (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: trackdash
+            target_origin: https://trackdash.it
+          - label: squoosh-control
+            target_origin: https://squoosh.app
+    env:
+      TARGET_ORIGIN: ${{ matrix.target_origin }}
     steps:
       - uses: actions/checkout@v4
 
