@@ -6,6 +6,7 @@ import { runEbayPreviewDiagnostics } from "@/lib/market/automation/ebay-preview-
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+// 18069 one-time production pilot.
 const RELEASE_ID = "f576fa21-8e57-5fa0-953e-f468653e3767"
 const JOB_ID = "0f89b056-3740-462b-b3b2-7c32f4db2476"
 const TOKEN_SHA256 = "8e4891895d0de94fed1c5fd2e4ce232e5903d8c033d96ee01a786412adadb934"
