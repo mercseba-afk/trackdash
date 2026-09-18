@@ -4,6 +4,7 @@ set -euo pipefail
 TARGET_ORIGIN="${TARGET_ORIGIN:-https://trackdash.it}"
 TARGET_HOST="${TARGET_ORIGIN#https://}"
 TARGET_HOST="${TARGET_HOST%%/*}"
+export TARGET_ORIGIN TARGET_HOST
 echo "=== TARGET ORIGIN: $TARGET_ORIGIN ==="
 
 echo '=== ANDROID BUILD ==='
@@ -97,7 +98,7 @@ if [ "$chrome_ready" -ne 1 ]; then
 fi
 
 # Open TrackDash again only after the first-run experience is cleared.
-adb shell am start -a android.intent.action.VIEW -d '${TARGET_ORIGIN}/?android-diag=ready' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d "${TARGET_ORIGIN}/?android-diag=ready" com.android.chrome
 sleep 15
 
 echo '=== ANDROID CHROME ENGAGEMENT GATE ==='
@@ -108,7 +109,7 @@ adb shell input tap 540 1300
 sleep 35
 
 echo '=== RELOAD AFTER ENGAGEMENT ==='
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=post-engagement' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d "${TARGET_ORIGIN}/?android-diag=post-engagement" com.android.chrome
 sleep 12
 
 echo '=== TRACKDASH CHROME UI ==='
@@ -236,7 +237,7 @@ else
 fi
 
 # Return to the TrackDash browser tab before CDP inspection.
-adb shell am start -a android.intent.action.VIEW -d '${TARGET_ORIGIN}/?android-diag=cdp' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d "${TARGET_ORIGIN}/?android-diag=cdp" com.android.chrome
 sleep 8
 
 echo '=== CDP SOCKETS ==='
