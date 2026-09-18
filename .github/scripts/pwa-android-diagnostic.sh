@@ -18,9 +18,6 @@ echo '=== CHROME PACKAGE ==='
 adb shell dumpsys package com.android.chrome | grep -E 'versionName=|versionCode=' | head -10 || true
 adb shell pm enable com.android.chrome || true
 
-adb shell am force-stop com.android.chrome
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=1' com.android.chrome
-
 dump_ui() {
   adb shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 || true
   adb pull /sdcard/window.xml /tmp/window.xml >/dev/null 2>&1 || true
@@ -48,35 +45,37 @@ raise SystemExit(1)
 PY
 }
 
-echo '=== COMPLETE CHROME FIRST RUN ==='
-for attempt in $(seq 1 12); do
-  sleep 3
-  dump_ui >/tmp/chrome-ui.txt || true
+adb shell am force-stop com.android.chrome
 
+# A fresh Play Store emulator can ignore the first VIEW intent while Chrome
+# initializes. Launch twice before inspecting the first-run UI.
+for attempt in 1 2; do
+  adb shell am start -a android.intent.action.VIEW -d "https://trackdash.it/?android-diag=fre-$attempt" com.android.chrome || true
+  sleep 5
+done
+
+echo '=== INITIAL CHROME UI ==='
+dump_ui
+
+# Complete any Chrome first-run/sign-in screens. Refresh the UI dump after
+# every tap because the next page can use a different button label.
+for round in 1 2 3 4 5; do
   handled=0
-  for label in 'Accept & continue' 'Use without an account' 'No thanks' 'Got it'; do
+  for label in 'Use without an account' 'Accept & continue' 'No thanks' 'Got it'; do
     if tap_matching_text "$label"; then
-      echo "Handled Chrome first-run control: $label"
       handled=1
-      sleep 3
+      sleep 4
+      dump_ui
       break
     fi
   done
-
-  if grep -q 'com.android.chrome:id/url_bar' /tmp/window.xml 2>/dev/null; then
-    echo 'Chrome main UI is ready'
-    break
-  fi
-
   if [ "$handled" -eq 0 ]; then
-    echo "Waiting for Chrome first-run UI (attempt $attempt)"
+    break
   fi
 done
 
-echo '=== CHROME UI AFTER FIRST RUN ==='
-dump_ui
-
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=2' com.android.chrome
+# Open TrackDash again only after the first-run experience is cleared.
+adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=ready' com.android.chrome
 sleep 15
 
 echo '=== TRACKDASH CHROME UI ==='
