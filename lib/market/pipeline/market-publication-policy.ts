@@ -116,7 +116,7 @@ export function publicSoldConfidence(
   // but they do not represent broad market agreement. Keep the price as real
   // sold evidence while preventing a single merchant from reaching Medium
   // confidence on its own.
-  const sellerDiversity = knownSellerDiversity(evidence)
+  const sellerDiversity = knownSellerDiversity(soldEvidence)
   if (!quality.hasVerified && sellerDiversity === 1) score = Math.min(score, 49)
 
   return { score, label: confidenceLabel(score) }
