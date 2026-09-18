@@ -1,0 +1,22 @@
+{
+  "id": "/pwa-debug/lab-20260918/",
+  "name": "TrackDash PWA Lab",
+  "short_name": "TD PWA Lab",
+  "start_url": "/pwa-debug/lab-20260918/index.html",
+  "scope": "/pwa-debug/lab-20260918/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/pwa/icon-v5-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/icon-v5.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
