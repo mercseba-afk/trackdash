@@ -1,0 +1,28 @@
+{
+  "name": "TrackDash Icon v6 Test",
+  "short_name": "TD v6 Test",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/pwa/icon-v6-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa/icon-v6.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa/icon-v6-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
