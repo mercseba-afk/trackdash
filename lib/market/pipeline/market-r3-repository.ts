@@ -189,7 +189,25 @@ export class MarketR3Repository {
       .eq("release_id", releaseId)
       .eq("condition", condition)
     fail(error, "load current market offers")
-    return (data ?? []).map(mapOffer)
+    if (!(data ?? []).length) return []
+
+    const sourceIds = [...new Set((data ?? []).map((row: any) => row.source_id))]
+    const { data: sources, error: sourceError } = await this.client
+      .from("price_sources")
+      .select("id,market_region,merchant_key")
+      .in("id", sourceIds)
+    fail(sourceError, "load current market offer source metadata")
+
+    const sourceMeta = new Map((sources ?? []).map((row: any) => [row.id, row]))
+    return (data ?? []).map((row: any) => {
+      const offer = mapOffer(row)
+      const meta: any = sourceMeta.get(row.source_id)
+      return {
+        ...offer,
+        marketRegion: meta?.market_region ?? "global",
+        merchantKey: meta?.merchant_key ?? null,
+      }
+    })
   }
 
   async listGranularSoldEvidence(releaseId: string, condition: MarketCondition): Promise<SoldMarketEvidence[]> {
@@ -409,11 +427,13 @@ export class MarketR3Repository {
           current_offer_count: signal.currentOfferCount,
           sold_units: signal.soldUnits,
           sold_source_count: signal.soldSourceCount,
+          sold_seller_count: signal.soldSellerCount,
           sold_evidence_count: signal.soldEvidenceCount,
           shipping_known_ratio: signal.shippingKnownRatio,
           trend_percent: signal.trendPercent,
           trend_window_months: signal.trendWindowMonths,
           algorithm_version: signal.algorithmVersion,
+          market_method_version: "v3",
           computed_at: new Date().toISOString(),
         },
         { onConflict: "release_id,condition" },
@@ -444,6 +464,7 @@ export class MarketR3Repository {
             active_offer_count: 0,
             confidence_score: Math.min(70, 20 + Math.round(Math.log2(point.salesCount + 1) * 10)),
             algorithm_version: "r3",
+            market_method_version: "v3",
             computed_at: new Date().toISOString(),
           },
           { onConflict: "release_id,condition,month" },
