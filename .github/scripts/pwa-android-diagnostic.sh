@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+TARGET_ORIGIN="${TARGET_ORIGIN:-https://trackdash.it}"
+TARGET_HOST="${TARGET_ORIGIN#https://}"
+TARGET_HOST="${TARGET_HOST%%/*}"
+echo "=== TARGET ORIGIN: $TARGET_ORIGIN ==="
+
 echo '=== ANDROID BUILD ==='
 adb shell getprop ro.build.version.release
 adb shell getprop ro.build.version.sdk
@@ -50,7 +55,7 @@ adb shell am force-stop com.android.chrome
 # A fresh Play Store emulator can ignore the first VIEW intent while Chrome
 # initializes. Launch twice before inspecting the first-run UI.
 for attempt in 1 2; do
-  adb shell am start -a android.intent.action.VIEW -d "https://trackdash.it/?android-diag=fre-$attempt" com.android.chrome || true
+  adb shell am start -a android.intent.action.VIEW -d "${TARGET_ORIGIN}/?android-diag=fre-$attempt" com.android.chrome || true
   sleep 5
 done
 
@@ -92,7 +97,7 @@ if [ "$chrome_ready" -ne 1 ]; then
 fi
 
 # Open TrackDash again only after the first-run experience is cleared.
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=ready' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d '${TARGET_ORIGIN}/?android-diag=ready' com.android.chrome
 sleep 15
 
 echo '=== ANDROID CHROME ENGAGEMENT GATE ==='
@@ -231,7 +236,7 @@ else
 fi
 
 # Return to the TrackDash browser tab before CDP inspection.
-adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=cdp' com.android.chrome
+adb shell am start -a android.intent.action.VIEW -d '${TARGET_ORIGIN}/?android-diag=cdp' com.android.chrome
 sleep 8
 
 echo '=== CDP SOCKETS ==='
@@ -258,7 +263,7 @@ node <<'NODE'
 const fs = require('node:fs')
 
 const targets = JSON.parse(fs.readFileSync('/tmp/android-chrome-tabs.json', 'utf8'))
-const target = targets.find((t) => t.type === 'page' && t.url.includes('trackdash.it'))
+const target = targets.find((t) => t.type === 'page' && t.url.includes(process.env.TARGET_HOST || 'trackdash.it'))
 if (!target) {
   console.error('NO_TRACKDASH_TARGET', targets.map(t => ({type:t.type,url:t.url,title:t.title})))
   process.exit(3)
