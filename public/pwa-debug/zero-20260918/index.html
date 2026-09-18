@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="manifest" href="./manifest.json">
+  <title>Zero PWA</title>
+</head>
+<body>
+  <h1>Zero PWA</h1>
+  <p>Test PWA minimale completamente autonomo.</p>
+  <p id="status">Avvio…</p>
+  <button id="engage">Avvia test</button>
+  <button id="install" disabled>Installa</button>
+<script>
+(() => {
+  const status = document.getElementById("status");
+  const engage = document.getElementById("engage");
+  const install = document.getElementById("install");
+  let deferredPrompt = null;
+  let timer = null;
+
+  const setStatus = (message) => status.textContent = message;
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    install.disabled = false;
+    setStatus("PROMPT DISPONIBILE");
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    install.disabled = true;
+    setStatus("INSTALLATA");
+  });
+
+  navigator.serviceWorker.register("./sw.js")
+    .then(() => navigator.serviceWorker.ready)
+    .then(() => setStatus("SW READY"))
+    .catch((error) => setStatus("SW ERROR: " + error));
+
+  engage.addEventListener("click", () => {
+    let remaining = 35;
+    engage.disabled = true;
+    setStatus("ATTENDI " + remaining + "s");
+    timer = setInterval(() => {
+      remaining -= 1;
+      if (deferredPrompt) {
+        clearInterval(timer);
+        return;
+      }
+      if (remaining <= 0) {
+        clearInterval(timer);
+        setStatus("NESSUN PROMPT DIRETTO");
+      } else {
+        setStatus("ATTENDI " + remaining + "s");
+      }
+    }, 1000);
+  });
+
+  install.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    const prompt = deferredPrompt;
+    await prompt.prompt();
+    const choice = await prompt.userChoice;
+    deferredPrompt = null;
+    install.disabled = true;
+    setStatus("SCELTA: " + choice.outcome.toUpperCase());
+  });
+})();
+</script>
+</body>
+</html>
