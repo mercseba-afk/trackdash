@@ -112,12 +112,20 @@ export function publicSoldConfidence(
   let score = Math.round(Math.min(100, volume + diversity + freshness + quality.points))
   if (!quality.hasVerified) score = Math.min(score, 70)
 
-  // Repeated sales from one known seller prove that transactions happened,
-  // but they do not represent broad market agreement. Keep the price as real
-  // sold evidence while preventing a single merchant from reaching Medium
-  // confidence on its own.
   const sellerDiversity = knownSellerDiversity(soldEvidence)
+  const usesHistoricalFallback = soldEvidence.some((row) => row.grain === "full_history")
+
+  // A broad historical window is a legitimate fallback when recent research is
+  // unavailable, but it is deliberately weaker than a dedicated current window.
+  if (usesHistoricalFallback) score = Math.max(0, score - 15)
+
+  // Repeated sales from one known seller prove transactions, not broad market
+  // agreement. Unknown seller diversity may reach Medium only with meaningful
+  // volume; it can never become High on its own.
   if (!quality.hasVerified && sellerDiversity === 1) score = Math.min(score, 49)
+  if (!quality.hasVerified && sellerDiversity == null && signal.soldSourceCount <= 1) {
+    score = Math.min(score, 69)
+  }
 
   return { score, label: confidenceLabel(score) }
 }
@@ -149,41 +157,114 @@ export function publicRetailConfidence(
   return { score, label: confidenceLabel(score) }
 }
 
-// Market Method v2 publication rules:
+// Market Method v3 publication rules:
 //
-// 1. Current value is based on current evidence, not a historical average by default.
-//    `selectCurrentSoldEvidence` has already chosen the best recent window per source.
-// 2. Two independent fresh retailers may define the headline as the current retail median.
-// 3. Otherwise completed sales define the headline, but one isolated indicative sale
-//    is not enough to publish Market Value.
-// 4. One verified completed sale may publish only when one fresh retailer independently
-//    corroborates it within a broad 30% band.
-// 5. Active asking prices remain separate seller expectations and never create or inflate
-//    the public Market Value.
+// 1. Completed sales are the primary public Market Value when the selected sold
+//    evidence is sufficiently broad. Recent windows remain preferred; a recent
+//    full-history aggregate is only a lower-confidence fallback.
+// 2. Seller diversity matters. Multiple units from one known seller cannot define
+//    the public market alone unless independent current retail corroborates them.
+// 3. Current retail is a corroborating/current-availability lane. If completed
+//    sales are absent, at least two independent current merchants may define the
+//    value, with region-aware safeguards.
+// 4. Active marketplace ASK prices remain context only and never manufacture or
+//    inflate Market Value.
+// 5. Strong disagreement lowers confidence instead of averaging incompatible
+//    regional/sold markets into a fake midpoint.
 export function applyPublicMarketPublicationPolicy(
   signal: MarketSignalDraft,
   soldEvidence: SoldMarketEvidence[] = [],
   asOfDate?: string,
 ): MarketSignalDraft {
-  const hasLiquidRetail = signal.retailAnchorEUR != null && signal.retailAnchorEUR > 0 && signal.retailSourceCount >= 2
   const soldUnits = Math.max(signal.soldUnits, totalSoldUnits(soldEvidence))
+  const sellerDiversity = knownSellerDiversity(soldEvidence)
   const hasVerifiedSale = soldEvidence.some((row) => row.evidenceGrade === "verified" && row.salesCount > 0)
-  const hasSoldCluster = signal.soldAnchorEUR != null && signal.soldAnchorEUR > 0 && soldUnits >= 2
+
+  const hasLiquidRetail =
+    signal.retailAnchorEUR != null &&
+    signal.retailAnchorEUR > 0 &&
+    signal.retailSourceCount >= 2
+
+  const severeTwoRegionSplit =
+    signal.retailRegionCount === 2 &&
+    signal.retailRegionalSpreadRatio != null &&
+    signal.retailRegionalSpreadRatio >= 1.75
+
+  const retailCanHeadline =
+    hasLiquidRetail &&
+    (!severeTwoRegionSplit || signal.retailRegionCount >= 3)
+
+  const retailCorroboratesSold =
+    signal.retailSourceCount >= 1 &&
+    pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR)
+
+  const broadIndicativeSold =
+    signal.soldSourceCount >= 2 ||
+    (sellerDiversity != null && sellerDiversity >= 2) ||
+    (sellerDiversity == null && soldUnits >= 5)
+
+  const hasSoldCluster =
+    signal.soldAnchorEUR != null &&
+    signal.soldAnchorEUR > 0 &&
+    soldUnits >= 2 &&
+    (hasVerifiedSale || broadIndicativeSold || (sellerDiversity === 1 && retailCorroboratesSold))
+
   const singleVerifiedCorroborated =
     signal.soldAnchorEUR != null &&
     signal.soldAnchorEUR > 0 &&
     soldUnits === 1 &&
     hasVerifiedSale &&
-    signal.retailSourceCount >= 1 &&
-    pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR)
+    retailCorroboratesSold
 
-  if (hasLiquidRetail) {
+  if (hasSoldCluster || singleVerifiedCorroborated) {
+    let confidence = asOfDate && soldEvidence.length
+      ? publicSoldConfidence({ ...signal, soldUnits }, soldEvidence, asOfDate)
+      : { score: signal.confidenceScore, label: signal.confidenceLabel }
+
+    const hasRetailConflict =
+      retailCanHeadline &&
+      !pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR, 0.5)
+
+    if (hasRetailConflict) {
+      const score = Math.min(confidence.score, 49)
+      confidence = { score, label: confidenceLabel(score) }
+    } else if (retailCanHeadline && pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR, 0.3)) {
+      const score = Math.min(100, confidence.score + 5)
+      confidence = { score, label: confidenceLabel(score) }
+    }
+
+    const rangeUsesRetail =
+      retailCanHeadline &&
+      pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR, 0.5)
+
+    const lowEUR = rangeUsesRetail
+      ? Math.min(signal.soldAnchorEUR!, signal.retailAnchorEUR!)
+      : signal.soldAnchorEUR
+    const highEUR = rangeUsesRetail
+      ? Math.max(signal.soldAnchorEUR!, signal.retailAnchorEUR!)
+      : signal.soldAnchorEUR
+
+    return {
+      ...signal,
+      soldUnits,
+      soldSellerCount: sellerDiversity,
+      marketValueEUR: signal.soldAnchorEUR,
+      lowEUR,
+      highEUR,
+      confidenceScore: confidence.score,
+      confidenceLabel: confidence.label,
+    }
+  }
+
+  if (retailCanHeadline) {
     const confidence = asOfDate
       ? publicRetailConfidence(signal, soldEvidence, asOfDate)
       : { score: signal.confidenceScore, label: signal.confidenceLabel }
 
     return {
       ...signal,
+      soldUnits,
+      soldSellerCount: sellerDiversity,
       marketValueEUR: signal.retailAnchorEUR,
       lowEUR: signal.retailAnchorEUR,
       highEUR: signal.retailAnchorEUR,
@@ -192,28 +273,15 @@ export function applyPublicMarketPublicationPolicy(
     }
   }
 
-  if (hasSoldCluster || singleVerifiedCorroborated) {
-    const confidence = asOfDate && soldEvidence.length
-      ? publicSoldConfidence({ ...signal, soldUnits }, soldEvidence, asOfDate)
-      : { score: signal.confidenceScore, label: signal.confidenceLabel }
-
-    return {
-      ...signal,
-      soldUnits,
-      marketValueEUR: signal.soldAnchorEUR,
-      lowEUR: signal.soldAnchorEUR,
-      highEUR: signal.soldAnchorEUR,
-      confidenceScore: confidence.score,
-      confidenceLabel: confidence.label,
-    }
-  }
-
   return {
     ...signal,
     soldUnits,
+    soldSellerCount: sellerDiversity,
     marketRegime: signal.retailSourceCount > 0 ? signal.marketRegime : "insufficient",
     marketValueEUR: null,
     lowEUR: null,
     highEUR: null,
+    confidenceScore: Math.min(signal.confidenceScore, 49),
+    confidenceLabel: "low",
   }
 }

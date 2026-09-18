@@ -20,7 +20,7 @@ const DAY_MS = 86_400_000
 
 const listCachedPublicMarketBundle = unstable_cache(
   async () => Promise.all([listMarketSignals(), listMarketMonthlySignals()]),
-  ["trackdash-public-market-signals-v2"],
+  ["trackdash-public-market-signals-v3"],
   { revalidate: 60 },
 )
 
@@ -112,6 +112,7 @@ export function toPublicMarketSignalView(
     activeOfferCount: signal.activeOfferCount,
     currentOfferCount: signal.currentOfferCount,
     soldUnits: signal.soldUnits,
+    soldSellerCount: signal.soldSellerCount ?? null,
     recentSoldUnits3m: recentSoldActivity?.units ?? null,
     recentSoldPeriodStart: recentSoldActivity?.periodStart ?? null,
     recentSoldPeriodEnd: recentSoldActivity?.periodEnd ?? null,

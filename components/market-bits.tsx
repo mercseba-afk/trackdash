@@ -137,14 +137,14 @@ export function MarketSignalCard({
         {hasValue ? (
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-3xl font-semibold tabular-nums md:text-4xl">{formatMoney(signal.valueEUR!)}</span>
+              <span className="text-3xl font-semibold tabular-nums md:text-4xl">≈ {formatMoney(signal.valueEUR!)}</span>
               {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} className="text-base md:text-lg" /> : null}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{trendWindowLabel(signal, it)}</p>
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
               {it
-                ? "Stima TrackDash basata sui segnali di mercato osservati. Non rappresenta un prezzo di vendita garantito."
-                : "TrackDash estimate based on observed market signals. It does not represent a guaranteed sale price."}
+                ? `Stima TrackDash basata su ${signal.soldUnits > 0 ? `${signal.soldUnits} vendite osservate` : "segnali retail correnti"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} venditori osservati` : ""}. Non rappresenta un prezzo di vendita garantito.`
+                : `TrackDash estimate based on ${signal.soldUnits > 0 ? `${signal.soldUnits} observed sales` : "current retail signals"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}. It does not represent a guaranteed sale price.`}
             </p>
           </div>
         ) : hasCleanActiveAsk ? (

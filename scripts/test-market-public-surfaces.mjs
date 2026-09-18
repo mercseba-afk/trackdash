@@ -72,8 +72,14 @@ if (!releasePage.includes("getPublicMarketSignalForRelease")) {
 }
 
 const releaseScreen = fs.readFileSync("components/screens/release-detail-screen.tsx", "utf8")
-if (!releaseScreen.includes("Valore attuale stimato")) {
-  errors.push("Release detail does not expose the collector-facing estimated current value")
+if (!releaseScreen.includes("Valore di mercato stimato")) {
+  errors.push("Release detail does not expose the public estimated market value")
+}
+if (!releaseScreen.includes("vendite osservate")) {
+  errors.push("Release detail does not expose the public observed-sale basis")
+}
+if (!releaseScreen.includes("Disponibile da")) {
+  errors.push("Release detail does not expose qualified current availability separately from Market Value")
 }
 if (releaseScreen.includes("Come leggere il mercato") || releaseScreen.includes("Fonti e verifica")) {
   errors.push("Release detail still exposes analytical methodology/source panels")
@@ -94,4 +100,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Public R3 market surfaces: ${publicSurfaces.length}/${publicSurfaces.length} clean`)
-console.log("Legacy demo price engine removed; collector UI exposes value, trend and rarity without internal analytics.")
+console.log("Collector UI exposes estimated value, observed sales, trend and qualified availability without reverting to ASK-driven pricing.")

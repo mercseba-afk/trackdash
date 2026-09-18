@@ -279,11 +279,13 @@ export const marketReleaseSignals = pgTable(
     currentOfferCount: integer("current_offer_count").notNull().default(0),
     soldUnits: integer("sold_units").notNull().default(0),
     soldSourceCount: integer("sold_source_count").notNull().default(0),
+    soldSellerCount: integer("sold_seller_count"),
     soldEvidenceCount: integer("sold_evidence_count").notNull().default(0),
     shippingKnownRatio: numeric("shipping_known_ratio", { precision: 5, scale: 4 }).notNull().default("0"),
     trendPercent: numeric("trend_percent", { precision: 8, scale: 2 }),
     trendWindowMonths: integer("trend_window_months"),
     algorithmVersion: text("algorithm_version").notNull().default("r3"),
+    marketMethodVersion: text("market_method_version").notNull().default("v3"),
     computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -316,6 +318,7 @@ export const marketReleaseSignals = pgTable(
         and ${table.currentOfferCount} >= 0
         and ${table.soldUnits} >= 0
         and ${table.soldSourceCount} >= 0
+        and (${table.soldSellerCount} is null or ${table.soldSellerCount} >= 1)
         and ${table.soldEvidenceCount} >= 0`,
     ),
     check(
@@ -358,6 +361,7 @@ export const marketReleaseMonthlySignals = pgTable(
     activeOfferCount: integer("active_offer_count").notNull().default(0),
     confidenceScore: integer("confidence_score").notNull(),
     algorithmVersion: text("algorithm_version").notNull().default("r3"),
+    marketMethodVersion: text("market_method_version").notNull().default("v3"),
     computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

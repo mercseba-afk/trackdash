@@ -27,6 +27,23 @@ function totalSales(rows: SoldMarketEvidence[]): number {
   return rows.reduce((sum, row) => sum + Math.max(0, row.salesCount), 0)
 }
 
+function chooseHistoricalFallback(rows: SoldMarketEvidence[], asOfDate: string): SoldMarketEvidence | null {
+  return rows
+    .filter(
+      (row) =>
+        row.grain === "full_history" &&
+        row.salesCount >= 5 &&
+        row.averagePriceEUR > 0 &&
+        ageDays(row.periodEnd, asOfDate) <= CURRENT_SOLD_MAX_AGE_DAYS,
+    )
+    .sort((a, b) => {
+      const dateCompare = b.periodEnd.localeCompare(a.periodEnd)
+      if (dateCompare !== 0) return dateCompare
+      if ((a.sellerCount ?? 0) !== (b.sellerCount ?? 0)) return (b.sellerCount ?? 0) - (a.sellerCount ?? 0)
+      return b.salesCount - a.salesCount
+    })[0] ?? null
+}
+
 function chooseRollingWindow(rows: SoldMarketEvidence[], asOfDate: string): SoldMarketEvidence | null {
   const rolling = rows
     .filter(
@@ -98,9 +115,18 @@ export function selectCurrentSoldEvidence(input: {
       continue
     }
 
-    // A current-but-thin monthly trace can remain evidence. Full-history and
-    // stale aggregate fallbacks stay stored for historical context only; they
-    // never become today's sold anchor merely because fresher evidence is absent.
+    // Market Method v3: broad history may be used as a conservative fallback
+    // only when it is itself recent enough, contains meaningful volume, and no
+    // fresher monthly/rolling sample is available. The publication layer keeps
+    // this fallback lower-confidence than a true recent window.
+    const historicalFallback = !latestMonthly ? chooseHistoricalFallback(rows, input.asOfDate) : null
+    if (historicalFallback) {
+      chosen.push(historicalFallback)
+      aggregateSources.add(sourceId)
+      continue
+    }
+
+    // A current-but-thin monthly trace can remain evidence.
     if (latestMonthly) {
       const selected = currentMonthly.slice(-6)
       if (selected.length) {
