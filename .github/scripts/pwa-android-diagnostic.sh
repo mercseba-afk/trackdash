@@ -78,6 +78,13 @@ done
 adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=ready' com.android.chrome
 sleep 15
 
+echo '=== ANDROID CHROME ENGAGEMENT GATE ==='
+# Chrome's beforeinstallprompt promotion requires at least one page gesture and
+# roughly 30 seconds of engagement. Tap inert hero copy, then wait beyond the
+# documented threshold before inspecting the install state.
+adb shell input tap 540 1300
+sleep 35
+
 echo '=== TRACKDASH CHROME UI ==='
 dump_ui
 
