@@ -150,8 +150,8 @@ export function CollectionScreen() {
               {summary.marketValueCount < summary.count || summary.acquisitionCostCount < summary.count ? (
                 <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
                   {it
-                    ? "Valore e rendimento usano solo segnali R3 compatibili con kit nuovi/completi/non montati. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico di riferimento ECB della data d'acquisto (o dell'ultimo giorno disponibile); se data o cambio non sono disponibili, il rendimento resta non calcolato."
-                    : "Value and performance use only R3 signals compatible with new/complete/unbuilt kits. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
+                    ? "Valore e rendimento vengono mostrati solo quando TrackDash ha dati di mercato sufficienti per kit nuovi, completi e non montati. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico di riferimento ECB della data d'acquisto (o dell'ultimo giorno disponibile); se data o cambio non sono disponibili, il rendimento resta non calcolato."
+                    : "Value and performance are shown only when TrackDash has enough market data for new, complete and unbuilt kits. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
                 </p>
               ) : null}
             </div>
@@ -205,12 +205,12 @@ export function CollectionScreen() {
                 const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
                 return (
                   <Card key={entry.item.id} className="group overflow-hidden rounded-2xl border-border/70 py-0 shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
-                    <div className="flex h-full flex-col sm:flex-row">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative shrink-0 overflow-hidden border-b border-border/50 bg-gradient-to-br from-white via-muted/10 to-brand/5 sm:w-44 sm:border-b-0 sm:border-r">
-                        <ProductImage product={entry.product} release={entry.release} className="aspect-[16/9] w-full transition-transform duration-300 group-hover:scale-[1.025] sm:h-full sm:min-h-48 sm:aspect-auto" />
-                        <Badge variant="secondary" className="absolute left-2.5 top-2.5 rounded-full bg-white/90 text-[10px] shadow-sm backdrop-blur-sm">{conditionLabel(entry.item.condition, it)}</Badge>
+                    <div className="flex h-full flex-row">
+                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative w-28 shrink-0 overflow-hidden border-r border-border/50 bg-gradient-to-br from-white via-muted/10 to-brand/5 sm:w-40 lg:w-44">
+                        <ProductImage product={entry.product} release={entry.release} className="h-full min-h-40 w-full transition-transform duration-300 group-hover:scale-[1.025] sm:min-h-44" />
+                        <Badge variant="secondary" className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[9px] shadow-sm backdrop-blur-sm sm:left-2.5 sm:top-2.5 sm:text-[10px]">{conditionLabel(entry.item.condition, it)}</Badge>
                       </Link>
-                      <div className="flex min-w-0 flex-1 flex-col p-4">
+                      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
                         <div className="flex items-start justify-between gap-3">
                           <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
                             <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">Tamiya {entry.release.itemNumber ?? "—"}</p>
@@ -220,14 +220,14 @@ export function CollectionScreen() {
                           <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
                         </div>
 
-                        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
+                        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
                           <span>{t("collection.paid")} <strong className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</strong>{entry.item.acquisitionCurrency !== "EUR" && entry.item.acquisitionPriceEUR != null ? <span> · {it ? "base" : "basis"} {formatMoney(entry.item.acquisitionPriceEUR)}</span> : null}</span>
                           <span>{entry.item.acquisitionDate ? `${it ? "Acquistato" : "Acquired"} ${formatDate(entry.item.acquisitionDate)}` : (it ? "Data non indicata" : "Date not provided")}</span>
                           {share?.askingPrice != null && share.askingCurrency ? <span>{it ? "Richiesta" : "Asking"} <strong className="font-medium text-foreground">{formatMoney(share.askingPrice, share.askingCurrency)}</strong></span> : null}
                           <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                         </div>
 
-                        <div className="mt-auto flex items-end gap-3 border-t border-border/60 pt-4">
+                        <div className="mt-auto flex items-end gap-3 border-t border-border/60 pt-3">
                           <CollectionMarketValue entry={entry} it={it} />
                           <div className="ml-auto flex gap-1">
                             <Button variant="ghost" size="icon" className="size-8 rounded-xl" aria-label={t("common.edit")} onClick={() => setEditing(entry)}><Pencil /></Button>
@@ -275,7 +275,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           <div className="mt-7">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore stimato oggi" : "Estimated value today"}</p>
             <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{summary.marketValueCount}/{summary.count} {it ? "copie con un Market Value R3 compatibile" : "copies with a compatible R3 Market Value"}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{summary.marketValueCount}/{summary.count} {it ? "copie con una stima di mercato disponibile" : "copies with an available market estimate"}</p>
             <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
           </div>
@@ -295,17 +295,34 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   if (!conditionUsesNewUnbuiltReference(entry.item.condition)) {
-    return <p className="max-w-32 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Condizione non ancora valorizzata" : "Condition not valued yet"}</p>
+    return <p className="max-w-36 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Stima per questa condizione in arrivo" : "Estimate for this condition coming soon"}</p>
   }
   if (!entry.marketSignal) {
-    return <p className="max-w-32 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
+    return <p className="max-w-36 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Stima di mercato in aggiornamento" : "Market estimate updating"}</p>
   }
   if (entry.marketValue == null) {
-    return <p className="max-w-32 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Valore non consolidato" : "Value not consolidated"}</p>
+    if ((entry.marketSignal.startingItemPriceEUR ?? 0) > 0) {
+      return (
+        <div className="min-w-28 text-left">
+          <p className="font-mono text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{it ? "Disponibile da" : "Available from"}</p>
+          <p className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-foreground">{formatMoney(entry.marketSignal.startingItemPriceEUR!)}</p>
+          <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{it ? "Stima TrackDash in aggiornamento" : "TrackDash estimate updating"}</p>
+        </div>
+      )
+    }
+    if (entry.marketSignal.soldUnits > 0) {
+      return (
+        <div className="max-w-36 text-left">
+          <p className="text-[11px] font-medium leading-tight text-foreground">{it ? "Stima in aggiornamento" : "Estimate updating"}</p>
+          <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{entry.marketSignal.soldUnits} {it ? "vendite osservate" : "observed sales"}</p>
+        </div>
+      )
+    }
+    return <p className="max-w-36 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Stima di mercato in aggiornamento" : "Market estimate updating"}</p>
   }
   return (
     <div className="min-w-28 text-left">
-      <p className="font-mono text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Market Value · {it ? "oggi" : "today"}</p>
+      <p className="font-mono text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{it ? "Valore stimato oggi" : "Estimated value today"}</p>
       <p className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-foreground">{formatMoney(entry.marketValue)}</p>
       {entry.personalGainEUR != null && entry.personalGainPercent != null ? (
         <p className={cn("mt-0.5 text-xs font-medium tabular-nums", entry.personalGainEUR > 0 ? "text-success" : entry.personalGainEUR < 0 ? "text-destructive" : "text-muted-foreground")}>

@@ -34,6 +34,10 @@ export function DashboardScreen() {
   const wl = React.useMemo(() => enrichWishlist(wishlist, marketSignals), [wishlist, marketSignals])
   const recent = React.useMemo(() => recentAdditions(enriched, 4), [enriched])
   const top = React.useMemo(() => topValued(enriched, 5), [enriched])
+  const marketFallback = React.useMemo(() => enriched
+    .filter((entry) => (entry.marketSignal?.startingItemPriceEUR ?? 0) > 0)
+    .sort((a, b) => (b.marketSignal?.startingItemPriceEUR ?? 0) - (a.marketSignal?.startingItemPriceEUR ?? 0))
+    .slice(0, 5), [enriched])
 
   if (collection.length === 0) {
     return (
@@ -61,7 +65,7 @@ export function DashboardScreen() {
       <DashboardMarketOverview />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "valorizzati R3" : "valued by R3"}</span>} />
+        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "con stima disponibile" : "with an available estimate"}</span>} />
         <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Rendimento EUR non disponibile" : "EUR performance unavailable"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Nessun trend vendite ancora consolidato" : "No consolidated sales trend yet")} />
@@ -70,27 +74,36 @@ export function DashboardScreen() {
       {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Valori e rendimenti usano solo segnali R3 compatibili con la condizione dei tuoi pezzi."
-            : "Values and performance use only R3 signals compatible with the condition of your items."}
+            ? "Valori e rendimenti vengono mostrati solo quando TrackDash ha dati di mercato sufficienti per la condizione del tuo pezzo."
+            : "Values and performance are shown only when TrackDash has enough market data for the condition of your item."}
         </p>
       ) : null}
 
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <CardTitle className="text-base">{t("dashboard.mostValuable")}</CardTitle>
+          <CardTitle className="text-base">{top.length > 0 ? t("dashboard.mostValuable") : (it ? "Mercato della tua collezione" : "Your collection market")}</CardTitle>
           <Button variant="ghost" size="sm" render={<Link href="/collection" />}>{t("dashboard.viewAll")} <ArrowRight /></Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
-          {top.length === 0 ? (
-            <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Nessun elemento della collezione ha ancora un valore R3 consolidato compatibile con la sua condizione." : "No collection item has a consolidated R3 value compatible with its condition yet."}</p>
-          ) : top.map((entry, index) => (
+          {top.length > 0 ? top.map((entry, index) => (
             <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
               <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
               <div className="text-right"><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue!)}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
             </Link>
-          ))}
+          )) : marketFallback.length > 0 ? marketFallback.map((entry) => (
+            <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
+              <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
+              <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
+              <div className="text-right">
+                <p className="text-[10px] text-muted-foreground">{it ? "Disponibile da" : "Available from"}</p>
+                <p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketSignal!.startingItemPriceEUR!)}</p>
+              </div>
+            </Link>
+          )) : (
+            <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Stime di mercato in aggiornamento. Compariranno automaticamente appena i dati saranno sufficienti." : "Market estimates are updating. They will appear automatically as soon as there is enough data."}</p>
+          )}
         </CardContent>
       </Card>
 
@@ -105,7 +118,15 @@ export function DashboardScreen() {
               <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="group flex flex-col gap-1.5">
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
-                {entry.marketValue != null ? <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : <p className="text-[11px] text-muted-foreground">{it ? "Valore R3 non disponibile" : "R3 value unavailable"}</p>}
+                {entry.marketValue != null ? (
+                  <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
+                ) : (entry.marketSignal?.startingItemPriceEUR ?? 0) > 0 ? (
+                  <p className="text-[11px] text-muted-foreground">{it ? "Disponibile da " : "Available from "}<span className="font-semibold text-foreground">{formatMoney(entry.marketSignal!.startingItemPriceEUR!)}</span></p>
+                ) : (entry.marketSignal?.soldUnits ?? 0) > 0 ? (
+                  <p className="text-[11px] text-muted-foreground">{entry.marketSignal!.soldUnits} {it ? "vendite osservate · stima in aggiornamento" : "observed sales · estimate updating"}</p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">{it ? "Stima di mercato in aggiornamento" : "Market estimate updating"}</p>
+                )}
               </Link>
             ))}
           </div>
