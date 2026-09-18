@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto"
+import { createHash, timingSafeEqual } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { runEbayActiveMarketScanForRelease } from "@/lib/market/automation/ebay-worker"
 import { runEbayPreviewDiagnostics } from "@/lib/market/automation/ebay-preview-diagnostics"
@@ -18,6 +18,37 @@ function authorized(request: NextRequest): boolean {
   const expected = Buffer.from(configured)
   const actual = Buffer.from(supplied)
   return expected.length === actual.length && timingSafeEqual(expected, actual)
+}
+
+const PREVIEW_TOKEN_SHA256 = "378713814a3e853fe00b0c71b3b4dab1a0d54822e638e0009d743b4fc5ee6387"
+
+function previewAuthorized(request: NextRequest): boolean {
+  const supplied = request.nextUrl.searchParams.get("token")
+  if (!supplied) return false
+  const digest = createHash("sha256").update(supplied).digest("hex")
+  const expected = Buffer.from(PREVIEW_TOKEN_SHA256)
+  const actual = Buffer.from(digest)
+  return expected.length === actual.length && timingSafeEqual(expected, actual)
+}
+
+export async function GET(request: NextRequest) {
+  if (!previewAuthorized(request)) {
+    return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 })
+  }
+
+  try {
+    const result = await runEbayActiveMarketScanForRelease({
+      releaseId: RELEASE_ID,
+      jobId: JOB_ID,
+      mode: "preview",
+    })
+    const diagnostics = await runEbayPreviewDiagnostics(RELEASE_ID, JOB_ID)
+    return NextResponse.json({ ok: true, result, diagnostics })
+  } catch (error) {
+    const code = error instanceof Error ? error.message.split(":", 1)[0] : "EBAY_MICROBATCH_PREVIEW_FAILED"
+    console.error(`[ebay-95467-preview] failed code=${code.slice(0, 120)}`)
+    return NextResponse.json({ ok: false, error: code.slice(0, 120) }, { status: 500 })
+  }
 }
 
 export async function POST(request: NextRequest) {
