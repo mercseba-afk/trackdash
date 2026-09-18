@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, BarChart3, Check, Heart, Info, LockKeyhole, Plus, ShoppingBag, Tag } from "lucide-react"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { ProductImage } from "@/components/catalog/product-image"
+import { TrendIndicator } from "@/components/market-bits"
 import { ReleaseCollectorOffers } from "@/components/release-collector-offers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -97,7 +98,7 @@ export function ReleaseDetailScreen({
             ) : null}
           </div>
 
-          <MarketValuePanel signal={marketSignal} it={it} showAdvanced={showAdvancedMarketEvidence} />
+          <MarketValuePanel signal={marketSignal} it={it} />
 
           <div className="flex flex-wrap gap-2">
             {user ? (
@@ -128,7 +129,7 @@ export function ReleaseDetailScreen({
       <ReleaseCollectorOffers offers={collectorOffers} />
 
       <section className="grid gap-5 lg:grid-cols-2">
-        <ExternalAvailabilityCard signal={marketSignal} it={it} showAdvanced={showAdvancedMarketEvidence} />
+        <ExternalAvailabilityCard signal={marketSignal} it={it} />
         <PriceIntelligenceCard
           signal={marketSignal}
           it={it}
@@ -162,56 +163,93 @@ export function ReleaseDetailScreen({
 function MarketValuePanel({
   signal,
   it,
-  showAdvanced,
 }: {
   signal?: ReleaseMarketSignalView | null
   it: boolean
-  showAdvanced: boolean
 }) {
   if (!signal || signal.valueEUR == null) {
     return (
       <div className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">Market Value</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">
+          {it ? "Valore di mercato stimato" : "Estimated market value"}
+        </p>
         <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Valore non ancora consolidato" : "Value not consolidated yet"}</p>
         <p className="mt-2 text-sm leading-6 text-[#718198]">
-          {it ? "TrackDash non mostra un valore finché le evidenze disponibili non sono sufficienti." : "TrackDash withholds the value until the available evidence is sufficient."}
+          {it
+            ? "TrackDash non mostra un valore finché vendite e segnali di mercato disponibili non sono sufficientemente solidi."
+            : "TrackDash withholds the value until observed sales and market signals are sufficiently robust."}
         </p>
       </div>
     )
   }
 
-  const range = signal.lowEUR != null && signal.highEUR != null
-    ? signal.lowEUR === signal.highEUR
-      ? formatMoney(signal.lowEUR)
-      : `${formatMoney(signal.lowEUR)} – ${formatMoney(signal.highEUR)}`
-    : "—"
+  const hasRange =
+    signal.lowEUR != null &&
+    signal.highEUR != null &&
+    Math.abs(signal.highEUR - signal.lowEUR) >= 0.01
+
+  const range = hasRange
+    ? `${formatMoney(signal.lowEUR!)} – ${formatMoney(signal.highEUR!)}`
+    : (it ? "Stima puntuale" : "Point estimate")
+
+  const trendWindow = signal.trendWindowMonths === 3
+    ? (it ? "ultimi 3 mesi" : "last 3 months")
+    : signal.trendWindowMonths === 1
+      ? (it ? "ultimo mese" : "last month")
+      : signal.trendWindowMonths === 6
+        ? (it ? "ultimi 6 mesi" : "last 6 months")
+        : signal.trendWindowMonths === 12
+          ? (it ? "ultimo anno" : "last year")
+          : null
+
+  const salesEvidence = signal.soldUnits > 0
+    ? it
+      ? `Basato su ${signal.soldUnits} vendite osservate${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} venditori osservati` : ""}`
+      : `Based on ${signal.soldUnits} observed sales${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}`
+    : it
+      ? `Basato su ${signal.retailSourceCount} retailer correnti qualificati`
+      : `Based on ${signal.retailSourceCount} qualified current retailers`
 
   return (
     <div className="rounded-2xl border border-[#bfd2ee] bg-[linear-gradient(135deg,#f7fbff_0%,#eef5ff_100%)] p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">TrackDash Market Value</p>
-          <p className="mt-2 text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">{formatMoney(signal.valueEUR)}</p>
-          <p className="mt-1 text-sm text-[#607089]">{it ? "Valore attuale stimato · Kit nuovo / completo / non montato" : "Estimated current value · New / complete / unbuilt kit"}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">
+            {it ? "Valore di mercato stimato" : "Estimated market value"}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <p className="text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">
+              ≈ {formatMoney(signal.valueEUR)}
+            </p>
+            {signal.trendPercent != null ? (
+              <TrendIndicator value={signal.trendPercent} className="text-base" />
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm text-[#607089]">{salesEvidence}</p>
+          <p className="mt-1 text-xs text-[#7a8aa0]">
+            {signal.trendPercent != null
+              ? `${it ? "Trend" : "Trend"} · ${trendWindow ?? (it ? "periodo recente" : "recent period")}`
+              : (it ? "Trend in raccolta: non ci sono ancora abbastanza dati cronologici." : "Trend gathering: there is not enough chronological evidence yet.")}
+          </p>
         </div>
         <ConfidenceBadge value={signal.confidenceLabel} it={it} />
       </div>
 
-      <div className={cn("mt-5 grid grid-cols-2 gap-3", showAdvanced ? "sm:grid-cols-4" : "sm:grid-cols-2")}>
-        <Metric label={it ? "Range" : "Range"} value={range} />
-        {showAdvanced ? <Metric label={it ? "Vendite osservate" : "Observed sold"} value={String(signal.soldUnits)} /> : null}
-        {showAdvanced ? <Metric label={it ? "Offerte correnti" : "Current offers"} value={String(signal.currentOfferCount)} /> : null}
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Metric label={it ? "Vendite osservate" : "Observed sales"} value={String(signal.soldUnits)} />
         <Metric
-          label={it ? "Trend" : "Trend"}
-          value={signal.trendPercent != null ? formatPercent(signal.trendPercent) : "—"}
+          label={it ? "Venditori osservati" : "Observed sellers"}
+          value={signal.soldSellerCount != null ? String(signal.soldSellerCount) : "—"}
         />
+        <Metric label={it ? "Intervallo" : "Range"} value={range} />
+        <Metric label={it ? "Offerte correnti" : "Current offers"} value={String(signal.currentOfferCount)} />
       </div>
 
       <p className="mt-4 flex gap-2 text-xs leading-5 text-[#667991]">
         <Info className="mt-0.5 size-3.5 shrink-0" />
         {it
-          ? "Il Market Value è una stima TrackDash: le richieste dei venditori restano separate dalle vendite concluse e non possono gonfiare da sole il valore."
-          : "Market Value is a TrackDash estimate: seller asks stay separate from completed sales and cannot inflate the value on their own."}
+          ? "È una stima TrackDash, non un prezzo garantito. Le vendite concluse hanno priorità; retailer e disponibilità servono da conferma, mentre gli ASK restano separati."
+          : "This is a TrackDash estimate, not a guaranteed sale price. Completed sales have priority; retailers and availability corroborate the estimate, while ASK prices stay separate."}
       </p>
     </div>
   )
@@ -220,11 +258,9 @@ function MarketValuePanel({
 function ExternalAvailabilityCard({
   signal,
   it,
-  showAdvanced,
 }: {
   signal?: ReleaseMarketSignalView | null
   it: boolean
-  showAdvanced: boolean
 }) {
   const current = signal?.currentOfferCount ?? 0
   const starting = signal?.startingItemPriceEUR ?? null
@@ -240,11 +276,9 @@ function ExternalAvailabilityCard({
       {current > 0 && starting != null ? (
         <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Da" : "From"} {formatMoney(starting)}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
           <p className="mt-1 text-xs text-[#718198]">
-            {showAdvanced
-              ? `${current} ${it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}`
-              : (it ? "Spedizione esclusa" : "Shipping excluded")}
+            {current} {it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}
           </p>
         </div>
       ) : (
@@ -334,10 +368,10 @@ function AnchorMetric({ label, value, count }: { label: string; value: number | 
 
 function ConfidenceBadge({ value, it }: { value: ReleaseMarketSignalView["confidenceLabel"]; it: boolean }) {
   const label = value === "high"
-    ? (it ? "Affidabilità alta" : "High confidence")
+    ? (it ? "Copertura dati alta" : "High data coverage")
     : value === "medium"
-      ? (it ? "Affidabilità media" : "Medium confidence")
-      : (it ? "Affidabilità bassa" : "Low confidence")
+      ? (it ? "Copertura dati media" : "Medium data coverage")
+      : (it ? "Copertura dati limitata" : "Limited data coverage")
   return <Badge variant="outline" className="border-[#aac4e9] bg-white/70 text-[#0f4bb4]">{label}</Badge>
 }
 
