@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   try {
     const ebayScannerEnabled = process.env.EBAY_AUTOMATED_SCANNER_ENABLED === "true"
     const [exactPages, ebayActive] = await Promise.all([
-      runExactPageMarketScanBatch(2),
+      runExactPageMarketScanBatch(8),
       ebayScannerEnabled ? runEbayActiveMarketScanBatch(2) : Promise.resolve({ skipped: true, reason: "EBAY_AUTOMATED_SCANNER_DISABLED" }),
     ])
     return NextResponse.json({ ok: true, exactPages, ebayActive })
