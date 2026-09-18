@@ -127,6 +127,21 @@ sleep 35
 echo '=== TRACKDASH UI AFTER ENGAGEMENT ==='
 dump_ui
 
+if [ "$TARGET_HOST" = "squoosh.app" ]; then
+  # Squoosh can immediately ask Chrome for camera permission. Dismiss it so it
+  # cannot obscure the page's own Install control or Chrome's install UI.
+  for round in 1 2 3; do
+    dump_ui >/tmp/squoosh-permission-ui.txt
+    if tap_matching_text "Don’t allow" || tap_matching_text "Don't allow"; then
+      echo 'SQUOOSH_PERMISSION_DISMISSED'
+      sleep 2
+    else
+      break
+    fi
+  done
+  dump_ui >/tmp/squoosh-ready-ui.txt
+fi
+
 adb logcat -c || true
 
 if [ "$TARGET_HOST" = "squoosh.app" ]; then
