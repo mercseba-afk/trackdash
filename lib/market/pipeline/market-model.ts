@@ -37,6 +37,7 @@ export interface SoldMarketEvidence {
   sourceId: string
   averagePriceEUR: number
   salesCount: number
+  sellerCount?: number | null
   periodStart: string
   periodEnd: string
   grain: SoldEvidenceGrain
