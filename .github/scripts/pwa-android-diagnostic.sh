@@ -102,6 +102,10 @@ echo '=== ANDROID CHROME ENGAGEMENT GATE ==='
 adb shell input tap 540 1300
 sleep 35
 
+echo '=== RELOAD AFTER ENGAGEMENT ==='
+adb shell am start -a android.intent.action.VIEW -d 'https://trackdash.it/?android-diag=post-engagement' com.android.chrome
+sleep 12
+
 echo '=== TRACKDASH CHROME UI ==='
 dump_ui
 
