@@ -44,6 +44,23 @@ function chooseHistoricalFallback(rows: SoldMarketEvidence[], asOfDate: string):
     })[0] ?? null
 }
 
+function preserveKnownSingleSellerConcentration(
+  row: SoldMarketEvidence,
+  sourceRows: SoldMarketEvidence[],
+): SoldMarketEvidence {
+  if (row.sellerCount != null) return row
+
+  const provesSingleSeller = sourceRows.some(
+    (candidate) =>
+      candidate.grain === "full_history" &&
+      candidate.sellerCount === 1 &&
+      candidate.periodStart <= row.periodStart &&
+      candidate.periodEnd >= row.periodEnd,
+  )
+
+  return provesSingleSeller ? { ...row, sellerCount: 1 } : row
+}
+
 function chooseRollingWindow(rows: SoldMarketEvidence[], asOfDate: string): SoldMarketEvidence | null {
   const rolling = rows
     .filter(
@@ -110,7 +127,7 @@ export function selectCurrentSoldEvidence(input: {
 
     const currentRolling = chooseRollingWindow(rows, input.asOfDate)
     if (currentRolling) {
-      chosen.push(currentRolling)
+      chosen.push(preserveKnownSingleSellerConcentration(currentRolling, rows))
       aggregateSources.add(sourceId)
       continue
     }
