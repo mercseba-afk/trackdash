@@ -19,7 +19,6 @@ const UNGATED_PREFIXES = [
   "/auth/callback",
   "/update-password",
   "/pwa-debug",
-  "/pwa-icons",
   "/manifest.webmanifest",
   "/robots.txt",
   "/sitemap.xml",
