@@ -46,3 +46,22 @@ The recurring automated scan is intentionally bounded:
 - new/unmapped sources stay planned/manual until the parser is proven fail-closed.
 
 This avoids open-ended web crawling while still allowing the source registry to grow over time.
+
+
+## 18069 live retailer probe — 2026-09-18
+
+The reusable exact-page probe was run from GitHub Actions against the first retailer set.
+
+| Source | Result | Price | Availability | Automation |
+| --- | --- | ---: | --- | --- |
+| Briosi | exact item + structured offer | EUR 17.70 | in stock | ready candidate |
+| iModellini | exact item + meta offer | EUR 17.90 | out of stock | ready candidate; historical context only |
+| Plaza Japan | exact item + meta offer | JPY 990 | in stock | ready candidate |
+| Pieroni | exact item + structured offer | EUR 18.00 | out of stock | ready candidate; historical context only |
+| Tamiya USA | redirected to bot challenge | — | unknown to scanner | manual/planned |
+| Tamiya Shop Japan | exact item visible but no reliable machine-readable price in current Shift_JIS page | — | unknown to scanner | manual |
+| RCJAZ | HTTP 403 from server-side probe | — | unknown to scanner | planned |
+
+This is useful evidence in itself: the same exact current Release can sit in materially different regional price lanes. TrackDash therefore must not average two strongly divergent regional retail prices into a fake global midpoint. Market Audit now flags a severe two-region split and withholds a global retail-only headline until more regional or completed-sale evidence resolves it.
+
+The source onboarding rule is intentionally simple: a retailer is promoted to automatic scanning only after one exact Release page proves item identity, price and availability fail-closed. Unsupported/bot-blocked sources remain useful manual/reference sources rather than being scraped unreliably.
