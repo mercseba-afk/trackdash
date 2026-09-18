@@ -2,6 +2,8 @@ import React from "react"
 import { ImageResponse } from "next/og"
 import { TRACKDASH_ICON_WEBP_BASE64 } from "@/lib/pwa-icon-source"
 
+// Generated from the approved TrackDash app icon artwork.
+
 export const dynamic = "force-static"
 
 type RouteContext = {
