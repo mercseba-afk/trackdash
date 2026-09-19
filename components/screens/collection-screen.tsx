@@ -304,6 +304,12 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
     (signal?.currentOfferCount ?? 0) > 0 &&
     startingPrice != null &&
     startingPrice > 0
+  const askDirection =
+    signal?.askTrendPercent != null && signal.askTrendPercent >= 5
+      ? (it ? "Offerte in salita" : "Offers rising")
+      : signal?.askTrendPercent != null && signal.askTrendPercent <= -5
+        ? (it ? "Offerte in calo" : "Offers falling")
+        : null
 
   if (entry.marketValue != null) {
     return (
@@ -321,6 +327,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         {hasAvailability ? (
           <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
             {it ? "Disponibile da" : "Available from"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
+            {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
           </p>
         ) : null}
       </div>
@@ -333,7 +340,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         <p className="text-[11px] leading-tight text-muted-foreground">
           {it ? "Disponibile da" : "Available from"} <strong className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
         </p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">{it ? "Mercato in osservazione" : "Market under observation"}</p>
+        <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">{askDirection ?? (it ? "Mercato in osservazione" : "Market under observation")}</p>
       </div>
     )
   }
