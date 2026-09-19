@@ -234,7 +234,11 @@ select
   s.active_offer_count,
   now()
 from public.market_release_signals s
-where s.release_id in (select id from target_releases)
+join public.product_releases pr on pr.id = s.release_id
+where pr.item_number in (
+    '18038','18069','18074','18614','94708','94717',
+    '95061','95335','95450','95467','95525'
+  )
   and s.condition = 'new_complete_unbuilt'
   and s.active_anchor_eur is not null
   and s.active_offer_count > 0
