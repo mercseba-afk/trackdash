@@ -89,8 +89,8 @@ export function CatalogScreen({ products }: { products: Product[] }) {
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t("catalog.title")}</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
               {it
-                ? `${products.length} modelli Mini 4WD organizzati per famiglia, con release ed edizioni distinte all'interno di ogni scheda.`
-                : `${products.length} Mini 4WD models organized by family, with releases and editions kept distinct inside each model page.`}
+                ? `${products.length} modelli Mini 4WD. Ogni scheda separa le diverse Release per anno, Item Number, chassis ed edizione.`
+                : `${products.length} Mini 4WD models. Each page separates Releases by year, Item Number, chassis and edition.`}
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export function CatalogScreen({ products }: { products: Product[] }) {
             <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand"><SlidersHorizontal className="size-4" /></span>
             <div>
               <p className="text-sm font-semibold text-foreground">{it ? "Filtra il catalogo" : "Filter catalog"}</p>
-              <p className="text-[11px] text-muted-foreground">{it ? "Restringi i risultati senza perdere la distinzione tra le release." : "Narrow results while keeping each release distinct."}</p>
+              <p className="text-[11px] text-muted-foreground">{it ? "Trova più velocemente il modello o la Release che stai cercando." : "Find the model or Release you are looking for faster."}</p>
             </div>
           </div>
 
