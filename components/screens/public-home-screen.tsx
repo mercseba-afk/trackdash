@@ -317,24 +317,28 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <FeatureCard
               number="01"
               icon={Search}
-              title={it ? "Trova il modello. Scegli la Release." : "Find the model. Choose the Release."}
+              title={it ? "Trova il tuo modello." : "Find your model."}
               text={
                 it
-                  ? "Cerca per nome, anno, chassis o codice articolo. TrackDash separa originali, ristampe ed edizioni speciali per aiutarti a identificare esattamente ciò che stai guardando."
-                  : "Search by name, year, chassis or item number. TrackDash separates originals, reissues and special editions so you can identify exactly what you are looking at."
+                  ? "Cerca per nome, anno, chassis o codice articolo. Apri la Release corretta e scopri subito i dati disponibili e il suo valore di mercato."
+                  : "Search by name, year, chassis or item number. Open the correct Release and see the available data and market value."
               }
               tone="light"
+              href="/catalog"
+              linkLabel={it ? "Vai al catalogo" : "Open catalog"}
             />
             <FeatureCard
               number="02"
               icon={ShieldCheck}
-              title={it ? "Capisci quanto vale." : "Understand what it is worth."}
+              title={it ? "Scopri quanto vale oggi." : "See what it is worth today."}
               text={
                 it
-                  ? "Market Value, vendite concluse e ASK restano distinti. Così puoi leggere il mercato senza confondere un prezzo richiesto con un prezzo realmente pagato."
-                  : "Market Value, completed sales and ASK remain distinct, so you do not confuse an asking price with a price actually paid."
+                  ? "Market Value, vendite concluse e ASK restano distinti. Così puoi capire meglio il valore della tua Release senza confondere un prezzo richiesto con uno realmente pagato."
+                  : "Market Value, completed sales and ASK remain distinct, so you can understand a Release without confusing an asking price with one actually paid."
               }
               tone="dark"
+              href="/market"
+              linkLabel={it ? "Scopri i valori" : "Explore values"}
             />
             <FeatureCard
               number="03"
@@ -346,6 +350,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   : "Add the Releases you own, manage multiple copies of the same model and see your collection’s estimated value at a glance."
               }
               tone="brand"
+              href="/login?next=%2Fcollection"
+              linkLabel={it ? "Vai alla collezione" : "Open collection"}
             />
             <FeatureCard
               number="04"
@@ -357,6 +363,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   : "Scan the barcode or enter the item number and TrackDash takes you to the correct page without searching through similar versions."
               }
               tone="soft"
+              href="/login?next=%2Fscanner"
+              linkLabel={it ? "Prova lo Scanner" : "Try Scanner"}
             />
           </div>
         </div>
@@ -379,12 +387,12 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 {it ? "MODELLO E RELEASE" : "MODEL AND RELEASES"}
               </p>
               <h2 className="mt-3 text-4xl font-semibold leading-[.97] tracking-[-0.055em] text-ink md:text-5xl">
-                {it ? "Un modello può avere più Release." : "One model can have multiple Releases."}
+                {it ? "Trova il tuo modello. Scopri tutte le sue Release." : "Find your model. Discover all its Releases."}
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
                 {it
-                  ? "Una Mini 4WD può tornare sul mercato anni dopo, cambiare chassis o uscire in un’edizione speciale. Per TrackDash sono Release diverse, perché possono avere storia e valore diversi."
-                  : "A Mini 4WD can return years later, change chassis or appear as a special edition. TrackDash treats those as different Releases because their history and value can differ."}
+                  ? "Cerca una Mini 4WD e confronta le sue diverse versioni: originali, ristampe ed edizioni speciali possono avere storia, caratteristiche e valore diversi."
+                  : "Search for a Mini 4WD and compare its versions: originals, reissues and special editions can have different history, features and value."}
               </p>
 
               <div className="mt-7 overflow-hidden border border-line">
@@ -407,7 +415,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               </div>
 
               <Link href="/catalog" className="mt-6 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">
-                {it ? "Esplora tutto il catalogo" : "Explore the full catalog"} <ArrowRight className="size-4" />
+                {it ? "Trova il tuo modello nel catalogo" : "Find your model in the catalog"} <ArrowRight className="size-4" />
               </Link>
             </div>
           </div>
@@ -537,25 +545,63 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">{it ? "INIZIA DA QUI" : "START HERE"}</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-ink md:text-4xl">
-                {it ? "Esplora il catalogo. Il resto viene da sé." : "Explore the catalog. The rest follows."}
+                {it ? "Crea la tua collezione. Tieni d’occhio il mercato." : "Build your collection. Keep an eye on the market."}
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {it
-                  ? "Cerca una Mini 4WD che conosci, apri la sua Release e scopri come TrackDash organizza catalogo, valori e collezione."
-                  : "Search for a Mini 4WD you know, open its Release and see how TrackDash connects catalog, values and collection."}
+                  ? "Crea un account, aggiungi le Release che possiedi e segui il loro valore nel tempo. Catalogo, collezione e mercato restano collegati."
+                  : "Create an account, add the Releases you own and follow their value over time. Catalog, collection and market stay connected."}
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link href="/catalog" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
-                {it ? "Esplora il catalogo" : "Explore catalog"} <ArrowRight className="size-4" />
+              <Link href="/login?next=%2Fcollection" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
+                {it ? "Crea la tua collezione" : "Build your collection"} <ArrowRight className="size-4" />
               </Link>
-              <Link href="/login" className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
-                {it ? "Crea un account" : "Create an account"}
+              <Link href="/market" className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
+                {it ? "Tieni d’occhio il mercato" : "Watch the market"}
               </Link>
             </div>
           </div>
         </div>
       </section>
+    </div>
+  )
+}
+
+
+function HeroGarageVisual({ entries }: { entries: ReleaseEntry[] }) {
+  const [first, second, third] = entries
+  if (!first) return null
+
+  return (
+    <div className="relative min-h-[360px] overflow-hidden border border-line bg-gradient-to-br from-[#eef4fb] via-white to-[#e8f0fb] p-5 sm:min-h-[430px] sm:p-7 lg:min-h-[500px]">
+      <div className="pointer-events-none absolute -right-16 top-10 h-40 w-80 -rotate-12 bg-brand/8" />
+      <div className="pointer-events-none absolute -left-20 bottom-12 h-24 w-72 rotate-12 bg-brand-red/7" />
+      <div className="absolute inset-x-6 bottom-8 h-px bg-navy/10" />
+      <div className="absolute inset-x-10 bottom-16 h-px bg-navy/5" />
+
+      {third ? (
+        <div className="absolute left-[2%] top-[18%] h-[42%] w-[44%] -rotate-[7deg] opacity-90 sm:left-[4%] sm:top-[17%]">
+          <ProductImage product={third.product} release={third.release} className="h-full w-full border-0 bg-transparent object-contain drop-shadow-[0_20px_22px_rgba(11,26,58,.16)]" />
+        </div>
+      ) : null}
+
+      {second ? (
+        <div className="absolute right-[1%] top-[20%] h-[46%] w-[46%] rotate-[6deg] opacity-95 sm:right-[3%] sm:top-[18%]">
+          <ProductImage product={second.product} release={second.release} className="h-full w-full border-0 bg-transparent object-contain drop-shadow-[0_22px_24px_rgba(11,26,58,.18)]" />
+        </div>
+      ) : null}
+
+      <div className="absolute inset-x-[16%] bottom-[6%] h-[58%]">
+        <ProductImage product={first.product} release={first.release} className="h-full w-full border-0 bg-transparent object-contain drop-shadow-[0_28px_30px_rgba(11,26,58,.24)]" size="lg" />
+      </div>
+
+      <div className="absolute left-5 top-5">
+        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-navy shadow-sm backdrop-blur">
+          <span className="size-1.5 rounded-full bg-brand-red" />
+          Mini 4WD collection
+        </span>
+      </div>
     </div>
   )
 }
@@ -600,12 +646,16 @@ function FeatureCard({
   title,
   text,
   tone,
+  href,
+  linkLabel,
 }: {
   number: string
   icon: React.ComponentType<{ className?: string }>
   title: string
   text: string
   tone: "light" | "dark" | "brand" | "soft"
+  href?: string
+  linkLabel?: string
 }) {
   const classes =
     tone === "dark"
@@ -627,6 +677,11 @@ function FeatureCard({
       </div>
       <h3 className="mt-12 max-w-md text-2xl font-semibold leading-tight tracking-[-0.045em] sm:text-3xl">{title}</h3>
       <p className={`mt-4 max-w-lg text-sm leading-6 sm:text-base ${muted}`}>{text}</p>
+      {href && linkLabel ? (
+        <Link href={href} className={`mt-6 inline-flex items-center gap-2 text-sm font-semibold ${accent}`}>
+          {linkLabel} <ArrowRight className="size-4" />
+        </Link>
+      ) : null}
     </article>
   )
 }
