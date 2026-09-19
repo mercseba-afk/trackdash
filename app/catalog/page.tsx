@@ -8,7 +8,7 @@ import type { Product } from "@/lib/types"
 export const revalidate = 45
 
 const title = "Tamiya Mini 4WD Catalog — Models & Releases | TrackDash"
-const description = "Explore the TrackDash Tamiya Mini 4WD catalog by exact model and Release, with item numbers, years, chassis, editions and public Market Value data."
+const description = "Explore Tamiya Mini 4WD models and exact Releases by Item Number, year, chassis and edition, with market values where data is available."
 
 export const metadata: Metadata = {
   title,

@@ -143,30 +143,30 @@ export function MarketSignalCard({
             <p className="mt-1 text-xs text-muted-foreground">{trendWindowLabel(signal, it)}</p>
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
               {it
-                ? `Stima TrackDash basata su ${signal.soldUnits > 0 ? `${signal.soldUnits} vendite osservate` : "segnali retail correnti"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} venditori osservati` : ""}. Non rappresenta un prezzo di vendita garantito.`
-                : `TrackDash estimate based on ${signal.soldUnits > 0 ? `${signal.soldUnits} observed sales` : "current retail signals"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}. It does not represent a guaranteed sale price.`}
+                ? `Stima TrackDash basata su ${signal.soldUnits > 0 ? `${signal.soldUnits} vendite osservate` : "prezzi correnti nei negozi"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} venditori osservati` : ""}. Non rappresenta un prezzo di vendita garantito.`
+                : `TrackDash estimate based on ${signal.soldUnits > 0 ? `${signal.soldUnits} observed sales` : "current store prices"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}. It does not represent a guaranteed sale price.`}
             </p>
           </div>
         ) : hasCleanActiveAsk ? (
           <div>
-            <p className="text-xl font-semibold text-foreground">{it ? "Valore in definizione" : "Value being established"}</p>
+            <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
               {it ? "In vendita da" : "Listed from"} <span className="font-semibold tabular-nums text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
             </p>
           </div>
         ) : (
           <div>
-            <p className="text-xl font-semibold text-foreground">{it ? "Mercato raro" : "Thin market"}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{it ? "Valore di mercato stimato non ancora disponibile" : "Estimated market value not available yet"}</p>
+            <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{it ? "Non ci sono ancora abbastanza dati per una stima affidabile." : "There is not enough data for a reliable estimate yet."}</p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              {it ? "Ne possiedi una? Puoi metterla in vendita dalla tua collezione." : "Own one? You can list it for sale from your collection."}
+              {it ? "La scheda si aggiornerà quando arriveranno nuovi dati di mercato." : "This page will update as new market data becomes available."}
             </p>
           </div>
         )}
 
         <div className="flex items-start justify-between gap-4 border-t pt-3">
           <div>
-            <span className="text-sm text-muted-foreground">{it ? "Liquidità di mercato" : "Market liquidity"}</span>
+            <span className="text-sm text-muted-foreground">{it ? "Attività di mercato" : "Market activity"}</span>
             <p className="mt-1 max-w-sm text-[10px] leading-relaxed text-muted-foreground">
               {it
                 ? "Basata solo sulle vendite concluse osservate nella finestra recente, non sugli annunci attivi."

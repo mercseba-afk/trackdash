@@ -207,8 +207,8 @@ function MarketValuePanel({
       ? `Basato su ${signal.soldUnits} vendite osservate${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} ${signal.soldSellerCount === 1 ? "venditore osservato" : "venditori osservati"}` : ""}`
       : `Based on ${signal.soldUnits} observed sales${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed ${signal.soldSellerCount === 1 ? "seller" : "sellers"}` : ""}`
     : it
-      ? `Basato su ${signal.retailSourceCount} retailer correnti qualificati`
-      : `Based on ${signal.retailSourceCount} qualified current retailers`
+      ? `Basato su ${signal.retailSourceCount} prezzi correnti rilevati nei negozi`
+      : `Based on ${signal.retailSourceCount} current store price references`
 
   return (
     <div className="rounded-2xl border border-[#bfd2ee] bg-[linear-gradient(135deg,#f7fbff_0%,#eef5ff_100%)] p-5 shadow-sm">
@@ -280,9 +280,9 @@ function ExternalAvailabilityCard({
     <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
       <div className="flex items-center gap-2">
         <ShoppingBag className="size-4 text-[#0f4bb4]" />
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Mercato esterno" : "External market"}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Disponibilità sul mercato" : "Market availability"}</p>
       </div>
-      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Altre disponibilità sul mercato" : "Other market availability"}</h2>
+      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Dove si trova adesso" : "Where it is available now"}</h2>
 
       {current > 0 && starting != null ? (
         <div className="mt-5 space-y-3 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
@@ -290,19 +290,19 @@ function ExternalAvailabilityCard({
             <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
             <p className="mt-1 text-xs text-[#718198]">
-              {current} {it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}
+              {current} {it ? "annunci attivi trovati · spedizione esclusa" : "active listings found · shipping excluded"}
             </p>
           </div>
 
           {active > 0 && typicalAsk != null ? (
             <div className="grid gap-2 border-t border-[#dce5ef] pt-3 sm:grid-cols-2">
               <div>
-                <p className="text-xs text-[#718198]">{active === 1 ? (it ? "Prezzo richiesto" : "Asking price") : (it ? "Prezzo richiesto tipico" : "Typical asking price")}</p>
+                <p className="text-xs text-[#718198]">{active === 1 ? (it ? "ASK · prezzo richiesto" : "ASK · asking price") : (it ? "ASK tipico" : "Typical ASK")}</p>
                 <p className="mt-0.5 text-lg font-semibold tabular-nums text-[#081a3a]">{formatMoney(typicalAsk)}</p>
                 <p className="mt-0.5 text-[11px] text-[#7a8aa0]">{active} {it ? (active === 1 ? "offerta attiva" : "offerte attive") : (active === 1 ? "active offer" : "active offers")}</p>
               </div>
               <div>
-                <p className="text-xs text-[#718198]">{it ? "Fascia prezzi richiesti" : "Asking price range"}</p>
+                <p className="text-xs text-[#718198]">{it ? "Fascia ASK" : "ASK range"}</p>
                 <p className="mt-0.5 text-sm font-semibold tabular-nums text-[#081a3a]">
                   {askLow != null && askHigh != null
                     ? (Math.abs(askHigh - askLow) < 0.01 ? formatMoney(askLow) : `${formatMoney(askLow)} – ${formatMoney(askHigh)}`)
@@ -316,13 +316,13 @@ function ExternalAvailabilityCard({
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
           {it
-            ? "Nessuna disponibilità esterna qualificata è attualmente mostrata per questa Release. Le offerte che non superano i controlli di qualità non vengono mostrate."
-            : "No qualified external availability is currently shown for this Release. Offers that do not pass quality checks are not displayed."}
+            ? "Non abbiamo trovato annunci abbastanza chiari da mostrare per questa Release in questo momento."
+            : "We have not found listings clear enough to show for this Release right now."}
         </div>
       )}
 
       <p className="mt-4 text-xs leading-5 text-[#7a8aa0]">
-        {it ? "Le disponibilità esterne sono secondarie rispetto alle offerte dei collezionisti TrackDash." : "External availability is secondary to TrackDash collector offers."}
+        {it ? "ASK indica il prezzo richiesto dal venditore: aiuta a capire la disponibilità, ma non equivale a una vendita conclusa." : "ASK is the price requested by the seller: it helps describe availability, but it is not the same as a completed sale."}
       </p>
     </section>
   )
@@ -350,24 +350,24 @@ function PriceIntelligenceCard({
       {authenticated ? (
         signal ? (
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <AnchorMetric label={it ? "Venduto" : "Sold"} value={signal.soldAnchorEUR} count={signal.soldUnits} />
-            <AnchorMetric label="Retail" value={signal.retailAnchorEUR} count={signal.retailSourceCount} />
-            <AnchorMetric label={it ? "Offerte attive" : "Active offers"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
+            <AnchorMetric label={it ? "Vendite concluse" : "Completed sales"} value={signal.soldAnchorEUR} count={signal.soldUnits} it={it} />
+            <AnchorMetric label={it ? "Negozi" : "Stores"} value={signal.retailAnchorEUR} count={signal.retailSourceCount} it={it} />
+            <AnchorMetric label={it ? "ASK attivi" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} it={it} />
             <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
           </div>
         ) : (
-          <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato non ancora disponibili." : "Market evidence is not available yet."}</p>
+          <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato non ancora disponibili." : "Market data is not available yet."}</p>
         )
       ) : (
         <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <div className="flex items-start gap-3">
             <LockKeyhole className="mt-0.5 size-4 shrink-0 text-[#0f4bb4]" />
             <div>
-              <p className="text-sm font-semibold text-[#1b2f4d]">{it ? "Dettaglio dei segnali riservato agli utenti" : "Signal details are available to signed-in users"}</p>
+              <p className="text-sm font-semibold text-[#1b2f4d]">{it ? "Più dettagli sul mercato per gli utenti TrackDash" : "More market detail for TrackDash users"}</p>
               <p className="mt-1 text-xs leading-5 text-[#718198]">
                 {it
-                  ? "Valore stimato, intervallo, trend e prezzo “Da” restano pubblici. Accedi per vedere i dati di venduto, retail e offerte attive che supportano la stima."
-                  : "Estimated value, range, trend and the From price stay public. Sign in to see completed sales, retail and active-offer data supporting the estimate."}
+                  ? "Valore stimato, fascia indicativa, trend e prezzo “Da” restano pubblici. Accedi per vedere vendite concluse, prezzi nei negozi e ASK attivi usati come contesto."
+                  : "Estimated value, range, trend and the From price stay public. Sign in to see completed sales, store prices and active ASK used as context."}
               </p>
             </div>
           </div>
@@ -381,19 +381,19 @@ function PriceIntelligenceCard({
           </Button>
         ) : null}
         <Button variant="outline" size="sm" render={<Link href="/market" />}>
-          {it ? "Vedi il metodo Price Intelligence" : "View Price Intelligence method"}
+          {it ? "Come funziona Price Intelligence" : "How Price Intelligence works"}
         </Button>
       </div>
     </section>
   )
 }
 
-function AnchorMetric({ label, value, count }: { label: string; value: number | null; count: number }) {
+function AnchorMetric({ label, value, count, it }: { label: string; value: number | null; count: number; it: boolean }) {
   return (
     <div className="rounded-xl border border-[#e0e7f0] bg-[#fbfcfe] p-3">
       <p className="text-xs text-[#718198]">{label}</p>
       <p className="mt-1 font-semibold tabular-nums text-[#081a3a]">{value != null ? formatMoney(value) : "—"}</p>
-      <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {count === 1 ? "signal" : "signals"}</p>
+      <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {it ? (count === 1 ? "riferimento" : "riferimenti") : (count === 1 ? "reference" : "references")}</p>
     </div>
   )
 }

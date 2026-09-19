@@ -54,7 +54,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const copy = locale === "it"
     ? {
         catalog: "Catalogo",
-        price: "Price Intelligence",
+        price: "Valori di mercato",
         scanner: "Scanner",
         how: "Come funziona",
         dashboard: "Dashboard",
@@ -62,7 +62,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         collection: "Collezione",
         signIn: "Accedi",
         exploreCatalog: "Esplora catalogo",
-        footerTagline: "La casa digitale dei collezionisti Mini 4WD: Release esatte, Collezione, Scanner e contesto di mercato trasparente.",
+        footerTagline: "Catalogo per Release, collezione personale, scanner e valori di mercato per collezionisti Mini 4WD.",
         explore: "Esplora",
         account: "Account",
         wishlist: "Desideri",
@@ -73,7 +73,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       }
     : {
         catalog: "Catalog",
-        price: "Price Intelligence",
+        price: "Market values",
         scanner: "Scanner",
         how: "How it works",
         dashboard: "Dashboard",
@@ -81,7 +81,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         collection: "Collection",
         signIn: "Sign in",
         exploreCatalog: "Explore catalog",
-        footerTagline: "The digital home for Mini 4WD collectors: exact Releases, Collection, Scanner and honest market context.",
+        footerTagline: "Release-level catalog, personal collection, scanner and market values for Mini 4WD collectors.",
         explore: "Explore",
         account: "Account",
         wishlist: "Wishlist",

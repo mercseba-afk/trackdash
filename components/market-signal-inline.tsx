@@ -28,9 +28,9 @@ export function MarketSignalInline({
     signal.startingItemPriceEUR > 0
   const askDirection =
     signal.askTrendPercent != null && signal.askTrendPercent >= 5
-      ? (it ? "Offerte in salita" : "Offers rising")
+      ? (it ? "Prezzi richiesti in salita" : "Asking prices rising")
       : signal.askTrendPercent != null && signal.askTrendPercent <= -5
-        ? (it ? "Offerte in calo" : "Offers falling")
+        ? (it ? "Prezzi richiesti in calo" : "Asking prices falling")
         : null
 
   return (
@@ -42,7 +42,7 @@ export function MarketSignalInline({
         </div>
       ) : hasCleanActiveAsk ? (
         <>
-          <span className="text-xs font-medium text-muted-foreground">{it ? "Mercato in osservazione" : "Market under observation"}</span>
+          <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
           <span className="text-xs text-muted-foreground">
             {it ? "Disponibile da" : "Available from"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
           </span>
