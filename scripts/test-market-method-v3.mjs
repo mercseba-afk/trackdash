@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
+import { applyAskTrend, computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
 import { applyPublicMarketPublicationPolicy } from "../lib/market/pipeline/market-publication-policy.ts"
 import { selectCurrentSoldEvidence } from "../lib/market/pipeline/sold-selection.ts"
 
@@ -91,7 +91,7 @@ ok("18614: liquid standard kit follows the recent 10-sale window", () => {
   assert.equal(result.confidenceLabel, "medium")
 })
 
-ok("95467: a recent window inherits proven single-seller concentration from its covering history", () => {
+ok("95467: five observed sales from one known seller still publish a cautious sold value", () => {
   const selected = selectCurrentSoldEvidence({
     granular: [],
     aggregate: [
@@ -103,7 +103,18 @@ ok("95467: a recent window inherits proven single-seller concentration from its 
   assert.equal(selected[0].sellerCount, 1)
   const result = publish(selected)
   assert.equal(result.soldAnchorEUR, 14.92)
-  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.marketValueEUR, 14.92)
+  assert.equal(result.confidenceLabel, "low")
+})
+
+ok("seven sales from one seller publish instead of disappearing", () => {
+  const selected = [
+    sold({ id: "single-seller-seven", price: 15, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-09-10", grain: "rolling_window" }),
+  ]
+  const result = publish(selected)
+  assert.equal(result.marketValueEUR, 15)
+  assert.equal(result.soldUnits, 7)
+  assert.equal(result.soldSellerCount, 1)
   assert.equal(result.confidenceLabel, "low")
 })
 
@@ -165,7 +176,35 @@ ok("active ASK prices never manufacture Market Value", () => {
     { stableId: "ask-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 75, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.activeOfferCount, 2)
+  assert.equal(result.activeAnchorEUR, 55)
   assert.equal(result.marketValueEUR, null)
+})
+
+ok("fantasy ASK outlier is excluded from typical ask and public ask range", () => {
+  const result = publish([], [
+    { stableId: "ask-25", sourceId: "ebay", sellerFingerprint: "seller-25", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 25, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-29", sourceId: "ebay", sellerFingerprint: "seller-29", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 29, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-30", sourceId: "ebay", sellerFingerprint: "seller-30", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 30, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-35", sourceId: "ebay", sellerFingerprint: "seller-35", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 35, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-100", sourceId: "ebay", sellerFingerprint: "seller-100", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 100, observedAt: "2026-09-18T10:00:00Z" },
+  ])
+  assert.equal(result.activeOfferCount, 5)
+  assert.equal(result.activeAnchorEUR, 29.5)
+  assert.equal(result.activeLowEUR, 25)
+  assert.equal(result.activeHighEUR, 35)
+  assert.equal(result.marketValueEUR, null)
+})
+
+ok("ASK trend compares today's typical ask with a recent historical snapshot", () => {
+  const current = publish([], [
+    { stableId: "ask-current-a", sourceId: "ebay", sellerFingerprint: "seller-a", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 29, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-current-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 31, observedAt: "2026-09-18T10:00:00Z" },
+  ])
+  const trended = applyAskTrend(current, [
+    { snapshotDate: "2026-09-10", typicalEUR: 25, lowEUR: 22, highEUR: 28, offerCount: 4 },
+  ], asOfDate)
+  assert.equal(trended.askTrendPercent, 20)
+  assert.equal(trended.askTrendWindowDays, 8)
 })
 
 ok("out-of-stock retail remains context and cannot become current value", () => {
