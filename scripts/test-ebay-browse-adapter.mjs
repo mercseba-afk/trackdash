@@ -160,7 +160,7 @@ console.log(`${passed} passed, 0 failed`)
 console.log("EBAY BROWSE ADAPTER TEST PASSED")
 
 // Network is mocked: these are transport and isolation tests, never market data.
-const { searchEbayActiveListings, ebayEnvironment, ebayMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
+const { searchEbayActiveListings, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
 const originalFetch = globalThis.fetch
 const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET', 'EBAY_MARKET_WRITES_ENABLED'].map(key => [key, process.env[key]]))
 const calls = []
@@ -169,6 +169,7 @@ try {
   delete process.env.EBAY_MARKET_WRITES_ENABLED
   assert.equal(ebayEnvironment(), 'sandbox')
   assert.equal(ebayMarketWritesAllowed(), false)
+  assert.equal(ebayScheduledMarketWritesAllowed(), false)
   process.env.EBAY_CLIENT_ID = 'fixture-SBX-client'
   process.env.EBAY_CLIENT_SECRET = 'fixture-only'
   const sample = { itemId: 'v1|fixture|0', title: 'Tamiya 95467 kit', price: { value: '20', currency: 'EUR' }, condition: 'Neuf', conditionId: '1000', seller: { username: 'fixture-seller' }, itemWebUrl: 'https://example.com/item' }
@@ -206,6 +207,7 @@ try {
 
   process.env.EBAY_ENV = 'production'
   assert.equal(ebayMarketWritesAllowed(), false)
+  assert.equal(ebayScheduledMarketWritesAllowed(), true)
   process.env.EBAY_MARKET_WRITES_ENABLED = 'false'
   assert.equal(ebayMarketWritesAllowed(), false)
   process.env.EBAY_MARKET_WRITES_ENABLED = 'true'
@@ -252,23 +254,22 @@ try {
   runInNewContext(ts.transpileModule(workerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, {
     exports: workerModule.exports,
     require(name) {
-      if (name === './ebay-browse-adapter') return { ebayBrowseConfigured: () => true, ebayMarketWritesAllowed }
+      if (name === './ebay-browse-adapter') return { ebayBrowseConfigured: () => true, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed }
       return new Proxy({}, { get: () => forbidden })
     },
   })
   process.env.EBAY_ENV = 'sandbox'
   delete process.env.EBAY_MARKET_WRITES_ENABLED
-  await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SANDBOX_MARKET_WRITES_DISABLED/)
+  await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SCHEDULED_MARKET_WRITES_DISABLED/)
   assert.equal(dbTouches, 0)
-  console.log('ok: Sandbox worker cannot create clients, claim jobs, write prices or recompute R3')
+  console.log('ok: Sandbox scheduled worker cannot create clients, claim jobs, write prices or recompute market signals')
 
   process.env.EBAY_ENV = 'production'
   process.env.EBAY_CLIENT_ID = 'fixture-PRD-client'
   process.env.EBAY_CLIENT_SECRET = 'fixture-only'
   delete process.env.EBAY_MARKET_WRITES_ENABLED
-  await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanBatch(1), /EBAY_SANDBOX_MARKET_WRITES_DISABLED/)
-  assert.equal(dbTouches, 0)
-  console.log('ok: Production worker remains blocked before DB access until writes are explicitly armed')
+  assert.equal(ebayScheduledMarketWritesAllowed(), true)
+  console.log('ok: Production scheduled path is released while targeted/manual execution keeps its explicit write gate')
   await assert.rejects(() => workerModule.exports.runEbayActiveMarketScanForRelease({
     jobId: 'fixture-job',
     releaseId: 'fixture-release',

@@ -11,6 +11,7 @@ import {
   dedupeEbayListings,
   ebayBrowseConfigured,
   ebayMarketWritesAllowed,
+  ebayScheduledMarketWritesAllowed,
   searchEbayActiveListings,
   type EbayBrowseListing,
   type EbayMarketplaceId,
@@ -714,9 +715,9 @@ export async function runEbayActiveMarketScanBatch(limit = 2): Promise<EbayRunRe
     }
   }
 
-  // Sandbox is for standalone technical tests only. Stop before creating a DB
-  // client, claiming jobs, persisting candidates or recomputing any R3 signal.
-  if (!ebayMarketWritesAllowed()) throw new Error("EBAY_SANDBOX_MARKET_WRITES_DISABLED")
+  // Scheduled writes are released only in Production. Queue eligibility and
+  // source adapter readiness remain additional fail-closed gates.
+  if (!ebayScheduledMarketWritesAllowed()) throw new Error("EBAY_SCHEDULED_MARKET_WRITES_DISABLED")
   const client = createAdminClient()
   const repo = new MarketR3Repository(client)
   const safeLimit = Math.max(1, Math.min(limit, 4))
@@ -738,7 +739,11 @@ export async function runEbayActiveMarketScanBatch(limit = 2): Promise<EbayRunRe
   const results: EbayJobResult[] = []
   for (const job of jobs) {
     try {
-      results.push(await scanJob(client, repo, job))
+      results.push(await scanJob(client, repo, job, {
+        marketplaceLimit: 20,
+        maxAcceptedListings: 20,
+        persistNonAccepted: true,
+      }))
     } catch (error) {
       const message = shortError(error)
       try { await finishJob(client, job.job_id, false, false, message) } catch {}

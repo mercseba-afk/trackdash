@@ -297,7 +297,7 @@ function ExternalAvailabilityCard({
           {active > 0 && typicalAsk != null ? (
             <div className="grid gap-2 border-t border-[#dce5ef] pt-3 sm:grid-cols-2">
               <div>
-                <p className="text-xs text-[#718198]">{it ? "Prezzo richiesto tipico" : "Typical asking price"}</p>
+                <p className="text-xs text-[#718198]">{active === 1 ? (it ? "Prezzo richiesto" : "Asking price") : (it ? "Prezzo richiesto tipico" : "Typical asking price")}</p>
                 <p className="mt-0.5 text-lg font-semibold tabular-nums text-[#081a3a]">{formatMoney(typicalAsk)}</p>
                 <p className="mt-0.5 text-[11px] text-[#7a8aa0]">{active} {it ? (active === 1 ? "offerta attiva" : "offerte attive") : (active === 1 ? "active offer" : "active offers")}</p>
               </div>
