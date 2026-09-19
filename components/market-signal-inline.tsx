@@ -26,6 +26,12 @@ export function MarketSignalInline({
     signal.retailSourceCount === 0 &&
     signal.startingItemPriceEUR != null &&
     signal.startingItemPriceEUR > 0
+  const askDirection =
+    signal.askTrendPercent != null && signal.askTrendPercent >= 5
+      ? (it ? "Offerte in salita" : "Offers rising")
+      : signal.askTrendPercent != null && signal.askTrendPercent <= -5
+        ? (it ? "Offerte in calo" : "Offers falling")
+        : null
 
   return (
     <div className="flex flex-col gap-1">
@@ -47,6 +53,7 @@ export function MarketSignalInline({
       {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
         <span className="text-xs text-muted-foreground">
           {it ? "Disponibile da" : "Available from"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
+          {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
         </span>
       ) : null}
     </div>
