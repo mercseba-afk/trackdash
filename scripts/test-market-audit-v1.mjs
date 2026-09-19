@@ -106,7 +106,7 @@ ok("95467 shadow: one seller plus one retailer remains thin, not a fake global h
   assert.equal(audit.activeAskAnchorEUR, 46.36)
 })
 
-ok("single-seller indicative sold cluster stays evidence but does not publish alone", () => {
+ok("single-seller five-sale cluster publishes cautiously instead of disappearing", () => {
   const sold = [
     {
       stableId: "single-seller-window",
@@ -123,7 +123,7 @@ ok("single-seller indicative sold cluster stays evidence but does not publish al
   const computed = computeCurrentMarketSignal({ offers: [], soldEvidence: sold, asOfDate: "2026-09-18" })
   const published = applyPublicMarketPublicationPolicy(computed, sold, "2026-09-18")
   assert.equal(published.soldAnchorEUR, 14.92)
-  assert.equal(published.marketValueEUR, null)
+  assert.equal(published.marketValueEUR, 14.92)
   assert.equal(published.confidenceLabel, "low")
   assert.ok(published.confidenceScore <= 49)
 })
