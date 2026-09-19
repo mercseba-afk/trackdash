@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Boxes, Coins, FilePenLine, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Trash2, TrendingUp } from "lucide-react"
+import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
@@ -204,35 +204,39 @@ export function CollectionScreen() {
                 const share = shareByCollectionItem.get(entry.item.id); const visibility: Visibility = share?.shareMode ?? "private"
                 const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
                 return (
-                  <Card key={entry.item.id} className="group min-h-[168px] overflow-hidden rounded-2xl border-border/70 py-0 shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
-                    <div className="flex h-full min-h-[168px]">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative w-28 shrink-0 overflow-hidden border-r border-border/50 bg-gradient-to-br from-white via-muted/10 to-brand/5 sm:w-40">
-                        <ProductImage product={entry.product} release={entry.release} className="h-full min-h-[168px] w-full transition-transform duration-300 group-hover:scale-[1.025]" />
+                  <Card key={entry.item.id} className="group min-h-[156px] overflow-hidden rounded-2xl border-border/70 py-0 shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
+                    <div className="flex h-full min-h-[156px]">
+                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative w-28 shrink-0 overflow-hidden border-r border-border/50 bg-white sm:w-36">
+                        <ProductImage product={entry.product} release={entry.release} className="h-full min-h-[156px] w-full rounded-none bg-white transition-transform duration-300 group-hover:scale-[1.035]" />
                       </Link>
-                      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+                      <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-3.5">
                         <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
                           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
-                          <h2 className="mt-1 line-clamp-2 text-sm font-semibold leading-[1.05rem] tracking-tight transition-colors group-hover:text-brand sm:text-base sm:leading-5">{entry.release.editionName}</h2>
+                          <h2 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-4 tracking-tight transition-colors group-hover:text-brand sm:text-base sm:leading-[1.15rem]">{entry.release.editionName}</h2>
                         </Link>
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
                           <span className="text-[11px] text-muted-foreground">{t("collection.paid")} <strong className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</strong></span>
                         </div>
-                        <div className="mt-2 border-t border-border/60 pt-2.5">
-                          <CollectionMarketValue entry={entry} it={it} />
+                        <div className="mt-1.5 flex min-w-0 items-center gap-2 border-t border-border/60 pt-2">
+                          <div className="min-w-0 flex-1">
+                            <CollectionMarketValue entry={entry} it={it} />
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
+                              <Eye className="size-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-muted/70 text-foreground hover:bg-muted" aria-label={t("common.edit")} title={it ? "Modifica copia" : "Edit copy"} onClick={() => setEditing(entry)}>
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive" aria-label={t("common.remove")} title={it ? "Rimuovi dalla collezione" : "Remove from collection"} onClick={() => void remove()}>
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="mt-auto flex items-center gap-1 pt-2">
-                          <Button variant="ghost" size="sm" className="h-8 rounded-xl px-2 text-[11px] text-muted-foreground sm:hidden" render={<Link href={`/collection/${entry.item.id}`} />} aria-label={it ? "Apri scheda copia" : "Open copy details"}>
-                            <FilePenLine className="size-3.5" />{it ? "Scheda" : "Details"}
-                          </Button>
-                          <div className="hidden items-center gap-1.5 sm:flex">
-                            <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
-                            <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
-                          </div>
-                          <div className="ml-auto flex gap-1">
-                            <Button variant="ghost" size="icon" className="size-8 rounded-xl" aria-label={t("common.edit")} onClick={() => setEditing(entry)}><Pencil /></Button>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-xl text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button>
-                          </div>
+                        <div className="mt-1.5 hidden items-center gap-1.5 sm:flex">
+                          <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
+                          <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                         </div>
                       </div>
                     </div>
