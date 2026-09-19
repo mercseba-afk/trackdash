@@ -171,13 +171,13 @@ function MarketValuePanel({
     return (
       <div className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">
-          {it ? "Valore di mercato stimato" : "Estimated market value"}
+          {it ? "Valore stimato" : "Estimated value"}
         </p>
-        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Valore non ancora consolidato" : "Value not consolidated yet"}</p>
+        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
         <p className="mt-2 text-sm leading-6 text-[#718198]">
           {it
-            ? "TrackDash non mostra un valore finché vendite e segnali di mercato disponibili non sono sufficientemente solidi."
-            : "TrackDash withholds the value until observed sales and market signals are sufficiently robust."}
+            ? "TrackDash mostrerà un Valore stimato quando i dati di mercato disponibili saranno sufficienti."
+            : "TrackDash will show an Estimated value when enough market data is available."}
         </p>
       </div>
     )
@@ -215,7 +215,7 @@ function MarketValuePanel({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">
-            {it ? "Valore di mercato stimato" : "Estimated market value"}
+            {it ? "Valore stimato" : "Estimated value"}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <p className="text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">
@@ -232,7 +232,6 @@ function MarketValuePanel({
               : (it ? "Trend in raccolta: non ci sono ancora abbastanza dati cronologici." : "Trend gathering: there is not enough chronological evidence yet.")}
           </p>
         </div>
-        <ConfidenceBadge value={signal.confidenceLabel} it={it} />
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -248,8 +247,8 @@ function MarketValuePanel({
       <p className="mt-4 flex gap-2 text-xs leading-5 text-[#667991]">
         <Info className="mt-0.5 size-3.5 shrink-0" />
         {it
-          ? "È una stima TrackDash, non un prezzo garantito. Le vendite concluse hanno priorità; retailer e disponibilità servono da conferma, mentre gli ASK restano separati."
-          : "This is a TrackDash estimate, not a guaranteed sale price. Completed sales have priority; retailers and availability corroborate the estimate, while ASK prices stay separate."}
+          ? "È una stima TrackDash, non un prezzo garantito. Incrociamo vendite concluse e disponibilità correnti senza confondere il prezzo richiesto con il Valore stimato."
+          : "This is a TrackDash estimate, not a guaranteed sale price. We combine completed sales and current availability without confusing asking prices with the Estimated value."}
       </p>
     </div>
   )
@@ -284,8 +283,8 @@ function ExternalAvailabilityCard({
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
           {it
-            ? "Nessuna disponibilità esterna qualificata è attualmente mostrata per questa Release. Gli ASK anomali o non sufficientemente affidabili restano fuori dalla superficie pubblica."
-            : "No qualified external availability is currently shown for this Release. Anomalous or insufficiently reliable asks stay off the public surface."}
+            ? "Nessuna disponibilità esterna qualificata è attualmente mostrata per questa Release. Le offerte che non superano i controlli di qualità non vengono mostrate."
+            : "No qualified external availability is currently shown for this Release. Offers that do not pass quality checks are not displayed."}
         </div>
       )}
 
@@ -320,7 +319,7 @@ function PriceIntelligenceCard({
           <div className="mt-5 grid grid-cols-2 gap-3">
             <AnchorMetric label={it ? "Venduto" : "Sold"} value={signal.soldAnchorEUR} count={signal.soldUnits} />
             <AnchorMetric label="Retail" value={signal.retailAnchorEUR} count={signal.retailSourceCount} />
-            <AnchorMetric label={it ? "ASK attive" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
+            <AnchorMetric label={it ? "Offerte attive" : "Active offers"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
             <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
           </div>
         ) : (
@@ -334,8 +333,8 @@ function PriceIntelligenceCard({
               <p className="text-sm font-semibold text-[#1b2f4d]">{it ? "Dettaglio dei segnali riservato agli utenti" : "Signal details are available to signed-in users"}</p>
               <p className="mt-1 text-xs leading-5 text-[#718198]">
                 {it
-                  ? "Market Value, range, trend e prezzo “Da” restano pubblici. Accedi per vedere gli anchor Sold, Retail e ASK che supportano il valore."
-                  : "Market Value, range, trend and the From price stay public. Sign in to see the Sold, Retail and ASK anchors supporting the value."}
+                  ? "Valore stimato, intervallo, trend e prezzo “Da” restano pubblici. Accedi per vedere i dati di venduto, retail e offerte attive che supportano la stima."
+                  : "Estimated value, range, trend and the From price stay public. Sign in to see completed sales, retail and active-offer data supporting the estimate."}
               </p>
             </div>
           </div>
@@ -364,15 +363,6 @@ function AnchorMetric({ label, value, count }: { label: string; value: number | 
       <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {count === 1 ? "signal" : "signals"}</p>
     </div>
   )
-}
-
-function ConfidenceBadge({ value, it }: { value: ReleaseMarketSignalView["confidenceLabel"]; it: boolean }) {
-  const label = value === "high"
-    ? (it ? "Copertura dati alta" : "High data coverage")
-    : value === "medium"
-      ? (it ? "Copertura dati media" : "Medium data coverage")
-      : (it ? "Copertura dati limitata" : "Limited data coverage")
-  return <Badge variant="outline" className="border-[#aac4e9] bg-white/70 text-[#0f4bb4]">{label}</Badge>
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -455,9 +445,7 @@ function OwnedCopiesCard({
                 </div>
               ) : (
                 <p className="mt-2 border-t border-border/70 pt-2 text-[11px] text-muted-foreground">
-                  {comparable
-                    ? (it ? "Valore R3 non ancora consolidato per questa Release." : "R3 value is not consolidated for this Release yet.")
-                    : (it ? "La condizione della tua copia non è confrontata con il valore R3 dei kit nuovi/non montati." : "Your copy's condition is not compared with the R3 new/unbuilt reference.")}
+                  {it ? "Dati di mercato in arrivo" : "Market data coming soon"}
                 </p>
               )}
             </div>
