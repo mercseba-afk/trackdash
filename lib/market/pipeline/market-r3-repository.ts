@@ -3,6 +3,7 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
 import type {
+  AskMarketSnapshot,
   AvailabilityStatus,
   CurrentOfferEvidence,
   MarketChannel,
@@ -396,6 +397,53 @@ export class MarketR3Repository {
     return state
   }
 
+  async listAskSnapshots(
+    releaseId: string,
+    condition: MarketCondition,
+    limit = 31,
+  ): Promise<AskMarketSnapshot[]> {
+    const { data, error } = await this.client
+      .from("market_release_ask_snapshots")
+      .select("snapshot_date,typical_eur,low_eur,high_eur,offer_count")
+      .eq("release_id", releaseId)
+      .eq("condition", condition)
+      .order("snapshot_date", { ascending: false })
+      .limit(limit)
+    fail(error, "load ask market snapshots")
+
+    return (data ?? []).map((row: any) => ({
+      snapshotDate: row.snapshot_date,
+      typicalEUR: n(row.typical_eur),
+      lowEUR: n(row.low_eur),
+      highEUR: n(row.high_eur),
+      offerCount: Number(row.offer_count ?? 0),
+    })).reverse()
+  }
+
+  async upsertAskSnapshot(
+    releaseId: string,
+    condition: MarketCondition,
+    signal: MarketSignalDraft,
+    snapshotDate: string,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("market_release_ask_snapshots")
+      .upsert(
+        {
+          release_id: releaseId,
+          condition,
+          snapshot_date: snapshotDate,
+          typical_eur: signal.activeAnchorEUR,
+          low_eur: signal.activeLowEUR,
+          high_eur: signal.activeHighEUR,
+          offer_count: signal.activeOfferCount,
+          computed_at: new Date().toISOString(),
+        },
+        { onConflict: "release_id,condition,snapshot_date" },
+      )
+    fail(error, "upsert ask market snapshot")
+  }
+
   async upsertReleaseSignal(
     releaseId: string,
     condition: MarketCondition,
@@ -416,6 +464,8 @@ export class MarketR3Repository {
           confidence_label: signal.confidenceLabel,
           retail_anchor_eur: signal.retailAnchorEUR,
           active_anchor_eur: signal.activeAnchorEUR,
+          active_low_eur: signal.activeLowEUR,
+          active_high_eur: signal.activeHighEUR,
           sold_anchor_eur: signal.soldAnchorEUR,
           starting_offer_candidate_id: start?.candidateId ?? null,
           starting_item_price_eur: start?.itemPriceEUR ?? null,
@@ -432,8 +482,10 @@ export class MarketR3Repository {
           shipping_known_ratio: signal.shippingKnownRatio,
           trend_percent: signal.trendPercent,
           trend_window_months: signal.trendWindowMonths,
+          ask_trend_percent: signal.askTrendPercent,
+          ask_trend_window_days: signal.askTrendWindowDays,
           algorithm_version: signal.algorithmVersion,
-          market_method_version: "v3",
+          market_method_version: "v4",
           computed_at: new Date().toISOString(),
         },
         { onConflict: "release_id,condition" },

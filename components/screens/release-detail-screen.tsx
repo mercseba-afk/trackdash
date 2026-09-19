@@ -204,8 +204,8 @@ function MarketValuePanel({
 
   const salesEvidence = signal.soldUnits > 0
     ? it
-      ? `Basato su ${signal.soldUnits} vendite osservate${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} venditori osservati` : ""}`
-      : `Based on ${signal.soldUnits} observed sales${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}`
+      ? `Basato su ${signal.soldUnits} vendite osservate${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} ${signal.soldSellerCount === 1 ? "venditore osservato" : "venditori osservati"}` : ""}`
+      : `Based on ${signal.soldUnits} observed sales${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed ${signal.soldSellerCount === 1 ? "seller" : "sellers"}` : ""}`
     : it
       ? `Basato su ${signal.retailSourceCount} retailer correnti qualificati`
       : `Based on ${signal.retailSourceCount} qualified current retailers`
@@ -263,6 +263,18 @@ function ExternalAvailabilityCard({
 }) {
   const current = signal?.currentOfferCount ?? 0
   const starting = signal?.startingItemPriceEUR ?? null
+  const active = signal?.activeOfferCount ?? 0
+  const typicalAsk = signal?.activeAnchorEUR ?? null
+  const askLow = signal?.activeLowEUR ?? null
+  const askHigh = signal?.activeHighEUR ?? null
+  const askTrend = signal?.askTrendPercent ?? null
+  const askDirection = askTrend == null
+    ? null
+    : askTrend >= 5
+      ? (it ? "Prezzi richiesti in salita" : "Asking prices rising")
+      : askTrend <= -5
+        ? (it ? "Prezzi richiesti in calo" : "Asking prices falling")
+        : (it ? "Prezzi richiesti stabili" : "Asking prices stable")
 
   return (
     <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
@@ -273,12 +285,33 @@ function ExternalAvailabilityCard({
       <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Altre disponibilità sul mercato" : "Other market availability"}</h2>
 
       {current > 0 && starting != null ? (
-        <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
-          <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
-          <p className="mt-1 text-xs text-[#718198]">
-            {current} {it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}
-          </p>
+        <div className="mt-5 space-y-3 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
+          <div>
+            <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
+            <p className="mt-1 text-xs text-[#718198]">
+              {current} {it ? "offerte correnti qualificate · spedizione esclusa" : "qualified current offers · shipping excluded"}
+            </p>
+          </div>
+
+          {active > 0 && typicalAsk != null ? (
+            <div className="grid gap-2 border-t border-[#dce5ef] pt-3 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-[#718198]">{it ? "Prezzo richiesto tipico" : "Typical asking price"}</p>
+                <p className="mt-0.5 text-lg font-semibold tabular-nums text-[#081a3a]">{formatMoney(typicalAsk)}</p>
+                <p className="mt-0.5 text-[11px] text-[#7a8aa0]">{active} {it ? (active === 1 ? "offerta attiva" : "offerte attive") : (active === 1 ? "active offer" : "active offers")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[#718198]">{it ? "Fascia prezzi richiesti" : "Asking price range"}</p>
+                <p className="mt-0.5 text-sm font-semibold tabular-nums text-[#081a3a]">
+                  {askLow != null && askHigh != null
+                    ? (Math.abs(askHigh - askLow) < 0.01 ? formatMoney(askLow) : `${formatMoney(askLow)} – ${formatMoney(askHigh)}`)
+                    : "—"}
+                </p>
+                {askDirection ? <p className="mt-1 text-[11px] font-medium text-[#0f4bb4]">{askDirection}</p> : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">

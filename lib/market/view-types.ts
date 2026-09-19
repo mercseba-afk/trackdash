@@ -15,6 +15,8 @@ export interface ReleaseMarketSignalView {
   confidenceLabel: ReleaseMarketConfidence
   retailAnchorEUR: number | null
   activeAnchorEUR: number | null
+  activeLowEUR: number | null
+  activeHighEUR: number | null
   soldAnchorEUR: number | null
   startingItemPriceEUR: number | null
   retailSourceCount: number
@@ -27,6 +29,8 @@ export interface ReleaseMarketSignalView {
   recentSoldPeriodEnd: string | null
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | 6 | 12 | null
+  askTrendPercent: number | null
+  askTrendWindowDays: number | null
   computedAt: string
 }
 

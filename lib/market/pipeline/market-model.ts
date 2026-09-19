@@ -52,6 +52,14 @@ export interface MonthlyTrendPoint {
   salesCount: number
 }
 
+export interface AskMarketSnapshot {
+  snapshotDate: string
+  typicalEUR: number | null
+  lowEUR: number | null
+  highEUR: number | null
+  offerCount: number
+}
+
 export interface StartingOffer {
   stableId: string
   candidateId: string | null
@@ -72,6 +80,8 @@ export interface MarketSignalDraft {
   confidenceLabel: ConfidenceLabel
   retailAnchorEUR: number | null
   activeAnchorEUR: number | null
+  activeLowEUR: number | null
+  activeHighEUR: number | null
   soldAnchorEUR: number | null
   startingOffer: StartingOffer | null
   retailSourceCount: number
@@ -86,6 +96,8 @@ export interface MarketSignalDraft {
   shippingKnownRatio: number
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | null
+  askTrendPercent: number | null
+  askTrendWindowDays: number | null
   monthlyTrend: MonthlyTrendPoint[]
   algorithmVersion: "r3"
 }
@@ -132,6 +144,17 @@ function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b)
   const middle = Math.floor(sorted.length / 2)
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+}
+
+function quantile(sorted: number[], q: number): number {
+  if (!sorted.length) throw new Error("quantile requires at least one value")
+  if (sorted.length === 1) return sorted[0]
+  const position = (sorted.length - 1) * q
+  const lower = Math.floor(position)
+  const upper = Math.ceil(position)
+  if (lower === upper) return sorted[lower]
+  const fraction = position - lower
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * fraction
 }
 
 function weightedMedian(values: WeightedValue[]): number | null {
@@ -266,12 +289,41 @@ function buildOfferRepresentatives(offers: CurrentOfferEvidence[]): {
   return { retail, active, current: [...retail, ...active] }
 }
 
-function anchorForOffers(reps: OfferRepresentative[]): number | null {
-  // Market Value is the value of the collectible itself, not a destination-specific
-  // landed cost. Shipping remains stored and is used for acquisition context and
-  // confidence, but never gets added to the public retail/active market anchors.
-  if (!reps.length) return null
-  return round2(median(reps.map((rep) => rep.itemPriceEUR)))
+function activeAskStats(reps: OfferRepresentative[]): {
+  anchorEUR: number | null
+  lowEUR: number | null
+  highEUR: number | null
+} {
+  // Active marketplace asks are useful market context, but a single fantasy
+  // listing must not distort the public "typical ask" or range. The cheapest
+  // purchasable item remains handled separately by chooseStartingOffer().
+  if (!reps.length) return { anchorEUR: null, lowEUR: null, highEUR: null }
+
+  const prices = reps.map((rep) => rep.itemPriceEUR).filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b)
+  if (!prices.length) return { anchorEUR: null, lowEUR: null, highEUR: null }
+
+  let filtered = prices
+  if (prices.length === 3) {
+    const center = median(prices)
+    const bounded = prices.filter((value) => value >= center * 0.5 && value <= center * 2)
+    if (bounded.length >= 2) filtered = bounded
+  } else if (prices.length >= 4) {
+    const q1 = quantile(prices, 0.25)
+    const q3 = quantile(prices, 0.75)
+    const iqr = q3 - q1
+    if (iqr > 0) {
+      const lower = Math.max(0, q1 - 1.5 * iqr)
+      const upper = q3 + 1.5 * iqr
+      const bounded = prices.filter((value) => value >= lower && value <= upper)
+      if (bounded.length >= 2) filtered = bounded
+    }
+  }
+
+  return {
+    anchorEUR: round2(median(filtered)),
+    lowEUR: round2(Math.min(...filtered)),
+    highEUR: round2(Math.max(...filtered)),
+  }
 }
 
 function retailAnchorStats(reps: OfferRepresentative[]): {
@@ -583,7 +635,8 @@ export function computeCurrentMarketSignal(input: {
   const offers = buildOfferRepresentatives(input.offers)
   const retailStats = retailAnchorStats(offers.retail)
   const retailAnchorEUR = retailStats.anchorEUR
-  const activeAnchorEUR = anchorForOffers(offers.active)
+  const activeStats = activeAskStats(offers.active)
+  const activeAnchorEUR = activeStats.anchorEUR
   const soldAnchorEUR = soldAnchor(input.soldEvidence, input.asOfDate)
   // Retail representatives are already deduplicated by economic merchant.
   const retailSourceCount = offers.retail.length
@@ -645,6 +698,8 @@ export function computeCurrentMarketSignal(input: {
     confidenceLabel: confidenceLabel(score),
     retailAnchorEUR,
     activeAnchorEUR,
+    activeLowEUR: activeStats.lowEUR,
+    activeHighEUR: activeStats.highEUR,
     soldAnchorEUR,
     startingOffer: chooseStartingOffer(offers.current),
     retailSourceCount,
@@ -659,7 +714,41 @@ export function computeCurrentMarketSignal(input: {
     shippingKnownRatio,
     trendPercent: trend.percent,
     trendWindowMonths: trend.window,
+    askTrendPercent: null,
+    askTrendWindowDays: null,
     monthlyTrend: trend.points,
     algorithmVersion: "r3",
+  }
+}
+
+
+export function applyAskTrend(
+  signal: MarketSignalDraft,
+  snapshots: AskMarketSnapshot[],
+  asOfDate: string,
+): MarketSignalDraft {
+  if (signal.activeAnchorEUR == null || signal.activeAnchorEUR <= 0 || signal.activeOfferCount <= 0) {
+    return { ...signal, askTrendPercent: null, askTrendWindowDays: null }
+  }
+
+  const asOf = dateMs(asOfDate)
+  const candidates = snapshots
+    .filter((snapshot) => snapshot.typicalEUR != null && snapshot.typicalEUR > 0 && snapshot.offerCount > 0)
+    .map((snapshot) => ({
+      ...snapshot,
+      ageDays: Math.round((asOf - dateMs(snapshot.snapshotDate)) / DAY_MS),
+    }))
+    .filter((snapshot) => snapshot.ageDays >= 3 && snapshot.ageDays <= 30)
+    .sort((a, b) => b.ageDays - a.ageDays)
+
+  const baseline = candidates[0]
+  if (!baseline || baseline.typicalEUR == null || baseline.typicalEUR <= 0) {
+    return { ...signal, askTrendPercent: null, askTrendWindowDays: null }
+  }
+
+  return {
+    ...signal,
+    askTrendPercent: round2(((signal.activeAnchorEUR - baseline.typicalEUR) / baseline.typicalEUR) * 100),
+    askTrendWindowDays: baseline.ageDays,
   }
 }

@@ -20,7 +20,7 @@ const DAY_MS = 86_400_000
 
 const listCachedPublicMarketBundle = unstable_cache(
   async () => Promise.all([listMarketSignals(), listMarketMonthlySignals()]),
-  ["trackdash-public-market-signals-v3"],
+  ["trackdash-public-market-signals-v4"],
   { revalidate: 60 },
 )
 
@@ -106,6 +106,8 @@ export function toPublicMarketSignalView(
     confidenceLabel: signal.confidenceLabel as ReleaseMarketConfidence,
     retailAnchorEUR,
     activeAnchorEUR,
+    activeLowEUR: numberOrNull(signal.activeLowEUR),
+    activeHighEUR: numberOrNull(signal.activeHighEUR),
     soldAnchorEUR,
     startingItemPriceEUR: numberOrNull(signal.startingItemPriceEUR),
     retailSourceCount: signal.retailSourceCount,
@@ -123,6 +125,13 @@ export function toPublicMarketSignalView(
       signal.trendWindowMonths === 6 ||
       signal.trendWindowMonths === 12
         ? signal.trendWindowMonths
+        : null,
+    askTrendPercent: numberOrNull(signal.askTrendPercent),
+    askTrendWindowDays:
+      signal.askTrendWindowDays != null &&
+      signal.askTrendWindowDays >= 3 &&
+      signal.askTrendWindowDays <= 30
+        ? signal.askTrendWindowDays
         : null,
     computedAt: signal.computedAt instanceof Date ? signal.computedAt.toISOString() : String(signal.computedAt),
   }
