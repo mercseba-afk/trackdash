@@ -34,7 +34,7 @@ export function CatalogAreaNav() {
           )}
         >
           <TrendingUp className="size-4" />
-          {it ? "Mercato" : "Market"}
+          {it ? "Valori" : "Values"}
         </Link>
       </div>
 
