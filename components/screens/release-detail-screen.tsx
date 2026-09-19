@@ -365,6 +365,15 @@ function AnchorMetric({ label, value, count }: { label: string; value: number | 
   )
 }
 
+function ConfidenceBadge({ value, it }: { value: ReleaseMarketSignalView["confidenceLabel"]; it: boolean }) {
+  const label = value === "high"
+    ? (it ? "Copertura dati alta" : "High data coverage")
+    : value === "medium"
+      ? (it ? "Copertura dati media" : "Medium data coverage")
+      : (it ? "Copertura dati limitata" : "Limited data coverage")
+  return <Badge variant="outline" className="border-[#aac4e9] bg-white/70 text-[#0f4bb4]">{label}</Badge>
+}
+
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/80 bg-white/70 p-3">
