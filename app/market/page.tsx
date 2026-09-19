@@ -4,7 +4,7 @@ import { CatalogAreaNav } from "@/components/catalog-area-nav"
 import { MarketScreen } from "@/components/screens/market-screen"
 
 const title = "Tamiya Mini 4WD Price Intelligence & Market Value | TrackDash"
-const description = "Understand Tamiya Mini 4WD Market Value with separate retail, completed-sale and active-asking signals. Explore real Release-level Price Intelligence on TrackDash."
+const description = "Explore estimated values for exact Tamiya Mini 4WD Releases, with completed sales, store prices and active ASK explained clearly by TrackDash."
 
 export const metadata: Metadata = {
   title,
