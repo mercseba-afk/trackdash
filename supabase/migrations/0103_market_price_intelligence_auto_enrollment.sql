@@ -111,6 +111,7 @@ as $$
 declare
   v_item_number text;
   v_item_release_count integer := 0;
+  v_ebay_source_id uuid;
   v_now timestamptz := now();
   v_parked_at constant timestamptz := '2099-01-01 00:00:00+00'::timestamptz;
 begin
@@ -122,6 +123,11 @@ begin
   if not found then
     raise exception 'PRICE_INTELLIGENCE_RELEASE_NOT_FOUND';
   end if;
+
+  select id
+    into v_ebay_source_id
+  from public.price_sources
+  where slug = 'ebay_active_public';
 
   if v_item_number is not null and btrim(v_item_number) <> '' then
     select count(*)
@@ -163,13 +169,13 @@ begin
     scan_interval_hours = excluded.scan_interval_hours,
     priority = excluded.priority,
     enabled = case
-      when (select slug from public.price_sources where id = excluded.source_id) = 'ebay_active_public'
+      when excluded.source_id = v_ebay_source_id
         and v_item_release_count <> 1
         then false
       else public.market_scan_targets.enabled
     end,
     next_scan_at = case
-      when (select slug from public.price_sources where id = excluded.source_id) = 'ebay_active_public'
+      when excluded.source_id = v_ebay_source_id
         and v_item_release_count <> 1
         then v_parked_at
       else public.market_scan_targets.next_scan_at
@@ -207,13 +213,13 @@ begin
     scan_interval_hours = excluded.scan_interval_hours,
     priority = excluded.priority,
     enabled = case
-      when (select slug from public.price_sources where id = excluded.source_id) = 'ebay_active_public'
+      when excluded.source_id = v_ebay_source_id
         and v_item_release_count <> 1
         then false
       else public.market_scan_queue.enabled
     end,
     next_scan_at = case
-      when (select slug from public.price_sources where id = excluded.source_id) = 'ebay_active_public'
+      when excluded.source_id = v_ebay_source_id
         and v_item_release_count <> 1
         then v_parked_at
       else public.market_scan_queue.next_scan_at
