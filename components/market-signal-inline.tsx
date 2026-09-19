@@ -16,7 +16,7 @@ export function MarketSignalInline({
   const it = locale === "it"
 
   if (!signal) {
-    return <span className="text-xs text-muted-foreground">{it ? "Mercato raro · valore non disponibile" : "Thin market · value unavailable"}</span>
+    return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
@@ -36,13 +36,13 @@ export function MarketSignalInline({
         </div>
       ) : hasCleanActiveAsk ? (
         <>
-          <span className="text-xs font-medium text-muted-foreground">{it ? "Valore in definizione" : "Value being established"}</span>
+          <span className="text-xs font-medium text-muted-foreground">{it ? "Mercato in osservazione" : "Market under observation"}</span>
           <span className="text-xs text-muted-foreground">
-            {it ? "In vendita da" : "Listed from"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
+            {it ? "Disponibile da" : "Available from"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
           </span>
         </>
       ) : (
-        <span className="text-xs font-medium text-muted-foreground">{it ? "Mercato raro · valore non disponibile" : "Thin market · value unavailable"}</span>
+        <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
       )}
       {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
         <span className="text-xs text-muted-foreground">
