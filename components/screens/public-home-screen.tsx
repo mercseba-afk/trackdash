@@ -88,7 +88,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 </div>
                 <div className="mt-5 bg-navy p-5 text-white">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/70">Market Value</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/70">{it ? "Market Value · stima TrackDash" : "Market Value · TrackDash estimate"}</span>
                     {featuredSignal ? <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#80e0b6]">● {confidenceLabel(featuredSignal.confidenceLabel, it)}</span> : null}
                   </div>
                   <div className="mt-3 text-4xl font-semibold tracking-[-0.06em]">
