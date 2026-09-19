@@ -137,17 +137,6 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
     return primary
   }, [releases])
 
-  const heroVisuals = React.useMemo(
-    () =>
-      distinctByProduct(
-        [...releases]
-          .filter(({ product, release }) => Boolean(release.images?.length || product.images?.length))
-          .sort((a, b) => (b.release.releaseYear ?? 0) - (a.release.releaseYear ?? 0)),
-        3,
-      ),
-    [releases],
-  )
-
   const familyProduct = React.useMemo(() => {
     return [...products]
       .filter((product) => product.releases.length >= 2)
@@ -194,7 +183,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
   return (
     <div className="overflow-hidden bg-background">
-      <section className="relative border-b border-line bg-white">
+      <section className="relative border-b border-line bg-[#f1f5f9]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand" />
         <div className="mx-auto w-full max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-12 lg:pt-20">
           <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
@@ -226,7 +215,17 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               </p>
             </div>
 
-            {heroVisuals.length > 0 ? <HeroGarageVisual entries={heroVisuals} /> : null}
+            <div className="relative flex min-h-[300px] items-center justify-center overflow-hidden bg-[#f1f5f9] sm:min-h-[390px] lg:min-h-[500px]">
+              <img
+                src="/trackdash-hero-mini4wd.webp"
+                alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
+                className="h-auto max-h-[500px] w-full object-contain mix-blend-multiply"
+                width={800}
+                height={450}
+                loading="eager"
+                fetchPriority="high"
+              />
+            </div>
           </div>
 
           <div className="mt-10 border border-line bg-[#f8fafc] p-4 sm:p-5">
@@ -568,43 +567,6 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
   )
 }
 
-
-function HeroGarageVisual({ entries }: { entries: ReleaseEntry[] }) {
-  const [first, second, third] = entries
-  if (!first) return null
-
-  return (
-    <div className="relative min-h-[360px] overflow-hidden border border-line bg-gradient-to-br from-[#eef4fb] via-white to-[#e8f0fb] p-5 sm:min-h-[430px] sm:p-7 lg:min-h-[500px]">
-      <div className="pointer-events-none absolute -right-16 top-10 h-40 w-80 -rotate-12 bg-brand/8" />
-      <div className="pointer-events-none absolute -left-20 bottom-12 h-24 w-72 rotate-12 bg-brand-red/7" />
-      <div className="absolute inset-x-6 bottom-8 h-px bg-navy/10" />
-      <div className="absolute inset-x-10 bottom-16 h-px bg-navy/5" />
-
-      {third ? (
-        <div className="absolute left-[2%] top-[18%] h-[42%] w-[44%] -rotate-[7deg] opacity-90 sm:left-[4%] sm:top-[17%]">
-          <ProductImage product={third.product} release={third.release} className="h-full w-full border-0 bg-transparent object-contain drop-shadow-[0_20px_22px_rgba(11,26,58,.16)]" />
-        </div>
-      ) : null}
-
-      {second ? (
-        <div className="absolute right-[1%] top-[20%] h-[46%] w-[46%] rotate-[6deg] opacity-95 sm:right-[3%] sm:top-[18%]">
-          <ProductImage product={second.product} release={second.release} className="h-full w-full border-0 bg-transparent object-contain drop-shadow-[0_22px_24px_rgba(11,26,58,.18)]" />
-        </div>
-      ) : null}
-
-      <div className="absolute inset-x-[16%] bottom-[6%] h-[58%]">
-        <ProductImage product={first.product} release={first.release} className="h-full w-full border-0 bg-transparent object-contain drop-shadow-[0_28px_30px_rgba(11,26,58,.24)]" size="lg" />
-      </div>
-
-      <div className="absolute left-5 top-5">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-navy shadow-sm backdrop-blur">
-          <span className="size-1.5 rounded-full bg-brand-red" />
-          Mini 4WD collection
-        </span>
-      </div>
-    </div>
-  )
-}
 
 function WatchCard({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
   const { product, release, signal } = entry
