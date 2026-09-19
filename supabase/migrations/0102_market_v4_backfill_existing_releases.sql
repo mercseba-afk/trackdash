@@ -193,8 +193,6 @@ set
   retail_source_count = coalesce(oc.retail_source_count, 0),
   active_offer_count = coalesce(ast.offer_count, 0),
   current_offer_count = coalesce(oc.current_offer_count, 0),
-  retail_region_count = coalesce(rs.region_count, 0),
-  retail_regional_spread_ratio = rs.regional_spread_ratio,
   shipping_known_ratio = case
     when coalesce(oc.current_offer_count, 0) > 0
       then round((coalesce(oc.shipping_known_count,0)::numeric / oc.current_offer_count::numeric), 4)
