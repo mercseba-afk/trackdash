@@ -33,7 +33,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function CatalogPage() {
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>
+}) {
+  const params = await searchParams
+  const initialQuery = Array.isArray(params.q) ? params.q[0] ?? "" : params.q ?? ""
   let products: Product[] = []
 
   try {
@@ -46,7 +52,7 @@ export default async function CatalogPage() {
     <PublicShell>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-8 md:px-6 lg:px-8">
         <CatalogAreaNav />
-        <CatalogScreen products={products} />
+        <CatalogScreen products={products} initialQuery={initialQuery} />
       </div>
     </PublicShell>
   )
