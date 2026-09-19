@@ -157,7 +157,8 @@ export function publicRetailConfidence(
   return { score, label: confidenceLabel(score) }
 }
 
-// Market Method v3 publication rules:
+// Market Method v4 publication rules:
+// These rules are shared by current Releases and future backfills.
 //
 // 1. Completed sales are the primary public Market Value when the selected sold
 //    evidence is sufficiently broad. Recent windows remain preferred; a recent

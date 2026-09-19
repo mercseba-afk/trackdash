@@ -216,4 +216,4 @@ ok("out-of-stock retail remains context and cannot become current value", () => 
 })
 
 console.log(`${passed} passed, 0 failed`)
-console.log("MARKET METHOD V3 TEST PASSED")
+console.log("MARKET METHOD V4 TEST PASSED")
