@@ -207,8 +207,8 @@ function MarketValuePanel({
       ? `Basato su ${signal.soldUnits} vendite osservate${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} ${signal.soldSellerCount === 1 ? "venditore osservato" : "venditori osservati"}` : ""}`
       : `Based on ${signal.soldUnits} observed sales${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed ${signal.soldSellerCount === 1 ? "seller" : "sellers"}` : ""}`
     : it
-      ? `Basato su ${signal.retailSourceCount} retailer correnti qualificati`
-      : `Based on ${signal.retailSourceCount} qualified current retailers`
+      ? `Basato su ${signal.retailSourceCount} prezzi correnti rilevati nei negozi`
+      : `Based on ${signal.retailSourceCount} current store price references`
 
   return (
     <div className="rounded-2xl border border-[#bfd2ee] bg-[linear-gradient(135deg,#f7fbff_0%,#eef5ff_100%)] p-5 shadow-sm">
@@ -350,9 +350,9 @@ function PriceIntelligenceCard({
       {authenticated ? (
         signal ? (
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <AnchorMetric label={it ? "Vendite concluse" : "Completed sales"} value={signal.soldAnchorEUR} count={signal.soldUnits} />
-            <AnchorMetric label={it ? "Negozi" : "Stores"} value={signal.retailAnchorEUR} count={signal.retailSourceCount} />
-            <AnchorMetric label={it ? "ASK attivi" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} />
+            <AnchorMetric label={it ? "Vendite concluse" : "Completed sales"} value={signal.soldAnchorEUR} count={signal.soldUnits} it={it} />
+            <AnchorMetric label={it ? "Negozi" : "Stores"} value={signal.retailAnchorEUR} count={signal.retailSourceCount} it={it} />
+            <AnchorMetric label={it ? "ASK attivi" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} it={it} />
             <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
           </div>
         ) : (
@@ -388,12 +388,12 @@ function PriceIntelligenceCard({
   )
 }
 
-function AnchorMetric({ label, value, count }: { label: string; value: number | null; count: number }) {
+function AnchorMetric({ label, value, count, it }: { label: string; value: number | null; count: number; it: boolean }) {
   return (
     <div className="rounded-xl border border-[#e0e7f0] bg-[#fbfcfe] p-3">
       <p className="text-xs text-[#718198]">{label}</p>
       <p className="mt-1 font-semibold tabular-nums text-[#081a3a]">{value != null ? formatMoney(value) : "—"}</p>
-      <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {count === 1 ? "signal" : "signals"}</p>
+      <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {it ? (count === 1 ? "riferimento" : "riferimenti") : (count === 1 ? "reference" : "references")}</p>
     </div>
   )
 }
