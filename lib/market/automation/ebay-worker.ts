@@ -486,6 +486,7 @@ async function scanJob(
 
     const refs = await independentReferences(client, job.release_id, job.source_id)
     const guard = guardAutomatedPrice({
+      lane: "marketplace_ask",
       priceEUR: itemFx.amountEUR,
       availability: "in_stock",
       independentReferenceEUR: refs.values,
@@ -515,11 +516,11 @@ async function scanJob(
       condition: listing.condition,
       sellerFingerprint: listing.seller ? `ebay:${listing.seller}` : null,
       decision: "accepted",
-      reasonCodes: [],
+      reasonCodes: guard.reasonCodes,
     })
     if (options.dryRun) continue
 
-    const candidateId = await upsertCandidate(client, { job, release, listing, decision: "accepted", reasonCodes: [], observedAt })
+    const candidateId = await upsertCandidate(client, { job, release, listing, decision: "accepted", reasonCodes: guard.reasonCodes, observedAt })
     const shippingEUR = listing.shipping == null ? null : listing.shipping === 0 ? 0 : shippingFx?.amountEUR ?? null
     await repo.upsertOfferState({
       candidateId,
