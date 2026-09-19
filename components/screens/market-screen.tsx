@@ -136,7 +136,7 @@ export function MarketScreen() {
                 </a>
               ) : (
                 <Link href={liveLoginHref} className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-                  <LockKeyhole className="size-4" /> {copy.explore} <ArrowRight className="size-4" />
+                  <LockKeyhole className="size-4" /> {it ? "Accedi alla panoramica mercato" : "Sign in for market overview"} <ArrowRight className="size-4" />
                 </Link>
               )}
               <Link href="/catalog" className="inline-flex h-11 items-center rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
