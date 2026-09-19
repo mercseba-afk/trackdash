@@ -61,60 +61,60 @@ export function MarketScreen() {
 
   const copy = it
     ? {
-        kicker: "PRICE INTELLIGENCE",
-        titleA: "Capire quanto vale una Release",
-        titleB: "e perché.",
-        intro: "TrackDash separa i diversi segnali di mercato e costruisce un Market Value solo quando le evidenze disponibili sono sufficienti. Niente prezzi richiesti spacciati per valore reale.",
-        explore: "Esplora i segnali live",
+        kicker: "VALORI DI MERCATO",
+        titleA: "Capisci quanto vale una Release",
+        titleB: "con dati reali.",
+        intro: "TrackDash osserva vendite concluse, prezzi nei negozi e annunci attivi per darti una stima semplice. Se i dati non bastano, non inventa un valore.",
+        explore: "Guarda i valori disponibili",
         catalog: "Vai al catalogo",
-        signalsKicker: "I SEGNALI",
-        signalsTitle: "Segnali diversi. Significati diversi.",
-        signalsIntro: "Retail, vendite concluse e richieste attive servono a raccontare cose diverse. TrackDash li mantiene separati prima di costruire una lettura del mercato.",
-        retail: "Retail verificato",
-        retailBody: "Prezzi correnti o riferimenti retail verificati. Utili per capire disponibilità e contesto del nuovo.",
+        signalsKicker: "COME LEGGIAMO IL MERCATO",
+        signalsTitle: "Vendite, negozi e annunci non sono la stessa cosa.",
+        signalsIntro: "Per capire il valore di una Release guardiamo fonti diverse, ma senza mescolarle: ciò che è stato venduto conta in modo diverso da ciò che è solo in vendita.",
+        retail: "Prezzi nei negozi",
+        retailBody: "Ci aiutano a capire quanto costa oggi una Release quando è ancora disponibile come prodotto nuovo.",
         sold: "Vendite concluse",
-        soldBody: "Prezzi realmente pagati quando l'identità della Release è sufficientemente affidabile. È il segnale più importante per il secondario.",
-        asks: "Richieste attive",
-        asksBody: "Prezzi chiesti dai venditori in questo momento. Mostrano disponibilità, ma da soli non definiscono il Market Value.",
+        soldBody: "Mostrano quanto è stato realmente pagato per quella specifica Release e sono il riferimento più utile per il mercato del collezionismo.",
+        asks: "Annunci attivi",
+        asksBody: "Mostrano a quanto viene proposta oggi una Release e se è facile o difficile trovarla, ma non equivalgono a un prezzo realmente pagato.",
         resultKicker: "IL RISULTATO",
-        resultTitle: "Market Value è una stima ragionata, non una scorciatoia.",
-        resultBody: "Quando le evidenze sono sufficienti TrackDash restituisce un valore, un range e un livello di confidence. Se i dati non bastano, lo dice apertamente.",
-        confidence: "Confidence",
-        confidenceBody: "La confidence misura quanto è solida l'evidenza disponibile per quella specifica Release, non quanto ci piace il risultato.",
+        resultTitle: "Una stima semplice, con il contesto che serve.",
+        resultBody: "Quando ci sono abbastanza dati, TrackDash mostra un valore stimato e una fascia indicativa. Quando non bastano, mostra semplicemente che i dati sono ancora in arrivo.",
+        confidence: "Affidabilità della stima",
+        confidenceBody: "Indica quanto possiamo fidarci della stima in base alla quantità e alla qualità dei dati disponibili per quella specifica Release.",
         limitedKicker: "QUANDO I DATI SONO LIMITATI",
-        limitedTitle: "L'incertezza deve restare visibile.",
-        limitedBody: "Una Release senza abbastanza evidenza non riceve un valore inventato. TrackDash continua a mostrare quello che sappiamo — offerte correnti, vendite disponibili e contesto — senza fingere precisione.",
-        liveKicker: "SEGNALI LIVE",
-        liveTitle: "Il mercato reale, Release per Release.",
-        liveBody: "Qui sotto trovi esclusivamente segnali R3 reali già disponibili in TrackDash. Ogni riga porta alla singola Release, dove puoi vedere il contesto completo.",
+        limitedTitle: "Se i dati non bastano, non inventiamo un prezzo.",
+        limitedBody: "Alcune Release sono rare o si muovono poco. In questi casi TrackDash mostra ciò che è disponibile e aspetta dati migliori prima di pubblicare una stima.",
+        liveKicker: "DATI DISPONIBILI",
+        liveTitle: "Valori e trend, Release per Release.",
+        liveBody: "Qui trovi le Release per cui TrackDash ha già dati di mercato. Apri una scheda per vedere valore stimato, disponibilità e andamento quando presenti.",
       }
     : {
-        kicker: "PRICE INTELLIGENCE",
-        titleA: "Know what a Release is worth",
-        titleB: "and why.",
-        intro: "TrackDash separates different market signals and only builds a Market Value when the available evidence is strong enough. Asking prices are never presented as demonstrated value.",
-        explore: "Explore live signals",
+        kicker: "MARKET VALUES",
+        titleA: "Understand what a Release is worth",
+        titleB: "with real market data.",
+        intro: "TrackDash looks at completed sales, store prices and active listings to give you a clear estimate. If there is not enough data, it does not invent a value.",
+        explore: "View available values",
         catalog: "Browse catalog",
-        signalsKicker: "THE SIGNALS",
-        signalsTitle: "Different signals. Different meaning.",
-        signalsIntro: "Retail, completed sales and active asks answer different questions. TrackDash keeps them separate before building a market view.",
-        retail: "Verified retail",
-        retailBody: "Current or verified retail references. Useful for understanding availability and the context of new stock.",
+        signalsKicker: "HOW WE READ THE MARKET",
+        signalsTitle: "Sales, stores and listings are not the same thing.",
+        signalsIntro: "To understand a Release we look at different sources without mixing them together: a completed sale means something different from an active listing.",
+        retail: "Store prices",
+        retailBody: "They help show what a Release costs today when it is still available as a new product.",
         sold: "Completed sales",
-        soldBody: "Prices collectors actually paid when the exact Release identity is sufficiently reliable. This is the key signal for secondary-market value.",
-        asks: "Active asks",
-        asksBody: "What sellers are asking right now. They show availability, but cannot define Market Value on their own.",
+        soldBody: "They show what people actually paid for that specific Release and are the most useful reference for the collector market.",
+        asks: "Active listings",
+        asksBody: "They show what sellers are asking today and how easy a Release is to find, but they are not the same as a completed sale.",
         resultKicker: "THE RESULT",
-        resultTitle: "Market Value is a considered estimate, not a shortcut.",
-        resultBody: "When evidence is sufficient, TrackDash returns a value, a range and a confidence level. When it is not, uncertainty stays visible.",
-        confidence: "Confidence",
-        confidenceBody: "Confidence describes the strength of evidence for that exact Release — not how attractive the number looks.",
+        resultTitle: "A simple estimate, with the context that matters.",
+        resultBody: "When there is enough data, TrackDash shows an estimated value and a useful range. When there is not, it simply shows that market data is still coming in.",
+        confidence: "Estimate reliability",
+        confidenceBody: "It shows how much trust we can place in the estimate based on the amount and quality of data available for that exact Release.",
         limitedKicker: "WHEN DATA IS LIMITED",
-        limitedTitle: "Uncertainty should stay visible.",
-        limitedBody: "A Release without enough evidence does not receive an invented value. TrackDash still shows what is known — current offers, completed sales and context — without pretending to know more.",
-        liveKicker: "LIVE SIGNALS",
-        liveTitle: "The real market, Release by Release.",
-        liveBody: "Below you will find only real R3 signals already available in TrackDash. Every row links to the exact Release and its full market context.",
+        limitedTitle: "If the data is not enough, we do not invent a price.",
+        limitedBody: "Some Releases are rare or rarely traded. In those cases TrackDash shows what is available and waits for better data before publishing an estimate.",
+        liveKicker: "AVAILABLE DATA",
+        liveTitle: "Values and trends, Release by Release.",
+        liveBody: "Here you can find Releases for which TrackDash already has market data. Open a Release to see its estimated value, availability and trend when available.",
       }
 
   return (
@@ -146,10 +146,10 @@ export function MarketScreen() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <MiniStat label={it ? "Release monitorate" : "Tracked releases"} value={String(rows.length)} />
-            <MiniStat label={it ? "Valori consolidati" : "Consolidated values"} value={String(valued.length)} />
-            <MiniStat label={it ? "Offerte correnti" : "Current offers"} value={String(currentOffers)} />
-            <MiniStat label={it ? "Trend reali" : "Real trends"} value={String(trends.length)} />
+            <MiniStat label={it ? "Release con dati" : "Releases with data"} value={String(rows.length)} />
+            <MiniStat label={it ? "Valori disponibili" : "Available values"} value={String(valued.length)} />
+            <MiniStat label={it ? "Offerte trovate" : "Offers found"} value={String(currentOffers)} />
+            <MiniStat label={it ? "Trend disponibili" : "Available trends"} value={String(trends.length)} />
           </div>
         </div>
       </section>
@@ -181,7 +181,7 @@ export function MarketScreen() {
         <div className="border-t border-white/10 bg-white/[0.04] p-6 md:p-9 lg:border-l lg:border-t-0 lg:p-10">
           {example ? <ValueExample row={example} /> : (
             <div className="flex min-h-64 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] p-6 text-center text-sm text-[#c8d8ec]">
-              {it ? "Il primo Market Value consolidato comparirà qui." : "The first consolidated Market Value will appear here."}
+              {it ? "Il primo valore stimato disponibile comparirà qui." : "The first available estimated value will appear here."}
             </div>
           )}
         </div>
@@ -198,8 +198,8 @@ export function MarketScreen() {
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b7a42]">Market Value</span>
             <Badge variant="outline" className="border-[#e8d8ba] bg-[#fffaf1] text-[#785c30]">{it ? "Dati limitati" : "Limited data"}</Badge>
           </div>
-          <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Non ancora consolidato" : "Not yet consolidated"}</p>
-          <p className="mt-2 text-sm leading-6 text-[#77684f]">{it ? "Il contesto resta visibile, ma TrackDash non pubblica un numero finché il segnale non è abbastanza affidabile." : "Context remains visible, but TrackDash does not publish a number until the signal is reliable enough."}</p>
+          <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+          <p className="mt-2 text-sm leading-6 text-[#77684f]">{it ? "Mostriamo ciò che sappiamo già, ma aspettiamo dati sufficienti prima di pubblicare una stima." : "We show what is already known, but wait for enough data before publishing an estimate."}</p>
         </div>
       </section>
 
@@ -214,19 +214,19 @@ export function MarketScreen() {
 
         {user ? (
           <>
-            <Alert className="mb-5 bg-white"><Info /><AlertTitle>Market Method v1</AlertTitle><AlertDescription>{it ? "Questa sezione usa solo segnali R3 reali. Le richieste dei venditori non possono creare o gonfiare il Valore di mercato e un trend compare soltanto con una serie temporale sufficiente di vendite concluse." : "This section uses real R3 signals only. Seller asks cannot create or inflate Market Value, and a trend appears only when sufficient completed-sale history exists."}</AlertDescription></Alert>
+            <Alert className="mb-5 bg-white"><Info /><AlertTitle>{it ? "Come leggere questi dati" : "How to read this data"}</AlertTitle><AlertDescription>{it ? "I prezzi degli annunci aiutano a capire la disponibilità, mentre il valore stimato dà più peso alle vendite concluse. I trend compaiono solo quando c'è abbastanza storico." : "Listings help describe availability, while estimated value gives more weight to completed sales. Trends appear only when there is enough history."}</AlertDescription></Alert>
 
             <Tabs defaultValue="values">
               <TabsList className="bg-white"><TabsTrigger value="values"><Activity data-icon="inline-start" />{it ? "Valori" : "Values"}</TabsTrigger><TabsTrigger value="trends"><TrendingUp data-icon="inline-start" />{it ? "Trend" : "Trends"}</TabsTrigger></TabsList>
               <TabsContent value="values" className="mt-4">
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <MarketListCard title={it ? "Valore di mercato consolidato" : "Consolidated Market Value"} rows={valued} />
-                  <MarketListCard title={it ? "Mercato in formazione" : "Market forming"} rows={forming} forming />
+                  <MarketListCard title={it ? "Valori disponibili" : "Available values"} rows={valued} />
+                  <MarketListCard title={it ? "Dati in arrivo" : "Data coming soon"} rows={forming} forming />
                 </div>
               </TabsContent>
               <TabsContent value="trends" className="mt-4">
                 {trends.length === 0 ? (
-                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend vendite ancora consolidato" : "No consolidated sales trend yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "È corretto così: TrackDash non genera trend da prezzi richiesti o da pochi snapshot. Appariranno quando avremo una serie temporale sufficiente di vendite concluse per la singola Release." : "This is intentional: TrackDash does not generate trends from asking prices or a few snapshots. Trends will appear once enough completed-sale history exists for the exact Release."}</p></CardContent></Card>
+                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend disponibile per ora" : "No trend available yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "I trend compariranno quando avremo abbastanza vendite nel tempo per quella specifica Release." : "Trends will appear once there is enough completed-sale history for that specific Release."}</p></CardContent></Card>
                 ) : (
                   <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((row) => (row.signal.trendPercent ?? 0) >= 0)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((row) => (row.signal.trendPercent ?? 0) < 0)} icon={ArrowDownRight} /></div>
                 )}
@@ -241,8 +241,8 @@ export function MarketScreen() {
             <h3 className="mt-4 text-xl font-semibold text-navy">{it ? "Accedi per esplorare i segnali live" : "Sign in to explore live signals"}</h3>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
               {it
-                ? "La metodologia resta pubblica. I segnali live Release per Release richiedono invece un account TrackDash; in seguito questa area potrà rientrare nelle funzionalità Pro."
-                : "The methodology stays public. Release-level live signals require a TrackDash account; this area can later become part of Pro."}
+                ? "I valori nelle singole schede restano pubblici. Accedi per esplorare questa panoramica completa del mercato e dei trend disponibili."
+                : "Values on individual Release pages remain public. Sign in to explore this complete market overview and available trends."}
             </p>
             <Link href={liveLoginHref} className="mt-5 inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
               <LockKeyhole className="size-4" /> {it ? "Accedi" : "Sign in"}
@@ -272,7 +272,7 @@ function ValueExample({ row }: { row: Row }) {
   const value = row.signal.valueEUR
   return (
     <div className="rounded-2xl border border-white/15 bg-[#09295f] p-5 shadow-[0_16px_35px_rgba(0,0,0,0.18)] md:p-6">
-      <div className="flex items-center justify-between gap-3"><span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9ec0ff]">Market Value</span><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-[#dce9ff]"><span className="size-1.5 rounded-full bg-emerald-400" />{row.signal.confidenceLabel} confidence</span></div>
+      <div className="flex items-center justify-between gap-3"><span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9ec0ff]">{it ? "Valore stimato" : "Estimated value"}</span><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-[#dce9ff]"><span className="size-1.5 rounded-full bg-emerald-400" />{it ? `Affidabilità ${row.signal.confidenceLabel === "high" ? "alta" : row.signal.confidenceLabel === "medium" ? "media" : "bassa"}` : `${row.signal.confidenceLabel === "high" ? "High" : row.signal.confidenceLabel === "medium" ? "Medium" : "Low"} reliability`}</span></div>
       <p className="mt-5 text-sm font-medium text-[#d6e4f6]">{row.release.editionName}</p>
       <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-[#8facd3]">Tamiya {row.release.itemNumber ?? "—"}</p>
       <p className="mt-6 text-4xl font-semibold tracking-[-0.04em] text-white">{formatMoney(value!)}</p>
@@ -310,7 +310,7 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
       <ProductImage product={row.product} release={row.release} size="sm" className="h-12 w-16 shrink-0 rounded-lg border border-border bg-white" />
       <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-navy group-hover:text-brand">{row.release.editionName}</p><div className="mt-0.5 flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted-foreground">#{row.release.itemNumber ?? "—"}</span>{row.release.rarity ? <RarityBadge rarity={row.release.rarity} /> : null}</div></div>
       <div className="max-w-40 text-right">
-        {forming ? <p className="text-xs font-medium text-[#6f7f91]">{it ? "Non consolidato" : "Not consolidated"}</p> : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
+        {forming ? <p className="text-xs font-medium text-[#6f7f91]">{it ? "Dati in arrivo" : "Data coming soon"}</p> : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
         {row.signal.trendPercent != null ? <TrendIndicator value={row.signal.trendPercent} className="justify-end text-xs" /> : null}
         {row.signal.startingItemPriceEUR != null ? <p className="text-[11px] text-muted-foreground">{it ? "Da" : "From"} {formatMoney(row.signal.startingItemPriceEUR)}</p> : null}
       </div>
