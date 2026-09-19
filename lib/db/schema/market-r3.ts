@@ -268,6 +268,8 @@ export const marketReleaseSignals = pgTable(
     confidenceLabel: text("confidence_label").notNull(),
     retailAnchorEUR: numeric("retail_anchor_eur", { precision: 12, scale: 2 }),
     activeAnchorEUR: numeric("active_anchor_eur", { precision: 12, scale: 2 }),
+    activeLowEUR: numeric("active_low_eur", { precision: 12, scale: 2 }),
+    activeHighEUR: numeric("active_high_eur", { precision: 12, scale: 2 }),
     soldAnchorEUR: numeric("sold_anchor_eur", { precision: 12, scale: 2 }),
     startingOfferCandidateId: uuid("starting_offer_candidate_id").references(() => marketCandidates.id, { onDelete: "set null" }),
     startingItemPriceEUR: numeric("starting_item_price_eur", { precision: 12, scale: 2 }),
@@ -284,8 +286,10 @@ export const marketReleaseSignals = pgTable(
     shippingKnownRatio: numeric("shipping_known_ratio", { precision: 5, scale: 4 }).notNull().default("0"),
     trendPercent: numeric("trend_percent", { precision: 8, scale: 2 }),
     trendWindowMonths: integer("trend_window_months"),
+    askTrendPercent: numeric("ask_trend_percent", { precision: 8, scale: 2 }),
+    askTrendWindowDays: integer("ask_trend_window_days"),
     algorithmVersion: text("algorithm_version").notNull().default("r3"),
-    marketMethodVersion: text("market_method_version").notNull().default("v3"),
+    marketMethodVersion: text("market_method_version").notNull().default("v4"),
     computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -334,11 +338,52 @@ export const marketReleaseSignals = pgTable(
       sql`(${table.trendPercent} is null and ${table.trendWindowMonths} is null)
         or (${table.trendPercent} is not null and ${table.trendWindowMonths} in (1, 3, 6, 12))`,
     ),
+    check(
+      "market_release_signals_ask_range_check",
+      sql`(${table.activeLowEUR} is null and ${table.activeHighEUR} is null)
+        or (${table.activeLowEUR} is not null and ${table.activeHighEUR} is not null
+          and ${table.activeLowEUR} > 0 and ${table.activeHighEUR} >= ${table.activeLowEUR})`,
+    ),
+    check(
+      "market_release_signals_ask_trend_check",
+      sql`(${table.askTrendPercent} is null and ${table.askTrendWindowDays} is null)
+        or (${table.askTrendPercent} is not null and ${table.askTrendWindowDays} between 3 and 30)`,
+    ),
     pgPolicy("market_release_signals_public_read", {
       for: "select",
       to: [anonRole, authenticatedRole],
       using: sql`true`,
     }),
+  ],
+).enableRLS()
+
+export const marketReleaseAskSnapshots = pgTable(
+  "market_release_ask_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    releaseId: uuid("release_id")
+      .notNull()
+      .references(() => productReleases.id, { onDelete: "cascade" }),
+    condition: text("condition").notNull().default("new_complete_unbuilt"),
+    snapshotDate: date("snapshot_date").notNull(),
+    typicalEUR: numeric("typical_eur", { precision: 12, scale: 2 }),
+    lowEUR: numeric("low_eur", { precision: 12, scale: 2 }),
+    highEUR: numeric("high_eur", { precision: 12, scale: 2 }),
+    offerCount: integer("offer_count").notNull().default(0),
+    computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("market_release_ask_snapshots_unique").on(table.releaseId, table.condition, table.snapshotDate),
+    index("idx_market_release_ask_snapshots_release_date").on(table.releaseId, table.condition, table.snapshotDate.desc()),
+    check(
+      "market_release_ask_snapshots_values_check",
+      sql`${table.offerCount} >= 0
+        and (${table.typicalEUR} is null or ${table.typicalEUR} > 0)
+        and (${table.lowEUR} is null or ${table.lowEUR} > 0)
+        and (${table.highEUR} is null or ${table.highEUR} > 0)
+        and ((${table.lowEUR} is null and ${table.highEUR} is null)
+          or (${table.lowEUR} is not null and ${table.highEUR} is not null and ${table.lowEUR} <= ${table.highEUR}))`,
+    ),
   ],
 ).enableRLS()
 
@@ -469,6 +514,13 @@ export const marketAggregateObservationsRelations = relations(marketAggregateObs
 export const marketReleaseSignalsRelations = relations(marketReleaseSignals, ({ one }) => ({
   release: one(productReleases, {
     fields: [marketReleaseSignals.releaseId],
+    references: [productReleases.id],
+  }),
+}))
+
+export const marketReleaseAskSnapshotsRelations = relations(marketReleaseAskSnapshots, ({ one }) => ({
+  release: one(productReleases, {
+    fields: [marketReleaseAskSnapshots.releaseId],
     references: [productReleases.id],
   }),
 }))
