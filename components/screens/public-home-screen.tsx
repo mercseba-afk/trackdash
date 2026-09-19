@@ -119,7 +119,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           </h2>
 
           <div className="mt-10 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            <Feature number="01" icon={Search} title={it ? "Catalogo" : "Catalog"} text={it ? "Cerca per modello, Item Number, anno o chassis e apri la versione esatta." : "Search by model, Item Number, year or chassis and open the exact version."} />
+            <Feature number="01" icon={Search} title={it ? "Catalogo" : "Catalog"} text={it ? "Trova la Release giusta: la specifica versione del modello, distinta per anno, codice, chassis o edizione." : "Find the right Release: the specific version of a model, separated by year, code, chassis or edition."} />
             <Feature number="02" icon={Boxes} title={it ? "Collezione" : "Collection"} text={it ? "Salva le Mini 4WD che possiedi e guarda il valore stimato della tua collezione." : "Save the Mini 4WD you own and see the estimated value of your collection."} />
             <Feature number="03" icon={ScanLine} title="Scanner" text={it ? "Scansiona il codice sulla scatola oppure cercalo manualmente per arrivare più velocemente alla Release corretta." : "Scan the code on the box or search it manually to reach the correct Release faster."} />
             <Feature number="04" icon={ShieldCheck} title={it ? "Valore di mercato" : "Market value"} text={it ? "Una stima chiara basata sui dati disponibili, senza confondere annunci e vendite concluse." : "A clear estimate based on available data, without confusing listings with completed sales."} />
