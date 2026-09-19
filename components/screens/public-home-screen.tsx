@@ -39,10 +39,11 @@ function marketScore(entry: ReleaseEntry) {
 
   const positiveTrend = signal.trendPercent != null && signal.trendPercent > 0 ? signal.trendPercent : 0
   const recentSales = signal.recentSoldUnits3m ?? 0
+  const observedSales = signal.soldUnits ?? 0
   const offers = signal.currentOfferCount ?? 0
   const hasValue = signal.valueEUR != null ? 1 : 0
 
-  return positiveTrend * 1000 + recentSales * 80 + offers * 10 + hasValue
+  return positiveTrend * 1000 + recentSales * 80 + observedSales * 2 + offers * 10 + hasValue
 }
 
 function distinctByProduct(entries: ReleaseEntry[], count: number) {
@@ -72,6 +73,12 @@ function watchReason(entry: ReleaseEntry, it: boolean) {
     return it
       ? `${signal.recentSoldUnits3m} vendite recenti`
       : `${signal.recentSoldUnits3m} recent sales`
+  }
+
+  if (signal.soldUnits > 0) {
+    return it
+      ? `${signal.soldUnits} vendite osservate`
+      : `${signal.soldUnits} observed sales`
   }
 
   if (signal.currentOfferCount > 0) {
@@ -191,7 +198,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             </h1>
             <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
               {it
-                ? "TrackDash ti aiuta a riconoscere il modello e la sua Release — cioè la specifica versione o edizione —, seguirne il valore e organizzare la tua collezione."
+                ? "TrackDash ti aiuta a riconoscere il modello e la sua Release, cioè la specifica versione o edizione. Puoi seguirne il valore e organizzare la tua collezione in un unico posto."
                 : "TrackDash helps you identify the model and its exact Release, follow its value and organise your collection."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -397,11 +404,13 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           <div className="flex flex-col justify-center">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/65">PRICE INTELLIGENCE</p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.96] tracking-[-0.06em] md:text-6xl">
-              {it ? "Capisci quanto vale oggi. E come si sta muovendo." : "Understand what it is worth today. And how it is moving."}
+              {marketDemo?.signal?.trendPercent != null
+                ? (it ? "Capisci quanto vale oggi. E come si sta muovendo." : "Understand what it is worth today. And how it is moving.")
+                : (it ? "Capisci quanto vale oggi." : "Understand what it is worth today.")}
             </h2>
             <p className="mt-5 max-w-xl text-sm leading-6 text-white/75 md:text-base">
               {it
-                ? "TrackDash confronta vendite concluse, prezzi nei negozi e ASK — i prezzi richiesti negli annunci attivi — e pubblica una stima solo quando i dati sono sufficienti."
+                ? "TrackDash confronta vendite concluse, prezzi nei negozi e ASK — i prezzi richiesti negli annunci attivi — e pubblica una stima solo quando i dati sono sufficienti. Il trend compare quando esiste abbastanza storico."
                 : "TrackDash compares completed sales, store prices and ASK — prices requested in active listings — and only publishes an estimate when the data is sufficient."}
             </p>
             <Link href="/market" className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-white underline decoration-brand-red decoration-2 underline-offset-4">
@@ -448,10 +457,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 <span className="rounded-full bg-brand-muted px-3 py-1 text-xs font-semibold text-brand">{it ? "per Release" : "by Release"}</span>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <CollectionMetric title={it ? "Release possedute" : "Owned Releases"} value="12" detail={it ? "versioni identificate" : "identified versions"} />
-                <CollectionMetric title={it ? "Copie totali" : "Total copies"} value="16" detail={it ? "più esemplari gestibili" : "multiple copies supported"} />
-                <CollectionMetric title={it ? "Valore stimato" : "Estimated value"} value="€ 428" detail={it ? "quando i dati sono disponibili" : "when data is available"} />
-                <CollectionMetric title="Wishlist" value="7" detail={it ? "modelli da tenere d’occhio" : "models to watch"} />
+                <CollectionMetric title={it ? "Release possedute" : "Owned Releases"} value={it ? "Per versione" : "By version"} detail={it ? "non per modello generico" : "not by generic model"} />
+                <CollectionMetric title={it ? "Copie totali" : "Total copies"} value={it ? "Più copie" : "Multiple copies"} detail={it ? "ogni esemplare resta distinto" : "each copy stays separate"} />
+                <CollectionMetric title={it ? "Valore stimato" : "Estimated value"} value={it ? "Valore oggi" : "Value today"} detail={it ? "quando i dati sono disponibili" : "when data is available"} />
+                <CollectionMetric title="Wishlist" value={it ? "Separata" : "Separate"} detail={it ? "ciò che cerchi resta distinto" : "what you want stays distinct"} />
               </div>
             </div>
           </div>
@@ -623,6 +632,10 @@ function MarketPreview({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
         {signal.trendPercent != null && signal.trendPercent > 0 ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
             <TrendingUp className="size-3.5" /> {trendText(signal, it)}
+          </span>
+        ) : signal.soldUnits > 0 ? (
+          <span className="rounded-full bg-brand-muted px-3 py-1 text-xs font-semibold text-brand">
+            {signal.soldUnits} {it ? "vendite osservate" : "observed sales"}
           </span>
         ) : null}
       </div>
