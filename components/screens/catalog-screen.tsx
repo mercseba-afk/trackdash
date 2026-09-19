@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils"
 type SortKey = "name" | "year-desc" | "year-asc"
 type View = "grid" | "list"
 
-export function CatalogScreen({ products }: { products: Product[] }) {
+export function CatalogScreen({ products, initialQuery = "" }: { products: Product[]; initialQuery?: string }) {
   const { isInCollection, isInWishlist } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
-  const [query, setQuery] = React.useState("")
+  const [query, setQuery] = React.useState(initialQuery)
   const [chassis, setChassis] = React.useState<string>("all")
   const [series, setSeries] = React.useState<string>("all")
   const [rarity, setRarity] = React.useState<string>("all")
