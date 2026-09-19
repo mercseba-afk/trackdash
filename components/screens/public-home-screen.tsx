@@ -137,7 +137,16 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
     return primary
   }, [releases])
 
-  const heroStrip = watchList.length > 0 ? watchList : releases.slice(0, 4)
+  const heroVisuals = React.useMemo(
+    () =>
+      distinctByProduct(
+        [...releases]
+          .filter(({ product, release }) => Boolean(release.images?.length || product.images?.length))
+          .sort((a, b) => (b.release.releaseYear ?? 0) - (a.release.releaseYear ?? 0)),
+        3,
+      ),
+    [releases],
+  )
 
   const familyProduct = React.useMemo(() => {
     return [...products]
@@ -187,56 +196,62 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
     <div className="overflow-hidden bg-background">
       <section className="relative border-b border-line bg-white">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand" />
-        <div className="mx-auto w-full max-w-7xl px-4 pb-8 pt-12 sm:px-6 lg:px-8 lg:pb-10 lg:pt-20">
-          <div className="max-w-4xl">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
-              {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
-            </p>
-            <h1 className="mt-5 max-w-[960px] text-[clamp(3.2rem,13vw,5.6rem)] font-semibold leading-[.88] tracking-[-0.075em] text-ink lg:text-[clamp(5rem,7vw,6.6rem)]">
-              {it ? "Trova la versione esatta." : "Find the exact version."}
-              <span className="block text-brand">{it ? "Segui il suo valore." : "Track its value."}</span>
-            </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-              {it
-                ? "TrackDash ti aiuta a riconoscere il modello e la sua Release, cioè la specifica versione o edizione. Puoi seguirne il valore e organizzare la tua collezione in un unico posto."
-                : "TrackDash helps you identify the model and its exact Release, follow its value and organise your collection."}
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link href="/catalog" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-                {it ? "Esplora il catalogo" : "Explore the catalog"} <ArrowRight className="size-4" />
-              </Link>
-              <Link href="/market" className="inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy transition hover:bg-brand-muted">
-                {it ? "Scopri i valori di mercato" : "Explore market values"}
-              </Link>
+        <div className="mx-auto w-full max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-12 lg:pt-20">
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+            <div className="max-w-3xl">
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
+                {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
+              </p>
+              <h1 className="mt-5 text-[clamp(3.2rem,13vw,5.6rem)] font-semibold leading-[.88] tracking-[-0.075em] text-ink lg:text-[clamp(4.7rem,6.6vw,6.25rem)]">
+                {it ? "Trova la versione esatta." : "Find the exact version."}
+                <span className="block text-brand">{it ? "Segui il suo valore." : "Track its value."}</span>
+              </h1>
+              <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+                {it
+                  ? "TrackDash ti aiuta a riconoscere il modello e la sua Release, cioè la specifica versione o edizione. Puoi seguirne il valore e organizzare la tua collezione in un unico posto."
+                  : "TrackDash helps you identify the model and its exact Release, follow its value and organise your collection."}
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link href="/catalog" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                  {it ? "Esplora il catalogo" : "Explore the catalog"} <ArrowRight className="size-4" />
+                </Link>
+                <Link href="/market" className="inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy transition hover:bg-brand-muted">
+                  {it ? "Scopri i valori di mercato" : "Explore market values"}
+                </Link>
+              </div>
+              <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                {it
+                  ? "Catalogo e valori sono consultabili da tutti. Crea un account per collezione, wishlist e scanner."
+                  : "Catalog and market values are open to everyone. Create an account for collection, wishlist and scanner."}
+              </p>
             </div>
-            <p className="mt-4 text-xs leading-5 text-muted-foreground">
-              {it
-                ? "Catalogo e valori sono consultabili da tutti. Crea un account per collezione, wishlist e scanner."
-                : "Catalog and market values are open to everyone. Create an account for collection, wishlist and scanner."}
-            </p>
+
+            {heroVisuals.length > 0 ? <HeroGarageVisual entries={heroVisuals} /> : null}
           </div>
 
-          {heroStrip.length > 0 ? (
-            <div className="relative mt-10 overflow-hidden border border-line bg-[#eef4fb] px-3 py-4 sm:px-5 sm:py-5">
-              <div className="pointer-events-none absolute -right-20 top-0 h-28 w-80 -rotate-6 bg-brand/5" />
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-                {heroStrip.slice(0, 4).map(({ product, release }, index) => (
-                  <Link
-                    key={release.id}
-                    href={releaseHref(product, release)}
-                    className="group relative h-32 overflow-hidden bg-white/80 p-2 sm:h-44 sm:p-3"
-                    aria-label={`${product.name} — ${release.editionName}`}
-                  >
-                    <ProductImage product={product} release={release} className="h-full w-full border-0 bg-transparent object-contain transition-transform duration-300 group-hover:scale-[1.04]" />
-                    <span className="absolute bottom-2 left-2 rounded-sm bg-white/90 px-2 py-1 font-mono text-[9px] font-semibold text-navy shadow-sm backdrop-blur">
-                      #{release.itemNumber ?? "—"}
-                    </span>
-                    {index === 0 ? <span className="absolute right-2 top-2 size-2 rounded-full bg-brand-red" /> : null}
-                  </Link>
-                ))}
-              </div>
+          <div className="mt-10 border border-line bg-[#f8fafc] p-4 sm:p-5">
+            <div className="mb-3">
+              <p className="text-sm font-semibold text-ink">{it ? "Trova subito la tua Mini 4WD" : "Find your Mini 4WD now"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {it ? "Cerca per nome o codice articolo e vai direttamente al catalogo." : "Search by name or item number and jump straight to the catalog."}
+              </p>
             </div>
-          ) : null}
+            <form action="/catalog" className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
+                <input
+                  type="search"
+                  name="q"
+                  placeholder={it ? "Es. 18069, 95467, Avante, Dash-1 Emperor…" : "E.g. 18069, 95467, Avante, Dash-1 Emperor…"}
+                  className="h-14 w-full rounded-md border border-line bg-white pl-12 pr-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  aria-label={it ? "Cerca modello o codice articolo" : "Search model or item number"}
+                />
+              </div>
+              <button type="submit" className="inline-flex h-14 items-center justify-center gap-2 rounded-md bg-navy px-6 text-sm font-semibold text-white transition hover:bg-[#102c55]">
+                {it ? "Cerca nel catalogo" : "Search catalog"} <ArrowRight className="size-4" />
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 
