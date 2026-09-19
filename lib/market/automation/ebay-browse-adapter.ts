@@ -140,10 +140,15 @@ export function ebayEnvironment(): EbayEnvironment {
 }
 
 export function ebayMarketWritesAllowed(): boolean {
-  // Credentials and Production routing are intentionally not enough to arm
-  // persistence. This separate fail-closed switch lets us validate real Browse
-  // responses first without a cron run creating candidates or recomputing R3.
+  // Targeted/manual execution remains behind the explicit emergency write gate.
   return ebayEnvironment() === "production" && process.env.EBAY_MARKET_WRITES_ENABLED === "true"
+}
+
+export function ebayScheduledMarketWritesAllowed(): boolean {
+  // Scheduled automation is now a released Production path. It is still guarded
+  // by CRON_SECRET, source policy adapter_status=ready and enabled scan-queue jobs.
+  // Sandbox can never persist market evidence.
+  return ebayEnvironment() === "production"
 }
 
 function apiOrigin(environment: EbayEnvironment): string {
