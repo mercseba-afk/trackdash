@@ -459,6 +459,7 @@ async function scanClaimedJob(
 
   const references = await independentReferences(client, job.release_id, job.source_id)
   const guard = guardAutomatedPrice({
+    lane: "retail",
     priceEUR: eur.amountEUR,
     availability: snapshot.availability,
     independentReferenceEUR: references.values,
