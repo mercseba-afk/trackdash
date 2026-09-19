@@ -162,8 +162,9 @@ export function publicRetailConfidence(
 // 1. Completed sales are the primary public Market Value when the selected sold
 //    evidence is sufficiently broad. Recent windows remain preferred; a recent
 //    full-history aggregate is only a lower-confidence fallback.
-// 2. Seller diversity matters. Multiple units from one known seller cannot define
-//    the public market alone unless independent current retail corroborates them.
+// 2. Seller diversity remains an evidence-quality factor, not a publication veto.
+//    Five or more recent/selected sales from one known seller may publish a low-
+//    confidence sold value; independent sellers/retail strengthen it.
 // 3. Current retail is a corroborating/current-availability lane. If completed
 //    sales are absent, at least two independent current merchants may define the
 //    value, with region-aware safeguards.
@@ -203,11 +204,20 @@ export function applyPublicMarketPublicationPolicy(
     (sellerDiversity != null && sellerDiversity >= 2) ||
     (sellerDiversity == null && soldUnits >= 5)
 
+  const concentratedButMeaningfulSold =
+    sellerDiversity === 1 &&
+    soldUnits >= 5
+
   const hasSoldCluster =
     signal.soldAnchorEUR != null &&
     signal.soldAnchorEUR > 0 &&
     soldUnits >= 2 &&
-    (hasVerifiedSale || broadIndicativeSold || (sellerDiversity === 1 && retailCorroboratesSold))
+    (
+      hasVerifiedSale ||
+      broadIndicativeSold ||
+      concentratedButMeaningfulSold ||
+      (sellerDiversity === 1 && retailCorroboratesSold)
+    )
 
   const singleVerifiedCorroborated =
     signal.soldAnchorEUR != null &&
