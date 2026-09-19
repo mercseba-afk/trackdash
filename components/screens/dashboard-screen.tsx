@@ -61,17 +61,17 @@ export function DashboardScreen() {
       <DashboardMarketOverview />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "valorizzati R3" : "valued by R3"}</span>} />
+        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "con Valore stimato" : "with an Estimated value"}</span>} />
         <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Rendimento EUR non disponibile" : "EUR performance unavailable"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
-        <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Nessun trend vendite ancora consolidato" : "No consolidated sales trend yet")} />
+        <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Trend di mercato in arrivo" : "Market trend coming soon")} />
       </div>
 
       {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Valori e rendimenti usano solo segnali R3 compatibili con la condizione dei tuoi pezzi."
-            : "Values and performance use only R3 signals compatible with the condition of your items."}
+            ? "Valori e rendimenti vengono mostrati solo quando TrackDash dispone di dati di mercato affidabili e compatibili con la condizione dei tuoi pezzi."
+            : "Values and performance are shown only when TrackDash has reliable market data compatible with the condition of your items."}
         </p>
       ) : null}
 
@@ -82,7 +82,7 @@ export function DashboardScreen() {
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           {top.length === 0 ? (
-            <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Nessun elemento della collezione ha ancora un valore R3 consolidato compatibile con la sua condizione." : "No collection item has a consolidated R3 value compatible with its condition yet."}</p>
+            <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Nessun elemento della collezione ha ancora un Valore stimato disponibile." : "No collection item has an Estimated value available yet."}</p>
           ) : top.map((entry, index) => (
             <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
@@ -105,7 +105,7 @@ export function DashboardScreen() {
               <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="group flex flex-col gap-1.5">
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
-                {entry.marketValue != null ? <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : <p className="text-[11px] text-muted-foreground">{it ? "Valore R3 non disponibile" : "R3 value unavailable"}</p>}
+                {entry.marketValue != null ? <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>}
               </Link>
             ))}
           </div>

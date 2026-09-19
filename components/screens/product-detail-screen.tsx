@@ -168,13 +168,13 @@ export function ProductDetailScreen({
 
 function CollectionMarketValue({ entry, it }: { entry: ReturnType<typeof enrichCollection>[number]; it: boolean }) {
   if (!conditionUsesNewUnbuiltReference(entry.item.condition)) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Condizione non ancora valorizzata" : "Condition not valued yet"}</p>
+    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
   }
   if (!entry.marketSignal) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
+    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
   }
   if (entry.marketValue == null) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Valore non consolidato" : "Value not consolidated"}</p>
+    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
   }
   return (
     <div className="text-right">

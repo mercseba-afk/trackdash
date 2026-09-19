@@ -2,12 +2,12 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Boxes, Coins, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Trash2, TrendingUp } from "lucide-react"
+import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { conditionUsesNewUnbuiltReference, enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
-import { formatDate, formatMoney, formatPercent } from "@/lib/format"
+import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
+import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency } from "@/lib/types"
 import { CONDITIONS, CURRENCIES } from "@/lib/types"
 import { getMyCollectionSharesAction, saveCollectionItemAndShareAction, type CollectionOfferTerms, type CollectionVisibility } from "@/lib/actions/sharing"
@@ -150,8 +150,8 @@ export function CollectionScreen() {
               {summary.marketValueCount < summary.count || summary.acquisitionCostCount < summary.count ? (
                 <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
                   {it
-                    ? "Valore e rendimento usano solo segnali R3 compatibili con kit nuovi/completi/non montati. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico di riferimento ECB della data d'acquisto (o dell'ultimo giorno disponibile); se data o cambio non sono disponibili, il rendimento resta non calcolato."
-                    : "Value and performance use only R3 signals compatible with new/complete/unbuilt kits. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
+                    ? "Valore e rendimento vengono mostrati solo quando TrackDash dispone di dati di mercato affidabili e compatibili con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico di riferimento ECB della data d'acquisto (o dell'ultimo giorno disponibile); se data o cambio non sono disponibili, il rendimento resta non calcolato."
+                    : "Value and performance are shown only when TrackDash has reliable market data compatible with the copy condition. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
                 </p>
               ) : null}
             </div>
@@ -204,35 +204,39 @@ export function CollectionScreen() {
                 const share = shareByCollectionItem.get(entry.item.id); const visibility: Visibility = share?.shareMode ?? "private"
                 const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
                 return (
-                  <Card key={entry.item.id} className="group overflow-hidden rounded-2xl border-border/70 py-0 shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
-                    <div className="flex h-full flex-col sm:flex-row">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative shrink-0 overflow-hidden border-b border-border/50 bg-gradient-to-br from-white via-muted/10 to-brand/5 sm:w-44 sm:border-b-0 sm:border-r">
-                        <ProductImage product={entry.product} release={entry.release} className="aspect-[16/9] w-full transition-transform duration-300 group-hover:scale-[1.025] sm:h-full sm:min-h-48 sm:aspect-auto" />
-                        <Badge variant="secondary" className="absolute left-2.5 top-2.5 rounded-full bg-white/90 text-[10px] shadow-sm backdrop-blur-sm">{conditionLabel(entry.item.condition, it)}</Badge>
+                  <Card key={entry.item.id} className="group min-h-[156px] overflow-hidden rounded-2xl border-border/70 py-0 shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
+                    <div className="flex h-full min-h-[156px]">
+                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative w-28 shrink-0 overflow-hidden border-r border-border/50 bg-white sm:w-36">
+                        <ProductImage product={entry.product} release={entry.release} className="h-full min-h-[156px] w-full rounded-none bg-white transition-transform duration-300 group-hover:scale-[1.035]" />
                       </Link>
-                      <div className="flex min-w-0 flex-1 flex-col p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
-                            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">Tamiya {entry.release.itemNumber ?? "—"}</p>
-                            <h2 className="line-clamp-2 text-base font-semibold leading-5 tracking-tight transition-colors group-hover:text-brand">{entry.product.name}</h2>
-                            <p className="mt-1 truncate text-xs text-muted-foreground">{entry.label} · {entry.release.chassis ?? "—"}</p>
-                          </Link>
-                          <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
+                      <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-3.5">
+                        <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
+                          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
+                          <h2 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-4 tracking-tight transition-colors group-hover:text-brand sm:text-base sm:leading-[1.15rem]">{entry.release.editionName}</h2>
+                        </Link>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
+                          <span className="text-[11px] text-muted-foreground">{t("collection.paid")} <strong className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</strong></span>
                         </div>
-
-                        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
-                          <span>{t("collection.paid")} <strong className="font-medium text-foreground">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</strong>{entry.item.acquisitionCurrency !== "EUR" && entry.item.acquisitionPriceEUR != null ? <span> · {it ? "base" : "basis"} {formatMoney(entry.item.acquisitionPriceEUR)}</span> : null}</span>
-                          <span>{entry.item.acquisitionDate ? `${it ? "Acquistato" : "Acquired"} ${formatDate(entry.item.acquisitionDate)}` : (it ? "Data non indicata" : "Date not provided")}</span>
-                          {share?.askingPrice != null && share.askingCurrency ? <span>{it ? "Richiesta" : "Asking"} <strong className="font-medium text-foreground">{formatMoney(share.askingPrice, share.askingCurrency)}</strong></span> : null}
-                          <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
-                        </div>
-
-                        <div className="mt-auto flex items-end gap-3 border-t border-border/60 pt-4">
-                          <CollectionMarketValue entry={entry} it={it} />
-                          <div className="ml-auto flex gap-1">
-                            <Button variant="ghost" size="icon" className="size-8 rounded-xl" aria-label={t("common.edit")} onClick={() => setEditing(entry)}><Pencil /></Button>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-xl text-muted-foreground hover:text-destructive" aria-label={t("common.remove")} onClick={() => void remove()}><Trash2 /></Button>
+                        <div className="mt-1.5 flex min-w-0 items-center gap-2 border-t border-border/60 pt-2">
+                          <div className="min-w-0 flex-1">
+                            <CollectionMarketValue entry={entry} it={it} />
                           </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
+                              <Eye className="size-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-muted/70 text-foreground hover:bg-muted" aria-label={t("common.edit")} title={it ? "Modifica copia" : "Edit copy"} onClick={() => setEditing(entry)}>
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive" aria-label={t("common.remove")} title={it ? "Rimuovi dalla collezione" : "Remove from collection"} onClick={() => void remove()}>
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="mt-1.5 hidden items-center gap-1.5 sm:flex">
+                          <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
+                          <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                         </div>
                       </div>
                     </div>
@@ -275,7 +279,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           <div className="mt-7">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore stimato oggi" : "Estimated value today"}</p>
             <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{summary.marketValueCount}/{summary.count} {it ? "copie con un Market Value R3 compatibile" : "copies with a compatible R3 Market Value"}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{summary.marketValueCount}/{summary.count} {it ? "copie con un Valore stimato disponibile" : "copies with an Estimated value available"}</p>
             <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
           </div>
@@ -294,33 +298,47 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 }
 
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
-  if (!conditionUsesNewUnbuiltReference(entry.item.condition)) {
-    return <p className="max-w-32 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Condizione non ancora valorizzata" : "Condition not valued yet"}</p>
+  const signal = entry.marketSignal
+  const startingPrice = signal?.startingItemPriceEUR ?? null
+  const hasAvailability =
+    (signal?.currentOfferCount ?? 0) > 0 &&
+    startingPrice != null &&
+    startingPrice > 0
+
+  if (entry.marketValue != null) {
+    return (
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <p className="text-[11px] leading-tight text-muted-foreground">
+            {it ? "Valore stimato" : "Estimated value"} <strong className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(entry.marketValue)}</strong>
+          </p>
+          {entry.personalGainEUR != null ? (
+            <span className={cn("text-[11px] font-semibold tabular-nums", entry.personalGainEUR > 0 ? "text-success" : entry.personalGainEUR < 0 ? "text-destructive" : "text-muted-foreground")}>
+              {signedMoney(entry.personalGainEUR)}
+            </span>
+          ) : null}
+        </div>
+        {hasAvailability ? (
+          <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
+            {it ? "Disponibile da" : "Available from"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
+          </p>
+        ) : null}
+      </div>
+    )
   }
-  if (!entry.marketSignal) {
-    return <p className="max-w-32 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Dati mercato in arrivo" : "Market data coming soon"}</p>
-  }
-  if (entry.marketValue == null) {
-    return <p className="max-w-32 text-left text-[11px] leading-tight text-muted-foreground">{it ? "Valore non consolidato" : "Value not consolidated"}</p>
-  }
-  return (
-    <div className="min-w-28 text-left">
-      <p className="font-mono text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Market Value · {it ? "oggi" : "today"}</p>
-      <p className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-foreground">{formatMoney(entry.marketValue)}</p>
-      {entry.personalGainEUR != null && entry.personalGainPercent != null ? (
-        <p className={cn("mt-0.5 text-xs font-medium tabular-nums", entry.personalGainEUR > 0 ? "text-success" : entry.personalGainEUR < 0 ? "text-destructive" : "text-muted-foreground")}>
-          {signedMoney(entry.personalGainEUR)} · {formatPercent(entry.personalGainPercent)}
+
+  if (hasAvailability) {
+    return (
+      <div className="min-w-0">
+        <p className="text-[11px] leading-tight text-muted-foreground">
+          {it ? "Disponibile da" : "Available from"} <strong className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
         </p>
-      ) : entry.item.acquisitionPrice > 0 && entry.item.acquisitionCurrency !== "EUR" ? (
-        <p className="mt-0.5 max-w-32 text-[10px] leading-tight text-muted-foreground">
-          {entry.item.acquisitionDate
-            ? (it ? "FX storico ECB non disponibile" : "Historical ECB FX unavailable")
-            : (it ? "Aggiungi la data per il rendimento" : "Add purchase date for performance")}
-        </p>
-      ) : null}
-      {entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="mt-1 justify-start text-xs" /> : null}
-    </div>
-  )
+        <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">{it ? "Mercato in osservazione" : "Market under observation"}</p>
+      </div>
+    )
+  }
+
+  return <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
 }
 
 function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollectionItem | null; share?: MyShare; onClose: () => void; onSave: (id: string, patch: Partial<CollectionItem>, visibility: Visibility, offerTerms?: CollectionOfferTerms) => void }) {
@@ -357,7 +375,7 @@ function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollecti
         <Field><FieldLabel htmlFor="edit-notes">Note</FieldLabel><Input id="edit-notes" value={notes} onChange={(event) => setNotes(event.target.value)} /></Field>
         <Separator />
         <Field><FieldLabel>{it ? "Collezione condivisa" : "Shared collection"}</FieldLabel><Select value={visibility} onValueChange={(value) => setVisibility(value as Visibility)}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="private">{it ? "Privato — visibile solo a te" : "Private — only you can see it"}</SelectItem><SelectItem value="showcase">{it ? "Condiviso — mostralo nella vetrina" : "Shared — show it in your collector showcase"}</SelectItem><SelectItem value="open_to_offers">{it ? "Aperto a offerte — condiviso e disponibile a proposte" : "Open to offers — shared and open to proposals"}</SelectItem></SelectContent></Select><p className="text-xs text-muted-foreground">{it ? "Prezzo d'acquisto, data e note private non vengono mai pubblicati." : "Purchase price, date and private notes are never published."}</p></Field>
-        {visibility === "open_to_offers" ? <div className="grid grid-cols-[1fr_7rem] gap-3"><Field><FieldLabel htmlFor="edit-asking-price">{it ? "Prezzo richiesto" : "Asking price"}</FieldLabel><Input id="edit-asking-price" type="number" min="0" step="0.01" placeholder={it ? "Opzionale" : "Optional"} value={askingPrice} onChange={(event) => setAskingPrice(event.target.value)} /></Field><Field><FieldLabel>{it ? "Valuta" : "Currency"}</FieldLabel><Select value={askingCurrency} onValueChange={(value) => setAskingCurrency(value as Currency)}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{CURRENCIES.map((candidate) => <SelectItem key={candidate} value={candidate}>{candidate}</SelectItem>)}</SelectContent></Select></Field><p className="col-span-2 -mt-1 text-[11px] text-muted-foreground">{it ? "Il prezzo richiesto è pubblico ma resta asking evidence: non modifica da solo il Valore di mercato." : "The asking price is public but remains asking evidence: it does not change Market Value by itself."}</p></div> : null}
+        {visibility === "open_to_offers" ? <div className="grid grid-cols-[1fr_7rem] gap-3"><Field><FieldLabel htmlFor="edit-asking-price">{it ? "Prezzo richiesto" : "Asking price"}</FieldLabel><Input id="edit-asking-price" type="number" min="0" step="0.01" placeholder={it ? "Opzionale" : "Optional"} value={askingPrice} onChange={(event) => setAskingPrice(event.target.value)} /></Field><Field><FieldLabel>{it ? "Valuta" : "Currency"}</FieldLabel><Select value={askingCurrency} onValueChange={(value) => setAskingCurrency(value as Currency)}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{CURRENCIES.map((candidate) => <SelectItem key={candidate} value={candidate}>{candidate}</SelectItem>)}</SelectContent></Select></Field><p className="col-span-2 -mt-1 text-[11px] text-muted-foreground">{it ? "Il prezzo richiesto è pubblico, ma non modifica da solo il Valore stimato." : "The asking price is public, but it does not change the Estimated value by itself."}</p></div> : null}
       </FieldGroup>
       <Separator /><DialogFooter><DialogClose render={<Button variant="outline">{t("common.cancel")}</Button>} /><Button onClick={() => { if (!entry) return; const parsedYear = Number(year); const releaseYearOverride = Number.isFinite(parsedYear) && parsedYear !== entry.release.releaseYear ? parsedYear : undefined; onSave(entry.item.id, { condition, acquisitionDate: date, acquisitionPrice: Number(price) || 0, acquisitionCurrency: currency, releaseYearOverride, notes: notes.trim() || undefined }, visibility, visibility === "open_to_offers" ? { askingPrice: askingPrice ? Number(askingPrice) : null, askingCurrency: askingPrice ? askingCurrency : null } : undefined) }}>{t("common.save")}</Button></DialogFooter>
     </DialogContent></Dialog>

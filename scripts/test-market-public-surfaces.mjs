@@ -72,7 +72,7 @@ if (!releasePage.includes("getPublicMarketSignalForRelease")) {
 }
 
 const releaseScreen = fs.readFileSync("components/screens/release-detail-screen.tsx", "utf8")
-if (!releaseScreen.includes("Valore di mercato stimato")) {
+if (!releaseScreen.includes("Valore stimato")) {
   errors.push("Release detail does not expose the public estimated market value")
 }
 if (!releaseScreen.includes("vendite osservate")) {
