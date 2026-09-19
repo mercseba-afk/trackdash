@@ -28,12 +28,12 @@ export function MarketDataEmptyCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        <p className="text-xl font-semibold">{it ? "Mercato raro" : "Thin market"}</p>
-        <p className="text-sm text-muted-foreground">{it ? "Valore di mercato stimato non ancora disponibile" : "Estimated market value not available yet"}</p>
+        <p className="text-xl font-semibold">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+        <p className="text-sm text-muted-foreground">{it ? "Non ci sono ancora abbastanza dati per una stima affidabile." : "There is not enough data for a reliable estimate yet."}</p>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Ne possiedi una? Puoi metterla in vendita dalla tua collezione."
-            : "Own one? You can list it for sale from your collection."}
+            ? "La scheda si aggiornerà quando saranno disponibili nuovi dati di mercato."
+            : "This page will update as new market data becomes available."}
         </p>
       </CardContent>
     </Card>
