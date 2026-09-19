@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { runExactPageMarketScanBatch } from "@/lib/market/automation/worker"
 import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worker"
+import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -16,11 +17,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [exactPages, ebayActive] = await Promise.all([
+    const [exactPages, ebayActive, recompute] = await Promise.all([
       runExactPageMarketScanBatch(4),
       runEbayActiveMarketScanBatch(4),
+      runMarketRecomputeBatch(8),
     ])
-    return NextResponse.json({ ok: true, exactPages, ebayActive })
+    return NextResponse.json({ ok: true, exactPages, ebayActive, recompute })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error("[market-scan-cron]", message)
