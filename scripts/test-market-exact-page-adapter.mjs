@@ -101,6 +101,33 @@ ok("wild current low price is quarantined against independent evidence", () => {
   assert.equal(guard.reasonCodes.includes("AUTOMATION_CROSS_SOURCE_OUTLIER"), true)
 })
 
+ok("marketplace ASK far above sold reference remains accepted market evidence", () => {
+  const guard = guardAutomatedPrice({
+    lane: "marketplace_ask",
+    priceEUR: 46.36,
+    availability: "in_stock",
+    independentReferenceEUR: [14.92],
+    previousSameSourceEUR: null,
+    headlineConfidence: "low",
+  })
+  assert.equal(guard.decision, "accept")
+  assert.equal(guard.reasonCodes.includes("ASK_FAR_FROM_REFERENCE"), true)
+})
+
+ok("marketplace ASK divergence stays non-blocking even with several sold/retail references", () => {
+  const guard = guardAutomatedPrice({
+    lane: "marketplace_ask",
+    priceEUR: 46.36,
+    availability: "in_stock",
+    independentReferenceEUR: [14.5, 14.92, 15.4],
+    previousSameSourceEUR: 45,
+    headlineConfidence: "high",
+  })
+  assert.equal(guard.decision, "accept")
+  assert.equal(guard.reasonCodes.includes("ASK_FAR_FROM_REFERENCE"), true)
+  assert.equal(guard.reasonCodes.includes("AUTOMATION_CROSS_SOURCE_OUTLIER"), false)
+})
+
 ok("sold-out odd price remains context instead of being blocked as current valuation", () => {
   const guard = guardAutomatedPrice({
     priceEUR: 2,
