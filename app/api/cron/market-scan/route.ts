@@ -4,7 +4,7 @@ import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worke
 import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
 
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+// Keep sold-driven recomputes on the same protected market cron so ingestion\n// and public signals converge without requiring an unrelated ASK/retail change.\nexport const maxDuration = 60
 
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET
