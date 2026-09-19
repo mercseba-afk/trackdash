@@ -61,7 +61,7 @@ export function MarketScreen() {
 
   const copy = it
     ? {
-        kicker: "VALORI DI MERCATO",
+        kicker: "PRICE INTELLIGENCE",
         titleA: "Capisci quanto vale una Release",
         titleB: "con dati reali.",
         intro: "TrackDash osserva vendite concluse, prezzi nei negozi e annunci attivi per darti una stima semplice. Se i dati non bastano, non inventa un valore.",
@@ -74,8 +74,8 @@ export function MarketScreen() {
         retailBody: "Ci aiutano a capire quanto costa oggi una Release quando è ancora disponibile come prodotto nuovo.",
         sold: "Vendite concluse",
         soldBody: "Mostrano quanto è stato realmente pagato per quella specifica Release e sono il riferimento più utile per il mercato del collezionismo.",
-        asks: "Annunci attivi",
-        asksBody: "Mostrano a quanto viene proposta oggi una Release e se è facile o difficile trovarla, ma non equivalgono a un prezzo realmente pagato.",
+        asks: "ASK · Annunci attivi",
+        asksBody: "ASK significa prezzo richiesto dal venditore. Mostra a quanto viene proposta oggi una Release e quanto è facile trovarla, ma non equivale a un prezzo realmente pagato.",
         resultKicker: "IL RISULTATO",
         resultTitle: "Una stima semplice, con il contesto che serve.",
         resultBody: "Quando ci sono abbastanza dati, TrackDash mostra un valore stimato e una fascia indicativa. Quando non bastano, mostra semplicemente che i dati sono ancora in arrivo.",
@@ -89,7 +89,7 @@ export function MarketScreen() {
         liveBody: "Qui trovi le Release per cui TrackDash ha già dati di mercato. Apri una scheda per vedere valore stimato, disponibilità e andamento quando presenti.",
       }
     : {
-        kicker: "MARKET VALUES",
+        kicker: "PRICE INTELLIGENCE",
         titleA: "Understand what a Release is worth",
         titleB: "with real market data.",
         intro: "TrackDash looks at completed sales, store prices and active listings to give you a clear estimate. If there is not enough data, it does not invent a value.",
@@ -102,8 +102,8 @@ export function MarketScreen() {
         retailBody: "They help show what a Release costs today when it is still available as a new product.",
         sold: "Completed sales",
         soldBody: "They show what people actually paid for that specific Release and are the most useful reference for the collector market.",
-        asks: "Active listings",
-        asksBody: "They show what sellers are asking today and how easy a Release is to find, but they are not the same as a completed sale.",
+        asks: "ASK · Active listings",
+        asksBody: "ASK means the price requested by the seller. It shows today’s listing price and availability, but it is not the same as a completed sale.",
         resultKicker: "THE RESULT",
         resultTitle: "A simple estimate, with the context that matters.",
         resultBody: "When there is enough data, TrackDash shows an estimated value and a useful range. When there is not, it simply shows that market data is still coming in.",
