@@ -13,7 +13,7 @@ function releaseHref(product: Product, release: ProductRelease) {
 }
 
 function confidenceLabel(value: "low" | "medium" | "high", it: boolean) {
-  if (!it) return `${value[0].toUpperCase()}${value.slice(1)} confidence`
+  if (!it) return value === "high" ? "High reliability" : value === "medium" ? "Medium reliability" : "Low reliability"
   if (value === "high") return "Affidabilità alta"
   if (value === "medium") return "Affidabilità media"
   return "Affidabilità bassa"
@@ -51,24 +51,24 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
             </p>
             <h1 className="mt-5 max-w-[760px] text-[clamp(3.2rem,14vw,5.2rem)] font-semibold leading-[.87] tracking-[-0.075em] text-ink lg:text-[clamp(4.8rem,7vw,6.3rem)]">
-              {it ? "Conosci ogni Release." : "Know every Release."}
-              <span className="block text-brand">{it ? "Dai valore a ogni storia." : "Value every story."}</span>
+              {it ? "Riconosci la Release giusta." : "Identify the right Release."}
+              <span className="block text-brand">{it ? "Segui il suo valore." : "Track its value."}</span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
               {it
-                ? "Catalogo esatto, collezione personale, scanner e Price Intelligence per capire quale Mini 4WD hai davanti e cosa significa davvero sul mercato."
-                : "Exact catalog identity, personal collection, scanner and Price Intelligence to understand the Mini 4WD in front of you and what it really means on the market."}
+                ? "TrackDash ti aiuta a identificare la versione esatta della tua Mini 4WD, aggiungerla alla collezione e capire quanto vale oggi."
+                : "TrackDash helps you identify the exact version of your Mini 4WD, add it to your collection and understand what it is worth today."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href="/catalog" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
                 {it ? "Esplora il catalogo" : "Explore the catalog"} <ArrowRight className="size-4" />
               </Link>
               <Link href="/market" className="inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy transition hover:bg-brand-muted">
-                {it ? "Come calcoliamo il valore" : "How value works"}
+                {it ? "Scopri i valori di mercato" : "Explore market values"}
               </Link>
             </div>
             <p className="mt-4 text-xs leading-5 text-muted-foreground">
-              {it ? "Catalogo e valori pubblici. L'account serve solo per le funzioni personali." : "Catalog and market values are public. An account is only needed for personal features."}
+              {it ? "Catalogo e valori sono consultabili da tutti. Crea un account per collezione, wishlist e scanner." : "Catalog and market values are open to everyone. Create an account for your collection, wishlist and scanner."}
             </p>
           </div>
 
@@ -92,13 +92,13 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                     {featuredSignal ? <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#80e0b6]">● {confidenceLabel(featuredSignal.confidenceLabel, it)}</span> : null}
                   </div>
                   <div className="mt-3 text-4xl font-semibold tracking-[-0.06em]">
-                    {featuredSignal?.valueEUR != null ? formatMoney(featuredSignal.valueEUR) : (it ? "Non consolidato" : "Not consolidated")}
+                    {featuredSignal?.valueEUR != null ? formatMoney(featuredSignal.valueEUR) : (it ? "Dati in arrivo" : "Data coming soon")}
                   </div>
                   <div className="mt-4 flex flex-wrap items-end justify-between gap-2 border-t border-white/20 pt-3 text-xs text-white/75">
                     <span>
                       {featuredSignal?.lowEUR != null && featuredSignal?.highEUR != null
                         ? `${it ? "Range" : "Typical range"} ${formatMoney(featuredSignal.lowEUR)}–${formatMoney(featuredSignal.highEUR)}`
-                        : (it ? "Il valore appare solo quando i dati lo supportano." : "Value appears only when the evidence supports it.")}
+                        : (it ? "Mostriamo una stima solo quando ci sono abbastanza dati." : "We show an estimate only when there is enough data.")}
                     </span>
                     {featuredSignal?.recentSoldUnits3m != null && featuredSignal.recentSoldUnits3m > 0 ? <strong>{featuredSignal.recentSoldUnits3m} {it ? "vendite recenti" : "recent sales"}</strong> : null}
                   </div>
@@ -119,10 +119,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           </h2>
 
           <div className="mt-10 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            <Feature number="01" icon={Search} title="Catalog" text={it ? "Trova il Product e la Release esatta, non solo il nome del modello." : "Find the exact Product and Release, not just the model name."} />
-            <Feature number="02" icon={Boxes} title={it ? "Collezione" : "Collection"} text={it ? "Salva ciò che possiedi e guarda il valore stimato di oggi." : "Keep what you own and see its current estimated value."} />
-            <Feature number="03" icon={ScanLine} title="Scanner" text={it ? "Parti da Item Number o fotocamera e arriva alla Release corretta." : "Start from an Item Number or camera scan and land on the right Release."} />
-            <Feature number="04" icon={ShieldCheck} title="Market Value" text={it ? "Un valore con range e affidabilità, separato dai prezzi richiesti." : "A value with range and confidence, kept separate from asking prices."} />
+            <Feature number="01" icon={Search} title={it ? "Catalogo" : "Catalog"} text={it ? "Cerca per modello, Item Number, anno o chassis e apri la versione esatta." : "Search by model, Item Number, year or chassis and open the exact version."} />
+            <Feature number="02" icon={Boxes} title={it ? "Collezione" : "Collection"} text={it ? "Salva le Mini 4WD che possiedi e guarda il valore stimato della tua collezione." : "Save the Mini 4WD you own and see the estimated value of your collection."} />
+            <Feature number="03" icon={ScanLine} title="Scanner" text={it ? "Scansiona il codice sulla scatola oppure cercalo manualmente per arrivare più velocemente alla Release corretta." : "Scan the code on the box or search it manually to reach the correct Release faster."} />
+            <Feature number="04" icon={ShieldCheck} title={it ? "Valore di mercato" : "Market value"} text={it ? "Una stima chiara basata sui dati disponibili, senza confondere annunci e vendite concluse." : "A clear estimate based on available data, without confusing listings with completed sales."} />
           </div>
         </div>
       </section>
@@ -134,12 +134,12 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               <div>
                 <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{it ? "DENTRO TRACKDASH" : "INSIDE TRACKDASH"}</p>
                 <h2 className="mt-4 text-4xl font-semibold leading-[.95] tracking-[-0.06em] text-ink md:text-6xl">
-                  {it ? "Prima identifichi la Release. Poi capisci il mercato." : "Identify the Release first. Then understand the market."}
+                  {it ? "Una scheda per ogni versione, non un prezzo generico." : "One page for each version, not one generic price."}
                 </h2>
                 <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
                   {it
-                    ? "Nome, Item Number, anno e chassis restano il punto di partenza. Il valore arriva dopo, con evidenze separate e leggibili."
-                    : "Name, Item Number, year and chassis stay the starting point. Value comes next, with separate and readable evidence."}
+                    ? "Lo stesso modello può avere ristampe ed edizioni speciali diverse. TrackDash le tiene separate, così sai esattamente cosa hai e quale valore stai guardando."
+                    : "The same model can have different reissues and special editions. TrackDash keeps them separate, so you know exactly what you own and which value you are looking at."}
                 </p>
               </div>
               <Link href={releaseHref(featured.product, featured.release)} className="inline-flex items-center gap-2 justify-self-start text-sm font-semibold text-brand lg:justify-self-end">
@@ -170,10 +170,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   </div>
 
                   <div className="mt-7 grid gap-px bg-line sm:grid-cols-2">
-                    <PreviewCell label="Market Value" value={featuredSignal?.valueEUR != null ? formatMoney(featuredSignal.valueEUR) : (it ? "Non consolidato" : "Not consolidated")} detail={featuredSignal ? confidenceLabel(featuredSignal.confidenceLabel, it) : (it ? "In attesa di evidenze sufficienti" : "Waiting for enough evidence")} />
-                    <PreviewCell label={it ? "Range" : "Typical range"} value={featuredSignal?.lowEUR != null && featuredSignal?.highEUR != null ? `${formatMoney(featuredSignal.lowEUR)}–${formatMoney(featuredSignal.highEUR)}` : "—"} detail={it ? "Intervallo del metodo corrente" : "Current-method range"} />
-                    <PreviewCell label={it ? "Disponibile da" : "Available from"} value={featuredSignal?.startingItemPriceEUR != null ? formatMoney(featuredSignal.startingItemPriceEUR) : "—"} detail={it ? "Prezzo articolo, spedizione esclusa" : "Item price, shipping excluded"} />
-                    <PreviewCell label={it ? "Offerte correnti" : "Current offers"} value={featuredSignal ? String(featuredSignal.currentOfferCount) : "—"} detail={it ? "ASK separate dal Market Value" : "Asks kept separate from Market Value"} />
+                    <PreviewCell label={it ? "Valore stimato" : "Estimated value"} value={featuredSignal?.valueEUR != null ? formatMoney(featuredSignal.valueEUR) : (it ? "Dati in arrivo" : "Data coming soon")} detail={featuredSignal ? confidenceLabel(featuredSignal.confidenceLabel, it) : (it ? "In attesa di più dati" : "Waiting for more data")} />
+                    <PreviewCell label={it ? "Fascia indicativa" : "Estimated range"} value={featuredSignal?.lowEUR != null && featuredSignal?.highEUR != null ? `${formatMoney(featuredSignal.lowEUR)}–${formatMoney(featuredSignal.highEUR)}` : "—"} detail={it ? "Una lettura semplice del valore possibile" : "A simple view of the possible value"} />
+                    <PreviewCell label={it ? "Disponibile da" : "Available from"} value={featuredSignal?.startingItemPriceEUR != null ? formatMoney(featuredSignal.startingItemPriceEUR) : "—"} detail={it ? "Prezzo più basso trovato, spedizione esclusa" : "Lowest price found, shipping excluded"} />
+                    <PreviewCell label={it ? "Offerte trovate" : "Offers found"} value={featuredSignal ? String(featuredSignal.currentOfferCount) : "—"} detail={it ? "Annunci disponibili in questo momento" : "Listings available right now"} />
                   </div>
                 </div>
               </div>
@@ -187,24 +187,24 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">Price Intelligence</p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.95] tracking-[-0.06em] md:text-6xl">
-              {it ? "Un valore chiaro, non un gioco di ipotesi." : "A clear value, not a guessing game."}
+              {it ? "Capisci quanto vale oggi." : "Understand what it is worth today."}
             </h2>
             <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">
               {it
-                ? "Vendite concluse, retail verificato e ASK attive hanno significati diversi. TrackDash li mantiene separati e pubblica un Market Value solo quando le evidenze lo giustificano."
-                : "Completed sales, verified retail and active asks mean different things. TrackDash keeps them separate and publishes Market Value only when the evidence supports it."}
+                ? "TrackDash confronta vendite concluse, prezzi nei negozi e annunci attivi. Se i dati non bastano, te lo dice: niente valori inventati."
+                : "TrackDash compares completed sales, store prices and active listings. If there is not enough data, it says so instead of inventing a value."}
             </p>
             <Link href="/market" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white underline decoration-brand-red decoration-2 underline-offset-4">
-              {it ? "Apri Price Intelligence" : "Open Price Intelligence"} <ArrowRight className="size-4" />
+              {it ? "Scopri come leggiamo il mercato" : "See how we read the market"} <ArrowRight className="size-4" />
             </Link>
           </div>
 
           {featuredSignal && featured ? (
             <div className="grid gap-px bg-white/20 sm:grid-cols-2">
-              <MarketCell label="Market Value" value={featuredSignal.valueEUR != null ? formatMoney(featuredSignal.valueEUR) : (it ? "Non consolidato" : "Not consolidated")} detail={confidenceLabel(featuredSignal.confidenceLabel, it)} />
-              <MarketCell label={it ? "Vendite concluse" : "Completed sales"} value={featuredSignal.soldAnchorEUR != null ? formatMoney(featuredSignal.soldAnchorEUR) : "—"} detail={`${featuredSignal.soldUnits} ${it ? "unità usate come evidenza" : "units in evidence"}`} />
-              <MarketCell label={it ? "Disponibilità attuale" : "Available now"} value={featuredSignal.startingItemPriceEUR != null ? `${it ? "Da" : "From"} ${formatMoney(featuredSignal.startingItemPriceEUR)}` : "—"} detail={it ? "ASK corrente, separata dal Market Value" : "Current ask, separate from Market Value"} />
-              <MarketCell label={it ? "Range" : "Typical range"} value={featuredSignal.lowEUR != null && featuredSignal.highEUR != null ? `${formatMoney(featuredSignal.lowEUR)}–${formatMoney(featuredSignal.highEUR)}` : "—"} detail={it ? "Intervallo coerente con il metodo corrente" : "Range produced by the current method"} />
+              <MarketCell label={it ? "Valore stimato" : "Estimated value"} value={featuredSignal.valueEUR != null ? formatMoney(featuredSignal.valueEUR) : (it ? "Dati in arrivo" : "Data coming soon")} detail={confidenceLabel(featuredSignal.confidenceLabel, it)} />
+              <MarketCell label={it ? "Vendite concluse" : "Completed sales"} value={featuredSignal.soldAnchorEUR != null ? formatMoney(featuredSignal.soldAnchorEUR) : "—"} detail={`${featuredSignal.soldUnits} ${it ? "vendite osservate" : "observed sales"}`} />
+              <MarketCell label={it ? "Disponibilità attuale" : "Available now"} value={featuredSignal.startingItemPriceEUR != null ? `${it ? "Da" : "From"} ${formatMoney(featuredSignal.startingItemPriceEUR)}` : "—"} detail={it ? "Prezzo più basso trovato ora" : "Lowest price found now"} />
+              <MarketCell label={it ? "Range" : "Typical range"} value={featuredSignal.lowEUR != null && featuredSignal.highEUR != null ? `${formatMoney(featuredSignal.lowEUR)}–${formatMoney(featuredSignal.highEUR)}` : "—"} detail={it ? "Fascia indicativa del valore" : "Estimated value range"} />
             </div>
           ) : null}
         </div>
@@ -231,7 +231,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   <h3 className="mt-2 line-clamp-2 text-lg font-semibold tracking-[-0.035em] text-ink group-hover:text-brand">{release.editionName}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{release.releaseYear ?? "—"} · {release.chassis ?? product.chassis ?? "—"}</p>
                   <div className="mt-4 border-t border-line pt-3 text-sm font-semibold text-navy">
-                    {signal?.valueEUR != null ? `${formatMoney(signal.valueEUR)} Market Value` : (it ? "Valore non ancora consolidato" : "Value not yet consolidated")}
+                    {signal?.valueEUR != null ? `${formatMoney(signal.valueEUR)} ${it ? "valore stimato" : "estimated value"}` : (it ? "Dati di mercato in arrivo" : "Market data coming soon")}
                   </div>
                 </div>
               </Link>
@@ -245,7 +245,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           <div className="border border-line bg-white p-7 sm:p-9 lg:p-10">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{it ? "LA TUA COLLEZIONE" : "YOUR COLLECTION"}</p>
             <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.95] tracking-[-0.055em] text-ink md:text-5xl">{it ? "Quello che possiedi, finalmente ordinato per Release." : "What you own, finally organised by exact Release."}</h2>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">{it ? "Il totale stimato di oggi resta una funzione Free. Pro servirà a capire come il valore cambia nel tempo, non a nascondere il valore corrente." : "Today's estimated total stays Free. Pro is for understanding how value changes over time, not for hiding the current value."}</p>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">{it ? "Aggiungi le Release che possiedi, tieni separate le diverse copie e guarda il valore stimato della tua collezione in un colpo d'occhio." : "Add the Releases you own, keep different copies separate and see the estimated value of your collection at a glance."}</p>
             <Link href="/login?next=%2Fcollection" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-brand">{it ? "Apri la tua collezione" : "Open your collection"} <ArrowRight className="size-4" /></Link>
           </div>
 
@@ -253,10 +253,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div className="absolute right-[-35px] top-8 h-1 w-48 -rotate-[19deg] bg-brand-red" />
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">{it ? "COLLECTION VALUE" : "COLLECTION VALUE"}</p>
             <div className="mt-8 grid gap-px bg-white/25 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <CollectionMetric value="Release" label={it ? "al centro della collezione" : "at the centre of your collection"} />
-              <CollectionMetric value="Free" label={it ? "valore stimato di oggi" : "today's estimated value"} />
-              <CollectionMetric value="Wishlist" label={it ? "separata da ciò che possiedi" : "separate from what you own"} />
-              <CollectionMetric value="Pro" label={it ? "storico e andamento nel tempo" : "history and value over time"} />
+              <CollectionMetric value={it ? "Release" : "Releases"} label={it ? "versioni esatte, non modelli generici" : "exact versions, not generic models"} />
+              <CollectionMetric value={it ? "Valore oggi" : "Value today"} label={it ? "stima della tua collezione" : "estimated collection value"} />
+              <CollectionMetric value="Wishlist" label={it ? "tieni d'occhio ciò che cerchi" : "keep track of what you want"} />
+              <CollectionMetric value={it ? "Copie" : "Copies"} label={it ? "gestisci più esemplari della stessa Release" : "manage multiple copies of the same Release"} />
             </div>
           </div>
         </div>
@@ -267,7 +267,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Scanner</p>
             <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.95] tracking-[-0.055em] text-ink md:text-5xl">{it ? "Una scansione. La Release giusta." : "One scan. The right Release."}</h2>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">{it ? "Ricerca manuale sempre disponibile; la scansione con fotocamera riduce l'inserimento manuale e ti porta alla scheda corretta." : "Manual search remains available; camera scanning reduces manual entry and takes you to the correct Release."}</p>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">{it ? "Scansiona il codice sulla scatola oppure inseriscilo manualmente. TrackDash ti porta alla versione corretta quando può identificarla con certezza." : "Scan the code on the box or enter it manually. TrackDash takes you to the correct version when it can identify it confidently."}</p>
             <Link href="/login?next=%2Fscanner" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-brand">{it ? "Apri Scanner" : "Open Scanner"} <ArrowRight className="size-4" /></Link>
           </div>
 
@@ -294,8 +294,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
               <div>
                 <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{it ? "DISPONIBILI ORA" : "AVAILABLE NOW"}</p>
-                <h2 className="mt-3 max-w-2xl text-4xl font-semibold leading-[.96] tracking-[-0.055em] text-ink md:text-5xl">{it ? "Release con disponibilità reale, non vetrine morte." : "Releases with real availability, not dead listings."}</h2>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">{it ? "Qui compaiono solo Release per cui TrackDash vede almeno un'offerta corrente. Il prezzo mostrato è l'articolo più basso, spedizione esclusa." : "Only Releases with at least one current offer appear here. The shown price is the lowest item price, shipping excluded."}</p>
+                <h2 className="mt-3 max-w-2xl text-4xl font-semibold leading-[.96] tracking-[-0.055em] text-ink md:text-5xl">{it ? "Release che puoi trovare sul mercato adesso." : "Releases you can find on the market right now."}</h2>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">{it ? "Qui trovi le Release con almeno un annuncio attivo. Mostriamo il prezzo più basso trovato, spedizione esclusa." : "Here you can see Releases with at least one active listing. We show the lowest price found, shipping excluded."}</p>
               </div>
               <Link href="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-brand">{it ? "Esplora tutte le Release" : "Explore all Releases"} <ArrowRight className="size-4" /></Link>
             </div>
