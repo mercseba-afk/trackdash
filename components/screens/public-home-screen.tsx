@@ -51,12 +51,12 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
             </p>
             <h1 className="mt-5 max-w-[760px] text-[clamp(3.2rem,14vw,5.2rem)] font-semibold leading-[.87] tracking-[-0.075em] text-ink lg:text-[clamp(4.8rem,7vw,6.3rem)]">
-              {it ? "Riconosci la Release giusta." : "Identify the right Release."}
+              {it ? "Trova la versione esatta." : "Find the exact version."}
               <span className="block text-brand">{it ? "Segui il suo valore." : "Track its value."}</span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
               {it
-                ? "TrackDash ti aiuta a identificare la versione esatta della tua Mini 4WD, aggiungerla alla collezione e capire quanto vale oggi."
+                ? "TrackDash ti aiuta a riconoscere il modello e la sua Release — cioè la specifica versione o edizione —, aggiungerla alla collezione e capire quanto vale oggi."
                 : "TrackDash helps you identify the exact version of your Mini 4WD, add it to your collection and understand what it is worth today."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -88,7 +88,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 </div>
                 <div className="mt-5 bg-navy p-5 text-white">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/70">Market Value</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/70">{it ? "Market Value · stima TrackDash" : "Market Value · TrackDash estimate"}</span>
                     {featuredSignal ? <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#80e0b6]">● {confidenceLabel(featuredSignal.confidenceLabel, it)}</span> : null}
                   </div>
                   <div className="mt-3 text-4xl font-semibold tracking-[-0.06em]">
@@ -119,7 +119,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           </h2>
 
           <div className="mt-10 grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            <Feature number="01" icon={Search} title={it ? "Catalogo" : "Catalog"} text={it ? "Trova la Release giusta: la specifica versione del modello, distinta per anno, codice, chassis o edizione." : "Find the right Release: the specific version of a model, separated by year, code, chassis or edition."} />
+            <Feature number="01" icon={Search} title={it ? "Catalogo" : "Catalog"} text={it ? "Cerca il modello e scegli la Release corretta: la specifica uscita per anno, codice articolo, chassis o edizione." : "Find the model and choose the right Release: the specific issue by year, item number, chassis or edition."} />
             <Feature number="02" icon={Boxes} title={it ? "Collezione" : "Collection"} text={it ? "Salva le Mini 4WD che possiedi e guarda il valore stimato della tua collezione." : "Save the Mini 4WD you own and see the estimated value of your collection."} />
             <Feature number="03" icon={ScanLine} title="Scanner" text={it ? "Scansiona il codice sulla scatola oppure cercalo manualmente per arrivare più velocemente alla Release corretta." : "Scan the code on the box or search it manually to reach the correct Release faster."} />
             <Feature number="04" icon={ShieldCheck} title={it ? "Valore di mercato" : "Market value"} text={it ? "Una stima chiara basata sui dati disponibili, senza confondere annunci e vendite concluse." : "A clear estimate based on available data, without confusing listings with completed sales."} />
@@ -154,7 +154,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   <span className="size-2 rounded-full bg-[#d59a00]" />
                   <span className="size-2 rounded-full bg-[#23865f]" />
                 </div>
-                <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">TrackDash · Release detail</span>
+                <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{it ? "TrackDash · Scheda Release" : "TrackDash · Release details"}</span>
               </div>
 
               <div className="grid lg:grid-cols-[.9fr_1.1fr]">
@@ -215,7 +215,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{it ? "DAL CATALOGO" : "FROM THE CATALOG"}</p>
-              <h2 className="mt-3 text-4xl font-semibold tracking-[-0.055em] text-ink md:text-5xl">{it ? "Release, non semplici prodotti." : "Releases, not generic products."}</h2>
+              <h2 className="mt-3 text-4xl font-semibold tracking-[-0.055em] text-ink md:text-5xl">{it ? "Un modello può avere più Release." : "One model can have multiple Releases."}</h2>
             </div>
             <Link href="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-brand">{it ? "Vedi tutto il catalogo" : "View the full catalog"} <ArrowRight className="size-4" /></Link>
           </div>
@@ -251,7 +251,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
           <div className="relative overflow-hidden bg-brand p-7 text-white sm:p-9 lg:p-10">
             <div className="absolute right-[-35px] top-8 h-1 w-48 -rotate-[19deg] bg-brand-red" />
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">{it ? "COLLECTION VALUE" : "COLLECTION VALUE"}</p>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">{it ? "VALORE COLLEZIONE" : "COLLECTION VALUE"}</p>
             <div className="mt-8 grid gap-px bg-white/25 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <CollectionMetric value={it ? "Release" : "Releases"} label={it ? "versioni esatte, non modelli generici" : "exact versions, not generic models"} />
               <CollectionMetric value={it ? "Valore oggi" : "Value today"} label={it ? "stima della tua collezione" : "estimated collection value"} />
@@ -275,7 +275,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div className="absolute left-[-55px] top-14 h-px w-60 rotate-[18deg] bg-brand-red" />
             <div className="relative mx-auto max-w-lg border border-white/25 bg-[#123f8f] p-5 sm:p-7">
               <div className="flex items-center justify-between gap-3 border-b border-white/20 pb-4">
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/65">{it ? "ITEM NUMBER" : "ITEM NUMBER"}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/65">{it ? "CODICE ARTICOLO · ITEM NUMBER" : "ITEM NUMBER"}</span>
                 <span className="text-xs font-semibold text-[#80e0b6]">● {it ? "PRONTO" : "READY"}</span>
               </div>
               <div className="my-8 grid min-h-40 place-items-center border border-white/25 bg-[#0b3275] font-mono text-5xl font-semibold tracking-[0.12em] sm:text-6xl">95467</div>

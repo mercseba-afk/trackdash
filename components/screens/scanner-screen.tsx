@@ -159,7 +159,7 @@ export function ScannerScreen() {
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
             {it
-              ? "Inquadra il barcode della scatola oppure inserisci Item Number o JAN/EAN. TrackDash mantiene separate le Release anche quando un codice articolo è stato riutilizzato."
+              ? "Inquadra il codice a barre della scatola oppure inserisci il codice articolo (Item Number). Se lo stesso codice è stato usato per più Release, TrackDash ti aiuta a scegliere quella corretta."
               : "Scan the box barcode or enter an Item Number or JAN/EAN. TrackDash keeps Releases separate even when an item number has been reused."}
           </p>
         </div>
@@ -180,13 +180,13 @@ export function ScannerScreen() {
                 <div className="z-10 flex max-w-md flex-col items-center gap-4 px-8 text-center">
                   <span className="grid size-14 place-items-center rounded-2xl border border-white/10 bg-white/5"><ScanBarcode className="size-7 text-white/80" /></span>
                   <div>
-                    <p className="font-medium">{it ? "Inquadra il barcode della confezione" : "Frame the barcode on the box"}</p>
+                    <p className="font-medium">{it ? "Inquadra il codice a barre della confezione" : "Frame the barcode on the box"}</p>
                     <p className="mt-1 text-sm leading-relaxed text-white/60">{it ? "Se il codice identifica una Release univoca, TrackDash apre direttamente quella corretta." : "When the code identifies one unique Release, TrackDash opens the correct one directly."}</p>
                   </div>
                 </div>
               ) : (
                 <div className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-1.5 text-xs font-semibold text-slate-950 backdrop-blur">
-                  {it ? "Cerco il barcode…" : "Looking for barcode…"}
+                  {it ? "Cerco il codice…" : "Looking for barcode…"}
                 </div>
               )}
             </CardContent>
@@ -196,7 +196,7 @@ export function ScannerScreen() {
             {cameraActive ? (
               <Button variant="outline" size="lg" className="sm:col-span-2" onClick={stopCamera}><CameraOff />{it ? "Chiudi fotocamera" : "Close camera"}</Button>
             ) : (
-              <Button size="lg" className="sm:col-span-2 rounded-xl" onClick={() => void startCamera()} disabled={cameraStarting}><Camera />{cameraStarting ? (it ? "Avvio fotocamera…" : "Starting camera…") : (it ? "Scansiona barcode" : "Scan barcode")}</Button>
+              <Button size="lg" className="sm:col-span-2 rounded-xl" onClick={() => void startCamera()} disabled={cameraStarting}><Camera />{cameraStarting ? (it ? "Avvio fotocamera…" : "Starting camera…") : (it ? "Scansiona codice a barre" : "Scan barcode")}</Button>
             )}
             {cameraError ? <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground sm:col-span-2">{cameraError}</p> : null}
           </div>
@@ -208,7 +208,7 @@ export function ScannerScreen() {
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">{it ? "Ricerca manuale" : "Manual search"}</p>
                 <h2 className="mt-1 text-lg font-semibold">{it ? "Hai già il codice?" : "Already have the code?"}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{it ? "Inserisci Item Number, barcode JAN/EAN o nome modello." : "Enter an Item Number, JAN/EAN barcode or model name."}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{it ? "Inserisci un codice articolo (Item Number), un codice a barre o il nome del modello." : "Enter an Item Number, barcode or model name."}</p>
               </div>
               <form onSubmit={submitManual}>
                 <InputGroup className="h-12 rounded-xl">
@@ -216,12 +216,12 @@ export function ScannerScreen() {
                   <InputGroupAddon align="inline-end"><InputGroupButton type="submit" disabled={!manual.trim()}><Search />{it ? "Cerca" : "Search"}</InputGroupButton></InputGroupAddon>
                 </InputGroup>
               </form>
-              <p className="text-[11px] leading-relaxed text-muted-foreground">{it ? "Se un Item Number è condiviso da più Release, TrackDash non ne seleziona una arbitrariamente: ti chiede di scegliere l'edizione corretta." : "If an Item Number belongs to multiple Releases, TrackDash never picks one arbitrarily: you choose the correct edition."}</p>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">{it ? "Se lo stesso codice articolo è stato usato per più Release, TrackDash ti chiede di scegliere l'edizione corretta." : "If the same item number belongs to multiple Releases, TrackDash asks you to choose the correct edition."}</p>
             </CardContent>
           </Card>
 
           <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-            {it ? "Il riconoscimento del modello dalla sola immagine è previsto in una fase successiva. Oggi lo Scanner usa codici strutturati e ricerca catalogo." : "Image-only model recognition is planned for a later phase. Today the Scanner uses structured codes and catalog search."}
+            {it ? "Se la fotocamera non legge il codice, puoi sempre cercare manualmente per codice articolo o nome del modello." : "If the camera cannot read the code, you can always search manually by item number or model name."}
           </div>
         </aside>
       </div>
@@ -270,8 +270,8 @@ function ScanResult({ product, matchedReleaseId, onScanAgain }: { product: Produ
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-muted-foreground">{it ? "Release / edizione" : "Release / edition"}</span>
           <Select value={releaseId} onValueChange={(value) => value && setReleaseId(value as string)}>
-            <SelectTrigger className="w-full rounded-xl"><SelectValue>{(value: string) => { const candidate = product.releases.find((item) => item.id === value); return candidate ? `${candidate.releaseYear ?? "—"} · ${candidate.releaseType} · #${candidate.itemNumber ?? "—"}` : t("scanner.selectRelease") }}</SelectValue></SelectTrigger>
-            <SelectContent>{product.releases.map((candidate) => <SelectItem key={candidate.id} value={candidate.id}>{candidate.releaseYear ?? "—"} · {candidate.releaseType} · #{candidate.itemNumber ?? "—"}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="w-full rounded-xl"><SelectValue>{(value: string) => { const candidate = product.releases.find((item) => item.id === value); return candidate ? `${candidate.releaseYear ?? "—"} · ${releaseTypeLabel(candidate.releaseType, it)} · #${candidate.itemNumber ?? "—"}` : t("scanner.selectRelease") }}</SelectValue></SelectTrigger>
+            <SelectContent>{product.releases.map((candidate) => <SelectItem key={candidate.id} value={candidate.id}>{candidate.releaseYear ?? "—"} · {releaseTypeLabel(candidate.releaseType, it)} · #{candidate.itemNumber ?? "—"}</SelectItem>)}</SelectContent>
           </Select>
           {product.hasMultipleReleases ? <p className="text-[11px] text-muted-foreground">{it ? "Controlla l'edizione prima di aggiungerla alla collezione." : "Check the edition before adding it to your collection."}</p> : null}
         </div>
@@ -283,4 +283,23 @@ function ScanResult({ product, matchedReleaseId, onScanAgain }: { product: Produ
       </CardContent>
     </Card>
   )
+}
+
+
+function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
+  if (!it) return value
+  const labels: Record<ProductRelease["releaseType"], string> = {
+    Original: "Originale",
+    Reissue: "Riedizione",
+    "Special Edition": "Edizione speciale",
+    "Limited Edition": "Edizione limitata",
+    "Anniversary Edition": "Edizione anniversario",
+    "Japan Cup Edition": "Edizione Japan Cup",
+    "Color Special": "Color Special",
+    "Clear Body": "Carrozzeria trasparente",
+    Premium: "Premium",
+    "Chassis Variant": "Variante chassis",
+    Other: "Altro",
+  }
+  return labels[value]
 }
