@@ -157,6 +157,7 @@ function UserEditor({
             Email
             <Input
               type="email"
+              disabled={user.isAdmin}
               value={draft.email}
               onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))}
             />
@@ -340,7 +341,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
         <AdminMetric label="Attivi 7 gg" value={data.stats.active7d} note={data.stats.active30d + " attivi / 30 gg"} icon={Activity} />
         <AdminMetric label="Nuovi 7 gg" value={data.stats.new7d} note="registrazioni recenti" icon={CalendarPlus} />
         <AdminMetric label="Collezionisti" value={data.stats.collectorsWithItems} note={data.stats.collectionPieces + " pezzi totali"} icon={Boxes} />
-        <AdminMetric label="Visite 7 gg" value={data.stats.pageViews7d} note={data.stats.pageViews30d + " / 30 gg"} icon={ChartNoAxesColumnIncreasing} />
+        <AdminMetric label="Page view 7 gg" value={data.stats.pageViews7d} note={data.stats.pageViews30d + " / 30 gg"} icon={ChartNoAxesColumnIncreasing} />
         <AdminMetric label="Pro attivi" value={data.stats.proActive} note="trial + attivi" icon={CreditCard} />
       </div>
 
@@ -348,7 +349,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
         <CardHeader>
           <CardTitle className="text-base">Utilizzo dell'app</CardTitle>
           <CardDescription>
-            Page view aggregate, senza IP, user agent o cronologia associata al singolo account. Il conteggio parte dall'attivazione di questa area.
+            Page view aggregate, senza IP, user agent o cronologia associata al singolo account. Non sono visitatori unici; il conteggio parte dalla pubblicazione di questa funzione.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
@@ -360,7 +361,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
                   <div
                     className="w-full rounded-t bg-brand/70 transition-colors group-hover:bg-brand"
                     style={{ height: Math.max(row.pageViews > 0 ? 6 : 1, (row.pageViews / maxTraffic) * 100) + "%" }}
-                    title={row.day + ": " + row.pageViews + " visite"}
+                    title={row.day + ": " + row.pageViews + " visualizzazioni"}
                   />
                 </div>
               ))}
@@ -376,7 +377,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
             <div className="flex flex-col gap-2">
               {data.topRoutes.length === 0 ? (
                 <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                  I dati inizieranno a comparire dalle prossime visite.
+                  I dati inizieranno a comparire dalle prossime visualizzazioni.
                 </p>
               ) : data.topRoutes.map((route, index) => (
                 <div key={route.path} className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2">
