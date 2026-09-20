@@ -143,7 +143,7 @@ export function MarketSignalCard({
                 : `TrackDash estimate based on ${signal.soldUnits > 0 ? `${signal.soldUnits} observed sales` : "current store prices"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}. It does not represent a guaranteed sale price.`}
             </p>
           </div>
-        ) : hasCleanActiveAsk ? (
+        ) : hasObservedPrice ? (
           <div>
             <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
