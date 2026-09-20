@@ -44,5 +44,21 @@ export interface AdminDashboardData {
     path: string
     pageViews: number
   }>
+  community: {
+    messagesTotal: number
+    messages7d: number
+    messages30d: number
+    conversationsTotal: number
+    conversationsAccepted: number
+    offersTotal: number
+    offersAccepted: number
+    offersOpen: number
+    salesReported: number
+    salesConfirmed: number
+    salesDisputed: number
+    ownershipTransfers: number
+    offerAcceptanceRate: number
+    saleConfirmationRate: number
+  }
   users: AdminUserRow[]
 }

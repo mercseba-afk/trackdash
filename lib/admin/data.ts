@@ -14,6 +14,11 @@ function isoTime(value: string | null | undefined) {
   return value ? new Date(value).getTime() : 0
 }
 
+function percent(part: number, total: number) {
+  if (total <= 0) return 0
+  return Math.round((part / total) * 100)
+}
+
 async function listAllAuthUsers() {
   const admin = createAdminClient()
   const users: Array<{
@@ -39,7 +44,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const now = Date.now()
   const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
-  const trafficStart = new Date(thirtyDaysAgo).toISOString().slice(0, 10)
+  const sevenDaysAgoIso = new Date(sevenDaysAgo).toISOString()
+  const thirtyDaysAgoIso = new Date(thirtyDaysAgo).toISOString()
+  const trafficStart = thirtyDaysAgoIso.slice(0, 10)
 
   const authUsers = await listAllAuthUsers()
   const [
@@ -48,6 +55,18 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     collectionResult,
     adminsResult,
     trafficResult,
+    messagesTotalResult,
+    messages7dResult,
+    messages30dResult,
+    conversationsTotalResult,
+    conversationsAcceptedResult,
+    offersTotalResult,
+    offersAcceptedResult,
+    offersOpenResult,
+    salesReportedResult,
+    salesConfirmedResult,
+    salesDisputedResult,
+    transfersResult,
   ] = await Promise.all([
     admin.from("profiles").select("id,username,country"),
     admin
@@ -59,9 +78,39 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .from("app_traffic_daily")
       .select("day,path,page_views")
       .gte("day", trafficStart),
+    admin.from("messages").select("id", { count: "exact", head: true }),
+    admin.from("messages").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgoIso),
+    admin.from("messages").select("id", { count: "exact", head: true }).gte("created_at", thirtyDaysAgoIso),
+    admin.from("conversations").select("id", { count: "exact", head: true }),
+    admin.from("conversations").select("id", { count: "exact", head: true }).eq("status", "accepted"),
+    admin.from("marketplace_offers").select("id", { count: "exact", head: true }),
+    admin.from("marketplace_offers").select("id", { count: "exact", head: true }).eq("status", "accepted"),
+    admin.from("marketplace_offers").select("id", { count: "exact", head: true }).eq("deal_status", "open"),
+    admin.from("marketplace_sales").select("id", { count: "exact", head: true }),
+    admin.from("marketplace_sales").select("id", { count: "exact", head: true }).eq("status", "confirmed"),
+    admin.from("marketplace_sales").select("id", { count: "exact", head: true }).eq("status", "disputed"),
+    admin.from("collection_item_transfers").select("id", { count: "exact", head: true }),
   ])
 
-  for (const result of [profilesResult, subscriptionsResult, collectionResult, adminsResult, trafficResult]) {
+  for (const result of [
+    profilesResult,
+    subscriptionsResult,
+    collectionResult,
+    adminsResult,
+    trafficResult,
+    messagesTotalResult,
+    messages7dResult,
+    messages30dResult,
+    conversationsTotalResult,
+    conversationsAcceptedResult,
+    offersTotalResult,
+    offersAcceptedResult,
+    offersOpenResult,
+    salesReportedResult,
+    salesConfirmedResult,
+    salesDisputedResult,
+    transfersResult,
+  ]) {
     if (result.error) throw result.error
   }
 
@@ -132,6 +181,19 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
   const collectionPieces = Array.from(collectionCounts.values()).reduce((sum, count) => sum + count, 0)
 
+  const messagesTotal = messagesTotalResult.count ?? 0
+  const messages7d = messages7dResult.count ?? 0
+  const messages30d = messages30dResult.count ?? 0
+  const conversationsTotal = conversationsTotalResult.count ?? 0
+  const conversationsAccepted = conversationsAcceptedResult.count ?? 0
+  const offersTotal = offersTotalResult.count ?? 0
+  const offersAccepted = offersAcceptedResult.count ?? 0
+  const offersOpen = offersOpenResult.count ?? 0
+  const salesReported = salesReportedResult.count ?? 0
+  const salesConfirmed = salesConfirmedResult.count ?? 0
+  const salesDisputed = salesDisputedResult.count ?? 0
+  const ownershipTransfers = transfersResult.count ?? 0
+
   return {
     currentAdminId: currentAdmin.id,
     generatedAt: new Date().toISOString(),
@@ -153,6 +215,22 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     topRoutes: Array.from(routeMap, ([path, pageViews]) => ({ path, pageViews }))
       .sort((a, b) => b.pageViews - a.pageViews)
       .slice(0, 8),
+    community: {
+      messagesTotal,
+      messages7d,
+      messages30d,
+      conversationsTotal,
+      conversationsAccepted,
+      offersTotal,
+      offersAccepted,
+      offersOpen,
+      salesReported,
+      salesConfirmed,
+      salesDisputed,
+      ownershipTransfers,
+      offerAcceptanceRate: percent(offersAccepted, offersTotal),
+      saleConfirmationRate: percent(salesConfirmed, salesReported),
+    },
     users,
   }
 }

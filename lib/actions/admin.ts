@@ -9,6 +9,7 @@ import type {
   SubscriptionStatus,
 } from "@/lib/admin/types"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { deleteUserAndOwnedStorage } from "@/lib/account/delete-user"
 
 const USERNAME_RE = /^[A-Za-z0-9._-]+$/
 const PLANS = new Set<AccountPlan>(["free", "pro"])
@@ -115,8 +116,7 @@ export async function deleteAdminUserAction(userId: string) {
   if (adminReadError) throw adminReadError
   if (protectedAdmin) throw new Error("Non puoi eliminare un account amministratore")
 
-  const { error } = await admin.auth.admin.deleteUser(userId, false)
-  if (error) throw error
+  await deleteUserAndOwnedStorage(userId)
 
   revalidatePath("/admin")
   return { ok: true }

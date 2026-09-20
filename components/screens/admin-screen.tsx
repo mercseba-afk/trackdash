@@ -8,6 +8,8 @@ import {
   CalendarPlus,
   ChartNoAxesColumnIncreasing,
   CreditCard,
+  Handshake,
+  MessageCircle,
   ShieldCheck,
   Trash2,
   UserRoundCog,
@@ -344,6 +346,68 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
         <AdminMetric label="Page view 7 gg" value={data.stats.pageViews7d} note={data.stats.pageViews30d + " / 30 gg"} icon={ChartNoAxesColumnIncreasing} />
         <AdminMetric label="Pro attivi" value={data.stats.proActive} note="trial + attivi" icon={CreditCard} />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Handshake className="size-4 text-brand" />
+            Community e marketplace
+          </CardTitle>
+          <CardDescription>
+            Comportamento reale degli utenti: conversazioni, messaggi, offerte, vendite dichiarate e vendite confermate da entrambe le parti.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <AdminMetric
+            label="Messaggi"
+            value={data.community.messagesTotal}
+            note={data.community.messages7d + " ultimi 7 gg · " + data.community.messages30d + " ultimi 30 gg"}
+            icon={MessageCircle}
+          />
+          <AdminMetric
+            label="Conversazioni"
+            value={data.community.conversationsTotal}
+            note={data.community.conversationsAccepted + " accettate"}
+            icon={MessageCircle}
+          />
+          <AdminMetric
+            label="Offerte"
+            value={data.community.offersTotal}
+            note={data.community.offersAccepted + " accettate · " + data.community.offersOpen + " aperte"}
+            icon={Handshake}
+          />
+          <AdminMetric
+            label="Tasso accettazione"
+            value={data.community.offerAcceptanceRate + "%"}
+            note="offerte accettate / offerte totali"
+            icon={Activity}
+          />
+          <AdminMetric
+            label="Vendite dichiarate"
+            value={data.community.salesReported}
+            note={data.community.salesDisputed + " contestate"}
+            icon={Handshake}
+          />
+          <AdminMetric
+            label="Vendite confermate"
+            value={data.community.salesConfirmed}
+            note={data.community.saleConfirmationRate + "% delle vendite dichiarate"}
+            icon={ShieldCheck}
+          />
+          <AdminMetric
+            label="Passaggi proprietà"
+            value={data.community.ownershipTransfers}
+            note="copie trasferite tra Collection"
+            icon={Boxes}
+          />
+          <div className="rounded-xl border border-dashed border-border/70 p-4 text-xs leading-relaxed text-muted-foreground">
+            <p className="font-medium text-foreground">Funnel vendita</p>
+            <p className="mt-2">
+              Offerta → accettazione → venditore segnala la vendita → compratore conferma → TrackDash trasferisce la copia nella Collection del compratore.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

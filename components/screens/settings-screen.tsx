@@ -9,6 +9,8 @@ import { useStore } from "@/lib/store"
 import { useI18n, type AppLocale } from "@/lib/i18n"
 import { CURRENCIES, type Currency } from "@/lib/types"
 import { PwaInstallSettingsButton } from "@/components/pwa-install-menu-item"
+import { AccountPlanPanel } from "@/components/account-plan-panel"
+import { AccountSecurityPanel } from "@/components/account-security-panel"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -119,6 +121,10 @@ export function SettingsScreen() {
           </SettingRow>
         </CardContent>
       </Card>
+
+      <AccountPlanPanel />
+
+      <AccountSecurityPanel />
 
       <Card>
         <CardHeader>
