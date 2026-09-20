@@ -14,6 +14,7 @@ const UNGATED_PREFIXES = [
   "/api/dev",
   "/api/version",
   "/api/cron",
+  "/api/telemetry",
   "/api/ebay/marketplace-account-deletion",
   "/api/internal/ebay-95467-microbatch",
   "/auth/callback",
