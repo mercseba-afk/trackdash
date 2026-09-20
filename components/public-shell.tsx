@@ -71,6 +71,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         wishlist: "Desideri",
         messages: "Messaggi",
         support: "Assistenza",
+        privacy: "Privacy",
+        terms: "Termini di utilizzo",
         openNav: "Apri navigazione",
         closeNav: "Chiudi navigazione",
       }
@@ -92,6 +94,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         wishlist: "Wishlist",
         messages: "Messages",
         support: "Support",
+        privacy: "Privacy",
+        terms: "Terms of Use",
         openNav: "Open navigation",
         closeNav: "Close navigation",
       }
@@ -229,6 +233,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               <Link href="/#community" className={FOOTER_LINK_CLASS}>{copy.community}</Link>
               <Link href="/#how-it-works" className={FOOTER_LINK_CLASS}>{copy.how}</Link>
               <Link href={supportHref} className={FOOTER_LINK_CLASS}>{copy.support}</Link>
+              <Link href="/privacy" className={FOOTER_LINK_CLASS}>{copy.privacy}</Link>
+              <Link href="/terms" className={FOOTER_LINK_CLASS}>{copy.terms}</Link>
             </div>
           </div>
         </div>
