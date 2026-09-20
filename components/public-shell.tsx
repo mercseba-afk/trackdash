@@ -32,6 +32,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = React.useState(false)
   const currentPath = pathname || "/"
   const loginHref = `/login?next=${encodeURIComponent(currentPath)}`
+  const signupHref = currentPath === "/" ? "/signup" : `/signup?next=${encodeURIComponent(currentPath)}`
   const scannerHref = user ? "/scanner" : "/login?next=%2Fscanner"
   const supportHref = user ? "/support" : "/login?next=%2Fsupport"
 
@@ -61,8 +62,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         myCollection: "La mia collezione",
         collection: "Collezione",
         signIn: "Accedi",
+        signUp: "Crea account",
+        community: "Community",
         exploreCatalog: "Esplora catalogo",
-        footerTagline: "Catalogo per Release, collezione personale, scanner e valori di mercato per collezionisti Mini 4WD.",
+        footerTagline: "Catalogo per Release, collezione personale, scanner, valori di mercato, messaggi e offerte tra collezionisti Mini 4WD.",
         explore: "Esplora",
         account: "Account",
         wishlist: "Desideri",
@@ -80,8 +83,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         myCollection: "My collection",
         collection: "Collection",
         signIn: "Sign in",
+        signUp: "Create account",
+        community: "Community",
         exploreCatalog: "Explore catalog",
-        footerTagline: "Release-level catalog, personal collection, scanner and market values for Mini 4WD collectors.",
+        footerTagline: "Release-level catalog, personal collection, scanner, market values, messages and offers for Mini 4WD collectors.",
         explore: "Explore",
         account: "Account",
         wishlist: "Wishlist",
@@ -119,6 +124,9 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="py-2 transition-colors hover:text-navy">
               {copy.scanner}
             </Link>
+            <Link href="/#community" className="py-2 transition-colors hover:text-navy">
+              {copy.community}
+            </Link>
             <Link href="/#how-it-works" className="py-2 transition-colors hover:text-navy">
               {copy.how}
             </Link>
@@ -134,10 +142,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               {copy.signIn}
             </Link>
             <Link
-              href="/catalog"
+              href={signupHref}
               className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]"
             >
-              {copy.exploreCatalog} →
+              {copy.signUp} →
             </Link>
           </div>
 
@@ -166,6 +174,9 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="flex items-center gap-2 rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               <ScanLine className="size-4" /> {copy.scanner}
             </Link>
+            <Link href="/#community" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
+              {copy.community}
+            </Link>
             <Link href="/#how-it-works" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               {copy.how}
             </Link>
@@ -178,11 +189,11 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
                 {copy.signIn}
               </Link>
               <Link
-                href="/catalog"
+                href={signupHref}
                 className="rounded-md bg-brand px-3 py-2.5 text-center text-white"
                 onClick={() => setMenuOpen(false)}
               >
-                {copy.catalog}
+                {copy.signUp}
               </Link>
             </div>
           </nav>
@@ -208,12 +219,14 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.account}</span>
+              <Link href="/signup" className={FOOTER_LINK_CLASS}>{copy.signUp}</Link>
               <Link href="/login?next=%2Fcollection" className={FOOTER_LINK_CLASS}>{copy.collection}</Link>
               <Link href="/login?next=%2Fwishlist" className={FOOTER_LINK_CLASS}>{copy.wishlist}</Link>
               <Link href="/login?next=%2Fmessages" className={FOOTER_LINK_CLASS}>{copy.messages}</Link>
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">TrackDash</span>
+              <Link href="/#community" className={FOOTER_LINK_CLASS}>{copy.community}</Link>
               <Link href="/#how-it-works" className={FOOTER_LINK_CLASS}>{copy.how}</Link>
               <Link href={supportHref} className={FOOTER_LINK_CLASS}>{copy.support}</Link>
             </div>
