@@ -16,6 +16,13 @@ import { toast } from "sonner"
 
 type Enrollment = { factorId: string; qrCode: string; secret: string }
 
+function normalizeQrCode(qrCode: string) {
+  const value = qrCode.trim()
+  if (value.startsWith("data:image/") || value.startsWith("https://") || value.startsWith("http://")) return value
+  if (value.startsWith("<svg")) return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(value)}`
+  return value
+}
+
 export function AccountSecurityPanel() {
   const { user } = useStore()
   const { locale } = useI18n()
@@ -88,6 +95,28 @@ export function AccountSecurityPanel() {
   async function beginMfaEnrollment() {
     setPending("mfa-enroll")
     const supabase = createClient()
+
+    const factors = await supabase.auth.mfa.listFactors()
+    if (factors.error) {
+      setPending(null)
+      return toast.error(factors.error.message)
+    }
+
+    const verified = factors.data.totp.find((factor) => factor.status === "verified")
+    if (verified) {
+      setVerifiedFactorId(verified.id)
+      setPending(null)
+      return toast.info(it ? "La 2FA è già attiva" : "2FA is already enabled")
+    }
+
+    for (const factor of factors.data.totp.filter((item) => item.status !== "verified")) {
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id })
+      if (error) {
+        setPending(null)
+        return toast.error(error.message)
+      }
+    }
+
     const { data, error } = await supabase.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: "TrackDash",
@@ -96,7 +125,7 @@ export function AccountSecurityPanel() {
     if (error) return toast.error(error.message)
     const totp = data.totp
     if (!totp) return toast.error(it ? "Configurazione 2FA non disponibile" : "2FA setup is unavailable")
-    setEnrollment({ factorId: data.id, qrCode: totp.qr_code, secret: totp.secret })
+    setEnrollment({ factorId: data.id, qrCode: normalizeQrCode(totp.qr_code), secret: totp.secret })
     setMfaCode("")
   }
 

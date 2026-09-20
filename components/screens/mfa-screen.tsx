@@ -17,6 +17,13 @@ type Enrollment = {
   secret: string
 }
 
+function normalizeQrCode(qrCode: string) {
+  const value = qrCode.trim()
+  if (value.startsWith("data:image/") || value.startsWith("https://") || value.startsWith("http://")) return value
+  if (value.startsWith("<svg")) return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(value)}`
+  return value
+}
+
 export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
   const router = useRouter()
   const { locale } = useI18n()
@@ -26,14 +33,16 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
   const [enrollment, setEnrollment] = React.useState<Enrollment | null>(null)
   const [code, setCode] = React.useState("")
   const [pending, setPending] = React.useState(false)
+  const [setupError, setSetupError] = React.useState<string | null>(null)
 
   const load = React.useCallback(async () => {
     setLoading(true)
+    setSetupError(null)
     const supabase = createClient()
     const factors = await supabase.auth.mfa.listFactors()
     if (factors.error) {
       setLoading(false)
-      toast.error(factors.error.message)
+      setSetupError(factors.error.message)
       return
     }
 
@@ -45,29 +54,43 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
       return
     }
 
+    // Supabase only returns the QR code / secret when a TOTP factor is first
+    // enrolled. If setup was interrupted, an unverified factor can remain but
+    // cannot be resumed because the secret is no longer returned by listFactors().
+    // Remove those incomplete factors and start a fresh enrollment.
+    for (const factor of factors.data.totp.filter((item) => item.status !== "verified")) {
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id })
+      if (error) {
+        setLoading(false)
+        setSetupError(error.message)
+        return
+      }
+    }
+
     const enrolled = await supabase.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: "TrackDash",
     })
     if (enrolled.error) {
       setLoading(false)
-      toast.error(enrolled.error.message)
+      setSetupError(enrolled.error.message)
       return
     }
 
     const totp = enrolled.data.totp
     if (!totp) {
       setLoading(false)
-      toast.error(it ? "Configurazione 2FA non disponibile" : "2FA setup is unavailable")
+      setSetupError("2FA setup is unavailable")
       return
     }
 
     setEnrollment({
       factorId: enrolled.data.id,
-      qrCode: totp.qr_code,
+      qrCode: normalizeQrCode(totp.qr_code),
       secret: totp.secret,
     })
     setVerifiedFactorId(null)
+    setCode("")
     setLoading(false)
   }, [])
 
@@ -125,10 +148,25 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
+            {setupError ? (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                <p className="font-medium">{it ? "Non siamo riusciti a preparare la 2FA." : "We couldn't prepare 2FA."}</p>
+                <p className="mt-1 break-words text-xs opacity-90">{setupError}</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => void load()}>
+                  {it ? "Riprova" : "Try again"}
+                </Button>
+              </div>
+            ) : null}
+
             {loading ? (
               <p className="text-sm text-muted-foreground">{it ? "Caricamento…" : "Loading…"}</p>
             ) : enrollment ? (
               <>
+                <div className="text-sm leading-relaxed text-muted-foreground">
+                  {it
+                    ? "1. Apri Google Authenticator e aggiungi un nuovo account scansionando questo QR. 2. Inserisci qui sotto il codice a 6 cifre chiamato TrackDash."
+                    : "1. Open Google Authenticator and add a new account by scanning this QR code. 2. Enter the 6-digit code labelled TrackDash below."}
+                </div>
                 <div className="mx-auto rounded-2xl border bg-white p-3">
                   <img src={enrollment.qrCode} alt={it ? "QR code per l'autenticazione a due fattori" : "Two-factor authentication QR code"} className="size-56" />
                 </div>
