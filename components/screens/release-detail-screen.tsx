@@ -288,7 +288,7 @@ function ExternalAvailabilityCard({
         <div className="mt-5 space-y-3 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <div>
             <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Ultimo prezzo osservato" : "Latest observed price"} {formatMoney(starting)}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
             <p className="mt-1 text-xs text-[#718198]">
               {current} {it ? "annunci attivi trovati · spedizione esclusa" : "active listings found · shipping excluded"}
             </p>
