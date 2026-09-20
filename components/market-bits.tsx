@@ -121,12 +121,8 @@ export function MarketSignalCard({
   const resolvedTitle = normalizeMarketValueTitle(title, it)
   const liquidity = getMarketLiquidity(signal)
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
-  const hasCleanActiveAsk =
-    !hasValue &&
-    signal.activeOfferCount > 0 &&
-    signal.retailSourceCount === 0 &&
-    signal.startingItemPriceEUR != null &&
-    signal.startingItemPriceEUR > 0
+  const observedPrice = signal.observedPriceEUR ?? signal.startingItemPriceEUR
+  const hasObservedPrice = !hasValue && observedPrice != null && observedPrice > 0
 
   return (
     <Card>
