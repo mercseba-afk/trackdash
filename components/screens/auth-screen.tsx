@@ -7,6 +7,7 @@ import { ArrowRight, Boxes, Eye, EyeOff, MessageCircle, ScanLine, ShieldCheck, T
 import { createClient } from "@/lib/supabase/client"
 import { useI18n } from "@/lib/i18n"
 import { BrandMark } from "@/components/brand-mark"
+import { GoogleAuthButton } from "@/components/google-auth-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
@@ -121,6 +122,12 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
         <h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Accedi a TrackDash." : "Sign in to TrackDash."}</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Dopo l'accesso tornerai esattamente dove eri." : "After signing in, you'll return exactly where you were.") : (it ? "Continua nella tua Collection e nei tuoi strumenti personali." : "Continue to your Collection and personal tools.")}</p>
       </div>
+      <GoogleAuthButton nextPath={nextPath} />
+      <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        <span>{it ? "oppure" : "or"}</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <FieldGroup>
         <Field><FieldLabel htmlFor="email">Email</FieldLabel><Input id="email" className="h-11 rounded-xl" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
         <Field>
@@ -188,6 +195,12 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
       <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account, completa il breve onboarding e poi torna alla Release da cui sei partito." : "Create your account, complete the short onboarding, then return to the Release you started from.") : (it ? "Registra la tua collezione, segui il valore delle Release, controlla il mercato e compra o vendi con altri collezionisti." : "Build your collection, track Release values, watch the market and buy or sell with other collectors.")}</p></div>
+      <GoogleAuthButton nextPath={nextPath} />
+      <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        <span>{it ? "oppure con email" : "or with email"}</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <FieldGroup>
         <Field><FieldLabel htmlFor="username">Username</FieldLabel><Input id="username" className="h-11 rounded-xl" autoComplete="username" placeholder="speedstar" value={username} onChange={(e) => setUsername(e.target.value)} /></Field>
         <Field><FieldLabel htmlFor="signup-email">Email</FieldLabel><Input id="signup-email" className="h-11 rounded-xl" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>

@@ -1,52 +1,80 @@
-// Supabase SSR/PKCE auth callback. Exchanges the one-time `code` a
-// recovery (or any other Supabase Auth PKCE) email link carries for a
-// real session, then redirects to `next`.
-//
-// Reuses the existing server Supabase client (lib/supabase/server.ts) --
-// no separate/duplicate Supabase client construction. This is the ONLY
-// place in the app that calls exchangeCodeForSession; every other auth
-// action (sign in, sign up, forgot password, update password) uses the
-// browser client directly and never touches a code param.
-//
-// Redirect safety: `next` comes from the query string, which is
-// attacker-influenceable (a malicious link could be crafted with a
-// different `next`), so it is validated against a small internal
-// allowlist before use -- never redirected to verbatim. See
-// ALLOWED_NEXT_PATHS below.
+// Supabase SSR/PKCE callback used by password recovery and third-party OAuth.
+// Exchanges the one-time code for a cookie-backed session and then redirects only
+// to a validated same-origin TrackDash path.
 import { NextResponse, type NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-// Every path this callback is allowed to send a user to after exchanging
-// their code. Internal, relative, allowlisted -- no external host is
-// ever accepted, and anything not in this list falls back to the safe
-// default (/update-password, the only flow that currently sends people
-// through this route).
-const ALLOWED_NEXT_PATHS = new Set(["/update-password"])
-const DEFAULT_NEXT_PATH = "/update-password"
+const DEFAULT_APP_PATH = "/dashboard"
+const RECOVERY_PATH = "/update-password"
+const AUTH_ENTRY_PATHS = new Set(["/login", "/signup", "/forgot-password", "/auth/callback"])
 
-function resolveNextPath(rawNext: string | null): string {
-  if (rawNext && ALLOWED_NEXT_PATHS.has(rawNext)) return rawNext
-  return DEFAULT_NEXT_PATH
+function resolveNextPath(rawNext: string | null, origin: string, fallback: string): string {
+  if (!rawNext) return fallback
+
+  try {
+    const target = new URL(rawNext, origin)
+    if (target.origin !== origin) return fallback
+    if (!target.pathname.startsWith("/") || AUTH_ENTRY_PATHS.has(target.pathname)) return fallback
+    return `${target.pathname}${target.search}`
+  } catch {
+    return fallback
+  }
+}
+
+function isFreshAccount(user: { created_at: string; last_sign_in_at?: string | null }) {
+  const createdAt = Date.parse(user.created_at)
+  const lastSignInAt = Date.parse(user.last_sign_in_at ?? "")
+  if (!Number.isFinite(createdAt) || !Number.isFinite(lastSignInAt)) return false
+  return Math.abs(lastSignInAt - createdAt) <= 5 * 60 * 1000
+}
+
+function onboardingPath(next: string) {
+  if (next === "/dashboard") return "/onboarding"
+  return `/onboarding?next=${encodeURIComponent(next)}`
 }
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
-  const next = resolveNextPath(searchParams.get("next"))
+  const flow = searchParams.get("flow")
+  const isGoogleFlow = flow === "google"
+  const fallback = isGoogleFlow ? DEFAULT_APP_PATH : RECOVERY_PATH
+  const next = resolveNextPath(searchParams.get("next"), origin, fallback)
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      let destination = next
+
+      if (isGoogleFlow) {
+        const { data } = await supabase.auth.getUser()
+        const user = data.user
+        const onboardingComplete = user?.user_metadata?.onboarding_completed === true
+
+        if (user && !onboardingComplete && isFreshAccount(user)) {
+          destination = onboardingPath(next)
+        }
+      }
+
+      const forwardedHost = request.headers.get("x-forwarded-host")
+      if (process.env.NODE_ENV !== "development" && forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}${destination}`)
+      }
+
+      return NextResponse.redirect(`${origin}${destination}`)
     }
   }
 
-  // No code, or the exchange failed (expired/already-used/invalid link).
-  // Send the visitor to update-password anyway -- that page itself
-  // checks for a real session and shows an explicit "invalid or expired
-  // link" state rather than this route trying to explain the failure via
-  // a query string (which would leak Supabase-internal error detail into
-  // a URL).
-  return NextResponse.redirect(`${origin}/update-password`)
+  if (isGoogleFlow) {
+    const url = new URL("/login", origin)
+    url.searchParams.set("oauth_error", "google")
+    const requestedNext = resolveNextPath(searchParams.get("next"), origin, DEFAULT_APP_PATH)
+    if (requestedNext !== DEFAULT_APP_PATH) url.searchParams.set("next", requestedNext)
+    return NextResponse.redirect(url)
+  }
+
+  // Recovery links keep their existing explicit invalid/expired-link handling.
+  return NextResponse.redirect(`${origin}${RECOVERY_PATH}`)
 }
