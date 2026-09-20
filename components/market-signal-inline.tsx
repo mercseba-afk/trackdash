@@ -44,7 +44,7 @@ export function MarketSignalInline({
         <>
           <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
           <span className="text-xs text-muted-foreground">
-            {it ? "Disponibile da" : "Available from"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
+            {it ? "Ultimo prezzo osservato" : "Latest observed price"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
           </span>
         </>
       ) : (
@@ -52,7 +52,7 @@ export function MarketSignalInline({
       )}
       {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
         <span className="text-xs text-muted-foreground">
-          {it ? "Disponibile da" : "Available from"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
+          {it ? "Ultimo prezzo osservato" : "Latest observed price"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
           {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
         </span>
       ) : null}
