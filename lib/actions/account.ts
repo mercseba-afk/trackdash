@@ -44,8 +44,6 @@ export async function deleteMyAccountAction(confirmation: string) {
     throw new Error("L’account amministratore non può essere eliminato dall’area personale")
   }
 
-  const { error } = await admin.auth.admin.deleteUser(user.id, false)
-  if (error) throw error
-
+  await deleteUserAndOwnedStorage(user.id)
   return { ok: true }
 }
