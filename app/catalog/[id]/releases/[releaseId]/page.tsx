@@ -10,7 +10,7 @@ import { getPublicOpenOffersForRelease } from "@/lib/db/queries/public-sharing"
 import { getPublicMarketSignalForRelease } from "@/lib/market/public"
 import type { Product, ProductRelease } from "@/lib/types"
 
-// Release market data is time-sensitive and should be rendered from current server data.\nexport const dynamic = "force-dynamic"
+export const revalidate = 45
 
 const SITE_URL = "https://trackdash.it"
 const getProduct = cache(fetchCatalogProductById)
