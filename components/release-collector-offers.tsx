@@ -53,15 +53,15 @@ export function ReleaseCollectorOffers({ offers }: { offers: PublicReleaseOffer[
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">
-              <UsersRound className="size-4" /> TrackDash Marketplace
+              <UsersRound className="size-4" /> {it ? "SCAMBI TRA COLLEZIONISTI" : "COLLECTOR TO COLLECTOR"}
             </div>
             <h2 className="mt-2 text-xl font-semibold tracking-tight text-[#081a3a] md:text-2xl">
               {it ? "Offerte dei collezionisti" : "Collector offers"}
             </h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[#607089]">
               {it
-                ? "Prima le copie condivise direttamente dalla community TrackDash. Il prezzo richiesto è un ASK del collezionista, non il Market Value."
-                : "TrackDash community copies come first. An asking price is the collector's ASK, not the TrackDash Market Value."}
+                ? "Qui trovi le copie che altri collezionisti hanno aperto alle offerte. Il prezzo richiesto è un ASK del collezionista, non il Market Value."
+                : "Here you can find copies other collectors have opened to offers. An asking price is the collector's ASK, not the TrackDash Market Value."}
             </p>
           </div>
           <Badge variant="secondary" className="w-fit bg-[#eef4ff] text-[#0f4bb4]">

@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Boxes, Eye, EyeOff, Heart, ScanLine, TrendingUp } from "lucide-react"
+import { ArrowRight, Boxes, Eye, EyeOff, Heart, MessageCircle, ScanLine, TrendingUp } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useI18n } from "@/lib/i18n"
 import { BrandMark } from "@/components/brand-mark"
@@ -33,6 +33,7 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
     { icon: TrendingUp, label: it ? "Segui il Market Value senza confondere ASK e SOLD" : "Track Market Value without mixing ASK and SOLD" },
     { icon: Heart, label: it ? "Tieni una Wishlist legata alla Release corretta" : "Keep a Wishlist tied to the correct Release" },
     { icon: ScanLine, label: it ? "Identifica Item Number e barcode in pochi secondi" : "Identify Item Numbers and barcodes in seconds" },
+    { icon: MessageCircle, label: it ? "Chatta con altri collezionisti e gestisci offerte" : "Message other collectors and manage offers" },
   ]
 
   return (
@@ -50,7 +51,7 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
             {it ? <>Entra nel tuo <span className="text-[#8fb5ff]">TrackDash.</span></> : <>Enter your <span className="text-[#8fb5ff]">TrackDash.</span></>}
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-white/65">
-            {it ? "Catalogo, Collection, Scanner e Price Intelligence nello stesso sistema, costruito attorno alla Release esatta." : "Catalog, Collection, Scanner and Price Intelligence in one system, built around the exact Release."}
+            {it ? "Catalogo, Collection, Scanner, Price Intelligence, messaggi e offerte nello stesso sistema, costruito attorno alla Release esatta." : "Catalog, Collection, Scanner, Price Intelligence, messages and offers in one system, built around the exact Release."}
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {highlights.map((h) => (
@@ -181,7 +182,7 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account, completa il breve onboarding e poi torna alla Release da cui sei partito." : "Create your account, complete the short onboarding, then return to the Release you started from.") : (it ? "Salva Release, Wishlist e strumenti personali senza bloccare l'esplorazione pubblica." : "Save Releases, Wishlist and personal tools without blocking public browsing.")}</p></div>
+      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account, completa il breve onboarding e poi torna alla Release da cui sei partito." : "Create your account, complete the short onboarding, then return to the Release you started from.") : (it ? "Salva Release e Wishlist, usa lo Scanner e entra in contatto con altri collezionisti tramite messaggi e offerte." : "Save Releases and Wishlist, use the Scanner and connect with other collectors through messages and offers.")}</p></div>
       <FieldGroup>
         <Field><FieldLabel htmlFor="username">Username</FieldLabel><Input id="username" className="h-11 rounded-xl" autoComplete="username" placeholder="speedstar" value={username} onChange={(e) => setUsername(e.target.value)} /></Field>
         <Field><FieldLabel htmlFor="signup-email">Email</FieldLabel><Input id="signup-email" className="h-11 rounded-xl" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
