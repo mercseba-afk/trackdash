@@ -120,6 +120,10 @@ export function SettingsScreen() {
         </CardContent>
       </Card>
 
+      <AccountPlanPanel />
+
+      <AccountSecurityPanel />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base"><Bell className="size-4 text-muted-foreground" /> {t("settings.notifications")}</CardTitle>
