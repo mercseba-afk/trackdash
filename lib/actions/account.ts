@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+import { deleteUserAndOwnedStorage } from "@/lib/account/delete-user"
 
 async function requireSensitiveAccountSession() {
   const user = await getCurrentUser()
