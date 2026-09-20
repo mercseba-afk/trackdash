@@ -14,6 +14,11 @@ function isoTime(value: string | null | undefined) {
   return value ? new Date(value).getTime() : 0
 }
 
+function percent(part: number, total: number) {
+  if (total <= 0) return 0
+  return Math.round((part / total) * 100)
+}
+
 async function listAllAuthUsers() {
   const admin = createAdminClient()
   const users: Array<{
@@ -48,6 +53,11 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     collectionResult,
     adminsResult,
     trafficResult,
+    messagesResult,
+    conversationsResult,
+    offersResult,
+    salesResult,
+    transfersResult,
   ] = await Promise.all([
     admin.from("profiles").select("id,username,country"),
     admin
@@ -59,9 +69,25 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .from("app_traffic_daily")
       .select("day,path,page_views")
       .gte("day", trafficStart),
+    admin.from("messages").select("created_at"),
+    admin.from("conversations").select("status,created_at"),
+    admin.from("marketplace_offers").select("status,deal_status,created_at"),
+    admin.from("marketplace_sales").select("status,reported_at,confirmed_at"),
+    admin.from("collection_item_transfers").select("transferred_at"),
   ])
 
-  for (const result of [profilesResult, subscriptionsResult, collectionResult, adminsResult, trafficResult]) {
+  for (const result of [
+    profilesResult,
+    subscriptionsResult,
+    collectionResult,
+    adminsResult,
+    trafficResult,
+    messagesResult,
+    conversationsResult,
+    offersResult,
+    salesResult,
+    transfersResult,
+  ]) {
     if (result.error) throw result.error
   }
 
@@ -132,6 +158,17 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
   const collectionPieces = Array.from(collectionCounts.values()).reduce((sum, count) => sum + count, 0)
 
+  const messages = messagesResult.data ?? []
+  const conversations = conversationsResult.data ?? []
+  const offers = offersResult.data ?? []
+  const sales = salesResult.data ?? []
+  const transfers = transfersResult.data ?? []
+
+  const messages7d = messages.filter((row) => isoTime(row.created_at) >= sevenDaysAgo).length
+  const messages30d = messages.filter((row) => isoTime(row.created_at) >= thirtyDaysAgo).length
+  const offersAccepted = offers.filter((row) => row.status === "accepted").length
+  const salesConfirmed = sales.filter((row) => row.status === "confirmed").length
+
   return {
     currentAdminId: currentAdmin.id,
     generatedAt: new Date().toISOString(),
@@ -153,6 +190,22 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     topRoutes: Array.from(routeMap, ([path, pageViews]) => ({ path, pageViews }))
       .sort((a, b) => b.pageViews - a.pageViews)
       .slice(0, 8),
+    community: {
+      messagesTotal: messages.length,
+      messages7d,
+      messages30d,
+      conversationsTotal: conversations.length,
+      conversationsAccepted: conversations.filter((row) => row.status === "accepted").length,
+      offersTotal: offers.length,
+      offersAccepted,
+      offersOpen: offers.filter((row) => row.deal_status === "open").length,
+      salesReported: sales.length,
+      salesConfirmed,
+      salesDisputed: sales.filter((row) => row.status === "disputed").length,
+      ownershipTransfers: transfers.length,
+      offerAcceptanceRate: percent(offersAccepted, offers.length),
+      saleConfirmationRate: percent(salesConfirmed, sales.length),
+    },
     users,
   }
 }
