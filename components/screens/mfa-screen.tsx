@@ -45,11 +45,6 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
       return
     }
 
-    const existingUnverified = factors.data.totp.find((factor) => factor.status === "unverified")
-    if (existingUnverified) {
-      await supabase.auth.mfa.unenroll({ factorId: existingUnverified.id })
-    }
-
     const enrolled = await supabase.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: "TrackDash",
