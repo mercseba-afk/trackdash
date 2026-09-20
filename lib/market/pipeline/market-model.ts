@@ -115,6 +115,7 @@ interface OfferRepresentative {
   sellerFingerprint: string | null
   merchantKey: string | null
   marketRegion: CurrentOfferEvidence["marketRegion"]
+  observedAt: string
   itemPriceEUR: number
   shippingEUR: number | null
   effectiveCostEUR: number | null
@@ -232,6 +233,7 @@ function chooseRepresentative(offers: CurrentOfferEvidence[]): OfferRepresentati
       sellerFingerprint: offer.sellerFingerprint ?? null,
       merchantKey: offer.merchantKey ?? null,
       marketRegion: offer.marketRegion ?? "global",
+      observedAt: offer.observedAt,
       itemPriceEUR: cost.itemPriceEUR,
       shippingEUR: cost.shippingEUR,
       effectiveCostEUR: cost.effectiveCostEUR,
@@ -467,14 +469,13 @@ function channelWeightedMarketValue(input: {
 function chooseStartingOffer(reps: OfferRepresentative[]): StartingOffer | null {
   if (!reps.length) return null
 
-  // "A partire da" means the lowest current purchasable ITEM price. Shipping is
-  // preserved on the chosen offer for provenance/details, but never replaces the
-  // item price in the headline just because another source has known delivery.
+  // This signal is observational, not a sales promise. Pick the most recently
+  // checked purchasable offer instead of manufacturing a storefront-like
+  // "starting price" from the cheapest listing.
   const selected = [...reps].sort((a, b) => {
+    const recency = Date.parse(b.observedAt) - Date.parse(a.observedAt)
+    if (Number.isFinite(recency) && recency !== 0) return recency
     if (a.itemPriceEUR !== b.itemPriceEUR) return a.itemPriceEUR - b.itemPriceEUR
-    const aCost = a.effectiveCostEUR ?? Number.POSITIVE_INFINITY
-    const bCost = b.effectiveCostEUR ?? Number.POSITIVE_INFINITY
-    if (aCost !== bCost) return aCost - bCost
     return a.stableId.localeCompare(b.stableId)
   })[0]
 

@@ -4,11 +4,17 @@ import { unstable_cache } from "next/cache"
 import {
   getMarketMonthlySignalsForRelease,
   getMarketSignalForRelease,
+  listCurrentObservedOffers,
   listMarketMonthlySignals,
   listMarketSignals,
+  type CurrentObservedOfferRow,
   type MarketReleaseMonthlySignal,
   type MarketReleaseSignal,
 } from "@/lib/db/queries/market"
+import {
+  MARKETPLACE_OFFER_MAX_AGE_HOURS,
+  RETAIL_OFFER_MAX_AGE_HOURS,
+} from "@/lib/market/pipeline/market-publication-policy"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -19,8 +25,8 @@ import type {
 const DAY_MS = 86_400_000
 
 const listCachedPublicMarketBundle = unstable_cache(
-  async () => Promise.all([listMarketSignals(), listMarketMonthlySignals()]),
-  ["trackdash-public-market-signals-v4"],
+  async () => Promise.all([listMarketSignals(), listMarketMonthlySignals(), listCurrentObservedOffers()]),
+  ["trackdash-public-market-signals-v5"],
   { revalidate: 60 },
 )
 
@@ -48,6 +54,32 @@ function monthIndex(key: string): number {
 function monthEndMs(key: string): number {
   const [year, month] = key.split("-").map(Number)
   return Date.UTC(year, month, 0, 23, 59, 59, 999)
+}
+
+function freshObservedOffers(
+  rows: CurrentObservedOfferRow[],
+  asOf = new Date(),
+): CurrentObservedOfferRow[] {
+  return rows.filter((row) => {
+    const checkedAt = row.lastCheckedAt instanceof Date ? row.lastCheckedAt.getTime() : Date.parse(String(row.lastCheckedAt))
+    if (!Number.isFinite(checkedAt)) return false
+    const maxAgeHours = row.channel === "marketplace"
+      ? MARKETPLACE_OFFER_MAX_AGE_HOURS
+      : RETAIL_OFFER_MAX_AGE_HOURS
+    return Math.max(0, asOf.getTime() - checkedAt) <= maxAgeHours * 3_600_000
+  })
+}
+
+function latestFreshObservedOffer(
+  rows: CurrentObservedOfferRow[],
+  asOf = new Date(),
+): CurrentObservedOfferRow | null {
+  return freshObservedOffers(rows, asOf).sort((a, b) => {
+    const aTime = a.lastCheckedAt instanceof Date ? a.lastCheckedAt.getTime() : Date.parse(String(a.lastCheckedAt))
+    const bTime = b.lastCheckedAt instanceof Date ? b.lastCheckedAt.getTime() : Date.parse(String(b.lastCheckedAt))
+    if (aTime !== bTime) return bTime - aTime
+    return Number(a.itemPriceEUR) - Number(b.itemPriceEUR)
+  })[0] ?? null
 }
 
 function deriveRecentSoldActivity(
@@ -80,6 +112,7 @@ function deriveRecentSoldActivity(
 export function toPublicMarketSignalView(
   signal: MarketReleaseSignal | null | undefined,
   recentSoldActivity: RecentSoldActivity | null = null,
+  observedOffers: CurrentObservedOfferRow[] = [],
 ): ReleaseMarketSignalView | null {
   if (!signal) return null
 
@@ -87,6 +120,14 @@ export function toPublicMarketSignalView(
   const retailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
   const activeAnchorEUR = numberOrNull(signal.activeAnchorEUR)
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
+  const freshOffers = freshObservedOffers(observedOffers)
+  const observedOffer = latestFreshObservedOffer(freshOffers)
+  const observedPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)
+  const currentOfferCount = freshOffers.length
+  const activeOfferCount = freshOffers.filter((offer) => offer.channel === "marketplace").length
+  const retailSourceCount = new Set(
+    freshOffers.filter((offer) => offer.channel === "retail").map((offer) => offer.sourceId),
+  ).size
   const hasMarketEvidence =
     (valueEUR != null && valueEUR > 0) ||
     (retailAnchorEUR != null && retailAnchorEUR > 0) ||
@@ -109,10 +150,18 @@ export function toPublicMarketSignalView(
     activeLowEUR: numberOrNull(signal.activeLowEUR),
     activeHighEUR: numberOrNull(signal.activeHighEUR),
     soldAnchorEUR,
-    startingItemPriceEUR: numberOrNull(signal.startingItemPriceEUR),
-    retailSourceCount: signal.retailSourceCount,
-    activeOfferCount: signal.activeOfferCount,
-    currentOfferCount: signal.currentOfferCount,
+    startingItemPriceEUR: observedPriceEUR != null && observedPriceEUR > 0 ? observedPriceEUR : null,
+    observedPriceAt: observedOffer
+      ? (observedOffer.lastCheckedAt instanceof Date ? observedOffer.lastCheckedAt.toISOString() : String(observedOffer.lastCheckedAt))
+      : null,
+    observedPriceChannel:
+      observedOffer?.channel === "retail" || observedOffer?.channel === "marketplace"
+        ? observedOffer.channel
+        : null,
+    observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
+    retailSourceCount,
+    activeOfferCount,
+    currentOfferCount,
     soldUnits: signal.soldUnits,
     soldSellerCount: signal.soldSellerCount ?? null,
     recentSoldUnits3m: recentSoldActivity?.units ?? null,
@@ -140,11 +189,16 @@ export function toPublicMarketSignalView(
 export async function getPublicMarketSignalForRelease(
   releaseId: string,
 ): Promise<ReleaseMarketSignalView | null> {
-  const [row, monthlyRows] = await Promise.all([
+  const [row, monthlyRows, observedOffers] = await Promise.all([
     getMarketSignalForRelease(releaseId),
     getMarketMonthlySignalsForRelease(releaseId, undefined, 6),
+    listCurrentObservedOffers([releaseId]),
   ])
-  return toPublicMarketSignalView(row, deriveRecentSoldActivity(monthlyRows))
+  return toPublicMarketSignalView(
+    row,
+    deriveRecentSoldActivity(monthlyRows),
+    observedOffers,
+  )
 }
 
 export async function getPublicMarketSignalMap(
@@ -155,8 +209,12 @@ export async function getPublicMarketSignalMap(
   // instead of paying database round trips on every fresh dashboard load.
   // Targeted release lookups remain uncached so exact-detail requests stay
   // immediately current.
-  const [rows, monthlyRows] = releaseIds?.length
-    ? await Promise.all([listMarketSignals(releaseIds), listMarketMonthlySignals(releaseIds)])
+  const [rows, monthlyRows, observedOffers] = releaseIds?.length
+    ? await Promise.all([
+        listMarketSignals(releaseIds),
+        listMarketMonthlySignals(releaseIds),
+        listCurrentObservedOffers(releaseIds),
+      ])
     : await listCachedPublicMarketBundle()
 
   const monthlyByRelease = new Map<string, MarketReleaseMonthlySignal[]>()
@@ -166,11 +224,19 @@ export async function getPublicMarketSignalMap(
     monthlyByRelease.set(row.releaseId, bucket)
   }
 
+  const observedByRelease = new Map<string, CurrentObservedOfferRow[]>()
+  for (const offer of observedOffers) {
+    const bucket = observedByRelease.get(offer.releaseId) ?? []
+    bucket.push(offer)
+    observedByRelease.set(offer.releaseId, bucket)
+  }
+
   const result: ReleaseMarketSignalMap = {}
 
   for (const row of rows) {
     const recentSoldActivity = deriveRecentSoldActivity(monthlyByRelease.get(row.releaseId) ?? [])
-    const view = toPublicMarketSignalView(row, recentSoldActivity)
+    const releaseObservedOffers = observedByRelease.get(row.releaseId) ?? []
+    const view = toPublicMarketSignalView(row, recentSoldActivity, releaseObservedOffers)
     if (view) result[row.releaseId] = view
   }
 

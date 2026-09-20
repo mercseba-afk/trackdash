@@ -74,10 +74,10 @@ ok("out-of-stock retail is historical only and cannot anchor current value", () 
   assert.equal(signal.startingOffer.itemPriceEUR, 39)
 })
 
-ok("starting price is lowest current item price while shipping stays separate", () => {
+ok("observed price follows the latest fresh observation instead of the cheapest older offer", () => {
   const signal = computeCurrentMarketSignal({
     offers: [
-      { stableId: "rcjaz", sourceId: "rcjaz", channel: "retail", availability: "in_stock", itemPriceEUR: 13, shippingEUR: 9, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "rcjaz", sourceId: "rcjaz", channel: "retail", availability: "in_stock", itemPriceEUR: 13, shippingEUR: 9, observedAt: "2026-09-08T10:00:00Z" },
       { stableId: "local", sourceId: "local", channel: "retail", availability: "in_stock", itemPriceEUR: 18, shippingEUR: 0, observedAt: "2026-09-09T10:00:00Z" },
     ],
     soldEvidence: [],
@@ -86,10 +86,10 @@ ok("starting price is lowest current item price while shipping stays separate", 
 
   assert.equal(signal.retailAnchorEUR, 15.5)
   assert.equal(signal.marketValueEUR, 15.5)
-  assert.equal(signal.startingOffer.sourceId, "rcjaz")
-  assert.equal(signal.startingOffer.itemPriceEUR, 13)
-  assert.equal(signal.startingOffer.shippingEUR, 9)
-  assert.equal(signal.startingOffer.effectiveCostEUR, 22)
+  assert.equal(signal.startingOffer.sourceId, "local")
+  assert.equal(signal.startingOffer.itemPriceEUR, 18)
+  assert.equal(signal.startingOffer.shippingEUR, 0)
+  assert.equal(signal.startingOffer.effectiveCostEUR, 18)
   assert.equal(signal.marketRegime, "retail_driven")
 })
 
