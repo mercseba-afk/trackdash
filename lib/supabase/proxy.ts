@@ -51,5 +51,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  return { response, user }
+  const assurance = user
+    ? await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    : { data: null, error: null }
+
+  return {
+    response,
+    user,
+    aal: assurance.data
+      ? { currentLevel: assurance.data.currentLevel, nextLevel: assurance.data.nextLevel }
+      : null,
+  }
 }
