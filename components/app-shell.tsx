@@ -14,6 +14,7 @@ import {
   User as UserIcon,
   Settings,
   LifeBuoy,
+  ShieldCheck,
 } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
 import { LanguageSwitch } from "@/components/language-switch"
@@ -123,6 +124,12 @@ function UserMenu() {
             <LifeBuoy />
             {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
           </Link>
+          {user.email.toLowerCase() === "merc.seba@gmail.com" ? (
+            <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
+              <ShieldCheck />
+              Admin
+            </Link>
+          ) : null}
         </div>
         <DropdownMenuSeparator />
         <PwaInstallMenuItem />
