@@ -56,11 +56,11 @@ function monthEndMs(key: string): number {
   return Date.UTC(year, month, 0, 23, 59, 59, 999)
 }
 
-function latestFreshObservedOffer(
+function freshObservedOffers(
   rows: CurrentObservedOfferRow[],
   asOf = new Date(),
-): CurrentObservedOfferRow | null {
-  const fresh = rows.filter((row) => {
+): CurrentObservedOfferRow[] {
+  return rows.filter((row) => {
     const checkedAt = row.lastCheckedAt instanceof Date ? row.lastCheckedAt.getTime() : Date.parse(String(row.lastCheckedAt))
     if (!Number.isFinite(checkedAt)) return false
     const maxAgeHours = row.channel === "marketplace"
@@ -68,8 +68,13 @@ function latestFreshObservedOffer(
       : RETAIL_OFFER_MAX_AGE_HOURS
     return Math.max(0, asOf.getTime() - checkedAt) <= maxAgeHours * 3_600_000
   })
+}
 
-  return fresh.sort((a, b) => {
+function latestFreshObservedOffer(
+  rows: CurrentObservedOfferRow[],
+  asOf = new Date(),
+): CurrentObservedOfferRow | null {
+  return freshObservedOffers(rows, asOf).sort((a, b) => {
     const aTime = a.lastCheckedAt instanceof Date ? a.lastCheckedAt.getTime() : Date.parse(String(a.lastCheckedAt))
     const bTime = b.lastCheckedAt instanceof Date ? b.lastCheckedAt.getTime() : Date.parse(String(b.lastCheckedAt))
     if (aTime !== bTime) return bTime - aTime
@@ -107,7 +112,7 @@ function deriveRecentSoldActivity(
 export function toPublicMarketSignalView(
   signal: MarketReleaseSignal | null | undefined,
   recentSoldActivity: RecentSoldActivity | null = null,
-  observedOffer: CurrentObservedOfferRow | null = null,
+  observedOffers: CurrentObservedOfferRow[] = [],
 ): ReleaseMarketSignalView | null {
   if (!signal) return null
 
@@ -115,7 +120,14 @@ export function toPublicMarketSignalView(
   const retailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
   const activeAnchorEUR = numberOrNull(signal.activeAnchorEUR)
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
+  const freshOffers = freshObservedOffers(observedOffers)
+  const observedOffer = latestFreshObservedOffer(freshOffers)
   const observedPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)
+  const currentOfferCount = freshOffers.length
+  const activeOfferCount = freshOffers.filter((offer) => offer.channel === "marketplace").length
+  const retailSourceCount = new Set(
+    freshOffers.filter((offer) => offer.channel === "retail").map((offer) => offer.sourceId),
+  ).size
   const hasMarketEvidence =
     (valueEUR != null && valueEUR > 0) ||
     (retailAnchorEUR != null && retailAnchorEUR > 0) ||
@@ -147,9 +159,9 @@ export function toPublicMarketSignalView(
         ? observedOffer.channel
         : null,
     observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
-    retailSourceCount: signal.retailSourceCount,
-    activeOfferCount: signal.activeOfferCount,
-    currentOfferCount: signal.currentOfferCount,
+    retailSourceCount,
+    activeOfferCount,
+    currentOfferCount,
     soldUnits: signal.soldUnits,
     soldSellerCount: signal.soldSellerCount ?? null,
     recentSoldUnits3m: recentSoldActivity?.units ?? null,
@@ -185,7 +197,7 @@ export async function getPublicMarketSignalForRelease(
   return toPublicMarketSignalView(
     row,
     deriveRecentSoldActivity(monthlyRows),
-    latestFreshObservedOffer(observedOffers),
+    observedOffers,
   )
 }
 
@@ -223,8 +235,8 @@ export async function getPublicMarketSignalMap(
 
   for (const row of rows) {
     const recentSoldActivity = deriveRecentSoldActivity(monthlyByRelease.get(row.releaseId) ?? [])
-    const observedOffer = latestFreshObservedOffer(observedByRelease.get(row.releaseId) ?? [])
-    const view = toPublicMarketSignalView(row, recentSoldActivity, observedOffer)
+    const releaseObservedOffers = observedByRelease.get(row.releaseId) ?? []
+    const view = toPublicMarketSignalView(row, recentSoldActivity, releaseObservedOffers)
     if (view) result[row.releaseId] = view
   }
 
