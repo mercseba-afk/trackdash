@@ -10,6 +10,9 @@ import {
   ChevronRight,
   Copy,
   Heart,
+  HandCoins,
+  Handshake,
+  MessageCircle,
   ScanLine,
   Search,
   ShieldCheck,
@@ -207,11 +210,14 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 <Link href="/market" className="inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy transition hover:bg-brand-muted">
                   {it ? "Scopri i valori di mercato" : "Explore market values"}
                 </Link>
+                <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-md bg-navy px-5 text-sm font-semibold text-white transition hover:bg-[#102c55]">
+                  {it ? "Crea account gratuito" : "Create free account"}
+                </Link>
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 {it
-                  ? "Catalogo e valori sono consultabili da tutti. Crea un account per collezione, wishlist e scanner."
-                  : "Catalog and market values are open to everyone. Create an account for collection, wishlist and scanner."}
+                  ? "Catalogo e valori sono consultabili da tutti. Crea un account per Collection, Wishlist, Scanner, messaggi e offerte tra collezionisti."
+                  : "Catalog and market values are open to everyone. Create an account for Collection, Wishlist, Scanner, messages and collector offers."}
               </p>
             </div>
 
@@ -365,6 +371,21 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               href="/login?next=%2Fscanner"
               linkLabel={it ? "Prova lo Scanner" : "Try Scanner"}
             />
+            <div className="md:col-span-2">
+              <FeatureCard
+                number="05"
+                icon={MessageCircle}
+                title={it ? "Entra in contatto con altri collezionisti." : "Connect with other collectors."}
+                text={
+                  it
+                    ? "Rendi una copia disponibile alle offerte, scrivi agli altri collezionisti e gestisci proposte, controproposte e accordi direttamente in TrackDash."
+                    : "Open a copy to offers, message other collectors and manage offers, counteroffers and agreements directly in TrackDash."
+                }
+                tone="dark"
+                href="/signup?next=%2Fmessages"
+                linkLabel={it ? "Crea account e partecipa" : "Create an account and join"}
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -489,6 +510,99 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
+
+      <section id="community" className="border-y border-line bg-[#f8fafc]">
+        <div className="mx-auto grid w-full max-w-7xl gap-9 px-4 py-14 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:px-8 lg:py-16">
+          <div className="flex flex-col justify-center">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+              {it ? "TRA COLLEZIONISTI" : "COLLECTOR TO COLLECTOR"}
+            </p>
+            <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-[.97] tracking-[-0.055em] text-ink md:text-5xl">
+              {it ? "Trova chi ha la Release che cerchi. Parla. Fai un’offerta." : "Find who has the Release you want. Talk. Make an offer."}
+            </h2>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
+              {it
+                ? "Le copie condivise dai collezionisti possono comparire direttamente nella scheda della Release. Da lì puoi entrare in contatto con il proprietario, aprire una conversazione e inviare un’offerta."
+                : "Copies shared by collectors can appear directly on the Release page. From there you can contact the owner, start a conversation and make an offer."}
+            </p>
+
+            <div className="mt-7 grid gap-3">
+              <CollectionPoint
+                icon={MessageCircle}
+                title={it ? "Chat tra collezionisti" : "Collector chat"}
+                text={it ? "Parlate della Release e dei dettagli prima di concludere." : "Discuss the Release and the details before agreeing a deal."}
+              />
+              <CollectionPoint
+                icon={HandCoins}
+                title={it ? "Offerte e controproposte" : "Offers and counteroffers"}
+                text={it ? "Invia una proposta; il venditore può accettare, rifiutare o controproporre." : "Send an offer; the seller can accept, decline or counter."}
+              />
+              <CollectionPoint
+                icon={Handshake}
+                title={it ? "Accordo e vendita confermata" : "Agreement and confirmed sale"}
+                text={it ? "Una vendita conclusa può essere confermata da entrambi e contribuire ai dati aggregati di mercato." : "A completed sale can be confirmed by both collectors and contribute to aggregated market data."}
+              />
+            </div>
+
+            <p className="mt-5 max-w-xl border-l-2 border-brand pl-4 text-xs leading-5 text-muted-foreground">
+              {it
+                ? "TrackDash non gestisce ancora pagamento o spedizione: vengono concordati direttamente tra gli utenti. La piattaforma facilita contatto, trattativa e conferma dell’accordo."
+                : "TrackDash does not yet handle payment or shipping: collectors arrange those directly. The platform supports contact, negotiation and confirmation of the agreement."}
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link href="/signup?next=%2Fmessages" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
+                {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
+              </Link>
+              <Link href="/login?next=%2Fmessages" className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
+                {it ? "Accedi ai messaggi" : "Open messages"}
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <div className="w-full overflow-hidden border border-line bg-white shadow-[0_20px_55px_rgba(11,50,117,0.10)]">
+              <div className="flex items-center justify-between border-b border-line bg-navy px-5 py-4 text-white">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60">{it ? "TRATTATIVA" : "DEAL"}</p>
+                  <p className="mt-1 font-semibold">{it ? "Una Release tra due collezionisti" : "A Release between two collectors"}</p>
+                </div>
+                <Handshake className="size-5 text-white/80" />
+              </div>
+              <div className="space-y-3 p-5 sm:p-6">
+                <div className="ml-auto max-w-[82%] rounded-2xl rounded-br-sm bg-brand px-4 py-3 text-sm leading-5 text-white">
+                  {it ? "Ciao! È ancora disponibile? Vorrei farti un’offerta." : "Hi! Is it still available? I’d like to make an offer."}
+                </div>
+                <div className="max-w-[82%] rounded-2xl rounded-bl-sm bg-brand-muted px-4 py-3 text-sm leading-5 text-navy">
+                  {it ? "Sì, è disponibile. Mandami pure la proposta." : "Yes, it is. Send me your offer."}
+                </div>
+                <div className="mt-5 border border-line bg-[#f8fafc] p-4">
+                  <div className="flex items-center gap-2">
+                    <HandCoins className="size-4 text-brand" />
+                    <p className="text-sm font-semibold text-ink">{it ? "Offerta strutturata" : "Structured offer"}</p>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                    {it ? "Il venditore può accettare, rifiutare o inviare una controproposta." : "The seller can accept, decline or send a counteroffer."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white">{it ? "Accetta" : "Accept"}</span>
+                    <span className="rounded-md border border-line bg-white px-3 py-2 text-xs font-semibold text-navy">{it ? "Controproponi" : "Counter"}</span>
+                    <span className="rounded-md border border-line bg-white px-3 py-2 text-xs font-semibold text-muted-foreground">{it ? "Rifiuta" : "Decline"}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 border border-brand/20 bg-brand/5 p-4">
+                  <Handshake className="size-5 shrink-0 text-brand" />
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{it ? "Accordo raggiunto" : "Deal agreed"}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{it ? "Pagamento e spedizione vengono concordati direttamente tra i due collezionisti." : "Payment and shipping are arranged directly between the two collectors."}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {scannerExample ? (
         <section className="border-y border-line bg-[#eef4fb]">
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8 lg:py-16">
@@ -544,17 +658,17 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">{it ? "INIZIA DA QUI" : "START HERE"}</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-ink md:text-4xl">
-                {it ? "Crea la tua collezione. Tieni d’occhio il mercato." : "Build your collection. Keep an eye on the market."}
+                {it ? "Crea la tua collezione. Entra nella community." : "Build your collection. Join the community."}
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {it
-                  ? "Crea un account, aggiungi le Release che possiedi e segui il loro valore nel tempo. Catalogo, collezione e mercato restano collegati."
-                  : "Create an account, add the Releases you own and follow their value over time. Catalog, collection and market stay connected."}
+                  ? "Crea un account, aggiungi le Release che possiedi, segui il loro valore e entra in contatto con altri collezionisti per messaggi e offerte."
+                  : "Create an account, add the Releases you own, follow their value and connect with other collectors through messages and offers."}
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link href="/login?next=%2Fcollection" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
-                {it ? "Crea la tua collezione" : "Build your collection"} <ArrowRight className="size-4" />
+              <Link href="/signup?next=%2Fcollection" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
+                {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
               </Link>
               <Link href="/market" className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
                 {it ? "Tieni d’occhio il mercato" : "Watch the market"}
