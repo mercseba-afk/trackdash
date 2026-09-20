@@ -4,7 +4,8 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Boxes, Check, ChevronLeft, ChevronRight, Heart, ScanLine, Sparkles, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
-import { useI18n } from "@/lib/i18n"
+import { useI18n, type AppLocale } from "@/lib/i18n"
+import { updateMyProfileAction } from "@/lib/actions/profile"
 import { PRODUCTS, primaryRelease } from "@/lib/data/products"
 import { createClient } from "@/lib/supabase/client"
 import { BrandMark } from "@/components/brand-mark"
@@ -23,7 +24,7 @@ const STARTER_PICKS = (() => {
 export function OnboardingScreen({ nextPath }: { nextPath?: string }) {
   const router = useRouter()
   const { addToCollection, user } = useStore()
-  const { locale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const it = locale === "it"
   const [step, setStep] = React.useState(0)
   const [focus, setFocus] = React.useState<string[]>([])
@@ -39,6 +40,22 @@ export function OnboardingScreen({ nextPath }: { nextPath?: string }) {
   const steps = it ? ["Benvenuto", "I tuoi interessi", "Primi kit"] : ["Welcome", "Your focus", "First kits"]
   const progress = ((step + 1) / steps.length) * 100
   const destination = nextPath ?? "/dashboard"
+
+  async function changeLocale(nextLocale: AppLocale) {
+    if (nextLocale === locale) return
+    const previous = locale
+    setLocale(nextLocale)
+    try {
+      await updateMyProfileAction({ preferredLocale: nextLocale })
+    } catch {
+      setLocale(previous)
+      toast.error(
+        previous === "it"
+          ? "Non siamo riusciti a salvare la lingua."
+          : "We couldn't save the language.",
+      )
+    }
+  }
 
   function toggleFocus(id: string) {
     setFocus((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]))
@@ -160,7 +177,7 @@ export function OnboardingScreen({ nextPath }: { nextPath?: string }) {
         </aside>
 
         <main className="flex min-h-[620px] flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3 text-xs">
                 <span className="font-medium text-foreground">{steps[step]}</span>
@@ -168,9 +185,33 @@ export function OnboardingScreen({ nextPath }: { nextPath?: string }) {
               </div>
               <Progress value={progress} className="mt-2 h-1.5" />
             </div>
-            <Button variant="ghost" size="sm" className="shrink-0 rounded-xl text-muted-foreground" onClick={skip} disabled={finishing}>
-              {it ? "Salta" : "Skip"}
-            </Button>
+            <div className="flex shrink-0 items-center gap-2">
+              <div
+                className="inline-flex h-9 items-center rounded-md border border-border bg-white p-0.5 text-[11px] font-semibold"
+                role="group"
+                aria-label={it ? "Cambia lingua" : "Change language"}
+              >
+                {(["it", "en"] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => void changeLocale(option)}
+                    aria-pressed={locale === option}
+                    className={cn(
+                      "min-w-8 rounded-[5px] px-2 py-1.5 uppercase tracking-[0.08em] transition-colors",
+                      locale === option
+                        ? "bg-brand text-white"
+                        : "text-muted-foreground hover:bg-brand-muted hover:text-brand",
+                    )}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" className="rounded-xl text-muted-foreground" onClick={skip} disabled={finishing}>
+                {it ? "Salta" : "Skip"}
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-1 items-center py-8 sm:py-10">

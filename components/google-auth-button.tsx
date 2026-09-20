@@ -30,6 +30,7 @@ export function GoogleAuthButton({ nextPath }: { nextPath?: string }) {
       const callbackUrl = new URL("/auth/callback", window.location.origin)
       callbackUrl.searchParams.set("flow", "google")
       callbackUrl.searchParams.set("next", nextPath ?? "/dashboard")
+      callbackUrl.searchParams.set("locale", locale)
 
       const supabase = createClient()
       const { error } = await supabase.auth.signInWithOAuth({
