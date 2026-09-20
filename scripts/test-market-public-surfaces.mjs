@@ -78,8 +78,11 @@ if (!releaseScreen.includes("Valore stimato")) {
 if (!releaseScreen.includes("vendite osservate")) {
   errors.push("Release detail does not expose the public observed-sale basis")
 }
-if (!releaseScreen.includes("Disponibile da")) {
-  errors.push("Release detail does not expose qualified current availability separately from Market Value")
+if (!releaseScreen.includes("Ultimo prezzo osservato")) {
+  errors.push("Release detail does not expose the latest observed external price separately from Market Value")
+}
+if (releaseScreen.includes("Disponibile da") || releaseScreen.includes("Available from")) {
+  errors.push("Release detail still presents observed external prices with storefront-like availability wording")
 }
 if (releaseScreen.includes("Come leggere il mercato") || releaseScreen.includes("Fonti e verifica")) {
   errors.push("Release detail still exposes analytical methodology/source panels")
@@ -100,4 +103,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Public R3 market surfaces: ${publicSurfaces.length}/${publicSurfaces.length} clean`)
-console.log("Collector UI exposes estimated value, observed sales, trend and qualified availability without reverting to ASK-driven pricing.")
+console.log("Collector UI exposes estimated value, observed sales, trend and fresh observed external prices without storefront-like availability claims.")
