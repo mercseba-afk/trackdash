@@ -18,7 +18,13 @@ export interface ReleaseMarketSignalView {
   activeLowEUR: number | null
   activeHighEUR: number | null
   soldAnchorEUR: number | null
+  // Legacy compatibility field. Public surfaces now interpret this as the
+  // latest fresh observed item price, never as a TrackDash selling price.
   startingItemPriceEUR: number | null
+  observedPriceEUR: number | null
+  observedShippingEUR: number | null
+  observedAt: string | null
+  observedChannel: "retail" | "marketplace" | null
   retailSourceCount: number
   activeOfferCount: number
   currentOfferCount: number
