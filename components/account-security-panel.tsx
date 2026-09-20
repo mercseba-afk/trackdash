@@ -88,14 +88,6 @@ export function AccountSecurityPanel() {
   async function beginMfaEnrollment() {
     setPending("mfa-enroll")
     const supabase = createClient()
-    const existing = await supabase.auth.mfa.listFactors()
-    if (existing.error) {
-      setPending(null)
-      return toast.error(existing.error.message)
-    }
-    for (const factor of existing.data.totp.filter((item) => item.status === "unverified")) {
-      await supabase.auth.mfa.unenroll({ factorId: factor.id })
-    }
     const { data, error } = await supabase.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: "TrackDash",
