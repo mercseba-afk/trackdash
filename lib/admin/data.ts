@@ -44,7 +44,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const now = Date.now()
   const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
-  const trafficStart = new Date(thirtyDaysAgo).toISOString().slice(0, 10)
+  const sevenDaysAgoIso = new Date(sevenDaysAgo).toISOString()
+  const thirtyDaysAgoIso = new Date(thirtyDaysAgo).toISOString()
+  const trafficStart = thirtyDaysAgoIso.slice(0, 10)
 
   const authUsers = await listAllAuthUsers()
   const [
@@ -53,10 +55,17 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     collectionResult,
     adminsResult,
     trafficResult,
-    messagesResult,
-    conversationsResult,
-    offersResult,
-    salesResult,
+    messagesTotalResult,
+    messages7dResult,
+    messages30dResult,
+    conversationsTotalResult,
+    conversationsAcceptedResult,
+    offersTotalResult,
+    offersAcceptedResult,
+    offersOpenResult,
+    salesReportedResult,
+    salesConfirmedResult,
+    salesDisputedResult,
     transfersResult,
   ] = await Promise.all([
     admin.from("profiles").select("id,username,country"),
@@ -69,11 +78,18 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .from("app_traffic_daily")
       .select("day,path,page_views")
       .gte("day", trafficStart),
-    admin.from("messages").select("created_at"),
-    admin.from("conversations").select("status,created_at"),
-    admin.from("marketplace_offers").select("status,deal_status,created_at"),
-    admin.from("marketplace_sales").select("status,reported_at,confirmed_at"),
-    admin.from("collection_item_transfers").select("transferred_at"),
+    admin.from("messages").select("id", { count: "exact", head: true }),
+    admin.from("messages").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgoIso),
+    admin.from("messages").select("id", { count: "exact", head: true }).gte("created_at", thirtyDaysAgoIso),
+    admin.from("conversations").select("id", { count: "exact", head: true }),
+    admin.from("conversations").select("id", { count: "exact", head: true }).eq("status", "accepted"),
+    admin.from("marketplace_offers").select("id", { count: "exact", head: true }),
+    admin.from("marketplace_offers").select("id", { count: "exact", head: true }).eq("status", "accepted"),
+    admin.from("marketplace_offers").select("id", { count: "exact", head: true }).eq("deal_status", "open"),
+    admin.from("marketplace_sales").select("id", { count: "exact", head: true }),
+    admin.from("marketplace_sales").select("id", { count: "exact", head: true }).eq("status", "confirmed"),
+    admin.from("marketplace_sales").select("id", { count: "exact", head: true }).eq("status", "disputed"),
+    admin.from("collection_item_transfers").select("id", { count: "exact", head: true }),
   ])
 
   for (const result of [
@@ -82,10 +98,17 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     collectionResult,
     adminsResult,
     trafficResult,
-    messagesResult,
-    conversationsResult,
-    offersResult,
-    salesResult,
+    messagesTotalResult,
+    messages7dResult,
+    messages30dResult,
+    conversationsTotalResult,
+    conversationsAcceptedResult,
+    offersTotalResult,
+    offersAcceptedResult,
+    offersOpenResult,
+    salesReportedResult,
+    salesConfirmedResult,
+    salesDisputedResult,
     transfersResult,
   ]) {
     if (result.error) throw result.error
@@ -158,16 +181,18 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
   const collectionPieces = Array.from(collectionCounts.values()).reduce((sum, count) => sum + count, 0)
 
-  const messages = messagesResult.data ?? []
-  const conversations = conversationsResult.data ?? []
-  const offers = offersResult.data ?? []
-  const sales = salesResult.data ?? []
-  const transfers = transfersResult.data ?? []
-
-  const messages7d = messages.filter((row) => isoTime(row.created_at) >= sevenDaysAgo).length
-  const messages30d = messages.filter((row) => isoTime(row.created_at) >= thirtyDaysAgo).length
-  const offersAccepted = offers.filter((row) => row.status === "accepted").length
-  const salesConfirmed = sales.filter((row) => row.status === "confirmed").length
+  const messagesTotal = messagesTotalResult.count ?? 0
+  const messages7d = messages7dResult.count ?? 0
+  const messages30d = messages30dResult.count ?? 0
+  const conversationsTotal = conversationsTotalResult.count ?? 0
+  const conversationsAccepted = conversationsAcceptedResult.count ?? 0
+  const offersTotal = offersTotalResult.count ?? 0
+  const offersAccepted = offersAcceptedResult.count ?? 0
+  const offersOpen = offersOpenResult.count ?? 0
+  const salesReported = salesReportedResult.count ?? 0
+  const salesConfirmed = salesConfirmedResult.count ?? 0
+  const salesDisputed = salesDisputedResult.count ?? 0
+  const ownershipTransfers = transfersResult.count ?? 0
 
   return {
     currentAdminId: currentAdmin.id,
@@ -191,20 +216,20 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .sort((a, b) => b.pageViews - a.pageViews)
       .slice(0, 8),
     community: {
-      messagesTotal: messages.length,
+      messagesTotal,
       messages7d,
       messages30d,
-      conversationsTotal: conversations.length,
-      conversationsAccepted: conversations.filter((row) => row.status === "accepted").length,
-      offersTotal: offers.length,
+      conversationsTotal,
+      conversationsAccepted,
+      offersTotal,
       offersAccepted,
-      offersOpen: offers.filter((row) => row.deal_status === "open").length,
-      salesReported: sales.length,
+      offersOpen,
+      salesReported,
       salesConfirmed,
-      salesDisputed: sales.filter((row) => row.status === "disputed").length,
-      ownershipTransfers: transfers.length,
-      offerAcceptanceRate: percent(offersAccepted, offers.length),
-      saleConfirmationRate: percent(salesConfirmed, sales.length),
+      salesDisputed,
+      ownershipTransfers,
+      offerAcceptanceRate: percent(offersAccepted, offersTotal),
+      saleConfirmationRate: percent(salesConfirmed, salesReported),
     },
     users,
   }
