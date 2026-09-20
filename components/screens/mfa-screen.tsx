@@ -60,10 +60,17 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
       return
     }
 
+    const totp = enrolled.data.totp
+    if (!totp) {
+      setLoading(false)
+      toast.error(it ? "Configurazione 2FA non disponibile" : "2FA setup is unavailable")
+      return
+    }
+
     setEnrollment({
       factorId: enrolled.data.id,
-      qrCode: enrolled.data.totp.qr_code,
-      secret: enrolled.data.totp.secret,
+      qrCode: totp.qr_code,
+      secret: totp.secret,
     })
     setVerifiedFactorId(null)
     setLoading(false)
