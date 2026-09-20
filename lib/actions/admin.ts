@@ -50,6 +50,17 @@ export async function updateAdminUserAction(input: {
   const { data: authData, error: authReadError } = await admin.auth.admin.getUserById(input.userId)
   if (authReadError || !authData.user) throw authReadError ?? new Error("Account non trovato")
 
+  const { data: protectedAdmin, error: protectedAdminError } = await admin
+    .from("app_admins")
+    .select("user_id")
+    .eq("user_id", input.userId)
+    .maybeSingle()
+  if (protectedAdminError) throw protectedAdminError
+
+  if (protectedAdmin && (authData.user.email ?? "").toLowerCase() !== email) {
+    throw new Error("L’email dell’account amministratore è protetta")
+  }
+
   if ((authData.user.email ?? "").toLowerCase() !== email) {
     const { error } = await admin.auth.admin.updateUserById(input.userId, { email, email_confirm: true })
     if (error) throw error
