@@ -262,7 +262,7 @@ function ExternalAvailabilityCard({
   it: boolean
 }) {
   const current = signal?.currentOfferCount ?? 0
-  const starting = signal?.startingItemPriceEUR ?? null
+  const observedPrice = signal?.startingItemPriceEUR ?? null
   const active = signal?.activeOfferCount ?? 0
   const typicalAsk = signal?.activeAnchorEUR ?? null
   const askLow = signal?.activeLowEUR ?? null
@@ -284,11 +284,11 @@ function ExternalAvailabilityCard({
       </div>
       <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Ultime osservazioni" : "Latest observations"}</h2>
 
-      {current > 0 && starting != null ? (
+      {current > 0 && observedPrice != null ? (
         <div className="mt-5 space-y-3 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <div>
             <p className="text-sm text-[#607089]">{it ? "Ultimo prezzo osservato" : "Latest observed price"}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Prezzo osservato" : "Observed price"} {formatMoney(starting)}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Prezzo osservato" : "Observed price"} {formatMoney(observedPrice)}</p>
             <p className="mt-1 text-xs text-[#718198]">
               {current} {it ? (current === 1 ? "osservazione fresca · non è un'offerta TrackDash" : "osservazioni fresche · non sono offerte TrackDash") : (current === 1 ? "fresh observation · not a TrackDash offer" : "fresh observations · not TrackDash offers")}
             </p>
