@@ -28,9 +28,16 @@ function isFreshAccount(user: { created_at: string; last_sign_in_at?: string | n
   return Math.abs(lastSignInAt - createdAt) <= 5 * 60 * 1000
 }
 
-function onboardingPath(next: string) {
-  if (next === "/dashboard") return "/onboarding"
-  return `/onboarding?next=${encodeURIComponent(next)}`
+function oauthLocale(value: string | null): "it" | "en" | null {
+  return value === "it" || value === "en" ? value : null
+}
+
+function onboardingPath(next: string, locale: "it" | "en" | null) {
+  const params = new URLSearchParams()
+  if (next !== "/dashboard") params.set("next", next)
+  if (locale) params.set("locale", locale)
+  const query = params.toString()
+  return query ? `/onboarding?${query}` : "/onboarding"
 }
 
 export async function GET(request: NextRequest) {
@@ -38,6 +45,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code")
   const flow = searchParams.get("flow")
   const isGoogleFlow = flow === "google"
+  const selectedLocale = oauthLocale(searchParams.get("locale"))
   const fallback = isGoogleFlow ? DEFAULT_APP_PATH : RECOVERY_PATH
   const next = resolveNextPath(searchParams.get("next"), origin, fallback)
 
@@ -54,7 +62,13 @@ export async function GET(request: NextRequest) {
         const onboardingComplete = user?.user_metadata?.onboarding_completed === true
 
         if (user && !onboardingComplete && isFreshAccount(user)) {
-          destination = onboardingPath(next)
+          if (selectedLocale) {
+            await supabase
+              .from("profiles")
+              .update({ preferred_locale: selectedLocale })
+              .eq("id", user.id)
+          }
+          destination = onboardingPath(next, selectedLocale)
         }
       }
 
