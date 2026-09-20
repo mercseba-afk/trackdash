@@ -5,6 +5,7 @@ import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
   marketEstimates,
+  marketOfferStates,
   marketReleaseMonthlySignals,
   marketReleaseSignals,
   marketValueHistory,
@@ -19,6 +20,14 @@ export type MarketEstimate = InferSelectModel<typeof marketEstimates>
 export type MarketValueHistoryPoint = InferSelectModel<typeof marketValueHistory>
 export type MarketReleaseSignal = InferSelectModel<typeof marketReleaseSignals>
 export type MarketReleaseMonthlySignal = InferSelectModel<typeof marketReleaseMonthlySignals>
+
+export interface CurrentObservedOfferRow {
+  releaseId: string
+  channel: string
+  itemPriceEUR: string
+  shippingEUR: string | null
+  lastCheckedAt: Date
+}
 
 // Normalized completed-sale observations only. Candidate/raw listing evidence stays
 // behind the service-only market_candidates boundary.
@@ -79,6 +88,36 @@ export async function listMarketSignals(
         )
       : eq(marketReleaseSignals.condition, condition),
   })
+}
+
+
+export async function listCurrentObservedOffers(
+  releaseIds?: string[],
+  condition = COLLECTOR_VALUE_CONDITION,
+): Promise<CurrentObservedOfferRow[]> {
+  if (releaseIds && releaseIds.length === 0) return []
+
+  const where = releaseIds
+    ? and(
+        eq(marketOfferStates.condition, condition),
+        inArray(marketOfferStates.releaseId, releaseIds),
+        inArray(marketOfferStates.availability, ["in_stock", "low_stock"]),
+      )
+    : and(
+        eq(marketOfferStates.condition, condition),
+        inArray(marketOfferStates.availability, ["in_stock", "low_stock"]),
+      )
+
+  return db
+    .select({
+      releaseId: marketOfferStates.releaseId,
+      channel: marketOfferStates.channel,
+      itemPriceEUR: marketOfferStates.itemPriceEUR,
+      shippingEUR: marketOfferStates.shippingEUR,
+      lastCheckedAt: marketOfferStates.lastCheckedAt,
+    })
+    .from(marketOfferStates)
+    .where(where)
 }
 
 export async function getMarketMonthlySignalsForRelease(
