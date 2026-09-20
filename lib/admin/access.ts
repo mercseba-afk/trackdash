@@ -2,6 +2,7 @@ import "server-only"
 
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 
 export async function getCurrentAdmin() {
   const user = await getCurrentUser()
