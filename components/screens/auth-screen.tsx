@@ -204,6 +204,12 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
         </Field>
       </FieldGroup>
       <Button type="submit" size="lg" className="rounded-xl" disabled={pending}>{pending ? (it ? "Creazione account…" : "Creating account…") : it ? "Crea account" : "Create account"}<ArrowRight /></Button>
+      <p className="text-center text-xs leading-relaxed text-muted-foreground">
+        {it ? "Creando un account accetti i " : "By creating an account you agree to the "}
+        <Link href="/terms" className="font-medium text-brand underline-offset-4 hover:underline">{it ? "Termini di utilizzo" : "Terms of Use"}</Link>
+        {it ? " e dichiari di aver letto la " : " and acknowledge the "}
+        <Link href="/privacy" className="font-medium text-brand underline-offset-4 hover:underline">{it ? "Privacy Policy" : "Privacy Policy"}</Link>.
+      </p>
       <p className="text-center text-sm text-muted-foreground">{it ? "Hai già un account?" : "Already have an account?"} <Link href={withNext("/login", nextPath)} className="font-medium text-brand hover:underline">{it ? "Accedi" : "Sign in"}</Link></p>
     </form>
   )
