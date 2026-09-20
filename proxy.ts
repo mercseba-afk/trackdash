@@ -39,7 +39,7 @@ function safeInternalNext(value: string | null): string | null {
 }
 
 export async function proxy(request: NextRequest) {
-  const { response, user } = await updateSession(request)
+  const { response, user, aal } = await updateSession(request)
   const { pathname, search } = request.nextUrl
 
   const isAuthPath = SIGNED_OUT_AUTH_PATHS.includes(pathname)
@@ -55,6 +55,23 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/login"
     url.search = ""
     url.searchParams.set("next", `${pathname}${search}`)
+    return NextResponse.redirect(url)
+  }
+
+  const needsMfa = Boolean(
+    user &&
+    aal?.nextLevel === "aal2" &&
+    aal.currentLevel !== "aal2"
+  )
+
+  if (needsMfa && pathname !== "/mfa") {
+    const destination = isAuthPath
+      ? safeInternalNext(request.nextUrl.searchParams.get("next")) ?? "/dashboard"
+      : `${pathname}${search}`
+    const url = request.nextUrl.clone()
+    url.pathname = "/mfa"
+    url.search = ""
+    url.searchParams.set("next", destination)
     return NextResponse.redirect(url)
   }
 
