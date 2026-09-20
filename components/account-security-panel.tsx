@@ -96,7 +96,9 @@ export function AccountSecurityPanel() {
     })
     setPending(null)
     if (error) return toast.error(error.message)
-    setEnrollment({ factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret })
+    const totp = data.totp
+    if (!totp) return toast.error(it ? "Configurazione 2FA non disponibile" : "2FA setup is unavailable")
+    setEnrollment({ factorId: data.id, qrCode: totp.qr_code, secret: totp.secret })
     setMfaCode("")
   }
 
