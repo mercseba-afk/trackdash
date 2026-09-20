@@ -41,9 +41,9 @@ const pwaPromptCaptureScript = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://trackdash.it"),
-  title: "TrackDash — Tamiya Mini 4WD Catalog, Collection & Market Value",
+  title: "TrackDash — Tamiya Mini 4WD Collection, Market Value & Trading",
   description:
-    "TrackDash helps Tamiya Mini 4WD collectors identify exact Releases, track market value, manage a collection and wishlist, and find models faster with the Scanner.",
+    "Identify exact Tamiya Mini 4WD Releases, discover market value, build your collection, watch the market and buy or sell with other collectors on TrackDash.",
   generator: "TrackDash",
   applicationName: "TrackDash",
   manifest: "/manifest.webmanifest",
