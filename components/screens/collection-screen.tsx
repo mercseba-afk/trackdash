@@ -299,7 +299,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const startingPrice = signal?.startingItemPriceEUR ?? null
+  const startingPrice = signal?.observedPriceEUR ?? signal?.startingItemPriceEUR ?? null
   const hasAvailability =
     (signal?.currentOfferCount ?? 0) > 0 &&
     startingPrice != null &&
@@ -326,7 +326,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         </div>
         {hasAvailability ? (
           <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
-            {it ? "Disponibile da" : "Available from"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
+            {it ? "Ultimo prezzo osservato" : "Latest observed price"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
             {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
           </p>
         ) : null}
@@ -338,7 +338,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
     return (
       <div className="min-w-0">
         <p className="text-[11px] leading-tight text-muted-foreground">
-          {it ? "Disponibile da" : "Available from"} <strong className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
+          {it ? "Ultimo prezzo osservato" : "Latest observed price"} <strong className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
         </p>
         <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">{askDirection ?? (it ? "Mercato in osservazione" : "Market under observation")}</p>
       </div>
