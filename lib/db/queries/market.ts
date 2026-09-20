@@ -5,6 +5,7 @@ import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
   marketEstimates,
+  marketOfferStates,
   marketReleaseMonthlySignals,
   marketReleaseSignals,
   marketValueHistory,
@@ -19,6 +20,7 @@ export type MarketEstimate = InferSelectModel<typeof marketEstimates>
 export type MarketValueHistoryPoint = InferSelectModel<typeof marketValueHistory>
 export type MarketReleaseSignal = InferSelectModel<typeof marketReleaseSignals>
 export type MarketReleaseMonthlySignal = InferSelectModel<typeof marketReleaseMonthlySignals>
+export type MarketOfferState = InferSelectModel<typeof marketOfferStates>
 
 // Normalized completed-sale observations only. Candidate/raw listing evidence stays
 // behind the service-only market_candidates boundary.
@@ -78,6 +80,28 @@ export async function listMarketSignals(
           inArray(marketReleaseSignals.releaseId, releaseIds),
         )
       : eq(marketReleaseSignals.condition, condition),
+  })
+}
+
+export async function listCurrentObservedOfferStates(
+  releaseIds?: string[],
+  condition = COLLECTOR_VALUE_CONDITION,
+) {
+  if (releaseIds && releaseIds.length === 0) return []
+
+  const availability = ["in_stock", "low_stock"] as const
+
+  return db.query.marketOfferStates.findMany({
+    where: releaseIds
+      ? and(
+          eq(marketOfferStates.condition, condition),
+          inArray(marketOfferStates.releaseId, releaseIds),
+          inArray(marketOfferStates.availability, [...availability]),
+        )
+      : and(
+          eq(marketOfferStates.condition, condition),
+          inArray(marketOfferStates.availability, [...availability]),
+        ),
   })
 }
 
