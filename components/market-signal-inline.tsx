@@ -36,7 +36,7 @@ export function MarketSignalInline({
           <span className="text-lg font-semibold tabular-nums">≈ {formatMoney(signal.valueEUR!)}</span>
           {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} /> : null}
         </div>
-      ) : hasCleanActiveAsk ? (
+      ) : hasObservedPrice ? (
         <>
           <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
           <span className="text-xs text-muted-foreground">
