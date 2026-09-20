@@ -263,10 +263,6 @@ function ExternalAvailabilityCard({
 }) {
   const current = signal?.currentOfferCount ?? 0
   const observedPrice = signal?.observedPriceEUR ?? signal?.startingItemPriceEUR ?? null
-  const observedShipping = signal?.observedShippingEUR ?? null
-  const observedAt = signal?.observedAt
-    ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "2-digit", month: "short" }).format(new Date(signal.observedAt))
-    : null
   const active = signal?.activeOfferCount ?? 0
   const typicalAsk = signal?.activeAnchorEUR ?? null
   const askLow = signal?.activeLowEUR ?? null
@@ -293,12 +289,6 @@ function ExternalAvailabilityCard({
           <div>
             <p className="text-sm text-[#607089]">{it ? "Ultimo prezzo osservato" : "Latest observed price"}</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{formatMoney(observedPrice)}</p>
-            <p className="mt-1 text-xs text-[#718198]">
-              {observedShipping != null
-                ? <>+ {formatMoney(observedShipping)} {it ? "spedizione osservata" : "observed shipping"}</>
-                : (it ? "Spedizione non disponibile nel dato osservato" : "Shipping was not available in the observed data")}
-              {observedAt ? <> · {it ? "controllato" : "checked"} {observedAt}</> : null}
-            </p>
             <p className="mt-1 text-xs text-[#718198]">
               {current} {it ? (current === 1 ? "offerta recente osservata" : "offerte recenti osservate") : (current === 1 ? "recent offer observed" : "recent offers observed")}
             </p>
@@ -332,7 +322,7 @@ function ExternalAvailabilityCard({
       )}
 
       <p className="mt-4 text-xs leading-5 text-[#7a8aa0]">
-        {it ? "TrackDash osserva prezzi esterni: non vende direttamente i prodotti. ASK indica il prezzo richiesto dal venditore e non equivale a una vendita conclusa." : "TrackDash observes external prices and does not sell products directly. ASK is the seller's requested price and is not the same as a completed sale."}
+        {it ? "TrackDash osserva prezzi esterni e non vende direttamente i prodotti. ASK indica il prezzo richiesto dal venditore e non equivale a una vendita conclusa." : "TrackDash observes external prices and does not sell products directly. ASK is the seller's requested price and is not the same as a completed sale."}
       </p>
     </section>
   )
