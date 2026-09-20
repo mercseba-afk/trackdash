@@ -809,7 +809,7 @@ function MarketPreview({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
             />
             <SmallMetric
               label="ASK"
-              value={signal.startingItemPriceEUR != null ? `${it ? "Da" : "From"} ${formatMoney(signal.startingItemPriceEUR)}` : "—"}
+              value={signal.startingItemPriceEUR != null ? `${it ? "Osservato" : "Observed"} ${formatMoney(signal.startingItemPriceEUR)}` : "—"}
             />
             <SmallMetric label={it ? "Vendite osservate" : "Observed sales"} value={String(signal.soldUnits)} />
             <SmallMetric label={it ? "Annunci attivi" : "Active listings"} value={String(signal.currentOfferCount)} />
