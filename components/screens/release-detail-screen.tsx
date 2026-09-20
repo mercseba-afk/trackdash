@@ -262,7 +262,11 @@ function ExternalAvailabilityCard({
   it: boolean
 }) {
   const current = signal?.currentOfferCount ?? 0
-  const starting = signal?.startingItemPriceEUR ?? null
+  const observedPrice = signal?.observedPriceEUR ?? signal?.startingItemPriceEUR ?? null
+  const observedShipping = signal?.observedShippingEUR ?? null
+  const observedAt = signal?.observedAt
+    ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "2-digit", month: "short" }).format(new Date(signal.observedAt))
+    : null
   const active = signal?.activeOfferCount ?? 0
   const typicalAsk = signal?.activeAnchorEUR ?? null
   const askLow = signal?.activeLowEUR ?? null
@@ -280,17 +284,23 @@ function ExternalAvailabilityCard({
     <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
       <div className="flex items-center gap-2">
         <ShoppingBag className="size-4 text-[#0f4bb4]" />
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Disponibilità sul mercato" : "Market availability"}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Mercato osservato" : "Observed market"}</p>
       </div>
-      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Dove si trova adesso" : "Where it is available now"}</h2>
+      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Prezzi osservati e ASK" : "Observed prices and ASK"}</h2>
 
-      {current > 0 && starting != null ? (
+      {current > 0 && observedPrice != null ? (
         <div className="mt-5 space-y-3 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <div>
-            <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
+            <p className="text-sm text-[#607089]">{it ? "Ultimo prezzo osservato" : "Latest observed price"}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{formatMoney(observedPrice)}</p>
             <p className="mt-1 text-xs text-[#718198]">
-              {current} {it ? "annunci attivi trovati · spedizione esclusa" : "active listings found · shipping excluded"}
+              {observedShipping != null
+                ? <>+ {formatMoney(observedShipping)} {it ? "spedizione osservata" : "observed shipping"}</>
+                : (it ? "Spedizione non disponibile nel dato osservato" : "Shipping was not available in the observed data")}
+              {observedAt ? <> · {it ? "controllato" : "checked"} {observedAt}</> : null}
+            </p>
+            <p className="mt-1 text-xs text-[#718198]">
+              {current} {it ? (current === 1 ? "offerta recente osservata" : "offerte recenti osservate") : (current === 1 ? "recent offer observed" : "recent offers observed")}
             </p>
           </div>
 
@@ -316,13 +326,13 @@ function ExternalAvailabilityCard({
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
           {it
-            ? "Non abbiamo trovato annunci abbastanza chiari da mostrare per questa Release in questo momento."
-            : "We have not found listings clear enough to show for this Release right now."}
+            ? "Non abbiamo un prezzo osservato abbastanza recente da mostrare per questa Release."
+            : "We do not have a sufficiently recent observed price to show for this Release."}
         </div>
       )}
 
       <p className="mt-4 text-xs leading-5 text-[#7a8aa0]">
-        {it ? "ASK indica il prezzo richiesto dal venditore: aiuta a capire la disponibilità, ma non equivale a una vendita conclusa." : "ASK is the price requested by the seller: it helps describe availability, but it is not the same as a completed sale."}
+        {it ? "TrackDash osserva prezzi esterni: non vende direttamente i prodotti. ASK indica il prezzo richiesto dal venditore e non equivale a una vendita conclusa." : "TrackDash observes external prices and does not sell products directly. ASK is the seller's requested price and is not the same as a completed sale."}
       </p>
     </section>
   )
@@ -366,8 +376,8 @@ function PriceIntelligenceCard({
               <p className="text-sm font-semibold text-[#1b2f4d]">{it ? "Più dettagli sul mercato per gli utenti TrackDash" : "More market detail for TrackDash users"}</p>
               <p className="mt-1 text-xs leading-5 text-[#718198]">
                 {it
-                  ? "Valore stimato, fascia indicativa, trend e prezzo “Da” restano pubblici. Accedi per vedere vendite concluse, prezzi nei negozi e ASK attivi usati come contesto."
-                  : "Estimated value, range, trend and the From price stay public. Sign in to see completed sales, store prices and active ASK used as context."}
+                  ? "Valore stimato, fascia indicativa, trend e ultimo prezzo osservato restano pubblici. Accedi per vedere vendite concluse, prezzi nei negozi e ASK attivi usati come contesto."
+                  : "Estimated value, range, trend and the latest observed price stay public. Sign in to see completed sales, store prices and active ASK used as context."}
               </p>
             </div>
           </div>
