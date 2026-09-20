@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  if (process.env.VERCEL_ENV !== "production") {
+    return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } })
+  }
+
   const origin = request.headers.get("origin")
   if (origin) {
     try {
