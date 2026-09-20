@@ -280,17 +280,17 @@ function ExternalAvailabilityCard({
     <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
       <div className="flex items-center gap-2">
         <ShoppingBag className="size-4 text-[#0f4bb4]" />
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Disponibilità sul mercato" : "Market availability"}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Prezzi osservati sul mercato" : "Observed market prices"}</p>
       </div>
-      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Dove si trova adesso" : "Where it is available now"}</h2>
+      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Ultime osservazioni" : "Latest observations"}</h2>
 
       {current > 0 && starting != null ? (
         <div className="mt-5 space-y-3 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
           <div>
-            <p className="text-sm text-[#607089]">{it ? "Prezzo articolo più basso rilevato" : "Lowest observed item price"}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Disponibile da" : "Available from"} {formatMoney(starting)}</p>
+            <p className="text-sm text-[#607089]">{it ? "Ultimo prezzo osservato" : "Latest observed price"}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">{it ? "Prezzo osservato" : "Observed price"} {formatMoney(starting)}</p>
             <p className="mt-1 text-xs text-[#718198]">
-              {current} {it ? "annunci attivi trovati · spedizione esclusa" : "active listings found · shipping excluded"}
+              {current} {it ? (current === 1 ? "osservazione fresca · non è un'offerta TrackDash" : "osservazioni fresche · non sono offerte TrackDash") : (current === 1 ? "fresh observation · not a TrackDash offer" : "fresh observations · not TrackDash offers")}
             </p>
           </div>
 
