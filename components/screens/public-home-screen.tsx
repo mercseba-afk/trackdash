@@ -200,8 +200,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
                 {it
-                  ? "TrackDash ti aiuta a riconoscere il modello e la sua Release, cioè la specifica versione o edizione. Puoi seguirne il valore e organizzare la tua collezione in un unico posto."
-                  : "TrackDash helps you identify the model and its exact Release, follow its value and organise your collection."}
+                  ? "Identifica la Release esatta, scopri quanto vale, registrala nella tua collezione, controlla il mercato e entra in contatto con altri collezionisti per comprare o vendere."
+                  : "Identify the exact Release, discover what it is worth, add it to your collection, watch the market and connect with other collectors to buy or sell."}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link href="/catalog" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
@@ -360,26 +360,26 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             />
             <FeatureCard
               number="04"
-              icon={ScanLine}
-              title={it ? "Dalla scatola alla scheda." : "From the box to the right page."}
+              icon={TrendingUp}
+              title={it ? "Controlla il mercato." : "Watch the market."}
               text={
                 it
-                  ? "Scansiona il codice a barre oppure inserisci il codice articolo: TrackDash ti porta alla scheda corretta senza dover cercare tra versioni simili."
-                  : "Scan the barcode or enter the item number and TrackDash takes you to the correct page without searching through similar versions."
+                  ? "Segui vendite concluse, ASK, disponibilità e trend quando i dati sono sufficienti. Così capisci come si sta muovendo davvero ogni Release."
+                  : "Follow completed sales, ASK, availability and trends when enough data is available, so you can see how each Release is really moving."
               }
               tone="soft"
-              href="/login?next=%2Fscanner"
-              linkLabel={it ? "Prova lo Scanner" : "Try Scanner"}
+              href="/market"
+              linkLabel={it ? "Controlla il mercato" : "Watch the market"}
             />
             <div className="md:col-span-2">
               <FeatureCard
                 number="05"
                 icon={MessageCircle}
-                title={it ? "Entra in contatto con altri collezionisti." : "Connect with other collectors."}
+                title={it ? "Compra e vendi tra collezionisti." : "Buy and sell with collectors."}
                 text={
                   it
-                    ? "Rendi una copia disponibile alle offerte, scrivi agli altri collezionisti e gestisci proposte, controproposte e accordi direttamente in TrackDash."
-                    : "Open a copy to offers, message other collectors and manage offers, counteroffers and agreements directly in TrackDash."
+                    ? "Rendi una copia disponibile alle offerte oppure trova la Release che cerchi. Scrivi agli altri collezionisti, fai offerte, controproposte e raggiungi un accordo."
+                    : "Open a copy to offers or find the Release you want. Message other collectors, make offers, counteroffers and reach an agreement."
                 }
                 tone="dark"
                 href="/signup?next=%2Fmessages"
@@ -476,8 +476,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             </h2>
             <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
               {it
-                ? "La collezione non è solo una lista: ogni copia resta collegata alla sua Release, con condizione, prezzo pagato e valore di mercato quando disponibile."
-                : "Your collection is more than a list: every copy stays linked to its exact Release, with condition, purchase price and market value when available."}
+                ? "Registra le Release che possiedi e usale come punto di partenza: scopri quanto valgono, controlla il mercato e trova altre copie da comprare o vendi le tue ad altri collezionisti."
+                : "Register the Releases you own and use them as your starting point: discover their value, watch the market, find other copies to buy or sell yours to other collectors."}
             </p>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <CollectionPoint icon={Boxes} title={it ? "Release esatte" : "Exact Releases"} text={it ? "Sai quale versione possiedi davvero." : "Know exactly which version you own."} />
@@ -491,20 +491,20 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           </div>
 
           <div className="overflow-hidden border border-line bg-[#eef4fb] p-4 sm:p-6">
-            <div className="rounded-xl bg-white p-5 shadow-[0_18px_45px_rgba(11,50,117,0.10)]">
-              <div className="flex items-start justify-between gap-4 border-b border-line pb-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{it ? "LA MIA COLLEZIONE" : "MY COLLECTION"}</p>
-                  <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-ink">{it ? "Valore oggi" : "Value today"}</p>
-                </div>
-                <span className="rounded-full bg-brand-muted px-3 py-1 text-xs font-semibold text-brand">{it ? "per Release" : "by Release"}</span>
+            <div className="rounded-xl bg-white p-5 shadow-[0_18px_45px_rgba(11,50,117,0.10)] sm:p-6">
+              <div className="border-b border-line pb-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{it ? "IL TUO PERCORSO SU TRACKDASH" : "YOUR TRACKDASH FLOW"}</p>
+                <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-ink">{it ? "Dalla tua Release alla prossima." : "From your Release to the next one."}</p>
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <CollectionMetric title={it ? "Release possedute" : "Owned Releases"} value={it ? "Per versione" : "By version"} detail={it ? "non per modello generico" : "not by generic model"} />
-                <CollectionMetric title={it ? "Copie totali" : "Total copies"} value={it ? "Più copie" : "Multiple copies"} detail={it ? "ogni esemplare resta distinto" : "each copy stays separate"} />
-                <CollectionMetric title={it ? "Valore stimato" : "Estimated value"} value={it ? "Valore oggi" : "Value today"} detail={it ? "quando i dati sono disponibili" : "when data is available"} />
-                <CollectionMetric title="Wishlist" value={it ? "Separata" : "Separate"} detail={it ? "ciò che cerchi resta distinto" : "what you want stays distinct"} />
+              <div className="mt-4 grid gap-3">
+                <FlowStep number="01" icon={ShieldCheck} title={it ? "Scopri quanto vale" : "Discover what it is worth"} text={it ? "Apri la Release esatta e consulta Market Value, vendite e ASK disponibili." : "Open the exact Release and check available Market Value, sales and ASK."} />
+                <FlowStep number="02" icon={Boxes} title={it ? "Registra la tua collezione" : "Build your collection"} text={it ? "Aggiungi le Release che possiedi e tieni ogni copia collegata alla versione corretta." : "Add the Releases you own and keep every copy tied to the correct version."} />
+                <FlowStep number="03" icon={TrendingUp} title={it ? "Controlla il mercato" : "Watch the market"} text={it ? "Segui prezzi, disponibilità, vendite e trend per capire quando il mercato si muove." : "Follow prices, availability, sales and trends to see when the market moves."} />
+                <FlowStep number="04" icon={Handshake} title={it ? "Compra e vendi altre Release" : "Buy and sell other Releases"} text={it ? "Trova copie offerte da altri collezionisti oppure apri le tue alle offerte e tratta direttamente con loro." : "Find copies offered by other collectors or open yours to offers and negotiate directly with them."} />
               </div>
+              <p className="mt-4 border-l-2 border-brand pl-3 text-xs leading-5 text-muted-foreground">
+                {it ? "Pagamento e spedizione vengono concordati direttamente tra i collezionisti." : "Payment and shipping are arranged directly between collectors."}
+              </p>
             </div>
           </div>
         </div>
@@ -658,12 +658,12 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">{it ? "INIZIA DA QUI" : "START HERE"}</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-ink md:text-4xl">
-                {it ? "Crea la tua collezione. Entra nella community." : "Build your collection. Join the community."}
+                {it ? "Scopri. Colleziona. Controlla. Compra e vendi." : "Discover. Collect. Watch. Buy and sell."}
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {it
-                  ? "Crea un account, aggiungi le Release che possiedi, segui il loro valore e entra in contatto con altri collezionisti per messaggi e offerte."
-                  : "Create an account, add the Releases you own, follow their value and connect with other collectors through messages and offers."}
+                  ? "Crea un account per registrare la tua collezione, seguire il valore delle Release, controllare il mercato e comprare o vendere con altri collezionisti."
+                  : "Create an account to build your collection, track Release values, watch the market and buy or sell with other collectors."}
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -838,12 +838,29 @@ function CollectionPoint({
   )
 }
 
-function CollectionMetric({ title, value, detail }: { title: string; value: string; detail: string }) {
+function FlowStep({
+  number,
+  icon: Icon,
+  title,
+  text,
+}: {
+  number: string
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  text: string
+}) {
   return (
-    <div className="border border-line bg-[#f8fafc] p-4">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{title}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-navy">{value}</p>
-      <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{detail}</p>
+    <div className="grid grid-cols-[42px_1fr] gap-3 border border-line bg-[#f8fafc] p-4">
+      <div className="flex size-10 items-center justify-center rounded-full bg-brand-muted text-brand">
+        <Icon className="size-4" />
+      </div>
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] font-bold tracking-[0.14em] text-brand">{number}</span>
+          <p className="text-sm font-semibold text-ink">{title}</p>
+        </div>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p>
+      </div>
     </div>
   )
 }
