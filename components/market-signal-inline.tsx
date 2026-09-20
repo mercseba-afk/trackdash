@@ -20,12 +20,8 @@ export function MarketSignalInline({
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
-  const hasCleanActiveAsk =
-    !hasValue &&
-    signal.activeOfferCount > 0 &&
-    signal.retailSourceCount === 0 &&
-    signal.startingItemPriceEUR != null &&
-    signal.startingItemPriceEUR > 0
+  const observedPrice = signal.observedPriceEUR ?? signal.startingItemPriceEUR
+  const hasObservedPrice = observedPrice != null && observedPrice > 0
   const askDirection =
     signal.askTrendPercent != null && signal.askTrendPercent >= 5
       ? (it ? "Prezzi richiesti in salita" : "Asking prices rising")
@@ -50,10 +46,10 @@ export function MarketSignalInline({
       ) : (
         <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
       )}
-      {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
+      {hasValue && showStartingPrice && hasObservedPrice ? (
         <span className="text-xs text-muted-foreground">
-          {it ? "Disponibile da" : "Available from"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
-          {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
+          {it ? "Ultimo prezzo osservato" : "Latest observed price"} <span className="font-medium text-foreground">{formatMoney(observedPrice!)}</span>
+          {signal.observedChannel === "marketplace" && askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
         </span>
       ) : null}
     </div>
