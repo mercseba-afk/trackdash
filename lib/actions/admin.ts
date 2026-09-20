@@ -115,8 +115,7 @@ export async function deleteAdminUserAction(userId: string) {
   if (adminReadError) throw adminReadError
   if (protectedAdmin) throw new Error("Non puoi eliminare un account amministratore")
 
-  const { error } = await admin.auth.admin.deleteUser(userId, false)
-  if (error) throw error
+  await deleteUserAndOwnedStorage(userId)
 
   revalidatePath("/admin")
   return { ok: true }
