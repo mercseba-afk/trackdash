@@ -9,6 +9,7 @@ import type {
   SubscriptionStatus,
 } from "@/lib/admin/types"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { deleteUserAndOwnedStorage } from "@/lib/account/delete-user"
 
 const USERNAME_RE = /^[A-Za-z0-9._-]+$/
 const PLANS = new Set<AccountPlan>(["free", "pro"])
