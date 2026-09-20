@@ -151,7 +151,7 @@ export function MarketSignalCard({
           <div>
             <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {it ? "In vendita da" : "Listed from"} <span className="font-semibold tabular-nums text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
+              {it ? "Ultimo prezzo osservato" : "Latest observed price"} <span className="font-semibold tabular-nums text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
             </p>
           </div>
         ) : (
