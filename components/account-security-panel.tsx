@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { KeyRound, LockKeyhole, Mail, ShieldCheck, Trash2 } from "lucide-react"
-import { deleteMyAccountAction } from "@/lib/actions/account"
+import { deleteMyAccountAction, updateMyEmailAction, updateMyPasswordAction } from "@/lib/actions/account"
 import { createClient } from "@/lib/supabase/client"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
@@ -59,11 +59,14 @@ export function AccountSecurityPanel() {
     }
 
     setPending("email")
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ email: nextEmail })
-    setPending(null)
-    if (error) return toast.error(error.message)
-    toast.success(it ? "Controlla la tua email per confermare la modifica" : "Check your email to confirm the change")
+    try {
+      await updateMyEmailAction(nextEmail)
+      toast.success(it ? "Controlla la tua email per confermare la modifica" : "Check your email to confirm the change")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : (it ? "Modifica email non riuscita" : "Email change failed"))
+    } finally {
+      setPending(null)
+    }
   }
 
   async function updatePassword() {
@@ -71,12 +74,15 @@ export function AccountSecurityPanel() {
       return toast.error(it ? "Usa una password di almeno 10 caratteri" : "Use a password of at least 10 characters")
     }
     setPending("password")
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    setPending(null)
-    if (error) return toast.error(error.message)
-    setNewPassword("")
-    toast.success(it ? "Password aggiornata" : "Password updated")
+    try {
+      await updateMyPasswordAction(newPassword)
+      setNewPassword("")
+      toast.success(it ? "Password aggiornata" : "Password updated")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : (it ? "Modifica password non riuscita" : "Password change failed"))
+    } finally {
+      setPending(null)
+    }
   }
 
   async function beginMfaEnrollment() {
