@@ -2,10 +2,10 @@ import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/proxy"
 
 // TrackDash now has a public discovery layer and a protected personal layer.
-// Catalog/Product/Release and Price Intelligence must be useful before signup;
+// Catalog/Product/Release, Price Intelligence and legal documents must be useful before signup;
 // Collection, Wishlist, Scanner, Messages and account tools remain protected.
 const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
-const PUBLIC_CONTENT_PATHS = ["/"]
+const PUBLIC_CONTENT_PATHS = ["/", "/privacy", "/terms"]
 const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market"]
 
 // Server-to-server, bootstrap, diagnostics and crawler discovery routes authenticate/guard
