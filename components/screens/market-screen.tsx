@@ -312,7 +312,7 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
       <div className="max-w-40 text-right">
         {forming ? <p className="text-xs font-medium text-[#6f7f91]">{it ? "Dati in arrivo" : "Data coming soon"}</p> : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
         {row.signal.trendPercent != null ? <TrendIndicator value={row.signal.trendPercent} className="justify-end text-xs" /> : null}
-        {row.signal.startingItemPriceEUR != null ? <p className="text-[11px] text-muted-foreground">{it ? "Da" : "From"} {formatMoney(row.signal.startingItemPriceEUR)}</p> : null}
+        {(row.signal.observedPriceEUR ?? row.signal.startingItemPriceEUR) != null ? <p className="text-[11px] text-muted-foreground">{it ? "Osservato" : "Observed"} {formatMoney((row.signal.observedPriceEUR ?? row.signal.startingItemPriceEUR)!)}</p> : null}
       </div>
     </Link>
   )
