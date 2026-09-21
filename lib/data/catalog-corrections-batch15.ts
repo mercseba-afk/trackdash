@@ -219,6 +219,8 @@ const MANTA_RAY_MKII: Product = {
       productionStatus: "discontinued",
       rarity: "Rare",
       statusCheckedAt: "2026-09-21",
+      notes:
+        "Exact image intentionally unresolved after the 2026-09-21 audit: contemporary sources verify this event-only Silver Metallic semi-finished Release, but no attributable product photo was found. TrackDash shows the explicit placeholder rather than another Manta Ray variant.",
       sources: [
         source(
           "75265004-165b-5336-82af-90870684d697",
