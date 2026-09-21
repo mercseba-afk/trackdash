@@ -122,6 +122,26 @@ ok("no artificial minimum: one real current source can still produce a market si
   assert.equal(signal.marketRegime, "retail_driven")
 })
 
+ok("Europe-first observed price uses delivered acquisition cluster instead of aspirational tail", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [
+      { stableId: "eu-1", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "a", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 17.21, shippingEUR: 15.77, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-2", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "b", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 17.49, shippingEUR: 16.06, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-3", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "c", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 21.96, shippingEUR: 12.20, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-4", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "d", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 23.26, shippingEUR: 14.87, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-5", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "e", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 31.86, shippingEUR: 28.21, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-6", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "f", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 67.54, shippingEUR: 48.22, observedAt: "2026-09-09T10:00:00Z" },
+    ],
+    soldEvidence: [],
+    asOfDate: asOf,
+  })
+
+  assert.equal(signal.marketValueEUR, null)
+  assert.equal(signal.activeAnchorEUR, 33.86)
+  assert.equal(signal.activeLowEUR, 32.98)
+  assert.equal(signal.activeHighEUR, 38.13)
+})
+
 ok("monthly sold trend uses complete recent consecutive months and 3-month smoothing", () => {
   const monthly = [
     ["2026-01-01", "2026-01-31", 25, 5],
