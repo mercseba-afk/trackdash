@@ -33,14 +33,18 @@ export async function GET(request: NextRequest) {
     const ebayActive = summarizeSettled(ebayActiveResult)
     const recompute = summarizeSettled(recomputeResult)
 
-    const failedLanes = [
-      ["exactPages", exactPages],
-      ["ebayActive", ebayActive],
-      ["recompute", recompute],
-    ].filter(([, lane]) => !lane.ok)
-
-    for (const [laneName, lane] of failedLanes) {
-      console.error(`[market-scan-cron:${laneName}]`, lane.ok ? "" : lane.error)
+    const failedLanes: string[] = []
+    if (!exactPages.ok) {
+      failedLanes.push("exactPages")
+      console.error("[market-scan-cron:exactPages]", exactPages.error)
+    }
+    if (!ebayActive.ok) {
+      failedLanes.push("ebayActive")
+      console.error("[market-scan-cron:ebayActive]", ebayActive.error)
+    }
+    if (!recompute.ok) {
+      failedLanes.push("recompute")
+      console.error("[market-scan-cron:recompute]", recompute.error)
     }
 
     return NextResponse.json({
