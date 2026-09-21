@@ -222,4 +222,23 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "90b8a376-2535-55b0-b5c8-4313eb8bb942", kind: "release", label: "Aero Manta Ray — White Special (2017 Reissue)" },
   { id: "69ecb6cc-8907-5351-bf26-9400e0b43cc4", kind: "release", label: "Aero Manta Ray — Black Special (AR Chassis)" },
 
+
+  // ---- Avante Mk.III master audit 2026-09-21: remaining sealed Release IDs ----
+  { id: "921c4346-c48a-5a36-9438-65c9e4781107", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure Finished Model" },
+  { id: "f66b9e6e-f7e5-57f2-8395-10125a0ae96c", kind: "release", label: "Avante Mk.III — Avante Mk.III Nero Finished Model" },
+  { id: "e07a5f39-d476-54c5-a509-4fb3ffb1a0ec", kind: "release", label: "Avante Mk.III — Avante Mk.III Red Special (2009)" },
+  { id: "ee0c66c6-0d58-5ee5-ae20-942966da8129", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure EVA-01 Special" },
+  { id: "8e01ee97-26ad-5c82-a569-b74332d59617", kind: "release", label: "Avante Mk.III — Avante Mk.III White Special (2010)" },
+  { id: "0a386324-1815-5d3e-addb-7e583d3489d6", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure EVA-01 Awakening Version" },
+  { id: "5fdf8efd-46c1-5cff-9a61-6b8ee2b2b2af", kind: "release", label: "Avante Mk.III — Tohoku Rakuten Golden Eagles Home Color" },
+  { id: "f308c6fb-af67-5f03-b87b-7c3b947d9dfb", kind: "release", label: "Avante Mk.III — Tohoku Rakuten Golden Eagles Mr. Carrasco" },
+  { id: "3495bf78-89ab-57c4-84fc-f6f300c85a4e", kind: "release", label: "Avante Mk.III — Avante Mk.III Azure Clear Blue Special" },
+  { id: "fe19ba66-afdf-579b-97b1-0056f354271a", kind: "release", label: "Avante Mk.III — Avante Mk.III Competition Pack" },
+  { id: "03b51f02-a25d-5b8c-9e5e-0da79a34acfc", kind: "release", label: "Avante Mk.III — Avante Mk.III Nero Clear Violet Special" },
+  { id: "805c2619-0c0c-5aa1-adc5-df25cafe5c8f", kind: "release", label: "Avante Mk.III — Avante Mk.III Nero Stargek 10th Anniversary Special" },
+  { id: "7fbd00c9-2226-5d71-bca6-8fe9d6e4949b", kind: "release", label: "Avante Mk.III — Tamiya Korea 25th Anniversary Special" },
+  { id: "65d43c3e-a25b-5d0b-9c16-7b19ae23cac0", kind: "release", label: "Avante Mk.III — Tamiya Korea 25th Anniversary Special Ver.2" },
+  { id: "97902a92-3b57-5052-a417-ef6eb734652c", kind: "release", label: "Avante Mk.III — Tamiya Plamodel Factory Hong Kong Special" },
+  { id: "c91957f4-907f-5f1a-9a49-faeddc3abd8d", kind: "release", label: "Avante Mk.III — Avante Mk.III Nero Advanced Pack" },
+  { id: "1c89e3ac-33c5-5079-98e7-7d7165c982d9", kind: "release", label: "Avante Mk.III — Tamiya Korea Mini 4WD Cup 2026" },
 ]
