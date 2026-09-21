@@ -16,21 +16,21 @@ export function MarketSignalInline({
   const it = locale === "it"
 
   if (!signal) {
-    return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
+    return <span className="text-xs text-muted-foreground">{it ? "Mercato poco osservabile" : "Thin market evidence"}</span>
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
-  const hasCleanActiveAsk =
-    !hasValue &&
-    signal.activeOfferCount > 0 &&
-    signal.retailSourceCount === 0 &&
-    signal.startingItemPriceEUR != null &&
-    signal.startingItemPriceEUR > 0
-  const askDirection =
+  const observedPrice =
+    signal.activeAnchorEUR ??
+    signal.retailAnchorEUR ??
+    signal.startingItemPriceEUR ??
+    null
+  const hasObservedPrice = observedPrice != null && observedPrice > 0
+  const observedDirection =
     signal.askTrendPercent != null && signal.askTrendPercent >= 5
-      ? (it ? "Prezzi richiesti in salita" : "Asking prices rising")
+      ? (it ? "Prezzo osservato in salita" : "Observed price rising")
       : signal.askTrendPercent != null && signal.askTrendPercent <= -5
-        ? (it ? "Prezzi richiesti in calo" : "Asking prices falling")
+        ? (it ? "Prezzo osservato in calo" : "Observed price falling")
         : null
 
   return (
@@ -40,20 +40,18 @@ export function MarketSignalInline({
           <span className="text-lg font-semibold tabular-nums">≈ {formatMoney(signal.valueEUR!)}</span>
           {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} /> : null}
         </div>
-      ) : hasCleanActiveAsk ? (
+      ) : hasObservedPrice ? (
         <>
-          <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
-          <span className="text-xs text-muted-foreground">
-            {it ? "Ultimo prezzo osservato" : "Latest observed price"} <span className="font-semibold text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</span>
+          <span className="text-lg font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</span>
         </>
       ) : (
-        <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
+        <span className="text-xs font-medium text-muted-foreground">{it ? "Mercato poco osservabile" : "Thin market evidence"}</span>
       )}
-      {hasValue && showStartingPrice && signal.startingItemPriceEUR != null ? (
+      {hasValue && showStartingPrice && hasObservedPrice ? (
         <span className="text-xs text-muted-foreground">
-          {it ? "Ultimo prezzo osservato" : "Latest observed price"} <span className="font-medium text-foreground">{formatMoney(signal.startingItemPriceEUR)}</span>
-          {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
+          {it ? "Prezzo osservato" : "Observed price"} <span className="font-medium text-foreground">{formatMoney(observedPrice)}</span>
+          {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
         </span>
       ) : null}
     </div>
