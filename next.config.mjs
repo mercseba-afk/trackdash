@@ -28,6 +28,16 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "d7z22c0gz59ng.cloudfront.net",
+        pathname: "/japan_contents/img/usr/item/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.tamiyausa.com",
+        pathname: "/media/CACHE/images/products/**",
+      },
+      {
+        protocol: "https",
+        hostname: "d7z22c0gz59ng.cloudfront.net",
         pathname: "/japan_contents/img/**",
       },
       {
