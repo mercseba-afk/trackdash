@@ -31,4 +31,10 @@ jobs:
             code=$(curl -L -sS -o /dev/null -w "%{http_code}" "$url" || true)
             echo "$item $code $url"
           done
+      - name: Audit event-only Manta Ray Mk.II source images
+        run: |
+          for page in             "https://www.tea-league.com/mt/tea/archives/2007/01/2007_12.html"             "https://www.tea-league.com/mt/tea/archives/2010/07/index.php?page=all"             "https://www.tea-league.com/mt/tea/archives/2012/07/20121_9.html"; do
+            echo "===== $page ====="
+            curl -L -sS "$page" | grep -E -B 8 -A 8 'マンタレイMk|マンタレイＭｋ|Manta' | grep -E 'img|href|マンタ' | head -80 || true
+          done
       - run: pnpm verify
