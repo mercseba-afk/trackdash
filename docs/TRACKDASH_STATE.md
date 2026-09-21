@@ -22,9 +22,9 @@ Do **not** reconstruct project state from chat memory when these repository sour
 
 # CURRENT FOCUS
 
-## Family just completed
+## Family reopened by Market Completeness Audit
 
-**Avante Mk.III — COMPLETE — MARKET THIN**
+**Avante Mk.III — REOPENED — MARKET COMPLETENESS BACKFILL**
 
 Product ID:
 
@@ -247,27 +247,85 @@ Therefore the repository verification gate is considered satisfied for the final
 
 ---
 
+# MARKET COMPLETENESS REOPEN — 2026-09-21
+
+The previous Avante result **COMPLETE — MARKET THIN** is revoked.
+
+Reason: the new Empty Market Challenge found that some Release previously left with no public market reference do in fact have observable current/recent exact-release market evidence. The first Initial Market Scan was therefore not deep enough for those empty cases.
+
+## Global live audit
+
+Across the current catalog (184 Release), the first systematic completeness audit found:
+
+- **A — current stored offer but public signal empty: 2 Release**
+- **B — real evidence exists but public signal empty: 17 Release**
+- **OK / other: 165 Release**
+
+The two A-class rows are stale `market_method_version = v3` signals:
+
+- Dash-1 Emperor `18025`
+- Dash-1 Emperor Black Special `94704`
+
+Both have been enqueued through the canonical `trackdash_enqueue_market_recompute` RPC for v4 recompute.
+
+## Empty Market Challenge — confirmed misses
+
+The targeted second-pass web challenge has already confirmed that this is not limited to `94692`.
+
+### Avante Mk.III current/recent market found after the first audit
+
+- `94692` — current exact listings/search-market evidence exists; prior TrackDash evidence was only RCJAZ historical out-of-stock.
+- `18626` — current exact stock found externally.
+- `18627` — current exact Italian retail stock found externally.
+- `92207` — current exact Mercari market found.
+- `92218` — recent/current exact Mercari market found; condition must remain exact before persistence.
+- `92284` — current exact regional marketplace evidence found.
+- `95469` — current exact Mercari market found.
+- `94715` — recent exact completed-market reference found.
+- `94777` — probable current exact market signal found, still requires exact-listing confirmation before persistence.
+
+### Other catalog Release already confirmed by the same global challenge
+
+- Avante Jr. `18014` — current exact retail/eBay market.
+- Avante Jr. Black Special `95501` — current exact eBay market.
+- Dyna-Hawk GX `94717` — current exact eBay market.
+- Dyna-Hawk GX Black Special `95000` — current exact Mercari market.
+
+This proves the issue was **Initial Market Scan completeness**, not simply a conservative valuation threshold.
+
+## Permanent hard gate now active
+
+The Master and Operations docs now require:
+
+1. after recompute, every Release with no MV and no observed/current price enters the **Empty Market Challenge**;
+2. targeted second-pass multi-source research must be completed before a thin/no-market result is accepted;
+3. current valid offer + public empty signal must equal **BLOCKED — PIPELINE / STALE SIGNAL**, never COMPLETE;
+4. stale `market_method_version` signals must be recomputed before Completion Gate;
+5. family completion requires zero unchallenged empty Release.
+
+Regression coverage was also added to ensure a single exact current offer remains publishable as observed-market context even when it is not enough for a consolidated Market Value.
+
+## Current Avante status
+
+**NOT COMPLETE.**
+
+The family remains reopened until:
+
+- all Avante B-class empty Release receive the targeted challenge;
+- exact valid evidence found is persisted;
+- canonical recompute is rerun for affected Release;
+- family completeness audit returns no unexplained empty Release;
+- Production QA is rerun.
+
+---
+
 # COMPLETION GATE
 
 ## Avante Mk.III result
 
-**COMPLETE — MARKET THIN**
+**REOPENED — MARKET COMPLETENESS BACKFILL**
 
-Reason:
-
-- catalog identity complete: 24 / 24;
-- image audit complete, with intentional placeholders where exact image was not safely found;
-- production status / rarity audited;
-- Initial Market Scan coverage complete: 24 / 24;
-- canonical recompute complete: queue 0;
-- Production QA passed: 24 / 24 public Release pages;
-- Collection canonical alignment verified;
-- scanner identity behavior verified;
-- version alignment passed before final documentation checkpoint;
-- repository verification gate satisfied;
-- remaining thin-market / missing-exact-image cases are documented and allowed by the Master Completion Gate.
-
-No unfinished manual task remains for this family. Future market changes are handled by the normal adaptive refresh/cron system.
+Do not restore `COMPLETE` or `COMPLETE — MARKET THIN` until the new hard gate passes for all 24 Release.
 
 ---
 
@@ -295,15 +353,18 @@ Do not rediscover or guess this behavior from chat memory in future sessions. Re
 
 # EXACT NEXT ACTIONS
 
-Avante Mk.III is complete.
+1. Complete the Empty Market Challenge for all Avante Release whose public market signal is empty.
+2. Persist only exact-release current/recent evidence that passes identity/condition checks.
+3. Recompute only affected Release through the canonical queue.
+4. Run the family Market Completeness Audit again.
+5. Require:
+   - A-class current-offer/public-empty = 0;
+   - stale market-method signals = 0;
+   - no unchallenged empty Avante Release.
+6. Rerun Production QA and version alignment.
+7. Only then restore an allowed Completion Gate result.
 
-Next TrackDash work should:
-
-1. fresh-check `main = Vercel Production = /api/version` after this documentation checkpoint deploys;
-2. leave Avante to the normal adaptive market refresh system;
-3. start the next requested family from the Master workflow, using the current STATE and OPERATIONS documents as session bootstrap.
-
-No further manual Avante recompute is required unless new evidence deliberately enqueues it again.
+Separately, the same one-time completeness backfill must be applied to the other catalog B-class cases already identified, so future family work can proceed under the stabilized method without reopening old releases one by one.
 
 ---
 
