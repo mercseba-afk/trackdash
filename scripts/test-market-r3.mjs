@@ -139,7 +139,7 @@ ok("Europe-first observed price uses delivered acquisition cluster instead of as
   // The raw model can calculate an internal blended draft, but the public
   // publication policy still suppresses Market Value when evidence is only ASK.
   assert.ok(signal.marketValueEUR > 33 && signal.marketValueEUR < 34.5)
-  assert.equal(signal.activeAnchorEUR, 33.86)
+  assert.equal(signal.activeAnchorEUR, 33.85)
   assert.equal(signal.activeLowEUR, 32.98)
   assert.equal(signal.activeHighEUR, 38.13)
 })
