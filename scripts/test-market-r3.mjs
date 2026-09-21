@@ -206,10 +206,13 @@ ok("aggregate Product Research supersedes granular rows from the same source", (
   assert.equal(selected.some((row) => row.stableId === "yahoo-1"), true)
 })
 
-ok("scanner defaults are staggered: 7d retail, 3d active marketplace, 14d sold", () => {
-  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 168)
-  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 72)
-  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 336)
+ok("scanner defaults are staggered for the slow Mini 4WD market", () => {
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 336)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 168)
+  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 720)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "hot", now: "2026-09-09T12:00:00Z" }).intervalHours, 72)
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "cold", now: "2026-09-09T12:00:00Z" }).intervalHours, 720)
+  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "cold", now: "2026-09-09T12:00:00Z" }).intervalHours, 1440)
 })
 
 ok("Product Research batch is capped independently", () => {
