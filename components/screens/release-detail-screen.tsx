@@ -319,45 +319,42 @@ function PriceIntelligenceCard({
   authenticated: boolean
   loginHref: string
 }) {
+  const observedPrice =
+    signal?.activeAnchorEUR ??
+    signal?.retailAnchorEUR ??
+    signal?.startingItemPriceEUR ??
+    null
+
   return (
     <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
       <div className="flex items-center gap-2">
         <BarChart3 className="size-4 text-[#0f4bb4]" />
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">Price Intelligence</p>
       </div>
-      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Da cosa nasce il valore" : "What supports the value"}</h2>
+      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Lettura del mercato" : "Market view"}</h2>
 
-      {authenticated ? (
-        signal ? (
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <AnchorMetric label={it ? "Vendite concluse" : "Completed sales"} value={signal.soldAnchorEUR} count={signal.soldUnits} it={it} />
-            <AnchorMetric label={it ? "Negozi" : "Stores"} value={signal.retailAnchorEUR} count={signal.retailSourceCount} it={it} />
-            <AnchorMetric label={it ? "ASK attivi" : "Active ASK"} value={signal.activeAnchorEUR} count={signal.activeOfferCount} it={it} />
-            <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
-          </div>
-        ) : (
-          <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato non ancora disponibili." : "Market data is not available yet."}</p>
-        )
-      ) : (
-        <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
-          <div className="flex items-start gap-3">
-            <LockKeyhole className="mt-0.5 size-4 shrink-0 text-[#0f4bb4]" />
-            <div>
-              <p className="text-sm font-semibold text-[#1b2f4d]">{it ? "Più dettagli sul mercato per gli utenti TrackDash" : "More market detail for TrackDash users"}</p>
-              <p className="mt-1 text-xs leading-5 text-[#718198]">
-                {it
-                  ? "Valore stimato, fascia indicativa, trend e prezzo “Da” restano pubblici. Accedi per vedere vendite concluse, prezzi nei negozi e ASK attivi usati come contesto."
-                  : "Estimated value, range, trend and the From price stay public. Sign in to see completed sales, store prices and active ASK used as context."}
-              </p>
-            </div>
-          </div>
+      {signal ? (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <Metric
+            label={signal.valueEUR != null ? (it ? "Valore stimato" : "Estimated value") : (it ? "Prezzo osservato" : "Observed price")}
+            value={signal.valueEUR != null ? formatMoney(signal.valueEUR) : observedPrice != null ? `≈ ${formatMoney(observedPrice)}` : "—"}
+          />
+          <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
         </div>
+      ) : (
+        <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Mercato poco osservabile in questo momento." : "Market evidence is thin right now."}</p>
       )}
+
+      <p className="mt-4 text-xs leading-5 text-[#718198]">
+        {it
+          ? "TrackDash combina le evidenze recenti disponibili senza trattare l'assenza di vendite visibili come assenza di mercato. Il riferimento pubblico privilegia il mercato europeo e il costo effettivo di acquisto."
+          : "TrackDash combines the recent evidence available without treating unobserved sales as an absence of market. The public reference prioritises Europe and effective acquisition cost."}
+      </p>
 
       <div className="mt-5 flex flex-wrap gap-2">
         {!authenticated ? (
           <Button size="sm" render={<Link href={loginHref} />}>
-            <LockKeyhole className="size-4" /> {it ? "Accedi ai dettagli" : "Sign in for details"}
+            <LockKeyhole className="size-4" /> {it ? "Accedi a TrackDash" : "Sign in to TrackDash"}
           </Button>
         ) : null}
         <Button variant="outline" size="sm" render={<Link href="/market" />}>
@@ -365,16 +362,6 @@ function PriceIntelligenceCard({
         </Button>
       </div>
     </section>
-  )
-}
-
-function AnchorMetric({ label, value, count, it }: { label: string; value: number | null; count: number; it: boolean }) {
-  return (
-    <div className="rounded-xl border border-[#e0e7f0] bg-[#fbfcfe] p-3">
-      <p className="text-xs text-[#718198]">{label}</p>
-      <p className="mt-1 font-semibold tabular-nums text-[#081a3a]">{value != null ? formatMoney(value) : "—"}</p>
-      <p className="mt-0.5 text-[11px] text-[#8a98aa]">{count} {it ? (count === 1 ? "riferimento" : "riferimenti") : (count === 1 ? "reference" : "references")}</p>
-    </div>
   )
 }
 
@@ -467,7 +454,7 @@ function OwnedCopiesCard({
                 </div>
               ) : (
                 <p className="mt-2 border-t border-border/70 pt-2 text-[11px] text-muted-foreground">
-                  {it ? "Dati di mercato in arrivo" : "Market data coming soon"}
+                  {it ? "Mercato poco osservabile" : "Thin market evidence"}
                 </p>
               )}
             </div>
