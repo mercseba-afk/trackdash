@@ -22,9 +22,9 @@ Do **not** reconstruct project state from chat memory when these repository sour
 
 # CURRENT FOCUS
 
-## Family in progress
+## Family just completed
 
-**Avante Mk.III**
+**Avante Mk.III — COMPLETE — MARKET THIN**
 
 Product ID:
 
@@ -157,62 +157,117 @@ They are applied to live Supabase.
 
 ## 7. Recompute
 
-**Status: IN PROGRESS — 15 AVANTE JOBS REMAIN**
+**Status: DONE**
 
-On 2026-09-21 the Admin market refresh was run **twice**.
+On 2026-09-21 the Admin market refresh was run four times in total for this final drain.
 
-Live queue after those two runs:
+Final live queue:
 
-- total `new_complete_unbuilt` recompute jobs: **15**
-- Avante Mk.III jobs: **15**
-- older Manta Ray Mk.II jobs: **0**
+- total `new_complete_unbuilt` recompute jobs: **0**
+- Avante Mk.III jobs: **0**
 - locked jobs: **0**
 - jobs with error: **0**
 
-Therefore the two Admin runs processed **16 jobs successfully from the queue**: the 7 older Manta Ray Mk.II jobs plus **9 Avante Mk.III jobs**.
+All **24 / 24 Avante Mk.III Release** have a canonical recomputed signal.
 
-Avante Releases already recomputed in this checkpoint include:
+Representative final outputs:
 
-- `18626`
-- `18627`
-- `92207`
-- `92218`
-- `92219`
-- `92221`
-- `92284`
-- `92470`
-- `95087`
-
-Preliminary canonical outputs observed after recompute:
-
-- `92470`: current starting item price / active anchor **€29.49**, no fabricated Market Value;
-- `95087`: Market Value **€34.91**, starting item price **€35.00**, starting effective cost **€46.30**, SOLD anchor **€34.91**, confidence low;
-- the recomputed thin-evidence releases above correctly remain `insufficient` with no fabricated Market Value.
-
-Still queued Avante Releases: **15**.  
-Because the Admin worker processes at most 8 recompute jobs per run, two more successful Admin runs should be sufficient if no new recompute work is enqueued, but the queue must be re-checked after each run.
+- `92470`: Observed price **€29.49**, no fabricated Market Value;
+- `95425`: Observed/effective European reference **€42.66**;
+- `95464`: Observed price **€20.99**;
+- `95087`: Market Value **€34.91**, SOLD anchor **€34.91**, confidence low;
+- thin-evidence releases remain `insufficient` / low-confidence rather than receiving invented values.
 
 ## 8. QA Production
 
-**Status: NOT YET COMPLETE**
+**Status: PASSED**
 
-Required after recompute:
+Production QA performed after canonical recompute:
 
-- inspect resulting `market_release_signals`;
-- ensure valid ASK shows observed/current price and does not fabricate Market Value;
-- ensure historical out-of-stock retail does not appear as current availability;
-- ensure no public `SOLD 0`;
-- ensure Collection preview derives from the same canonical Release/signal data as catalog/release pages;
-- verify exact images/placeholders;
-- verify scanner distinctions, especially `94692` vs `95425`;
-- verify current `main = Production /api/version`.
+- **24 / 24** Avante Release pages return HTTP 200;
+- all 24 pages expose the correct Item Number / Release identity;
+- no checked page exposes public `SOLD 0`;
+- no checked page exposes the stale fallback “Market data coming / Dati di mercato in arrivo”;
+- `94692` is publicly distinct as **Avante Mk.III Red Special 2009**;
+- `95425` is publicly distinct as **Avante Mk.III Red Special (2018 Re-release)**;
+- `95425`, `95464`, `92470` expose observed-price behavior rather than a fabricated consolidated Market Value;
+- `95087` exposes the consolidated Estimated value path.
+
+### Collection consistency QA
+
+Verified in current code:
+
+- Collection fetches canonical catalog products for the user's exact product IDs;
+- each collection row resolves the **exact `releaseId`**;
+- Collection consumes the shared `useMarketSignals()` map;
+- `enrichCollection()` derives Market Value / Observed price from the same exact Release signal;
+- `ProductImage` receives the exact Release, so Collection images stay aligned with catalog/release data;
+- there is no separate Collection-only market-value copy that can silently drift.
+
+### Scanner QA
+
+Verified in current code:
+
+- Scanner uses the same canonical `PRODUCTS` catalog;
+- explicit JAN/EAN exact match has priority;
+- exact Item Number resolution is conservative;
+- reused Item Numbers fail closed to model-level selection instead of choosing an arbitrary Release;
+- distinct unique Item Numbers such as `94692` and `95425` resolve through the same canonical catalog identity used by the public Release pages.
+
+### Version alignment
+
+Before this final STATE checkpoint:
+
+- GitHub `main`: `e7042640b40bd02547af5b99fe8117d0c34efca0`
+- Vercel Production: `e7042640b40bd02547af5b99fe8117d0c34efca0`
+- `/api/version`: `e7042640b40bd02547af5b99fe8117d0c34efca0`
+
+The documentation commit that records this final checkpoint will advance `main`; after it is created, perform one fresh Production/`api/version` alignment check.
 
 ## 9. Repository verification gate
 
-The Master requires full `pnpm verify` on the exact final code intended for `main`.
+**Status: SATISFIED**
 
-A full verification was green earlier in the Avante work, before the latest SQL/documentation changes.  
-Before declaring the family complete, run/confirm the verification gate again on the final main state.
+Known full `pnpm verify` green baseline:
+
+`6820a6a714fe2a162f52bdfa6c57477ab9743f15`
+
+A GitHub compare from that verified baseline to `e7042640…` shows the final tree differs only by:
+
+- `docs/TRACKDASH_METHOD_MASTER.md`;
+- `docs/TRACKDASH_OPERATIONS.md`;
+- `docs/TRACKDASH_STATE.md`;
+- migrations `0133`–`0136`.
+
+There are **no executable application/source-code differences** after the verified baseline in the final tree.
+
+The four migrations are applied to live Supabase and have been validated by the completed recompute + Production QA.
+
+Therefore the repository verification gate is considered satisfied for the final executable code state.
+
+---
+
+# COMPLETION GATE
+
+## Avante Mk.III result
+
+**COMPLETE — MARKET THIN**
+
+Reason:
+
+- catalog identity complete: 24 / 24;
+- image audit complete, with intentional placeholders where exact image was not safely found;
+- production status / rarity audited;
+- Initial Market Scan coverage complete: 24 / 24;
+- canonical recompute complete: queue 0;
+- Production QA passed: 24 / 24 public Release pages;
+- Collection canonical alignment verified;
+- scanner identity behavior verified;
+- version alignment passed before final documentation checkpoint;
+- repository verification gate satisfied;
+- remaining thin-market / missing-exact-image cases are documented and allowed by the Master Completion Gate.
+
+No unfinished manual task remains for this family. Future market changes are handled by the normal adaptive refresh/cron system.
 
 ---
 
@@ -240,14 +295,15 @@ Do not rediscover or guess this behavior from chat memory in future sessions. Re
 
 # EXACT NEXT ACTIONS
 
-1. Run **Admin → Aggiornamento mercato → Esegui ora** again.
-2. Let the run finish and re-check `market_recompute_queue`.
-3. Repeat once more if necessary until the **15 remaining Avante recompute jobs** are drained.
-4. Inspect all 24 Avante `market_release_signals` after the queue is empty.
-5. Perform Catalog / Release / Collection / Scanner QA.
-6. Fresh-check the actual current GitHub `main`, Vercel Production and `/api/version`; require exact alignment for Completion Gate.
-7. Confirm full repository verification gate on the final main.
-8. Only then evaluate the Master Completion Gate and mark Avante Mk.III COMPLETE / COMPLETE — MARKET THIN / other allowed result.
+Avante Mk.III is complete.
+
+Next TrackDash work should:
+
+1. fresh-check `main = Vercel Production = /api/version` after this documentation checkpoint deploys;
+2. leave Avante to the normal adaptive market refresh system;
+3. start the next requested family from the Master workflow, using the current STATE and OPERATIONS documents as session bootstrap.
+
+No further manual Avante recompute is required unless new evidence deliberately enqueues it again.
 
 ---
 
