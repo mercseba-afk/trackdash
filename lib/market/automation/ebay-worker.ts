@@ -40,6 +40,11 @@ interface ReleaseContext {
   sharedReleaseIds: string[]
 }
 
+interface ExistingCandidateAssignment {
+  candidateId: string
+  resolvedReleaseId: string | null
+}
+
 interface ExistingOffer {
   candidateId: string
   availability: string
@@ -146,6 +151,26 @@ async function loadReleaseContext(client: SupabaseClient, releaseId: string): Pr
     editionName: release.edition_name,
     releaseYear: release.release_year,
     sharedReleaseIds: (siblings ?? []).map((row: any) => row.id),
+  }
+}
+
+async function loadExistingCandidateAssignment(
+  client: SupabaseClient,
+  sourceId: string,
+  sourceRecordKey: string,
+): Promise<ExistingCandidateAssignment | null> {
+  const { data: candidate, error } = await client
+    .from("market_candidates")
+    .select("id,resolved_release_id")
+    .eq("source_id", sourceId)
+    .eq("source_record_key", sourceRecordKey)
+    .maybeSingle()
+  fail(error, "load eBay candidate assignment")
+  if (!candidate) return null
+
+  return {
+    candidateId: candidate.id,
+    resolvedReleaseId: candidate.resolved_release_id,
   }
 }
 
@@ -436,8 +461,21 @@ async function scanJob(
   const persistNonAccepted = options.persistNonAccepted ?? true
 
   for (const listing of listings) {
-    const classification = classifyEbayActiveListing(listing, input, new Date(observedAt))
     const key = ebaySourceRecordKey(listing.itemId)
+    const existingAssignment = await loadExistingCandidateAssignment(client, job.source_id, key)
+
+    // The same eBay listing can surface under multiple broad search queries.
+    // Once a listing has been accepted for another exact Release, preserve that
+    // assignment and reject it locally instead of failing this entire Release job.
+    if (
+      existingAssignment?.resolvedReleaseId
+      && existingAssignment.resolvedReleaseId !== job.release_id
+    ) {
+      rejected += 1
+      continue
+    }
+
+    const classification = classifyEbayActiveListing(listing, input, new Date(observedAt))
     const previous = await loadExistingOffer(client, job.source_id, key)
 
     if (classification.decision !== "accepted") {
