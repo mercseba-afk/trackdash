@@ -51,11 +51,12 @@ const MANTA_RAY_MKII: Product = {
       releaseDate: "2006-12-09",
       chassis: "MS",
       barcodeJAN: "4950344186150",
-      discontinued: false,
+      discontinued: true,
       isOriginal: true,
       verificationStatus: "verified",
-      productionStatus: "unknown",
+      productionStatus: "discontinued",
       rarity: "Common",
+      statusCheckedAt: "2026-09-21",
       sources: [
         source(
           "2c81b209-b749-5bd9-820e-ddb05ad45161",
@@ -64,6 +65,14 @@ const MANTA_RAY_MKII: Product = {
           "https://www.tamiya.com/japan/products/18615/index.html",
           ["itemNumber", "editionName", "releaseDate", "releaseYear", "chassis"],
           "Official Tamiya product page confirms ITEM 18615, MS chassis and the 2006-12-09 release date.",
+        ),
+        source(
+          "ea1acda2-0965-44b3-a666-d2ec8ee55229",
+          "6a14c7a3-bd78-57b3-89fe-6c764818991a",
+          "official_manufacturer",
+          "https://www.tamiyausa.com/shop/132-pro/jr-manta-ray-mkii/",
+          ["itemNumber", "productionStatus"],
+          "Official Tamiya USA page marks ITEM 18615 discontinued.",
         ),
         source(
           "42c1b209-b749-5bd9-820e-ddb05ad45162",
@@ -295,12 +304,21 @@ const MANTA_RAY_MKII: Product = {
       chassis: "MS",
       barcodeJAN: "4950344954667",
       color: "Smoke / Blue",
-      discontinued: false,
+      discontinued: true,
       isOriginal: false,
       verificationStatus: "verified",
-      productionStatus: "unknown",
+      productionStatus: "discontinued",
       rarity: "Uncommon",
+      statusCheckedAt: "2026-09-21",
       sources: [
+        source(
+          "2ebeb25a-77f6-40cb-abe6-980cfa136793",
+          "b2805fb7-cdd3-5dbf-a724-f73d54702844",
+          "official_manufacturer",
+          "https://www.tamiyausa.com/shop/132-pro/jr-manta-ray-mkii-black-sp-2/",
+          ["itemNumber", "productionStatus"],
+          "Official Tamiya USA page marks ITEM 95466 discontinued.",
+        ),
         source(
           "e68962e8-c21b-547e-a84a-39ec4dde30e5",
           "b2805fb7-cdd3-5dbf-a724-f73d54702844",
