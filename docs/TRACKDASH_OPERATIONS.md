@@ -281,7 +281,70 @@ Expected public behavior:
 
 ---
 
-# 9. OPERATION CHANGE RULE
+# 9. MARKET COMPLETENESS AUDIT — HARD GATE
+
+Run this after family recompute and before declaring a family COMPLETE.
+
+The audit is performed against live Supabase and classifies Release-level inconsistencies.
+
+## A — current offer but public signal empty
+
+Definition:
+
+- at least one `market_offer_states` row is `in_stock` / `low_stock`;
+- the offer is still valid under the current publication freshness policy;
+- public signal has no Market Value, active/retail anchor, starting item price or effective cost.
+
+Result:
+
+**BLOCKED — PIPELINE / STALE SIGNAL**
+
+This count must be **zero** before Completion Gate.
+
+## B — evidence exists but public signal empty
+
+Definition:
+
+- accepted market candidate and/or exact aggregate SOLD evidence exists;
+- public signal still has no Market Value or observed/current/sold anchor.
+
+This is not automatically an error. It triggers the **Empty Market Challenge** from the Master.
+
+Each such Release must be classified after second-pass research as one of:
+
+- current market found → persist evidence + recompute;
+- recent attributable SOLD found → persist evidence + recompute;
+- historical/out-of-stock only;
+- ambiguous/wrong Release/wrong condition;
+- genuinely no observable market after challenge.
+
+No B-class Release may be silently accepted as “market thin” without the challenge.
+
+## C — stale market method version
+
+Compare `market_release_signals.market_method_version` against the current method version.
+
+Any older signal must be enqueued through:
+
+`trackdash_enqueue_market_recompute(release_id, condition)`
+
+and processed by the canonical recompute worker.
+
+A market-method deploy is not complete while stale-version signals remain.
+
+## Current invariant
+
+Completion requires:
+
+- A = 0;
+- stale method versions = 0;
+- all B rows challenged and classified;
+- family public QA rerun after resulting recomputes.
+
+
+---
+
+# 10. OPERATION CHANGE RULE
 
 Whenever a material operational behavior changes, update this document in the same work unit.
 
@@ -297,7 +360,7 @@ A chat explanation is not sufficient project documentation.
 
 ---
 
-# 10. QUICK REFERENCE
+# 11. QUICK REFERENCE
 
 Current Admin market button:
 
