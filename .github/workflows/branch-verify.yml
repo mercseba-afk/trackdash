@@ -37,6 +37,14 @@ jobs:
             echo "===== $page ====="
             curl -L -sS "$page" | grep -E -B 8 -A 8 'マンタレイMk|マンタレイＭｋ|Manta' | grep -E 'img|href|マンタ' | head -80 || true
           done
+      - name: Validate exact event-photo URLs
+        run: |
+          for url in \
+            "https://www.tea-league.com/web/tamiyaadv2007026.jpg" \
+            "https://www.tea-league.com/web/jcup20120715039.jpg"; do
+            code=$(curl -L -sS -o /dev/null -w "%{http_code}" "$url" || true)
+            echo "$code $url"
+          done
       - name: Locate Silver Metallic event image
         run: |
           curl -L -sS "https://www.tea-league.com/mt/tea/archives/2010/07/index.php?page=all" -o /tmp/manta2010.html
