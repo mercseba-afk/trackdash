@@ -37,6 +37,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "www.tea-league.com",
+        pathname: "/web/**",
+      },
+      {
+        protocol: "https",
         hostname: "d7z22c0gz59ng.cloudfront.net",
         pathname: "/japan_contents/img/**",
       },
