@@ -226,22 +226,23 @@ ok("marketplace and retail offer freshness is bounded", () => {
   const now = new Date("2026-09-10T12:00:00Z")
   const offers = [
     { stableId: "m-fresh", sourceId: "ebay", channel: "marketplace", availability: "in_stock", itemPriceEUR: 20, observedAt: "2026-09-07T12:00:00Z" },
-    { stableId: "m-stale", sourceId: "ebay", channel: "marketplace", availability: "in_stock", itemPriceEUR: 21, observedAt: "2026-09-05T12:00:00Z" },
+    { stableId: "m-stale", sourceId: "ebay", channel: "marketplace", availability: "in_stock", itemPriceEUR: 21, observedAt: "2026-08-25T12:00:00Z" },
     { stableId: "r-fresh", sourceId: "shop", channel: "retail", availability: "in_stock", itemPriceEUR: 18, observedAt: "2026-09-03T12:00:00Z" },
-    { stableId: "r-stale", sourceId: "shop2", channel: "retail", availability: "in_stock", itemPriceEUR: 19, observedAt: "2026-09-01T12:00:00Z" },
+    { stableId: "r-stale", sourceId: "shop2", channel: "retail", availability: "in_stock", itemPriceEUR: 19, observedAt: "2026-08-09T12:00:00Z" },
   ]
   const fresh = filterFreshCurrentOffers(offers, now).map((offer) => offer.stableId)
   assert.deepEqual(fresh.sort(), ["m-fresh", "r-fresh"])
 })
 
-ok("scan cadence stays inside freshness windows", () => {
+ok("scan cadence stays inside the slow-market freshness windows", () => {
   const now = "2026-09-10T12:00:00Z"
-  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "hot", now }).intervalHours, 24)
-  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now }).intervalHours, 72)
-  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "cold", now }).intervalHours, 72)
-  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now }).intervalHours, 168)
-  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "cold", now }).intervalHours, 168)
-  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now }).intervalHours, 336)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "hot", now }).intervalHours, 72)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now }).intervalHours, 168)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "cold", now }).intervalHours, 336)
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "hot", now }).intervalHours, 168)
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now }).intervalHours, 336)
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "cold", now }).intervalHours, 720)
+  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now }).intervalHours, 720)
 })
 
 console.log(`${passed} passed, 0 failed`)
