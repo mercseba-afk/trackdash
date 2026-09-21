@@ -786,3 +786,7 @@ Solo dopo dichiarare la famiglia completata.
 L'obiettivo TrackDash non è né inventare prezzi né essere così rigido da non pubblicare mai nulla.
 L'obiettivo è:
 **usare il massimo dell'evidenza reale disponibile, distinguendo chiaramente osservazione, storia e stima.**
+
+---
+
+**Repository gate note — 2026-09-21:** family work is not complete until the full `pnpm verify` gate passes on the exact code intended for `main`.
