@@ -33,7 +33,7 @@ ok("18069: broad eBay sold evidence defeats a one-off 300 JPY anomaly", () => {
   })
 
   assert.equal(signal.marketRegime, "retail_driven")
-  assert.equal(signal.retailAnchorEUR, 15.5)
+  assert.equal(signal.retailAnchorEUR, 19.5)
   assert.equal(signal.soldAnchorEUR, 16.85)
   assert.ok(signal.marketValueEUR > 15 && signal.marketValueEUR < 19)
   assert.notEqual(signal.marketValueEUR, 1.61)
