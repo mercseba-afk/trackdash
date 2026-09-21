@@ -1281,12 +1281,10 @@ const SEEDS: Seed[] = [
     ],
   },
   {
-    // Legacy Family Audit 2026-09-21: rebuilt end-to-end under
-    // docs/FAMILY_COMPLETION_MASTER.md. Existing releaseSeedKeys 1-7 are
-    // deliberately preserved/repurposed where necessary so live Collection
-    // references keep their stable UUIDs while factual Release identity is
-    // corrected. Different Tamiya Item Numbers remain separate Releases;
-    // repeated production under the same Item/JAN/spec stays one Release.
+    // Legacy Family Audit 2026-09-21, rebuilt under FAMILY_COMPLETION_MASTER.
+    // Stable Production UUIDs remain attached to their real Releases. A legacy
+    // Collection copy that currently points at 95425 is migrated to the already
+    // existing canonical 94692 Release UUID rather than rewriting Release identity.
     seedKey: "avante-mk3",
     item: "18626",
     code: "95201",
@@ -1297,51 +1295,32 @@ const SEEDS: Seed[] = [
     originalYear: 2008,
     rarity: "Uncommon",
     estimatedMsrpJPY: 1100,
-    desc: "The third-generation Avante PRO family, spanning the Azure/Nero originals, limited colour and collaboration editions, regional specials, reissues and later advanced packs.",
+    desc: "The third-generation Avante PRO family, spanning Azure/Nero originals, finished models, a competition pack, colour and collaboration editions, regional specials, reissues and modern advanced packs.",
     releases: [
       { releaseSeedKey: "1", type: "Original", name: "Avante Mk.III Azure", year: 2008, releaseDate: "2008-09-06", item: "18626", chassis: "MS", color: "Light Blue", rarity: "Common", original: true, verificationStatus: "verified" },
       { releaseSeedKey: "2", type: "Original", name: "Avante Mk.III Nero", year: 2008, releaseDate: "2008-09-27", item: "18627", chassis: "MS", color: "Black", rarity: "Common", verificationStatus: "verified" },
-
-      // Keep seed key 3 / UUID stable because this Release already owns
-      // historical SOLD evidence in TrackDash.
-      { releaseSeedKey: "3", type: "Japan Cup Edition", name: "Avante Mk.III Japan Cup 2015 Limited Edition", year: 2015, releaseDate: "2015-07-11", item: "95087", chassis: "MA", color: "Magenta", rarity: "Uncommon", verificationStatus: "verified" },
-
-      // IMPORTANT legacy identity correction: this UUID used to be labelled
-      // 95425/2018. A live Collection copy physically owned by the user is
-      // the earlier 94692/2009 kit. Correcting the Release in place preserves
-      // purchase data/photos/sharing while fixing the physical identity.
-      { releaseSeedKey: "4", type: "Color Special", name: "Avante Mk.III Red Special", year: 2009, releaseDate: "2009-06-27", item: "94692", chassis: "MS", color: "Red", verifiedJAN: "4950344946921", rarity: "Rare", verificationStatus: "verified" },
-
-      // Same preservation approach for the original White Special; the later
-      // 95469 re-release receives its own new stable key below.
-      { releaseSeedKey: "5", type: "Color Special", name: "Avante Mk.III White Special", year: 2010, releaseDate: "2010-01-30", item: "94715", chassis: "MS", color: "White", rarity: "Rare", verificationStatus: "verified" },
-
-      { releaseSeedKey: "6", type: "Clear Body", name: "Avante Mk.III Azure Clear Special (Polycarbonate Body)", year: 2010, releaseDate: "2010-10-02", item: "94741", chassis: "MS", color: "Clear/Azure", rarity: "Rare", verificationStatus: "verified" },
-
-      // One collector Release: item 95464 first appears as the 2018 re-release
-      // and Tamiya later records a 2023-11-11 production/on-sale wave under
-      // the same identity. No reliable physical discriminator is documented.
-      { releaseSeedKey: "7", type: "Reissue", name: "Avante Mk.III Azure Clear Special", year: 2018, releaseDate: "2018-12-22", item: "95464", chassis: "MS", color: "Clear/Azure", verifiedJAN: "4950344954643", rarity: "Uncommon", verificationStatus: "verified", notes: "Single collector Release for ITEM 95464. First documented commercial release: 2018-12-22. Tamiya later records a 2023-11-11 production/on-sale wave under the same Item/specification; TrackDash keeps it unified because no reliable physical discriminator is documented." },
-
       { releaseSeedKey: "8", type: "Other", name: "Avante Mk.III Azure Finished Model", year: 2008, releaseDate: "2008-12-20", item: "94673", chassis: "MS", color: "Light Blue", rarity: "Rare", verificationStatus: "verified", notes: "Factory-finished model / completed-kit release." },
       { releaseSeedKey: "9", type: "Other", name: "Avante Mk.III Nero Finished Model", year: 2008, releaseDate: "2008-12-20", item: "94674", chassis: "MS", color: "Black", rarity: "Rare", verificationStatus: "verified", notes: "Factory-finished model / completed-kit release." },
-      { releaseSeedKey: "10", type: "Special Edition", name: "Avante Mk.III Azure EVA-01 Special", year: 2009, releaseDate: "2009-09-19", item: "92207", chassis: "MS", color: "Dark Violet", rarity: "Very Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "11", type: "Special Edition", name: "Avante Mk.III Azure EVA-01 Awakening Version", year: 2010, releaseDate: "2010-01-30", item: "92218", chassis: "MS", color: "Dark Violet", verifiedJAN: "4950344922185", rarity: "Very Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "12", type: "Special Edition", name: "Avante Mk.III Azure Tohoku Rakuten Golden Eagles Home Color Edition", year: 2010, releaseDate: "2010-01-30", item: "92219", chassis: "MS", color: "White/Red", rarity: "Very Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "13", type: "Special Edition", name: "Avante Mk.III Azure Tohoku Rakuten Golden Eagles Mr. Carrasco Edition", year: 2010, releaseDate: "2010-01-30", item: "92221", chassis: "MS", color: "Black/Purple", rarity: "Very Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "14", type: "Clear Body", name: "Avante Mk.III Azure Clear Blue Special", year: 2010, releaseDate: "2010-07-31", item: "94777", chassis: "MS", color: "Clear Blue", rarity: "Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "15", type: "Clear Body", name: "Avante Mk.III Nero Clear Violet Special", year: 2013, releaseDate: "2013-06-15", item: "94951", chassis: "MS", color: "Clear Violet", rarity: "Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "16", type: "Anniversary Edition", name: "Avante Mk.III Nero Stargek 10th Anniversary Special", year: 2014, item: "92284", chassis: "MA", color: "Smoke", rarity: "Very Rare", verificationStatus: "verified" },
-
-      { releaseSeedKey: "17", type: "Reissue", name: "Avante Mk.III Red Special (2018 Re-release)", year: 2018, releaseDate: "2018-12-01", item: "95425", chassis: "MS", color: "Red", rarity: "Uncommon", verificationStatus: "verified" },
-      { releaseSeedKey: "18", type: "Reissue", name: "Avante Mk.III White Special (2019 Re-release)", year: 2019, releaseDate: "2019-03-23", item: "95469", chassis: "MS", color: "White", verifiedJAN: "4950344954698", rarity: "Uncommon", discontinued: true, productionStatus: "discontinued", statusCheckedAt: "2026-09-21", verificationStatus: "verified" },
-
-      { releaseSeedKey: "19", type: "Anniversary Edition", name: "Avante Mk.III Tamiya Korea 25th Anniversary Special", year: 2020, releaseDate: "2020-12-09", item: "92422", chassis: "MS", color: "Smoke/Red", verifiedJAN: "4950344924226", rarity: "Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "20", type: "Anniversary Edition", name: "Avante Mk.III Tamiya Korea 25th Anniversary Special Ver.2", year: 2021, releaseDate: "2021-07-14", item: "92428", chassis: "MS", color: "Fluorescent", rarity: "Rare", verificationStatus: "verified" },
-      { releaseSeedKey: "21", type: "Special Edition", name: "Avante Mk.III Azure Tamiya Plamodel Factory Hong Kong Special", year: 2021, item: "92430", chassis: "MS", color: "Carbon Pattern/Black", rarity: "Very Rare", verificationStatus: "verified", notes: "Hong Kong store-exclusive release; month documented as August 2021, exact day not asserted." },
-
-      { releaseSeedKey: "22", type: "Special Edition", name: "Avante Mk.III Nero Advanced Pack", year: 2025, releaseDate: "2025-10-11", item: "18662", chassis: "MS", color: "Black", verifiedJAN: "4950344186624", rarity: "Common", productionStatus: "active", statusCheckedAt: "2026-09-21", verificationStatus: "verified" },
-      { releaseSeedKey: "23", type: "Special Edition", name: "Avante Mk.III Nero Tamiya Korea Mini 4WD Cup 2026", year: 2026, releaseDate: "2026-07-04", item: "92470", chassis: "MS", color: "Clear Pink/White", rarity: "Uncommon", productionStatus: "active", statusCheckedAt: "2026-09-21", verificationStatus: "verified", notes: "Tamiya Korea exclusive item for the 2026 Korea Mini 4WD Cup." },
+      { releaseSeedKey: "10", type: "Color Special", name: "Avante Mk.III Red Special", year: 2009, releaseDate: "2009-06-27", item: "94692", chassis: "MS", color: "Red", verifiedJAN: "4950344946921", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "11", type: "Special Edition", name: "Avante Mk.III Azure EVA-01 Special", year: 2009, releaseDate: "2009-09-19", item: "92207", chassis: "MS", color: "Dark Violet", rarity: "Very Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "12", type: "Color Special", name: "Avante Mk.III White Special", year: 2010, releaseDate: "2010-01-30", item: "94715", chassis: "MS", color: "White", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "13", type: "Special Edition", name: "Avante Mk.III Azure EVA-01 Awakening Version", year: 2010, releaseDate: "2010-01-30", item: "92218", chassis: "MS", color: "Dark Violet", verifiedJAN: "4950344922185", rarity: "Very Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "14", type: "Special Edition", name: "Avante Mk.III Azure Tohoku Rakuten Golden Eagles Home Color Edition", year: 2010, releaseDate: "2010-01-30", item: "92219", chassis: "MS", color: "White/Red", rarity: "Very Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "15", type: "Special Edition", name: "Avante Mk.III Azure Tohoku Rakuten Golden Eagles Mr. Carrasco Edition", year: 2010, releaseDate: "2010-01-30", item: "92221", chassis: "MS", color: "Black/Purple", rarity: "Very Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "16", type: "Clear Body", name: "Avante Mk.III Azure Clear Blue Special", year: 2010, releaseDate: "2010-07-31", item: "94777", chassis: "MS", color: "Clear Blue", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "6", type: "Clear Body", name: "Avante Mk.III Azure Clear Special (Polycarbonate Body)", year: 2010, releaseDate: "2010-10-02", item: "94741", chassis: "MS", color: "Clear/Azure", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "17", type: "Special Edition", name: "Avante Mk.III Competition Pack", year: 2010, releaseDate: "2010-11-13", item: "94772", chassis: "MS", color: "Dark Blue/Light Blue", verifiedJAN: "4950344947720", rarity: "Rare", verificationStatus: "verified", notes: "Limited competition pack with Torque-Tuned Motor PRO and race-oriented Grade-Up Parts." },
+      { releaseSeedKey: "18", type: "Clear Body", name: "Avante Mk.III Nero Clear Violet Special", year: 2013, releaseDate: "2013-06-15", item: "94951", chassis: "MS", color: "Clear Violet", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "19", type: "Anniversary Edition", name: "Avante Mk.III Nero Stargek 10th Anniversary Special", year: 2014, item: "92284", chassis: "MA", color: "Smoke", verifiedJAN: "4950344922840", rarity: "Very Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "3", type: "Japan Cup Edition", name: "Avante Mk.III Japan Cup 2015 Limited Edition", year: 2015, releaseDate: "2015-07-11", item: "95087", chassis: "MA", color: "Magenta", rarity: "Uncommon", verificationStatus: "verified" },
+      { releaseSeedKey: "4", type: "Reissue", name: "Avante Mk.III Red Special (2018 Re-release)", year: 2018, releaseDate: "2018-12-01", item: "95425", chassis: "MS", color: "Red", rarity: "Uncommon", verificationStatus: "verified" },
+      { releaseSeedKey: "7", type: "Reissue", name: "Avante Mk.III Azure Clear Special (2018 Re-release)", year: 2018, releaseDate: "2018-12-22", item: "95464", chassis: "MS", color: "Clear/Azure", verifiedJAN: "4950344954643", rarity: "Uncommon", verificationStatus: "verified", notes: "Single collector Release for ITEM 95464. Tamiya later records a 2023-11-11 production/on-sale wave under the same identity; no reliable physical discriminator is documented, so TrackDash does not split the wave." },
+      { releaseSeedKey: "5", type: "Reissue", name: "Avante Mk.III White Special (2019 Re-release)", year: 2019, releaseDate: "2019-03-23", item: "95469", chassis: "MS", color: "White", verifiedJAN: "4950344954698", rarity: "Uncommon", discontinued: true, productionStatus: "discontinued", statusCheckedAt: "2026-09-21", verificationStatus: "verified" },
+      { releaseSeedKey: "20", type: "Anniversary Edition", name: "Avante Mk.III Tamiya Korea 25th Anniversary Special", year: 2020, releaseDate: "2020-12-09", item: "92422", chassis: "MS", color: "Smoke/Red", verifiedJAN: "4950344924226", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "21", type: "Anniversary Edition", name: "Avante Mk.III Tamiya Korea 25th Anniversary Special Ver.2", year: 2021, releaseDate: "2021-07-14", item: "92428", chassis: "MS", color: "Fluorescent", rarity: "Rare", verificationStatus: "verified" },
+      { releaseSeedKey: "22", type: "Special Edition", name: "Avante Mk.III Azure Tamiya Plamodel Factory Hong Kong Special", year: 2021, item: "92430", chassis: "MS", color: "Carbon Pattern/Black", rarity: "Very Rare", verificationStatus: "verified", notes: "Hong Kong store-exclusive release; month documented as August 2021, exact day intentionally unset." },
+      { releaseSeedKey: "23", type: "Special Edition", name: "Avante Mk.III Nero Advanced Pack", year: 2025, releaseDate: "2025-10-11", item: "18662", chassis: "MS", color: "Black", verifiedJAN: "4950344186624", rarity: "Common", productionStatus: "active", statusCheckedAt: "2026-09-21", verificationStatus: "verified" },
+      { releaseSeedKey: "24", type: "Special Edition", name: "Avante Mk.III Nero Tamiya Korea Mini 4WD Cup 2026", year: 2026, releaseDate: "2026-07-04", item: "92470", chassis: "MS", color: "Clear Pink/White", rarity: "Uncommon", productionStatus: "active", statusCheckedAt: "2026-09-21", verificationStatus: "verified", notes: "Tamiya Korea exclusive item for the 2026 Korea Mini 4WD Cup." },
     ],
   }
 ]
@@ -1458,46 +1437,36 @@ const KNOWN_SOURCES: Record<string, ReleaseSourceSeed[]> = {
     { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95450/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "color"], checkedAt: "2026-09-06", notes: "This item was ORIGINALLY (incorrectly) attached to the Proto Emperor ZX product in this catalog; confirmed this pass to belong to Dash-X1 Proto-Emperor instead -- see the Catalog Integrity Hardening pass and this Product's own header comment." },
     { sourceType: "trusted_secondary", sourceUrl: "https://mini-4wd.fandom.com/wiki/Dash-X1_Proto-Emperor", verifiedFields: ["releaseDate", "releaseYear"], checkedAt: "2026-09-07", notes: "Fandom wiki's structured release table independently states January 12, 2019 for item 95450 -- matches the official page exactly." },
   ],
-  "avante-mk3:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18626/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18627/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "color"], checkedAt: "2026-09-21" }],
-  "avante-mk3:3": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95087/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:4": [
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" },
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.com/tamiya-94692-avante-mkiii-red-special-p-90012922.html", verifiedFields: ["itemNumber", "editionName"], checkedAt: "2026-09-21" },
+  "avante-mk3:1": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18626/index.html", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:2": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18627/index.html", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName","color"], checkedAt: "2026-09-21" }],
+  "avante-mk3:3": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95087/index.html", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:4": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95425/index.html", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:5": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95469/index.html", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName","productionStatus"], checkedAt: "2026-09-21" }],
+  "avante-mk3:6": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.co.uk/tamiya-94741-132-avante-mkiii-azure-clear-special-polycarbonate-body-p-90022521.html", verifiedFields: ["itemNumber","chassis","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:7": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95464/index.html", verifiedFields: ["itemNumber","chassis","editionName"], checkedAt: "2026-09-21", notes: "Same identity later received a 2023-11-11 production/on-sale wave." }],
+  "avante-mk3:8": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:9": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:10": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.com/tamiya-94692-avante-mkiii-red-special-p-90012922.html", verifiedFields: ["itemNumber","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:11": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.suruga-ya.jp/product/detail/603006058", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:12": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:13": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.suruga-ya.jp/product/detail/603011900", verifiedFields: ["itemNumber","jan","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:14": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:15": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:16": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:17": [
+    { sourceType: "official_catalog_pdf", sourceUrl: "https://d7z22c0gz59ng.cloudfront.net/cms/japan/mini4wd/jr_news/jr_news11/pdf/000127.pdf", verifiedFields: ["itemNumber","editionName"], checkedAt: "2026-09-21" },
+    { sourceType: "trusted_secondary", sourceUrl: "https://www.tea-league.com/mt/tea/archives/2010/11/mkiii_11.html", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName","chassis"], checkedAt: "2026-09-21" },
+    { sourceType: "trusted_secondary", sourceUrl: "https://www.1999.co.jp/10127350", verifiedFields: ["itemNumber","jan"], checkedAt: "2026-09-21" },
   ],
-  "avante-mk3:5": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:6": [
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" },
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.co.uk/tamiya-94741-132-avante-mkiii-azure-clear-special-polycarbonate-body-p-90022521.html", verifiedFields: ["itemNumber", "chassis", "editionName"], checkedAt: "2026-09-21" },
-  ],
-  "avante-mk3:7": [
-    { sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95464/index.html", verifiedFields: ["itemNumber", "chassis", "editionName"], checkedAt: "2026-09-21", notes: "Official page records the later 2023-11-11 production/on-sale wave under the same ITEM 95464 identity." },
-    { sourceType: "trusted_secondary", sourceUrl: "https://product.rakuten.co.jp/product/-/726ba4f4958649aded5caff160afb326/", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "jan"], checkedAt: "2026-09-21", notes: "Structured retail record documents ITEM 95464 release 2018-12-22 and JAN 4950344954643." },
-  ],
-  "avante-mk3:8": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:9": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:10": [
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" },
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.suruga-ya.jp/product/detail/603006058", verifiedFields: ["itemNumber", "editionName"], checkedAt: "2026-09-21" },
-  ],
-  "avante-mk3:11": [
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.suruga-ya.jp/product/detail/603011900", verifiedFields: ["itemNumber", "jan", "editionName"], checkedAt: "2026-09-21" },
-    { sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["releaseDate", "releaseYear"], checkedAt: "2026-09-21" },
-  ],
-  "avante-mk3:12": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:13": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:14": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:15": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:16": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.co.nz/tamiya-92284-mini-4wd-stargek-10th-anniversary-special-avante-mkiii-nero-ma-chassis-p-90067482.html", verifiedFields: ["itemNumber", "editionName", "chassis"], checkedAt: "2026-09-21" }],
-  "avante-mk3:17": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95425/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName"], checkedAt: "2026-09-21" }],
-  "avante-mk3:18": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/95469/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "productionStatus"], checkedAt: "2026-09-21" }],
-  "avante-mk3:19": [{ sourceType: "trusted_secondary", sourceUrl: "https://hongta.co.kr/product/92422-%EC%95%84%EB%B0%98%ED%85%8C-%EB%A7%88%ED%81%AC3-%ED%95%9C%EA%B5%AD%ED%83%80%EB%AF%B8%EC%95%BC-25%EC%A3%BC%EB%85%84-%EC%8A%A4%ED%8E%98%EC%85%9C-%EB%B2%84%EC%A0%84/2306/", verifiedFields: ["itemNumber", "editionName", "image"], checkedAt: "2026-09-21" }],
-  "avante-mk3:20": [{ sourceType: "trusted_secondary", sourceUrl: "https://hongta.co.kr/product/92428-%EC%95%84%EB%B0%98%ED%85%8C-%EB%A7%88%ED%81%AC3-%ED%95%9C%EA%B5%AD%ED%83%80%EB%AF%B8%EC%95%BC-25%EC%A3%BC%EB%85%84-%EC%8A%A4%ED%8E%98%EC%85%9C-%EB%B2%84%EC%A0%84-2/2446/", verifiedFields: ["itemNumber", "editionName", "image"], checkedAt: "2026-09-21" }],
-  "avante-mk3:21": [{ sourceType: "trusted_secondary", sourceUrl: "https://tamiyablog.com/2021/08/tamiya-92429-thunder-shot-mk-ii-waigo-hobby-45th-anniversary-special-92430-avante-mk-iii-azure-tamiya-plamodel-factory-hong-kong-special/", verifiedFields: ["itemNumber", "editionName", "chassis", "releaseYear"], checkedAt: "2026-09-21", notes: "Article attributes the release information to Tamiya HK." }],
-  "avante-mk3:22": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18662/index.html", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "productionStatus"], checkedAt: "2026-09-21" }],
-  "avante-mk3:23": [
-    { sourceType: "official_manufacturer", sourceUrl: "https://pf.kakao.com/_xbXxcxkj/113813574", verifiedFields: ["itemNumber", "chassis", "releaseDate", "releaseYear", "editionName", "productionStatus"], checkedAt: "2026-09-21", notes: "Tamiya Korea official channel announces 2026-07-04 nationwide release and identifies it as a Korea-exclusive item." },
-    { sourceType: "official_manufacturer", sourceUrl: "https://tamiya.hk/product/tamiya-92470-1-32-mini-4wd-avante-mk-iii-fighting-nero-tamiya-korea-mini-4wd-cup-2026-ms-chassis/", verifiedFields: ["itemNumber", "chassis", "editionName"], checkedAt: "2026-09-21" },
+  "avante-mk3:18": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.jokerteam.it/wp-content/uploads/2018/01/Mini-4wd-Avante-History.pdf", verifiedFields: ["itemNumber","releaseDate","releaseYear","editionName"], checkedAt: "2026-09-21" }],
+  "avante-mk3:19": [{ sourceType: "trusted_secondary", sourceUrl: "https://www.rcjaz.co.nz/tamiya-92284-mini-4wd-stargek-10th-anniversary-special-avante-mkiii-nero-ma-chassis-p-90067482.html", verifiedFields: ["itemNumber","editionName","chassis"], checkedAt: "2026-09-21" }],
+  "avante-mk3:20": [{ sourceType: "trusted_secondary", sourceUrl: "https://hongta.co.kr/product/92422-%EC%95%84%EB%B0%98%ED%85%8C-%EB%A7%88%ED%81%AC3-%ED%95%9C%EA%B5%AD%ED%83%80%EB%AF%B8%EC%95%BC-25%EC%A3%BC%EB%85%84-%EC%8A%A4%ED%8E%98%EC%85%9C-%EB%B2%84%EC%A0%84/2306/", verifiedFields: ["itemNumber","editionName","image"], checkedAt: "2026-09-21" }],
+  "avante-mk3:21": [{ sourceType: "trusted_secondary", sourceUrl: "https://hongta.co.kr/product/92428-%EC%95%84%EB%B0%98%ED%85%8C-%EB%A7%88%ED%81%AC3-%ED%95%9C%EA%B5%AD%ED%83%80%EB%AF%B8%EC%95%BC-25%EC%A3%BC%EB%85%84-%EC%8A%A4%ED%8E%98%EC%85%9C-%EB%B2%84%EC%A0%84-2/2446/", verifiedFields: ["itemNumber","editionName","image"], checkedAt: "2026-09-21" }],
+  "avante-mk3:22": [{ sourceType: "trusted_secondary", sourceUrl: "https://tamiyablog.com/2021/08/tamiya-92429-thunder-shot-mk-ii-waigo-hobby-45th-anniversary-special-92430-avante-mk-iii-azure-tamiya-plamodel-factory-hong-kong-special/", verifiedFields: ["itemNumber","editionName","chassis","releaseYear"], checkedAt: "2026-09-21" }],
+  "avante-mk3:23": [{ sourceType: "official_manufacturer", sourceUrl: "https://www.tamiya.com/japan/products/18662/index.html", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName","productionStatus"], checkedAt: "2026-09-21" }],
+  "avante-mk3:24": [
+    { sourceType: "official_manufacturer", sourceUrl: "https://pf.kakao.com/_xbXxcxkj/113813574", verifiedFields: ["itemNumber","chassis","releaseDate","releaseYear","editionName","productionStatus"], checkedAt: "2026-09-21" },
+    { sourceType: "official_manufacturer", sourceUrl: "https://tamiya.hk/product/tamiya-92470-1-32-mini-4wd-avante-mk-iii-fighting-nero-tamiya-korea-mini-4wd-cup-2026-ms-chassis/", verifiedFields: ["itemNumber","chassis","editionName"], checkedAt: "2026-09-21" },
   ],
 }
 
