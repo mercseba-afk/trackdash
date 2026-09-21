@@ -28,6 +28,21 @@ Same Item + same JAN + same specification + no reliable physical discriminator =
 
 Different Item Numbers or a reliable physical discriminator = distinct collector Releases.
 
+## Legacy Family Audit
+
+Families created before this Master are not blindly rebuilt from zero.
+
+For each legacy family:
+1. read the canonical DB/runtime state and all existing Release references;
+2. reconstruct the real family genealogy against current evidence;
+3. preserve every stable Release UUID that already represents the correct physical Release;
+4. when a legacy identity is wrong, migrate only the affected Collection/Wishlist/market references to the verified canonical Release without losing user data;
+5. keep correct existing images, sources and market evidence; replace only incorrect or non-exact data;
+6. run the missing Master phases: image audit, status/rarity, Initial Market Scan where absent/stale, recompute, Production QA and cron enrollment;
+7. verify Catalog, Release pages, Collection, scanner and PWA all resolve the same canonical Release after the correction.
+
+A legacy audit is complete only when the current family satisfies the same Completion Gate as a newly inserted family.
+
 ## Images
 
 Exact Release image first. If no exact attributable asset is found after a real audit, store no sibling image and document the intentional placeholder.

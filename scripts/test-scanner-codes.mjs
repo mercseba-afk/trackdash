@@ -102,6 +102,25 @@ t(
     aeroMantaInternational.release?.itemNumber === "18703",
 )
 
+
+const avanteRed2009 = findByCode("94692")
+t("Avante Mk.III 94692 resolves the original 2009 Red Special",
+  avanteRed2009?.product?.name === "Avante Mk.III" &&
+  avanteRed2009.release?.itemNumber === "94692" &&
+  avanteRed2009.release?.releaseYear === 2009)
+
+const avanteRed2018 = findByCode("95425")
+t("Avante Mk.III 95425 resolves the distinct 2018 Red Special re-release",
+  avanteRed2018?.product?.name === "Avante Mk.III" &&
+  avanteRed2018.release?.itemNumber === "95425" &&
+  avanteRed2018.release?.releaseYear === 2018)
+
+const avanteKorea2026 = findByCode("92470")
+t("Avante Mk.III 92470 resolves the Korea Mini 4WD Cup 2026 release",
+  avanteKorea2026?.product?.name === "Avante Mk.III" &&
+  avanteKorea2026.release?.itemNumber === "92470" &&
+  avanteKorea2026.release?.releaseYear === 2026)
+
 console.log(`${pass} passed, ${fail} failed`)
 if (fail > 0) process.exit(1)
 console.log("SCANNER CODE TEST PASSED")
