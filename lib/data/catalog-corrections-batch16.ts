@@ -1,11 +1,6 @@
 import type { Product, ProductRelease, ReleaseSource } from "@/lib/types"
 
 const PRODUCT_ID = "ecf91fb1-bf53-5201-a128-95edd99f3f71"
-const IMG_18703 = "https://www.tamiya.com/japan_contents/img/usr/item/1/18703/18703_1.jpg"
-const IMG_95031 = "https://www.tamiyausa.com/media/CACHE/images/products/jr-aero-manta-ray-japan-cup-2014-limited-edition-1-ef78/877d875180598b82f3a0bfb8f2541cbf.jpg"
-const IMG_95295 = "https://www.tamiya.com/japan_contents/img/usr/item/1/95295/95295_1.jpg"
-const IMG_95419 = "https://www.tamiya.com/japan_contents/img/usr/item/1/95419/95419_1.jpg"
-
 function source(
   id: string,
   releaseId: string,
@@ -41,7 +36,7 @@ const AERO_MANTA_RAY: Product = {
   rarity: "Uncommon",
   description:
     "Third model in Tamiya's Mini 4WD REV line, introduced in 2013 on the AR chassis. TrackDash keeps the original, color specials, Japan Cup edition and later reissue as distinct Releases.",
-  images: [IMG_18703],
+  images: [],
   canonicalReleaseId: "bd0b1e12-3212-592f-ac56-5337760dcca5",
   hasMultipleReleases: true,
   releases: [
@@ -61,7 +56,6 @@ const AERO_MANTA_RAY: Product = {
       verificationStatus: "verified",
       productionStatus: "active",
       statusCheckedAt: "2026-09-21",
-      images: [IMG_18703],
       notes:
         "Official Tamiya Japan identifies ITEM 18703 and the 2013-03-02 release date. The official Tamiya Shop currently lists the kit and confirms domestic JAN 4950344064502. International GTIN 4950344187034 is intentionally not stored as a second barcode: TrackDash scanner derivation resolves it to ITEM 18703.",
       sources: [
@@ -203,7 +197,6 @@ const AERO_MANTA_RAY: Product = {
       verificationStatus: "verified",
       productionStatus: "discontinued",
       statusCheckedAt: "2026-09-21",
-      images: [IMG_95031],
       sources: [
         source(
           "29fef25d-187f-55f1-84f4-15812259838d",
@@ -238,7 +231,6 @@ const AERO_MANTA_RAY: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "unknown",
-      images: [IMG_95295],
       sources: [
         source(
           "ae89d5e9-dfa2-5029-a3f8-acef5266d004",
@@ -274,7 +266,6 @@ const AERO_MANTA_RAY: Product = {
       verificationStatus: "verified",
       productionStatus: "discontinued",
       statusCheckedAt: "2026-09-21",
-      images: [IMG_95419],
       sources: [
         source(
           "dd57a4e3-87ae-5540-bb20-f4ba36f5470f",
