@@ -326,11 +326,29 @@ function activeAskStats(reps: OfferRepresentative[]): {
   if (!prices.length) return { anchorEUR: null, lowEUR: null, highEUR: null }
 
   let filtered = prices
-  if (prices.length === 3) {
+
+  // Detect a genuine lower acquisition cluster before generic outlier filtering.
+  // This is useful when a few realistically purchasable European offers coexist
+  // with a long tail of aspirational listings. Never let a single cheap listing
+  // form a cluster by itself.
+  if (prices.length >= 4) {
+    for (let index = 1; index < prices.length - 1; index += 1) {
+      const previous = prices[index]
+      const next = prices[index + 1]
+      const lowerCount = index + 1
+      const relativeGap = previous > 0 ? (next - previous) / previous : 0
+      if (lowerCount >= 2 && lowerCount / prices.length >= 0.25 && relativeGap >= 0.35) {
+        filtered = prices.slice(0, lowerCount)
+        break
+      }
+    }
+  }
+
+  if (filtered === prices && prices.length === 3) {
     const center = median(prices)
     const bounded = prices.filter((value) => value >= center * 0.55 && value <= center * 1.8)
     if (bounded.length >= 2) filtered = bounded
-  } else if (prices.length >= 4) {
+  } else if (filtered === prices && prices.length >= 4) {
     const q1 = quantile(prices, 0.25)
     // For acquisition intelligence, a coherent lower market cluster is more
     // useful than a median pulled upward by long-lived fantasy listings.
