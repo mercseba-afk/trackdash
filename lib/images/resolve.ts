@@ -19,25 +19,17 @@ function firstImage(images: string[] | undefined): string | null {
 
 /**
  * Resolves the image for a specific RELEASE. Priority:
- *   1. This release's own image (release_images)
- *   2. The parent product's generic image (product_images)
- *   3. null — caller should show the placeholder
+ *   1. This release's own exact image (release_images)
+ *   2. null — caller should show the placeholder
  *
- * Deliberately does NOT fall back to a sibling release's image (see
- * resolveProductImageUrl for where that fallback belongs instead) — doing
- * so here would show a different edition's photo as though it were the
- * specifically selected release, which is misleading precisely because
- * releases of the same product can look genuinely different (see
- * docs/CATALOG_AUDIT.md's note on the Dash-1 Emperor 2026 reissue: its
- * current product page's photo is not evidence of what the original 1990
- * release looked like).
+ * A specific Release must NEVER silently inherit a Product-level or sibling
+ * image. Variants can differ in body colour, plated parts, wheels, stickers
+ * and even chassis. Showing a representative family image as though it were
+ * exact is more misleading than an explicit placeholder.
  */
 export function resolveReleaseImageUrl(release: ProductRelease | null | undefined, product: Product | null | undefined): string | null {
   const releaseImage = firstImage(release?.images)
   if (releaseImage) return releaseImage
-
-  const productImage = firstImage(product?.images)
-  if (productImage) return productImage
 
   return null
 }

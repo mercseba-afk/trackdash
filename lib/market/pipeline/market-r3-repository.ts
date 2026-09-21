@@ -25,6 +25,16 @@ function fail(error: { message?: string } | null, context: string): void {
   if (error) throw new Error(`${context}: ${error.message ?? "unknown Supabase error"}`)
 }
 
+function marketplaceRegionFromOriginalSource(value: unknown): CurrentOfferEvidence["marketRegion"] | null {
+  if (typeof value !== "string") return null
+  const source = value.toUpperCase()
+  if (["EBAY_IT", "EBAY_DE", "EBAY_FR", "EBAY_ES", "EBAY_NL", "EBAY_BE", "EBAY_GB", "EBAY_IE", "EBAY_AT", "EBAY_CH"].includes(source)) return "europe"
+  if (["EBAY_US", "EBAY_CA"].includes(source)) return "north_america"
+  if (source === "EBAY_JP") return "japan"
+  if (["EBAY_AU", "EBAY_SG"].includes(source)) return "asia_pacific"
+  return null
+}
+
 export interface AggregateObservationDraft {
   sourceId: string
   releaseId: string | null
@@ -193,19 +203,29 @@ export class MarketR3Repository {
     if (!(data ?? []).length) return []
 
     const sourceIds = [...new Set((data ?? []).map((row: any) => row.source_id))]
-    const { data: sources, error: sourceError } = await this.client
-      .from("price_sources")
-      .select("id,market_region,merchant_key")
-      .in("id", sourceIds)
+    const candidateIds = [...new Set((data ?? []).map((row: any) => row.candidate_id).filter(Boolean))]
+    const [{ data: sources, error: sourceError }, { data: candidates, error: candidateError }] = await Promise.all([
+      this.client
+        .from("price_sources")
+        .select("id,market_region,merchant_key")
+        .in("id", sourceIds),
+      candidateIds.length
+        ? this.client.from("market_candidates").select("id,original_source").in("id", candidateIds)
+        : Promise.resolve({ data: [], error: null }),
+    ])
     fail(sourceError, "load current market offer source metadata")
+    fail(candidateError, "load current market candidate region metadata")
 
     const sourceMeta = new Map((sources ?? []).map((row: any) => [row.id, row]))
+    const candidateMeta = new Map((candidates ?? []).map((row: any) => [row.id, row]))
     return (data ?? []).map((row: any) => {
       const offer = mapOffer(row)
       const meta: any = sourceMeta.get(row.source_id)
+      const candidate: any = candidateMeta.get(row.candidate_id)
+      const listingRegion = marketplaceRegionFromOriginalSource(candidate?.original_source)
       return {
         ...offer,
-        marketRegion: meta?.market_region ?? "global",
+        marketRegion: listingRegion ?? meta?.market_region ?? "global",
         merchantKey: meta?.merchant_key ?? null,
       }
     })

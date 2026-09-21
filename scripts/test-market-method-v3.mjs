@@ -139,13 +139,14 @@ ok("two strongly split retail regions do not manufacture a global midpoint", () 
   assert.equal(result.marketValueEUR, null)
 })
 
-ok("three regional retail lanes use the region median and resist one cheap region", () => {
+ok("three item-only regional retail lanes remain observed context without manufacturing Market Value", () => {
   const result = publish([], [
     { stableId: "jp", sourceId: "jp", merchantKey: "jp-shop", marketRegion: "japan", channel: "retail", availability: "in_stock", itemPriceEUR: 5.5, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
     { stableId: "eu", sourceId: "eu", merchantKey: "eu-shop", marketRegion: "europe", channel: "retail", availability: "in_stock", itemPriceEUR: 17.7, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
     { stableId: "us", sourceId: "us", merchantKey: "us-shop", marketRegion: "north_america", channel: "retail", availability: "in_stock", itemPriceEUR: 16.2, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
   ])
-  assert.equal(result.marketValueEUR, 16.2)
+  assert.equal(result.retailAnchorEUR, 16.2)
+  assert.equal(result.marketValueEUR, null)
 })
 
 ok("same merchant across two storefronts counts as one retail vote", () => {
@@ -166,7 +167,7 @@ ok("completed sales remain the headline when corroborating retail is available",
     { stableId: "shop-b", sourceId: "shop-b", merchantKey: "shop-b", marketRegion: "europe", channel: "retail", availability: "in_stock", itemPriceEUR: 17.5, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.marketValueEUR, 17.49)
-  assert.equal(result.lowEUR, 17)
+  assert.equal(result.lowEUR, 17.49)
   assert.equal(result.highEUR, 17.49)
 })
 
@@ -176,7 +177,7 @@ ok("active ASK prices never manufacture Market Value", () => {
     { stableId: "ask-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 75, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.activeOfferCount, 2)
-  assert.equal(result.activeAnchorEUR, 55)
+  assert.equal(result.activeAnchorEUR, 60)
   assert.equal(result.marketValueEUR, null)
 })
 

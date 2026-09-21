@@ -93,6 +93,7 @@ export interface MarketSignalDraft {
   soldEvidenceCount: number
   retailRegionCount: number
   retailRegionalSpreadRatio: number | null
+  retailShippingKnownRatio?: number
   shippingKnownRatio: number
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | null
@@ -291,33 +292,79 @@ function buildOfferRepresentatives(offers: CurrentOfferEvidence[]): {
   return { retail, active, current: [...retail, ...active] }
 }
 
+function comparableOfferPrice(rep: OfferRepresentative): number {
+  return rep.effectiveCostEUR ?? rep.itemPriceEUR
+}
+
+function europeFirstPool(reps: OfferRepresentative[]): OfferRepresentative[] {
+  const europe = reps.filter((rep) => rep.marketRegion === "europe")
+  if (europe.length >= 2) return europe
+
+  // When Europe is thin, prefer offers with a known delivered cost before
+  // falling back to item-only prices from other regions. This prevents a cheap
+  // Japanese/US sticker price with unknown shipping from defining Europe.
+  const delivered = reps.filter((rep) => rep.costBasis === "delivered")
+  if (delivered.length >= 2) return delivered
+  return reps
+}
+
 function activeAskStats(reps: OfferRepresentative[]): {
   anchorEUR: number | null
   lowEUR: number | null
   highEUR: number | null
 } {
-  // Active marketplace asks are useful market context, but a single fantasy
-  // listing must not distort the public "typical ask" or range. The cheapest
-  // purchasable item remains handled separately by chooseStartingOffer().
+  // Despite the historical field name, this is now the current observed-market
+  // anchor. It is Europe-first and delivered-cost-first. Higher aspirational
+  // clusters are retained as raw observations but must not dominate the price a
+  // European collector can realistically acquire the Release for.
   if (!reps.length) return { anchorEUR: null, lowEUR: null, highEUR: null }
 
-  const prices = reps.map((rep) => rep.itemPriceEUR).filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b)
+  const pool = europeFirstPool(reps)
+  const prices = pool
+    .map(comparableOfferPrice)
+    .filter((value) => Number.isFinite(value) && value > 0)
+    .sort((a, b) => a - b)
   if (!prices.length) return { anchorEUR: null, lowEUR: null, highEUR: null }
 
   let filtered = prices
-  if (prices.length === 3) {
+
+  // Detect a genuine lower acquisition cluster before generic outlier filtering.
+  // This is useful when a few realistically purchasable European offers coexist
+  // with a long tail of aspirational listings. Never let a single cheap listing
+  // form a cluster by itself.
+  if (prices.length >= 4) {
+    for (let index = 1; index < prices.length - 1; index += 1) {
+      const previous = prices[index]
+      const next = prices[index + 1]
+      const lowerCount = index + 1
+      const relativeGap = previous > 0 ? (next - previous) / previous : 0
+      if (lowerCount >= 2 && lowerCount / prices.length >= 0.25 && relativeGap >= 0.35) {
+        filtered = prices.slice(0, lowerCount)
+        break
+      }
+    }
+  }
+
+  if (filtered === prices && prices.length === 3) {
     const center = median(prices)
-    const bounded = prices.filter((value) => value >= center * 0.5 && value <= center * 2)
+    const bounded = prices.filter((value) => value >= center * 0.55 && value <= center * 1.8)
     if (bounded.length >= 2) filtered = bounded
-  } else if (prices.length >= 4) {
+  } else if (filtered === prices && prices.length >= 4) {
     const q1 = quantile(prices, 0.25)
-    const q3 = quantile(prices, 0.75)
-    const iqr = q3 - q1
-    if (iqr > 0) {
-      const lower = Math.max(0, q1 - 1.5 * iqr)
-      const upper = q3 + 1.5 * iqr
-      const bounded = prices.filter((value) => value >= lower && value <= upper)
-      if (bounded.length >= 2) filtered = bounded
+    // For acquisition intelligence, a coherent lower market cluster is more
+    // useful than a median pulled upward by long-lived fantasy listings.
+    const lower = Math.max(0, q1 * 0.55)
+    const upper = q1 * 1.75
+    const bounded = prices.filter((value) => value >= lower && value <= upper)
+    if (bounded.length >= 3) {
+      filtered = bounded
+    } else {
+      const q3 = quantile(prices, 0.75)
+      const iqr = q3 - q1
+      if (iqr > 0) {
+        const iqrBounded = prices.filter((value) => value >= Math.max(0, q1 - 1.5 * iqr) && value <= q3 + 1.5 * iqr)
+        if (iqrBounded.length >= 2) filtered = iqrBounded
+      }
     }
   }
 
@@ -339,12 +386,18 @@ function retailAnchorStats(reps: OfferRepresentative[]): {
   for (const rep of reps) {
     const region = rep.marketRegion || "global"
     const bucket = byRegion.get(region) ?? []
-    bucket.push(rep.itemPriceEUR)
+    bucket.push(comparableOfferPrice(rep))
     byRegion.set(region, bucket)
   }
 
+  const european = byRegion.get("europe")
   const regionalAnchors = [...byRegion.values()].map((values) => median(values))
-  const anchorEUR = round2(median(regionalAnchors))
+  // Europe is TrackDash's initial public market. When we have a credible
+  // European retail cluster, use it directly; other regions remain supporting
+  // evidence rather than silently pulling the headline toward local prices.
+  const anchorEUR = european && european.length >= 2
+    ? round2(median(european))
+    : round2(median(regionalAnchors))
   const regionalSpreadRatio = regionalAnchors.length >= 2
     ? round2(Math.max(...regionalAnchors) / Math.min(...regionalAnchors))
     : null
@@ -649,6 +702,8 @@ export function computeCurrentMarketSignal(input: {
   const soldEvidenceCount = input.soldEvidence.length
   const shippingKnownCount = offers.current.filter((item) => item.costBasis === "delivered").length
   const shippingKnownRatio = currentOfferCount ? round2(shippingKnownCount / currentOfferCount) : 0
+  const retailShippingKnownCount = offers.retail.filter((item) => item.costBasis === "delivered").length
+  const retailShippingKnownRatio = retailSourceCount ? round2(retailShippingKnownCount / retailSourceCount) : 0
   const regime = deriveRegime(retailSourceCount, activeAnchorEUR, soldAnchorEUR)
 
   const retailReliability = offerReliability(
@@ -712,6 +767,7 @@ export function computeCurrentMarketSignal(input: {
     soldEvidenceCount,
     retailRegionCount: retailStats.regionCount,
     retailRegionalSpreadRatio: retailStats.regionalSpreadRatio,
+    retailShippingKnownRatio,
     shippingKnownRatio,
     trendPercent: trend.percent,
     trendWindowMonths: trend.window,

@@ -33,7 +33,7 @@ ok("18069: broad eBay sold evidence defeats a one-off 300 JPY anomaly", () => {
   })
 
   assert.equal(signal.marketRegime, "retail_driven")
-  assert.equal(signal.retailAnchorEUR, 15.5)
+  assert.equal(signal.retailAnchorEUR, 19.5)
   assert.equal(signal.soldAnchorEUR, 16.85)
   assert.ok(signal.marketValueEUR > 15 && signal.marketValueEUR < 19)
   assert.notEqual(signal.marketValueEUR, 1.61)
@@ -84,8 +84,8 @@ ok("observed price follows the latest fresh observation instead of the cheapest 
     asOfDate: asOf,
   })
 
-  assert.equal(signal.retailAnchorEUR, 15.5)
-  assert.equal(signal.marketValueEUR, 15.5)
+  assert.equal(signal.retailAnchorEUR, 20)
+  assert.equal(signal.marketValueEUR, 20)
   assert.equal(signal.startingOffer.sourceId, "local")
   assert.equal(signal.startingOffer.itemPriceEUR, 18)
   assert.equal(signal.startingOffer.shippingEUR, 0)
@@ -120,6 +120,28 @@ ok("no artificial minimum: one real current source can still produce a market si
 
   assert.equal(signal.marketValueEUR, 24)
   assert.equal(signal.marketRegime, "retail_driven")
+})
+
+ok("Europe-first observed price uses delivered acquisition cluster instead of aspirational tail", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [
+      { stableId: "eu-1", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "a", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 17.21, shippingEUR: 15.77, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-2", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "b", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 17.49, shippingEUR: 16.06, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-3", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "c", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 21.96, shippingEUR: 12.20, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-4", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "d", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 23.26, shippingEUR: 14.87, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-5", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "e", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 31.86, shippingEUR: 28.21, observedAt: "2026-09-09T10:00:00Z" },
+      { stableId: "eu-6", sourceId: "ebay", channel: "marketplace", sellerFingerprint: "f", marketRegion: "europe", availability: "in_stock", itemPriceEUR: 67.54, shippingEUR: 48.22, observedAt: "2026-09-09T10:00:00Z" },
+    ],
+    soldEvidence: [],
+    asOfDate: asOf,
+  })
+
+  // The raw model can calculate an internal blended draft, but the public
+  // publication policy still suppresses Market Value when evidence is only ASK.
+  assert.ok(signal.marketValueEUR > 33 && signal.marketValueEUR < 34.5)
+  assert.equal(signal.activeAnchorEUR, 33.85)
+  assert.equal(signal.activeLowEUR, 32.98)
+  assert.equal(signal.activeHighEUR, 38.13)
 })
 
 ok("monthly sold trend uses complete recent consecutive months and 3-month smoothing", () => {
@@ -184,10 +206,13 @@ ok("aggregate Product Research supersedes granular rows from the same source", (
   assert.equal(selected.some((row) => row.stableId === "yahoo-1"), true)
 })
 
-ok("scanner defaults are staggered: 7d retail, 3d active marketplace, 14d sold", () => {
-  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 168)
-  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 72)
-  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 336)
+ok("scanner defaults are staggered for the slow Mini 4WD market", () => {
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 336)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 168)
+  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "normal", now: "2026-09-09T12:00:00Z" }).intervalHours, 720)
+  assert.equal(nextScanSchedule({ scope: "active_marketplace", activityTier: "hot", now: "2026-09-09T12:00:00Z" }).intervalHours, 72)
+  assert.equal(nextScanSchedule({ scope: "retail", activityTier: "cold", now: "2026-09-09T12:00:00Z" }).intervalHours, 720)
+  assert.equal(nextScanSchedule({ scope: "sold_research", activityTier: "cold", now: "2026-09-09T12:00:00Z" }).intervalHours, 1440)
 })
 
 ok("Product Research batch is capped independently", () => {

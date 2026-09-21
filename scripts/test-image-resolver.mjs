@@ -8,7 +8,7 @@
 //   (or: pnpm images:test)
 //
 // Policy (docs/IMAGES_MVP.md):
-//   specific release: exact release image -> product image -> placeholder
+//   specific release: exact release image -> placeholder
 //   generic product:  product image -> suitable release image -> placeholder
 //   NEVER release A -> release B for a specifically-selected release.
 import { register } from "node:module"
@@ -54,11 +54,11 @@ function makeProduct({ productImages = [], releases = [] }) {
   t("B: resolveDisplayImageUrl(release) uses the release's own image", resolveDisplayImageUrl(p, rel) === RELEASE_IMG)
 }
 
-// --- Case C: release with NO exact image, but product HAS one ---
+// --- Case C: release with NO exact image, even if product HAS one ---
 {
   const rel = { images: [] }
   const p = makeProduct({ productImages: [PRODUCT_IMG], releases: [rel] })
-  t("C: imageless release falls back to the PRODUCT image", resolveReleaseImageUrl(rel, p) === PRODUCT_IMG)
+  t("C: imageless release does NOT inherit the PRODUCT image", resolveReleaseImageUrl(rel, p) === null)
 }
 
 // --- Case D: no image anywhere -> null (placeholder) ---
