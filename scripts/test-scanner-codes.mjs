@@ -68,6 +68,40 @@ for (const [itemNumber, barcode, year] of mantaNumbered) {
   }
 }
 
+const aeroMantaNumbered = [
+  ["18703", "4950344064502", 2013],
+  ["94972", "4950344949724", 2013],
+  ["94989", "4950344963195", 2013],
+  ["94991", "4950344963218", 2013],
+  ["95031", "4950344950317", 2014],
+  ["95295", "4950344952953", 2017],
+  ["95419", "4950344954193", 2018],
+]
+
+for (const [itemNumber, barcode, year] of aeroMantaNumbered) {
+  const byItem = findByCode(itemNumber)
+  t(
+    `Aero Manta Ray ${itemNumber} resolves exact release`,
+    byItem?.product?.name === "Aero Manta Ray" &&
+      byItem.release?.itemNumber === itemNumber &&
+      byItem.release?.releaseYear === year,
+  )
+
+  const byBarcode = findByCode(barcode)
+  t(
+    `Aero Manta Ray ${itemNumber} JAN resolves exact release`,
+    byBarcode?.product?.name === "Aero Manta Ray" &&
+      byBarcode.release?.itemNumber === itemNumber,
+  )
+}
+
+const aeroMantaInternational = findByCode("4950344187034")
+t(
+  "Aero Manta Ray international GTIN derives ITEM 18703",
+  aeroMantaInternational?.product?.name === "Aero Manta Ray" &&
+    aeroMantaInternational.release?.itemNumber === "18703",
+)
+
 console.log(`${pass} passed, ${fail} failed`)
 if (fail > 0) process.exit(1)
 console.log("SCANNER CODE TEST PASSED")

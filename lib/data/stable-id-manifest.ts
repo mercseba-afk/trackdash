@@ -212,4 +212,14 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "a98fe80b-1f8c-53e1-b26d-404daf93b77d", kind: "release", label: "Manta Ray Mk.II — White Special (2019 Reissue)" },
   { id: "b2805fb7-cdd3-5dbf-a724-f73d54702844", kind: "release", label: "Manta Ray Mk.II — Black Special (2019 Reissue)" },
   { id: "4fdb8e31-07be-5907-9530-9a9bbe7edcf2", kind: "release", label: "Manta Ray Mk.II — City Circuit Special (MA Chassis)" },
+  // ---- Aero Manta Ray family, sealed after live DB verification ----
+  { id: "ecf91fb1-bf53-5201-a128-95edd99f3f71", kind: "product", label: "Aero Manta Ray" },
+  { id: "bd0b1e12-3212-592f-ac56-5337760dcca5", kind: "release", label: "Aero Manta Ray — Aero Manta Ray (AR Chassis)" },
+  { id: "9dd1daac-5b43-5159-bf4b-59d40b03c1e8", kind: "release", label: "Aero Manta Ray — White Special (AR Chassis)" },
+  { id: "cbfd7063-98e4-5f38-99a9-010c5d95e9c7", kind: "release", label: "Aero Manta Ray — Black Metallic (AR Chassis)" },
+  { id: "5d2acd43-7593-59f4-a633-b0922ac9d0a6", kind: "release", label: "Aero Manta Ray — Gold Metallic (AR Chassis)" },
+  { id: "42f6de69-94c8-5282-b4b3-f8ad036ecea1", kind: "release", label: "Aero Manta Ray — Japan Cup 2014 Limited" },
+  { id: "90b8a376-2535-55b0-b5c8-4313eb8bb942", kind: "release", label: "Aero Manta Ray — White Special (2017 Reissue)" },
+  { id: "69ecb6cc-8907-5351-bf26-9400e0b43cc4", kind: "release", label: "Aero Manta Ray — Black Special (AR Chassis)" },
+
 ]

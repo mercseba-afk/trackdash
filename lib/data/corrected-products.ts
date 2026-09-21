@@ -17,6 +17,7 @@ import { applyCatalogCorrectionsBatch12 } from "./catalog-corrections-batch12"
 import { applyCatalogCorrectionsBatch13 } from "./catalog-corrections-batch13"
 import { applyCatalogCorrectionsBatch14 } from "./catalog-corrections-batch14"
 import { applyCatalogCorrectionsBatch15 } from "./catalog-corrections-batch15"
+import { applyCatalogCorrectionsBatch16 } from "./catalog-corrections-batch16"
 import { applyCatalogImageManifest } from "./catalog-image-overlay"
 
 // Runtime/demo compatibility view of the historical seed catalog after applying
@@ -48,7 +49,8 @@ const BATCH14_PRODUCTS = applyCatalogCorrectionsBatch14(BATCH13_PRODUCTS)
 const IMAGE_PROJECTED_PRODUCTS = applyCatalogImageManifest(BATCH14_PRODUCTS)
 // Batch 15 appends a DB-backed family that was not part of the historical seed,
 // so apply it after the legacy seed-key image projection.
-export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch15(IMAGE_PROJECTED_PRODUCTS)
+const BATCH15_PRODUCTS = applyCatalogCorrectionsBatch15(IMAGE_PROJECTED_PRODUCTS)
+export const PRODUCTS: Product[] = applyCatalogCorrectionsBatch16(BATCH15_PRODUCTS)
 
 export { getRelatedProducts }
 
