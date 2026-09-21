@@ -128,6 +128,32 @@ ok("single-seller five-sale cluster publishes cautiously instead of disappearing
   assert.ok(published.confidenceScore <= 49)
 })
 
+
+ok("single exact current offer stays public as observed price even when Market Value is null", () => {
+  const computed = computeCurrentMarketSignal({
+    offers: [{
+      stableId: "exact-current-offer",
+      candidateId: "candidate-current-offer",
+      sourceId: "manual-marketplace",
+      channel: "marketplace",
+      sellerFingerprint: "seller-a",
+      marketRegion: "japan",
+      availability: "in_stock",
+      itemPriceEUR: 24.5,
+      shippingEUR: null,
+      observedAt: "2026-09-21T12:00:00Z",
+    }],
+    soldEvidence: [],
+    asOfDate: "2026-09-21",
+  })
+  const published = applyPublicMarketPublicationPolicy(computed, [], "2026-09-21")
+
+  assert.equal(published.marketValueEUR, null)
+  assert.equal(published.activeAnchorEUR, 24.5)
+  assert.equal(published.startingOffer?.itemPriceEUR, 24.5)
+  assert.equal(published.currentOfferCount, 1)
+})
+
 ok("R3 repository explicitly excludes valuation-ineligible price points", () => {
   const source = readFileSync(new URL("../lib/market/pipeline/market-r3-repository.ts", import.meta.url), "utf8")
   assert.equal(source.includes('.eq("valuation_eligible", true)'), true)
