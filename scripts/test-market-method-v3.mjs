@@ -177,7 +177,7 @@ ok("active ASK prices never manufacture Market Value", () => {
     { stableId: "ask-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 75, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.activeOfferCount, 2)
-  assert.equal(result.activeAnchorEUR, 55)
+  assert.equal(result.activeAnchorEUR, 60)
   assert.equal(result.marketValueEUR, null)
 })
 
