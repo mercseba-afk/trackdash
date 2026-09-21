@@ -75,11 +75,14 @@ const releaseScreen = fs.readFileSync("components/screens/release-detail-screen.
 if (!releaseScreen.includes("Valore stimato")) {
   errors.push("Release detail does not expose the public estimated market value")
 }
-if (!releaseScreen.includes("vendite osservate")) {
-  errors.push("Release detail does not expose the public observed-sale basis")
+if (!releaseScreen.includes("Prezzo osservato")) {
+  errors.push("Release detail does not expose the observed market price separately from Market Value")
 }
-if (!releaseScreen.includes("Ultimo prezzo osservato")) {
-  errors.push("Release detail does not expose the latest observed external price separately from Market Value")
+if (!releaseScreen.includes("costo effettivo")) {
+  errors.push("Release detail does not explain the Europe-first delivered-cost basis")
+}
+if (releaseScreen.includes("SOLD 0") || releaseScreen.includes("0 SOLD")) {
+  errors.push("Release detail exposes a misleading zero-sales claim")
 }
 if (releaseScreen.includes("Disponibile da") || releaseScreen.includes("Available from")) {
   errors.push("Release detail still presents observed external prices with storefront-like availability wording")
@@ -103,4 +106,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Public R3 market surfaces: ${publicSurfaces.length}/${publicSurfaces.length} clean`)
-console.log("Collector UI exposes estimated value, observed sales, trend and fresh observed external prices without storefront-like availability claims.")
+console.log("Collector UI exposes Estimated value or Observed price with Europe-first delivered-cost semantics and no misleading zero-sales claim.")
