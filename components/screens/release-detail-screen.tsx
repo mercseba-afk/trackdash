@@ -207,11 +207,11 @@ function MarketValuePanel({
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">
           {it ? "Mercato" : "Market"}
         </p>
-        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Mercato poco osservabile" : "Thin market evidence"}</p>
+        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
         <p className="mt-2 text-sm leading-6 text-[#718198]">
           {it
-            ? "Non abbiamo ancora un prezzo recente abbastanza chiaro per questa Release."
-            : "We do not yet have a sufficiently clear recent price for this Release."}
+            ? "Stiamo verificando i dati di mercato per questa Release."
+            : "We are reviewing the market data for this Release."}
         </p>
       </div>
     )
@@ -342,7 +342,7 @@ function PriceIntelligenceCard({
           <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
         </div>
       ) : (
-        <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Mercato poco osservabile in questo momento." : "Market evidence is thin right now."}</p>
+        <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato in verifica in questo momento." : "Market evidence is thin right now."}</p>
       )}
 
       <p className="mt-4 text-xs leading-5 text-[#718198]">
@@ -454,7 +454,7 @@ function OwnedCopiesCard({
                 </div>
               ) : (
                 <p className="mt-2 border-t border-border/70 pt-2 text-[11px] text-muted-foreground">
-                  {it ? "Mercato poco osservabile" : "Thin market evidence"}
+                  {it ? "Dati di mercato in verifica" : "Market data under review"}
                 </p>
               )}
             </div>

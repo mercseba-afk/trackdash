@@ -1,6 +1,6 @@
 import "server-only"
 
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import { brands, categories, productReleases, products } from "../schema"
@@ -28,6 +28,15 @@ export async function listProducts(limit = 50) {
     with: { brand: true, category: true, images: true, releases: { with: { images: true, sources: true } } },
     orderBy: (fields, { asc }) => [asc(fields.name)],
     limit,
+  })
+}
+
+export async function listProductsByIds(ids: string[]) {
+  if (ids.length === 0) return []
+  return db.query.products.findMany({
+    where: inArray(products.id, ids),
+    with: { brand: true, category: true, images: true, releases: { with: { images: true, sources: true } } },
+    orderBy: (fields, { asc }) => [asc(fields.name)],
   })
 }
 

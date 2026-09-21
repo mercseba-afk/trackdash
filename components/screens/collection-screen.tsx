@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
-import type { CollectionItem, Condition, Currency } from "@/lib/types"
+import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
 import { CONDITIONS, CURRENCIES } from "@/lib/types"
 import { getMyCollectionSharesAction, saveCollectionItemAndShareAction, type CollectionOfferTerms, type CollectionVisibility } from "@/lib/actions/sharing"
 import { StatCard } from "@/components/stat-card"
@@ -81,7 +81,7 @@ function VisibilitySelect({ value, disabled, onChange }: { value: Visibility; di
   )
 }
 
-export function CollectionScreen() {
+export function CollectionScreen({ catalogProducts }: { catalogProducts: Product[] }) {
   const { collection, updateCollectionItem, removeFromCollection } = useStore()
   const { locale, t } = useI18n(); const it = locale === "it"
   const marketSignals = useMarketSignals()
@@ -94,7 +94,10 @@ export function CollectionScreen() {
 
   React.useEffect(() => { let cancelled = false; getMyCollectionSharesAction().then((rows) => { if (!cancelled) setShares(rows) }).catch(() => {}); return () => { cancelled = true } }, [])
 
-  const enriched = React.useMemo(() => enrichCollection(collection, marketSignals), [collection, marketSignals])
+  const enriched = React.useMemo(
+    () => enrichCollection(collection, marketSignals, catalogProducts),
+    [catalogProducts, collection, marketSignals],
+  )
   const summary = React.useMemo(() => portfolioSummary(enriched), [enriched])
   const shareByCollectionItem = React.useMemo(() => new Map(shares.map((share) => [share.collectionItemId, share])), [shares])
   const visibleItems = React.useMemo(() => {
@@ -109,8 +112,8 @@ export function CollectionScreen() {
       return haystack.includes(normalizedQuery)
     })
     switch (sort) {
-      case "value-desc": return list.sort((a, b) => (b.marketValue ?? -Infinity) - (a.marketValue ?? -Infinity))
-      case "value-asc": return list.sort((a, b) => (a.marketValue ?? Infinity) - (b.marketValue ?? Infinity))
+      case "value-desc": return list.sort((a, b) => (b.marketReferenceValue ?? -Infinity) - (a.marketReferenceValue ?? -Infinity))
+      case "value-asc": return list.sort((a, b) => (a.marketReferenceValue ?? Infinity) - (b.marketReferenceValue ?? Infinity))
       case "name": return list.sort((a, b) => a.product.name.localeCompare(b.product.name))
       default: return list.sort((a, b) => +new Date(b.item.createdAt) - +new Date(a.item.createdAt))
     }
@@ -147,10 +150,10 @@ export function CollectionScreen() {
                 <StatCard label={it ? "Guadagno / perdita" : "Gain / loss"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Nessun confronto disponibile" : "No comparison available"}</span>} />
                 <StatCard label={it ? "Sigillati" : "Sealed"} value={summary.sealedCount} icon={Boxes} hint={<span>{it ? "su" : "of"} {summary.count}</span>} />
               </div>
-              {summary.marketValueCount < summary.count || summary.acquisitionCostCount < summary.count ? (
+              {summary.marketReferenceCount < summary.count || summary.acquisitionCostCount < summary.count ? (
                 <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
                   {it
-                    ? "Valore e rendimento vengono mostrati solo quando TrackDash dispone di dati di mercato affidabili e compatibili con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico di riferimento ECB della data d'acquisto (o dell'ultimo giorno disponibile); se data o cambio non sono disponibili, il rendimento resta non calcolato."
+                    ? "Il valore indicativo usa il Valore stimato quando disponibile e, in alternativa, il Prezzo osservato della stessa Release. Il rendimento personale resta più conservativo e viene calcolato solo quando esiste un Valore stimato compatibile con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
                     : "Value and performance are shown only when TrackDash has reliable market data compatible with the copy condition. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
                 </p>
               ) : null}
@@ -277,9 +280,14 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           </div>
 
           <div className="mt-7">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore stimato oggi" : "Estimated value today"}</p>
-            <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{summary.marketValueCount}/{summary.count} {it ? "copie con un Valore stimato disponibile" : "copies with an Estimated value available"}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore indicativo oggi" : "Indicative value today"}</p>
+            <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? formatMoney(summary.marketReferenceValue) : "—"}</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {summary.marketReferenceCount}/{summary.count} {it ? "copie con un riferimento di mercato disponibile" : "copies with an available market reference"}
+              {summary.marketReferenceCount > 0 ? (
+                <span> · {summary.marketValueCount} {it ? "Valore stimato" : "Estimated"} · {summary.observedPriceCount} {it ? "Prezzo osservato" : "Observed"}</span>
+              ) : null}
+            </p>
             <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
           </div>
@@ -348,7 +356,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
     )
   }
 
-  return <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Mercato poco osservabile" : "Thin market evidence"}</p>
+  return <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
 }
 
 function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollectionItem | null; share?: MyShare; onClose: () => void; onSave: (id: string, patch: Partial<CollectionItem>, visibility: Visibility, offerTerms?: CollectionOfferTerms) => void }) {

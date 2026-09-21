@@ -32,6 +32,9 @@ export interface EnrichedCollectionItem {
   release: ProductRelease
   marketSignal: ReleaseMarketSignalView | null
   marketValue: number | null
+  observedPrice: number | null
+  marketReferenceValue: number | null
+  marketReferenceKind: "estimated" | "observed" | null
   marketTrend: number | null
   /** Personal performance uses the persisted EUR purchase basis. For foreign
    * currencies that basis exists only when a dated ECB reference conversion
@@ -45,15 +48,27 @@ export interface EnrichedCollectionItem {
 export function enrichCollection(
   collection: CollectionItem[],
   marketSignals: ReleaseMarketSignalMap = {},
+  catalogProducts?: Product[],
 ): EnrichedCollectionItem[] {
+  const canonicalCatalog = catalogProducts ? new Map(catalogProducts.map((product) => [product.id, product])) : null
+
   return collection
     .map((item): EnrichedCollectionItem | null => {
-      const product = getProductById(item.productId)
+      const product = canonicalCatalog?.get(item.productId) ?? getProductById(item.productId)
       if (!product) return null
-      const release = resolveRelease(product, item.releaseId)
+
+      const exactRelease = product.releases.find((release) => release.id === item.releaseId)
+      const release = exactRelease ?? (canonicalCatalog ? null : resolveRelease(product, item.releaseId))
+      if (!release) return null
+
       const marketSignal = marketSignals[release.id] ?? null
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
+      const observedPrice = comparableCondition
+        ? marketSignal?.activeAnchorEUR ?? marketSignal?.retailAnchorEUR ?? marketSignal?.startingItemPriceEUR ?? null
+        : null
+      const marketReferenceValue = marketValue ?? observedPrice
+      const marketReferenceKind = marketValue != null ? "estimated" : observedPrice != null ? "observed" : null
       const marketTrend = comparableCondition ? marketSignal?.trendPercent ?? null : null
       const acquisitionBasisEUR = item.acquisitionPriceEUR ?? null
       const canCalculatePersonalPerformance =
@@ -73,6 +88,9 @@ export function enrichCollection(
         release,
         marketSignal,
         marketValue,
+        observedPrice,
+        marketReferenceValue,
+        marketReferenceKind,
         marketTrend,
         personalGainEUR,
         personalGainPercent,
@@ -89,6 +107,9 @@ export interface PortfolioSummary {
   uniqueReleases: number
   marketValue: number
   marketValueCount: number
+  marketReferenceValue: number
+  marketReferenceCount: number
+  observedPriceCount: number
   /** Sum of purchase prices with a trustworthy EUR basis (native or historical FX). */
   acquisitionCost: number
   acquisitionCostCount: number
@@ -105,6 +126,9 @@ export interface PortfolioSummary {
 export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioSummary {
   const valued = enriched.filter((entry) => entry.marketValue != null)
   const marketValue = valued.reduce((sum, entry) => sum + (entry.marketValue ?? 0), 0)
+  const referenced = enriched.filter((entry) => entry.marketReferenceValue != null)
+  const marketReferenceValue = referenced.reduce((sum, entry) => sum + (entry.marketReferenceValue ?? 0), 0)
+  const observedPriceCount = referenced.filter((entry) => entry.marketReferenceKind === "observed").length
 
   const normalizedPurchases = enriched.filter(
     (entry) => entry.item.acquisitionPriceEUR != null && entry.item.acquisitionPriceEUR > 0,
@@ -137,6 +161,9 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
     uniqueReleases,
     marketValue,
     marketValueCount: valued.length,
+    marketReferenceValue,
+    marketReferenceCount: referenced.length,
+    observedPriceCount,
     acquisitionCost,
     acquisitionCostCount: normalizedPurchases.length,
     trackedAcquisitionCost,

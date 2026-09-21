@@ -16,7 +16,7 @@ export function MarketSignalInline({
   const it = locale === "it"
 
   if (!signal) {
-    return <span className="text-xs text-muted-foreground">{it ? "Mercato poco osservabile" : "Thin market evidence"}</span>
+    return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
@@ -46,7 +46,7 @@ export function MarketSignalInline({
           <span className="text-lg font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</span>
         </>
       ) : (
-        <span className="text-xs font-medium text-muted-foreground">{it ? "Mercato poco osservabile" : "Thin market evidence"}</span>
+        <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
       )}
       {hasValue && showStartingPrice && hasObservedPrice ? (
         <span className="text-xs text-muted-foreground">
