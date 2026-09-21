@@ -299,16 +299,17 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const startingPrice = signal?.startingItemPriceEUR ?? null
-  const hasObservedPrice =
-    (signal?.currentOfferCount ?? 0) > 0 &&
-    startingPrice != null &&
-    startingPrice > 0
-  const askDirection =
+  const observedPrice =
+    signal?.activeAnchorEUR ??
+    signal?.retailAnchorEUR ??
+    signal?.startingItemPriceEUR ??
+    null
+  const hasObservedPrice = observedPrice != null && observedPrice > 0
+  const observedDirection =
     signal?.askTrendPercent != null && signal.askTrendPercent >= 5
-      ? (it ? "Offerte in salita" : "Offers rising")
+      ? (it ? "Prezzo osservato in salita" : "Observed price rising")
       : signal?.askTrendPercent != null && signal.askTrendPercent <= -5
-        ? (it ? "Offerte in calo" : "Offers falling")
+        ? (it ? "Prezzo osservato in calo" : "Observed price falling")
         : null
 
   if (entry.marketValue != null) {
@@ -326,8 +327,8 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         </div>
         {hasObservedPrice ? (
           <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
-            {it ? "Ultimo prezzo osservato" : "Latest observed price"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
-            {askDirection ? <span className="ml-1.5 font-medium text-brand">· {askDirection}</span> : null}
+            {it ? "Prezzo osservato" : "Observed price"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(observedPrice)}</strong>
+            {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
           </p>
         ) : null}
       </div>
@@ -338,14 +339,16 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
     return (
       <div className="min-w-0">
         <p className="text-[11px] leading-tight text-muted-foreground">
-          {it ? "Ultimo prezzo osservato" : "Latest observed price"} <strong className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(startingPrice)}</strong>
+          {it ? "Prezzo osservato" : "Observed price"} <strong className="text-sm font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</strong>
         </p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">{askDirection ?? (it ? "Mercato in osservazione" : "Market under observation")}</p>
+        <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">
+          {observedDirection ?? (it ? "Mercato europeo osservato" : "Observed European market")}
+        </p>
       </div>
     )
   }
 
-  return <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+  return <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Mercato poco osservabile" : "Thin market evidence"}</p>
 }
 
 function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollectionItem | null; share?: MyShare; onClose: () => void; onSave: (id: string, patch: Partial<CollectionItem>, visibility: Visibility, offerTerms?: CollectionOfferTerms) => void }) {
