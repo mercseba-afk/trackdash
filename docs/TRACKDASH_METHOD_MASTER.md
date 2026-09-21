@@ -712,7 +712,53 @@ Controlla che il risultato appaia correttamente sul sito.
 Aggiorna in futuro soltanto le sorgenti scadute.
 Queste operazioni NON vanno confuse fra loro.
 
+
 ---
+
+# EMPTY MARKET CHALLENGE — HARD COMPLETION GATE
+
+This is a permanent invariant, not an optional refinement.
+
+After canonical recompute, every Release whose public signal would show no Market Value and no observed/current price must receive a **second-pass targeted market challenge before the family can be COMPLETE**.
+
+The challenge must search the exact Release identity across multiple source classes, using the exact Item Number plus edition/model discriminants where needed:
+
+- current marketplaces;
+- current/specialist retail;
+- SOLD/completed sources;
+- regional sources (Europe first, then Japan/other markets);
+- exact product/search pages when individual listing URLs are not exposed.
+
+A Release may remain publicly without a price only when this second pass documents that:
+
+1. no valid current offer was found;
+2. no sufficiently attributable current/recent SOLD was found;
+3. any evidence found is genuinely historical, out-of-stock, ambiguous, wrong condition, wrong Release, or otherwise valuation-ineligible.
+
+**Historical-only evidence is not proof that the current market is empty.**
+
+A family must not be marked `COMPLETE — MARKET THIN` merely because the first scan produced only historical/out-of-stock evidence.  
+The thin-market result is allowed only **after the Empty Market Challenge is passed for every empty Release**.
+
+## Completion invariant
+
+Before closing a family, the family-specific audit must have:
+
+- **0 current valid offers hidden by an empty public signal**;
+- **0 stale market-method signals** relative to the current market method;
+- **0 empty Release left unchallenged** after Initial Scan + recompute;
+- every remaining empty Release explicitly classified with a documented reason.
+
+If any one of these is non-zero:
+
+**DO NOT DECLARE THE FAMILY COMPLETE.**
+
+## Market method version invariant
+
+When the public market method changes, all signals still on an older `market_method_version` must be re-enqueued and recomputed before Completion Gate.
+
+A READY deployment with stale market signals is not a completed market migration.
+
 
 # FASE 8 — COMPLETION GATE
 
