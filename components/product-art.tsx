@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 
 const SERIES_HUE: Record<Product["series"], number> = {
   "Racing Mini 4WD": 8,
+  "Mini 4WD PRO": 285,
   "Fully Cowled": 210,
   Aero: 190,
   Avante: 265,

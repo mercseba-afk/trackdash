@@ -39,6 +39,35 @@ t("Proto Emperor ZX 2007 barcode resolves the 2007 reissue", reissueBarcode?.rel
 const premiumBarcode = findByCode("4950344953356")
 t("Proto Emperor ZX Premium barcode resolves release 95335", premiumBarcode?.release?.itemNumber === "95335" && premiumBarcode.release?.releaseYear === 2017)
 
+const mantaNumbered = [
+  ["18615", "4950344186150", 2006],
+  ["94593", null, 2007],
+  ["94665", "4950344946655", 2008],
+  ["94709", "4950344947096", 2009],
+  ["95462", "4950344954629", 2019],
+  ["95466", "4950344954667", 2019],
+  ["95690", "4950344956906", 2025],
+]
+
+for (const [itemNumber, barcode, year] of mantaNumbered) {
+  const byItem = findByCode(itemNumber)
+  t(
+    `Manta Ray Mk.II ${itemNumber} resolves exact release`,
+    byItem?.product?.name === "Manta Ray Mk.II" &&
+      byItem.release?.itemNumber === itemNumber &&
+      byItem.release?.releaseYear === year,
+  )
+
+  if (barcode) {
+    const byBarcode = findByCode(barcode)
+    t(
+      `Manta Ray Mk.II ${itemNumber} JAN resolves exact release`,
+      byBarcode?.product?.name === "Manta Ray Mk.II" &&
+        byBarcode.release?.itemNumber === itemNumber,
+    )
+  }
+}
+
 console.log(`${pass} passed, ${fail} failed`)
 if (fail > 0) process.exit(1)
 console.log("SCANNER CODE TEST PASSED")
