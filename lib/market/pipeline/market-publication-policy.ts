@@ -7,12 +7,11 @@ import type {
 const HOUR_MS = 3_600_000
 const DAY_MS = 86_400_000
 
-// Scanner cadence deliberately runs inside these windows:
-// marketplace normal/cold = 72h, expiry = 96h
-// retail normal/cold = 168h, expiry = 192h
-// The extra day is operational grace, not permission to keep stale stock forever.
-export const MARKETPLACE_OFFER_MAX_AGE_HOURS = 96
-export const RETAIL_OFFER_MAX_AGE_HOURS = 192
+// Freshness follows the slow Mini 4WD refresh policy. A COLD observation must
+// remain visible until its next scheduled refresh, with a small operational
+// grace period. Recency weighting still happens separately in the market model.
+export const MARKETPLACE_OFFER_MAX_AGE_HOURS = 360 // 14d cadence + 1d grace
+export const RETAIL_OFFER_MAX_AGE_HOURS = 744 // 30d cadence + 1d grace
 
 export function filterFreshCurrentOffers(
   offers: CurrentOfferEvidence[],
