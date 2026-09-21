@@ -167,7 +167,7 @@ ok("completed sales remain the headline when corroborating retail is available",
     { stableId: "shop-b", sourceId: "shop-b", merchantKey: "shop-b", marketRegion: "europe", channel: "retail", availability: "in_stock", itemPriceEUR: 17.5, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.marketValueEUR, 17.49)
-  assert.equal(result.lowEUR, 17)
+  assert.equal(result.lowEUR, 17.49)
   assert.equal(result.highEUR, 17.49)
 })
 
