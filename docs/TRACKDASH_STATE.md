@@ -58,16 +58,12 @@ Therefore, in a future session, obtain the **actual current main HEAD from GitHu
 
 Last verified READY Production commit:
 
-`4a52720db15679f6ce2c0095571d208a13e2fb5b`
+`4f29a11227e2ed4f4d28205bf912c6d8e8f97a31`
 
-Production is therefore **behind current main**.
+At the verification immediately before the first Admin recompute runs, `https://trackdash.it/api/version` returned the same `4f29a112…` SHA.
 
-The later deployment attempt was blocked by the Vercel free build/deploy rate limit.  
-Do not declare Production aligned until:
-
-1. current `main` deploys READY;
-2. `https://trackdash.it/api/version` returns the same current main SHA;
-3. Production QA passes.
+This confirms that Vercel had unblocked and Production included all functional Avante work through `a8ed6e10…`.  
+Documentation-only commits subsequently advanced `main`, so final Completion Gate still requires a fresh equality check between the actual current `main`, Vercel Production and `/api/version`.
 
 A temporary one-shot recompute route was experimented with while Production was on `4a52720…`.  
 The route has since been removed from `main`, and its one-time authorization table was dropped from Supabase. It must not be reused or recreated as a shortcut.
@@ -161,23 +157,40 @@ They are applied to live Supabase.
 
 ## 7. Recompute
 
-**Status: PENDING / QUEUED**
+**Status: IN PROGRESS — 15 AVANTE JOBS REMAIN**
 
-At the last live check:
+On 2026-09-21 the Admin market refresh was run **twice**.
 
-- total `new_complete_unbuilt` recompute jobs: **31**
-- Avante Mk.III jobs: **24**
-- older Manta Ray Mk.II jobs: **7**
+Live queue after those two runs:
+
+- total `new_complete_unbuilt` recompute jobs: **15**
+- Avante Mk.III jobs: **15**
+- older Manta Ray Mk.II jobs: **0**
 - locked jobs: **0**
 - jobs with error: **0**
 
-The queue is global and processed oldest-first.
+Therefore the two Admin runs processed **16 jobs successfully from the queue**: the 7 older Manta Ray Mk.II jobs plus **9 Avante Mk.III jobs**.
 
-The official Admin action executes `runMarketRecomputeBatch(8)`, therefore one Admin refresh can process at most **8 recompute jobs**.
+Avante Releases already recomputed in this checkpoint include:
 
-Because the 7 Manta jobs are older, the first Admin run is expected to process those first plus the next oldest job, subject to any newer queue changes.
+- `18626`
+- `18627`
+- `92207`
+- `92218`
+- `92219`
+- `92221`
+- `92284`
+- `92470`
+- `95087`
 
-Do not assume a fixed number of button presses without re-checking the queue after runs; approximately four runs would drain 31 jobs if no new work is enqueued and all succeed.
+Preliminary canonical outputs observed after recompute:
+
+- `92470`: current starting item price / active anchor **€29.49**, no fabricated Market Value;
+- `95087`: Market Value **€34.91**, starting item price **€35.00**, starting effective cost **€46.30**, SOLD anchor **€34.91**, confidence low;
+- the recomputed thin-evidence releases above correctly remain `insufficient` with no fabricated Market Value.
+
+Still queued Avante Releases: **15**.  
+Because the Admin worker processes at most 8 recompute jobs per run, two more successful Admin runs should be sufficient if no new recompute work is enqueued, but the queue must be re-checked after each run.
 
 ## 8. QA Production
 
@@ -227,19 +240,14 @@ Do not rediscover or guess this behavior from chat memory in future sessions. Re
 
 # EXACT NEXT ACTIONS
 
-1. Use **Admin → Aggiornamento mercato → Esegui ora**.
-2. Let the run finish and record the returned:
-   - Retail succeeded / attempted;
-   - eBay succeeded / attempted;
-   - Ricalcolo succeeded / attempted.
-3. Re-check `market_recompute_queue`.
-4. Repeat only as needed until the relevant recompute jobs are drained, accounting for newly enqueued jobs.
-5. Inspect Avante `market_release_signals` after recompute.
-6. Perform Catalog / Release / Collection / Scanner QA.
-7. When Vercel permits, deploy the actual current `main`.
-8. Verify `/api/version` equals the current GitHub main SHA.
-9. Confirm full repository verification gate on the final main.
-10. Only then evaluate the Master Completion Gate and mark Avante Mk.III COMPLETE / COMPLETE — MARKET THIN / other allowed result.
+1. Run **Admin → Aggiornamento mercato → Esegui ora** again.
+2. Let the run finish and re-check `market_recompute_queue`.
+3. Repeat once more if necessary until the **15 remaining Avante recompute jobs** are drained.
+4. Inspect all 24 Avante `market_release_signals` after the queue is empty.
+5. Perform Catalog / Release / Collection / Scanner QA.
+6. Fresh-check the actual current GitHub `main`, Vercel Production and `/api/version`; require exact alignment for Completion Gate.
+7. Confirm full repository verification gate on the final main.
+8. Only then evaluate the Master Completion Gate and mark Avante Mk.III COMPLETE / COMPLETE — MARKET THIN / other allowed result.
 
 ---
 
