@@ -54,3 +54,4 @@ Only due + READY jobs are automatically claimed. Failed jobs are not marked succ
 ## Completion
 
 A family is complete only after every Release has been audited through the workflow. Honest documented gaps are allowed (for example exact image not found or genuinely thin market); unperformed work is not.
+<!-- verify-trigger -->
