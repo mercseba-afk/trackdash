@@ -55,6 +55,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: true,
       verificationStatus: "verified",
       productionStatus: "unknown",
+      rarity: "Common",
       sources: [
         source(
           "2c81b209-b749-5bd9-820e-ddb05ad45161",
@@ -89,6 +90,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "discontinued",
+      rarity: "Rare",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -114,6 +116,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "partial",
       productionStatus: "discontinued",
+      rarity: "Very Rare",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -142,6 +145,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "discontinued",
+      rarity: "Rare",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -170,6 +174,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "discontinued",
+      rarity: "Rare",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -203,6 +208,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "partial",
       productionStatus: "discontinued",
+      rarity: "Rare",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -229,6 +235,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "partial",
       productionStatus: "discontinued",
+      rarity: "Very Rare",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -256,6 +263,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "discontinued",
+      rarity: "Uncommon",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
@@ -291,6 +299,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "unknown",
+      rarity: "Uncommon",
       sources: [
         source(
           "e68962e8-c21b-547e-a84a-39ec4dde30e5",
@@ -325,6 +334,7 @@ const MANTA_RAY_MKII: Product = {
       isOriginal: false,
       verificationStatus: "verified",
       productionStatus: "active",
+      rarity: "Uncommon",
       statusCheckedAt: "2026-09-21",
       sources: [
         source(
