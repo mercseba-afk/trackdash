@@ -108,6 +108,7 @@ ok("two independent fresh retailers publish the retail median as Market Value", 
     lowEUR: 14.57,
     highEUR: 21.99,
     retailSourceCount: 2,
+    retailShippingKnownRatio: 1,
     activeOfferCount: 1,
     currentOfferCount: 3,
   }), [], "2026-09-10")
@@ -116,6 +117,24 @@ ok("two independent fresh retailers publish the retail median as Market Value", 
   assert.equal(result.highEUR, 14.57)
   assert.equal(result.activeAnchorEUR, 21.99)
   assert.equal(result.confidenceLabel, "medium")
+})
+
+ok("two item-only retailers remain observed evidence but do not manufacture Market Value", () => {
+  const result = applyPublicMarketPublicationPolicy(signal({
+    marketRegime: "retail_driven",
+    retailAnchorEUR: 15.5,
+    activeAnchorEUR: 25.9,
+    marketValueEUR: 18,
+    lowEUR: 15.5,
+    highEUR: 25.9,
+    retailSourceCount: 2,
+    retailShippingKnownRatio: 0,
+    activeOfferCount: 2,
+    currentOfferCount: 4,
+  }), [], "2026-09-10")
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.retailAnchorEUR, 15.5)
+  assert.equal(result.activeAnchorEUR, 25.9)
 })
 
 ok("liquid retail takes the headline while completed sales remain confirmation", () => {
@@ -135,6 +154,7 @@ ok("liquid retail takes the headline while completed sales remain confirmation",
     activeAnchorEUR: 21.99,
     soldAnchorEUR: 16.85,
     retailSourceCount: 2,
+    retailShippingKnownRatio: 1,
     activeOfferCount: 1,
     currentOfferCount: 3,
     soldUnits: 53,
