@@ -93,6 +93,7 @@ export interface MarketSignalDraft {
   soldEvidenceCount: number
   retailRegionCount: number
   retailRegionalSpreadRatio: number | null
+  retailShippingKnownRatio?: number
   shippingKnownRatio: number
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | null
@@ -701,6 +702,8 @@ export function computeCurrentMarketSignal(input: {
   const soldEvidenceCount = input.soldEvidence.length
   const shippingKnownCount = offers.current.filter((item) => item.costBasis === "delivered").length
   const shippingKnownRatio = currentOfferCount ? round2(shippingKnownCount / currentOfferCount) : 0
+  const retailShippingKnownCount = offers.retail.filter((item) => item.costBasis === "delivered").length
+  const retailShippingKnownRatio = retailSourceCount ? round2(retailShippingKnownCount / retailSourceCount) : 0
   const regime = deriveRegime(retailSourceCount, activeAnchorEUR, soldAnchorEUR)
 
   const retailReliability = offerReliability(
@@ -764,6 +767,7 @@ export function computeCurrentMarketSignal(input: {
     soldEvidenceCount,
     retailRegionCount: retailStats.regionCount,
     retailRegionalSpreadRatio: retailStats.regionalSpreadRatio,
+    retailShippingKnownRatio,
     shippingKnownRatio,
     trendPercent: trend.percent,
     trendWindowMonths: trend.window,
