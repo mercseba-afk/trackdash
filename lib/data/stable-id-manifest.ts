@@ -199,4 +199,17 @@ export const STABLE_ID_MANIFEST: StableIdManifestEntry[] = [
   { id: "fcef2cc9-4f5e-5d09-8f80-5f2fcc644372", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Jr. — 1998 Memorial Reissue" },
   { id: "a52d2eca-f226-5fc7-97bc-4437ad44feb9", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Jr. — 2012 Reissue" },
   { id: "bbc9e062-ba69-5cf9-9228-de2de15640a6", kind: "release", label: "Thunder Dragon Jr. — Thunder Dragon Premium — VS Chassis" },
+
+  // ---- Manta Ray Mk.II family, sealed after 0119 live DB verification ----
+  { id: "277030d7-5caa-517a-b3d1-bd52d9c48815", kind: "product", label: "Manta Ray Mk.II" },
+  { id: "6a14c7a3-bd78-57b3-89fe-6c764818991a", kind: "release", label: "Manta Ray Mk.II — Manta Ray Mk.II" },
+  { id: "3eb8e671-b09a-5b2d-bb87-729676bd1237", kind: "release", label: "Manta Ray Mk.II — Finished Model" },
+  { id: "d0c9c45e-3d75-52d1-92cb-84cf9f5f2a07", kind: "release", label: "Manta Ray Mk.II — Pink Metallic Special" },
+  { id: "eeb02308-6a9a-5d0c-88ee-5a0fc127a0e8", kind: "release", label: "Manta Ray Mk.II — Black Special" },
+  { id: "f1372ca5-e4ad-5994-b31b-2ccb9fc99b6f", kind: "release", label: "Manta Ray Mk.II — White Special" },
+  { id: "9a231f02-7a7e-5489-b44d-b4eb10b60a78", kind: "release", label: "Manta Ray Mk.II — Silver Metallic Semi-Finished Model" },
+  { id: "d6617c26-9ec3-5adf-892f-ebeb1c782b70", kind: "release", label: "Manta Ray Mk.II — Black Metallic Special" },
+  { id: "a98fe80b-1f8c-53e1-b26d-404daf93b77d", kind: "release", label: "Manta Ray Mk.II — White Special (2019 Reissue)" },
+  { id: "b2805fb7-cdd3-5dbf-a724-f73d54702844", kind: "release", label: "Manta Ray Mk.II — Black Special (2019 Reissue)" },
+  { id: "4fdb8e31-07be-5907-9530-9a9bbe7edcf2", kind: "release", label: "Manta Ray Mk.II — City Circuit Special (MA Chassis)" },
 ]
