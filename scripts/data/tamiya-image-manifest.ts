@@ -6,6 +6,7 @@ import { TAMIYA_IMAGES_BATCH5 } from "./tamiya-images-batch5"
 import { TAMIYA_IMAGES_BATCH6 } from "./tamiya-images-batch6"
 import { TAMIYA_IMAGES_BATCH7 } from "./tamiya-images-batch7"
 import { TAMIYA_IMAGES_BATCH8 } from "./tamiya-images-batch8"
+import { TAMIYA_IMAGES_BATCH9 } from "./tamiya-images-batch9"
 
 // Canonical aggregate consumed by the image validator and SQL generator.
 // Keeping audit batches in small append-only data files makes future image
@@ -27,4 +28,5 @@ export const TAMIYA_IMAGES = [
   ...TAMIYA_IMAGES_BATCH6,
   ...TAMIYA_IMAGES_BATCH7,
   ...TAMIYA_IMAGES_BATCH8,
+  ...TAMIYA_IMAGES_BATCH9,
 ]
