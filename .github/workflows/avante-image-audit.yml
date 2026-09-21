@@ -1,0 +1,45 @@
+name: Avante Mk.III image audit
+
+on:
+  push:
+    branches:
+      - legacy-avante-mk3-master-audit
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe exact-item image candidates
+        shell: bash
+        run: |
+          set +e
+          check() {
+            item="$1"
+            url="$2"
+            meta=$(curl -L --max-time 15 -sS -o /tmp/avante-image -w "%{http_code} %{content_type} %{size_download}" "$url")
+            echo "$item $meta $url"
+          }
+          check 18626 https://www.tamiya.com/japan_contents/img/usr/item/1/18626/18626_1.jpg
+          check 18627 https://www.tamiya.com/japan_contents/img/usr/item/1/18627/18627_1.jpg
+          check 94673 https://www.tamiya.com/japan_contents/img/usr/item/9/94673/94673_1.jpg
+          check 94674 https://www.tamiya.com/japan_contents/img/usr/item/9/94674/94674_1.jpg
+          check 94692 https://www.tamiya.com/japan_contents/img/usr/item/9/94692/94692_1.jpg
+          check 92207 https://www.tamiya.com/japan_contents/img/usr/item/9/92207/92207_1.jpg
+          check 94715 https://www.tamiya.com/japan_contents/img/usr/item/9/94715/94715_1.jpg
+          check 92218 https://www.tamiya.com/japan_contents/img/usr/item/9/92218/92218_1.jpg
+          check 92219 https://www.tamiya.com/japan_contents/img/usr/item/9/92219/92219_1.jpg
+          check 92221 https://www.tamiya.com/japan_contents/img/usr/item/9/92221/92221_1.jpg
+          check 94777 https://www.tamiya.com/japan_contents/img/usr/item/9/94777/94777_1.jpg
+          check 94741 https://www.tamiya.com/japan_contents/img/usr/item/9/94741/94741_1.jpg
+          check 94951 https://www.tamiya.com/japan_contents/img/usr/item/9/94951/94951_1.jpg
+          check 92284 https://www.tamiya.com/japan_contents/img/usr/item/9/92284/92284_1.jpg
+          check 95087 https://www.tamiya.com/japan_contents/img/usr/item/9/95087/95087_1.jpg
+          check 95425 https://www.tamiya.com/japan_contents/img/usr/item/9/95425/95425_1.jpg
+          check 95464 https://www.tamiya.com/japan_contents/img/usr/item/9/95464/95464_1.jpg
+          check 95469 https://www.tamiya.com/japan_contents/img/usr/item/9/95469/95469_1.jpg
+          check 92422 https://www.tamiya.com/japan_contents/img/usr/item/9/92422/92422_1.jpg
+          check 92428 https://www.tamiya.com/japan_contents/img/usr/item/9/92428/92428_1.jpg
+          check 92430 https://www.tamiya.com/japan_contents/img/usr/item/9/92430/92430_1.jpg
+          check 18662 https://www.tamiya.com/japan_contents/img/usr/item/1/18662/18662_1.jpg
+          check 92470 https://www.tamiya.com/japan_contents/img/usr/item/9/92470/92470_1.jpg
