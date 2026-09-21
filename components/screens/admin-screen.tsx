@@ -10,12 +10,13 @@ import {
   CreditCard,
   Handshake,
   MessageCircle,
+  RefreshCw,
   ShieldCheck,
   Trash2,
   UserRoundCog,
   Users,
 } from "lucide-react"
-import { deleteAdminUserAction, updateAdminUserAction } from "@/lib/actions/admin"
+import { deleteAdminUserAction, runAdminMarketRefreshAction, updateAdminUserAction } from "@/lib/actions/admin"
 import type { AdminDashboardData, AdminUserRow } from "@/lib/admin/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -306,6 +307,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
   const router = useRouter()
   const [data, setData] = React.useState(initialData)
   const [query, setQuery] = React.useState("")
+  const [runningMarketRefresh, startMarketRefresh] = React.useTransition()
 
   React.useEffect(() => setData(initialData), [initialData])
 
@@ -322,6 +324,28 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
 
   const maxTraffic = Math.max(1, ...data.dailyTraffic.map((row) => row.pageViews))
 
+  function runMarketRefresh() {
+    startMarketRefresh(async () => {
+      try {
+        const result = await runAdminMarketRefreshAction()
+        const parts = [
+          `Retail ${result.exactPages.succeeded}/${result.exactPages.attempted}`,
+          `eBay ${result.ebayActive.succeeded}/${result.ebayActive.attempted}`,
+          `Ricalcolo ${result.recompute.succeeded}/${result.recompute.attempted}`,
+        ]
+        const anyLaneFailed = !result.exactPages.ok || !result.ebayActive.ok || !result.recompute.ok
+        if (anyLaneFailed) {
+          toast.warning(`Aggiornamento parziale · ${parts.join(" · ")}`)
+        } else {
+          toast.success(`Aggiornamento completato · ${parts.join(" · ")}`)
+        }
+        router.refresh()
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Aggiornamento mercato non riuscito")
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -337,6 +361,24 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
         </div>
         <p className="text-xs text-muted-foreground">Aggiornato {fmtDate(data.generatedAt)}</p>
       </div>
+
+      <Card className="border-brand/20 bg-brand/[0.03]">
+        <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <RefreshCw className="size-4 text-brand" />
+              Aggiornamento mercato
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Esegue subito lo stesso ciclo del cron notturno: retail verificati, eBay Active e ricalcolo dei segnali mercato.
+            </CardDescription>
+          </div>
+          <Button onClick={runMarketRefresh} disabled={runningMarketRefresh} className="shrink-0">
+            <RefreshCw className={runningMarketRefresh ? "size-4 animate-spin" : "size-4"} data-icon="inline-start" />
+            {runningMarketRefresh ? "Aggiornamento…" : "Esegui ora"}
+          </Button>
+        </CardHeader>
+      </Card>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <AdminMetric label="Account" value={data.stats.totalAccounts} note={data.stats.new30d + " nuovi / 30 gg"} icon={Users} />
