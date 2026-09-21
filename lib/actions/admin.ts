@@ -10,6 +10,9 @@ import type {
 } from "@/lib/admin/types"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { deleteUserAndOwnedStorage } from "@/lib/account/delete-user"
+import { runExactPageMarketScanBatch } from "@/lib/market/automation/worker"
+import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worker"
+import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
 
 const USERNAME_RE = /^[A-Za-z0-9._-]+$/
 const PLANS = new Set<AccountPlan>(["free", "pro"])
@@ -120,4 +123,32 @@ export async function deleteAdminUserAction(userId: string) {
 
   revalidatePath("/admin")
   return { ok: true }
+}
+
+
+export async function runAdminMarketRefreshAction() {
+  await requireAdmin()
+
+  const [exactPagesResult, ebayActiveResult, recomputeResult] = await Promise.allSettled([
+    runExactPageMarketScanBatch(4),
+    runEbayActiveMarketScanBatch(4),
+    runMarketRecomputeBatch(8),
+  ])
+
+  const exactPages =
+    exactPagesResult.status === "fulfilled"
+      ? { ok: true as const, attempted: exactPagesResult.value.attempted, succeeded: exactPagesResult.value.succeeded, failed: exactPagesResult.value.failed }
+      : { ok: false as const, attempted: 0, succeeded: 0, failed: 0, error: exactPagesResult.reason instanceof Error ? exactPagesResult.reason.message : String(exactPagesResult.reason) }
+
+  const ebayActive =
+    ebayActiveResult.status === "fulfilled"
+      ? { ok: true as const, attempted: ebayActiveResult.value.attempted, succeeded: ebayActiveResult.value.succeeded, failed: ebayActiveResult.value.failed }
+      : { ok: false as const, attempted: 0, succeeded: 0, failed: 0, error: ebayActiveResult.reason instanceof Error ? ebayActiveResult.reason.message : String(ebayActiveResult.reason) }
+
+  const recompute =
+    recomputeResult.status === "fulfilled"
+      ? { ok: true as const, attempted: recomputeResult.value.attempted, succeeded: recomputeResult.value.succeeded, failed: recomputeResult.value.failed }
+      : { ok: false as const, attempted: 0, succeeded: 0, failed: 0, error: recomputeResult.reason instanceof Error ? recomputeResult.reason.message : String(recomputeResult.reason) }
+
+  return { exactPages, ebayActive, recompute }
 }
