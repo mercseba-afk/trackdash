@@ -110,6 +110,16 @@ const nextConfig = {
         hostname: "img.amiami.jp",
         pathname: "/images/product/**",
       },
+      {
+        protocol: "https",
+        hostname: "hongta.co.kr",
+        pathname: "/web/product/**",
+      },
+      {
+        protocol: "https",
+        hostname: "i0.wp.com",
+        pathname: "/m4dtang.com/wp-content/uploads/**",
+      },
     ],
   },
 }
