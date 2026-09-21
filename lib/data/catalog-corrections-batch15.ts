@@ -57,6 +57,12 @@ const MANTA_RAY_MKII: Product = {
       productionStatus: "discontinued",
       rarity: "Common",
       statusCheckedAt: "2026-09-21",
+      notes:
+        "Single collector Release under ITEM 95466 / JAN 4950344954667. First released in March 2019 (exact date 2019-03-02 from contemporary retail metadata). Tamiya later records a new production/release wave on 2023-08-26 under the same Item Number, JAN and specification. No reliable physical discriminator between the 2019 and 2023 waves is currently documented, so TrackDash intentionally keeps one Release and treats 2023 as production history rather than a separate collector Release.",
+      description:
+        "Manta Ray Mk.II Black Special ITEM 95466, first released in 2019 and produced again in an identical 2023 wave. TrackDash keeps both production waves under one collector Release.",
+      descriptionIt:
+        "Manta Ray Mk.II Black Special ITEM 95466, uscita inizialmente nel 2019 e prodotta nuovamente con una wave identica nel 2023. TrackDash mantiene entrambe le wave produttive sotto un’unica Release collezionistica.",
       sources: [
         source(
           "2c81b209-b749-5bd9-820e-ddb05ad45161",
@@ -299,7 +305,7 @@ const MANTA_RAY_MKII: Product = {
       id: "b2805fb7-cdd3-5dbf-a724-f73d54702844",
       itemNumber: "95466",
       releaseType: "Reissue",
-      editionName: "Manta Ray Mk.II Black Special (2019 Reissue)",
+      editionName: "Manta Ray Mk.II Black Special",
       editionType: "reissue",
       releaseYear: 2019,
       releaseDate: "2019-03-02",
@@ -327,7 +333,7 @@ const MANTA_RAY_MKII: Product = {
           "official_manufacturer",
           "https://www.tamiya.com/japan/products/95466/index.html",
           ["itemNumber", "editionName", "releaseYear", "chassis", "color"],
-          "Official Tamiya page confirms ITEM 95466 and the Black Special specification.",
+          "Official Tamiya page confirms ITEM 95466, Black Special specification, MS chassis, first release in March 2019 and a later 2023-08-26 production/release wave under the same product identity.",
         ),
         source(
           "7bc0ac49-9ad9-5071-9e63-ced60bb3a629",
