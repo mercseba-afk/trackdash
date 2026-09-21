@@ -789,4 +789,80 @@ L'obiettivo è:
 
 ---
 
+# PERSISTENT PROJECT STATE PROTOCOL
+
+TrackDash must not rely on chat memory as the primary source of project continuity.
+
+The repository has three persistent authorities:
+
+1. `docs/TRACKDASH_METHOD_MASTER.md`  
+   Defines **how** TrackDash work must be performed.
+
+2. `docs/TRACKDASH_STATE.md`  
+   Defines **where the project currently is**, what is complete, what is blocked and the exact next action.
+
+3. `docs/TRACKDASH_OPERATIONS.md`  
+   Defines **what operational controls actually do**: Admin buttons, cron, worker batch sizes, queue behavior, security and production checks.
+
+## Mandatory session bootstrap
+
+At the start of any new TrackDash chat/session or when resuming after context loss:
+
+1. read the Method Master;
+2. read Project State;
+3. read Operations when the task touches Admin/cron/market workers/deploy;
+4. verify live facts that may have changed since the snapshot;
+5. only then modify code or Production data.
+
+Do not ask the user to reconstruct information that is already documented in the repository.
+
+## Mandatory maintenance
+
+Update `TRACKDASH_STATE.md` in the **same work unit** whenever a material change affects:
+
+- current family;
+- Release identity/count;
+- migration state;
+- market audit coverage;
+- queue/blocker state when it changes the next action;
+- Production/main alignment;
+- Completion Gate;
+- exact next action.
+
+Update `TRACKDASH_OPERATIONS.md` whenever operational behavior changes, including:
+
+- Admin button behavior;
+- worker composition;
+- batch size;
+- queue ordering;
+- cron behavior;
+- authorization/security;
+- deployment/version verification.
+
+Update the Method Master only when the **method itself** changes.
+
+## Runtime/documentation reconciliation
+
+Repository documentation is the persistent continuity source, but executable code and live Production remain authoritative for current runtime behavior.
+
+If runtime/code contradicts the documentation:
+
+1. verify the actual behavior;
+2. correct the implementation or documentation as appropriate;
+3. reconcile the persistent docs immediately in the same work unit.
+
+Do not leave a known contradiction for a future chat.
+
+## Completion documentation gate
+
+A family/work block is not operationally closed if the only accurate final state exists in chat.
+
+Before declaring completion:
+
+- Project State must reflect the result;
+- Operations must reflect any changed controls;
+- repository verification and Production gates from this Master must still pass.
+
+---
+
 **Repository gate note — 2026-09-21:** family work is not complete until the full `pnpm verify` gate passes on the exact code intended for `main`.
