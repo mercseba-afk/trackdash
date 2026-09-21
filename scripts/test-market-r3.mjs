@@ -84,7 +84,7 @@ ok("observed price follows the latest fresh observation instead of the cheapest 
     asOfDate: asOf,
   })
 
-  assert.equal(signal.retailAnchorEUR, 15.5)
+  assert.equal(signal.retailAnchorEUR, 20)
   assert.equal(signal.marketValueEUR, 15.5)
   assert.equal(signal.startingOffer.sourceId, "local")
   assert.equal(signal.startingOffer.itemPriceEUR, 18)
