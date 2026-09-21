@@ -186,6 +186,13 @@ export function applyPublicMarketPublicationPolicy(
     signal.retailAnchorEUR > 0 &&
     signal.retailSourceCount >= 2
 
+  // Multiple shop sticker prices are useful current evidence, but they do not
+  // become a European Market Value unless at least half of the independent
+  // retail references have a known delivered cost. This prevents €15 item-only
+  // listings from beating a €25 delivered market simply because checkout
+  // shipping was not observable.
+  const retailDeliveredEnough = (signal.retailShippingKnownRatio ?? 0) >= 0.5
+
   const severeTwoRegionSplit =
     signal.retailRegionCount === 2 &&
     signal.retailRegionalSpreadRatio != null &&
@@ -193,6 +200,7 @@ export function applyPublicMarketPublicationPolicy(
 
   const retailCanHeadline =
     hasLiquidRetail &&
+    retailDeliveredEnough &&
     (!severeTwoRegionSplit || signal.retailRegionCount >= 3)
 
   const retailCorroboratesSold =
