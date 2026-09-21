@@ -36,6 +36,7 @@ export type Chassis =
 
 export type Series =
   | "Racing Mini 4WD"
+  | "Mini 4WD PRO"
   | "Fully Cowled"
   | "Aero"
   | "Avante"
