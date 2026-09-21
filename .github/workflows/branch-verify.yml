@@ -22,4 +22,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Audit Manta Ray Mk.II official image URLs
+        run: |
+          for item in 18615 94593 94665 94709 95462 95466 95690; do
+            bucket=9
+            case "$item" in 1*) bucket=1 ;; esac
+            url="https://www.tamiya.com/japan_contents/img/usr/item/$bucket/$item/${item}_1.jpg"
+            code=$(curl -L -sS -o /dev/null -w "%{http_code}" "$url" || true)
+            echo "$item $code $url"
+          done
       - run: pnpm verify
