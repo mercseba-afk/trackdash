@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import {
   isAutoPublishableSnapshot,
   parseExactRetailPage,
+  parseRcjazRetailPage,
 } from "../lib/market/automation/exact-page-adapter.ts"
 import { guardAutomatedPrice } from "../lib/market/automation/price-guard.ts"
 
@@ -28,6 +29,66 @@ ok("direct JSON-LD Offer with exact item number is publishable", () => {
   assert.equal(snapshot.confidence, "structured")
   assert.equal(snapshot.itemNumberSeen, true)
   assert.equal(isAutoPublishableSnapshot(snapshot), true)
+})
+
+ok("RCJAZ exact product page parses current stock without generic JSON-LD", () => {
+  const html = `<html><head><title>Tamiya 95467 Dyna-Hawk GX Super XX Special Mini 4WD Kit</title></head>
+    <body>
+      <h1>Tamiya 95467 Dyna-Hawk GX Super XX Special Mini 4WD Kit [95467]</h1>
+      <div>Price: USD$25.30</div>
+      <div>Brand: Tamiya</div>
+      <div>Model: 95467</div>
+      <div>GTIN: 4950344954674</div>
+      <div>Condition: Brand New</div>
+      <button>Add to Cart</button>
+      <div>Available in shop</div>
+    </body></html>`
+  const snapshot = parseRcjazRetailPage(html, {
+    itemNumber: "95467",
+    pageUrl: "https://www.rcjaz.com/tamiya-95467-example-p-12156.html",
+  })
+  assert.equal(snapshot.itemNumberSeen, true)
+  assert.equal(snapshot.price, 25.3)
+  assert.equal(snapshot.currency, "USD")
+  assert.equal(snapshot.availability, "in_stock")
+  assert.equal(snapshot.confidence, "source_specific")
+  assert.equal(isAutoPublishableSnapshot(snapshot), true)
+})
+
+ok("RCJAZ exact product page preserves sold-out price as unavailable context", () => {
+  const html = `<html><head><title>Tamiya 94777 Avante III Azure Clear Blue</title></head>
+    <body>
+      <h1>Tamiya 94777 - 1/32 Avante III Azure Clear Blue Model Kit [94777]</h1>
+      <div>Price: USD$14.42</div>
+      <div>Model: 94777</div>
+      <div>Not Available</div>
+      <div>Please input your email and we will inform you once restocked.</div>
+    </body></html>`
+  const snapshot = parseRcjazRetailPage(html, {
+    itemNumber: "94777",
+    pageUrl: "https://www.rcjaz.com/tamiya-94777-example-p-90022364.html",
+  })
+  assert.equal(snapshot.itemNumberSeen, true)
+  assert.equal(snapshot.price, 14.42)
+  assert.equal(snapshot.currency, "USD")
+  assert.equal(snapshot.availability, "out_of_stock")
+  assert.equal(snapshot.confidence, "source_specific")
+  assert.equal(isAutoPublishableSnapshot(snapshot), true)
+})
+
+ok("RCJAZ Cloudflare challenge fails closed", () => {
+  const html = `<html><head><title>Just a moment...</title></head>
+    <body><div id="cf-chl-widget">Cloudflare security check</div></body></html>`
+  const snapshot = parseRcjazRetailPage(html, {
+    itemNumber: "95467",
+    pageUrl: "https://www.rcjaz.com/tamiya-95467-example.html",
+  })
+  assert.equal(snapshot.itemNumberSeen, false)
+  assert.equal(snapshot.price, null)
+  assert.equal(snapshot.availability, "unknown")
+  assert.equal(snapshot.confidence, "none")
+  assert.equal(snapshot.warnings.includes("RCJAZ_CHALLENGE_PAGE"), true)
+  assert.equal(isAutoPublishableSnapshot(snapshot), false)
 })
 
 ok("sold-out structured retailer price stays parseable but unavailable", () => {
