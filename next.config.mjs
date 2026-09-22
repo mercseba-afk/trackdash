@@ -120,6 +120,11 @@ const nextConfig = {
         hostname: "i0.wp.com",
         pathname: "/m4dtang.com/wp-content/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "static.www.sanfrecce.co.jp",
+        pathname: "/images/news/2023/07/0703_02_02.jpg",
+      },
     ],
   },
 }

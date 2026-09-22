@@ -1153,3 +1153,106 @@ RCJAZ integration status:
 Dyna status:
 
 **BLOCKED — FINAL PRODUCTION ALIGNMENT + RECOMPUTE QA**
+
+
+---
+
+# DASH-X1 PROTO-EMPEROR — CONTROLLED RE-AUDIT — 2026-09-22
+
+This is a family re-audit under the frozen current method. It does **not** change the global market method.
+
+## Genealogy
+
+Canonical Product:
+
+- Product: `DASH-X1 Proto-Emperor`
+- Product ID: `1acf7850-c8a9-5627-b104-54db6e235ba2`
+- canonical complete Releases: **4**
+
+The family remains:
+
+1. `94708` — DASH-X1 Proto-Emperor (VS Chassis), 2009
+2. `18074` — Dash-X1 Proto-Emperor Premium, 2013
+3. `95450` — Dash-X1 Proto-Emperor Premium Black Special, 2019
+4. shared-item `18074` — DASH-X1 Proto-Emperor Premium — Sanfrecce Hiroshima Special Edition, 2023
+
+`92063` is a body-parts-only predecessor and is **not** a complete Mini 4WD Release.
+
+Shared ITEM `18074` remains fail-closed for automatic Release inference. The standard Premium and Sanfrecce collector edition are separate TrackDash Releases.
+
+## Catalog alignment
+
+Re-audit changes persisted live and represented by migration `0142_dash_x1_proto_emperor_reaudit.sql`:
+
+- `94708`: discontinued, Rare; JAN already confirmed `4950344947089`
+- standard `18074`: JAN `4950344180745`, active/current catalog, Common
+- `95450`: JAN `4950344954506`, Uncommon; production status intentionally remains unknown
+- Sanfrecce 2023: discontinued one-event collector edition, Rare
+
+The standard `18074` notes preserve the alternate older/regional retailer GTIN `4950344063888` instead of silently treating it as the canonical JAN.
+
+## Images
+
+- standard `18074`: exact official Tamiya image already present
+- `95450`: exact official Tamiya image already present
+- Sanfrecce 2023: exact official Sanfrecce Hiroshima image added
+- `94708`: **EXACT IMAGE NOT FOUND AFTER AUDIT**; remains placeholder rather than inheriting another Proto-Emperor image
+
+`next.config.mjs` whitelists only the exact Sanfrecce news-image path required by this Release.
+
+## Market re-audit
+
+Standard `18074` has broad exact SOLD evidence:
+
+- full history: 60 sales / 17 sellers / average item price EUR 16.64
+- current rolling window: 19 sales / 8 sellers / average item price EUR 17.49
+
+Its existing EUR 17.49 SOLD-based Market Value is supported by broad seller diversity and is expected to survive current-policy recompute.
+
+`95450` requires current-policy recompute:
+
+- full history: 25 sales / 6 sellers / EUR 13.98 average
+- rolling window: 7 sales / **1 seller** / EUR 12.72 average
+- current eBay asks exist
+- current exact RCJAZ stock exists, but European landed cost is unknown
+
+Under frozen v4 policy, the one-seller rolling cluster cannot establish European MV merely from volume, and extra-EU RCJAZ item-only price cannot numerically corroborate it. A canonical recompute is queued rather than manually rewriting the signal.
+
+Sanfrecce:
+
+- historical exact completed-sale evidence remains;
+- a current eBay result was explicitly classified as **box-only 10-piece lot** and rejected from complete-kit valuation.
+
+`94708`:
+
+- exact RCJAZ page is historical/out-of-stock;
+- no valid exact current new-complete European offer was promoted during this audit.
+
+## RCJAZ
+
+Exact RCJAZ endpoints now exist for:
+
+- `94708`
+- standard `18074` (pre-existing explicit shared-item endpoint)
+- `95450`
+
+RCJAZ remains globally **PLANNED** pending the separate live Vercel Cloudflare transport gate. These exact pages are nevertheless valid manually verified market context.
+
+## Current execution state
+
+All four family Releases are queued for canonical recompute:
+
+- queued for family: **4**
+- expected Admin recompute capacity: **8**
+
+Do not declare the family COMPLETE before:
+
+1. repository change is merged and Production aligned;
+2. one canonical Admin Market Refresh consumes the four recomputes;
+3. signals are rechecked, especially `95450`;
+4. Production page/image QA passes;
+5. Empty Market Challenge / hidden-offer gate is green.
+
+Current status:
+
+**RE-AUDIT READY — PENDING PRODUCTION ALIGNMENT + CANONICAL RECOMPUTE**
