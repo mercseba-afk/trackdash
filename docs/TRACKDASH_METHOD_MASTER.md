@@ -536,6 +536,26 @@ Il Market Value può essere sostenuto da convergenza fra:
 
 ---
 
+## CONCENTRAZIONE SOLD VS AMPIEZZA DEL MERCATO
+
+La concentrazione dei SOLD in una singola sorgente o in un singolo venditore descrive la qualità di **quel campione SOLD**; non dimostra che l'intero mercato abbia un solo venditore.
+
+Regola permanente:
+
+- più vendite attribuibili allo stesso seller sono evidenza reale di sell-through;
+- un retailer indipendente, anche extra-UE, dimostra che la Release circola su più canali;
+- però la presenza di un canale extra-UE con landed cost europeo sconosciuto NON corrobora automaticamente il valore numerico europeo;
+- un cluster SOLD single-seller non deve da solo diventare Market Value solo perché il volume è alto;
+- può sostenere un Market Value quando esiste corroborazione di prezzo indipendente e confrontabile, preferibilmente Europe-first / delivered-cost;
+- in assenza di convergenza, mantenere SOLD anchor/storico/trend come evidenza reale e pubblicare il Prezzo osservato corrente quando disponibile.
+
+Quindi:
+**SINGLE SELLER NEL DATASET SOLD ≠ SINGLE SELLER NEL MERCATO.**
+Ma anche:
+**MERCATO MULTI-CANALE ≠ PREZZO SOLD AUTOMATICAMENTE VALIDATO COME MARKET VALUE.**
+
+---
+
 # SOLD 0
 
 Non mostrare pubblicamente:
