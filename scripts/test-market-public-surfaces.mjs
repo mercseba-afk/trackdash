@@ -81,6 +81,9 @@ if (!releaseScreen.includes("Prezzo osservato")) {
 if (!releaseScreen.includes("costo effettivo")) {
   errors.push("Release detail does not explain the Europe-first delivered-cost basis")
 }
+if (!releaseScreen.includes("Mercato osservato") || !releaseScreen.includes("Riferimenti disponibili")) {
+  errors.push("Release detail does not distinguish historical market context from missing data")
+}
 if (releaseScreen.includes("SOLD 0") || releaseScreen.includes("0 SOLD")) {
   errors.push("Release detail exposes a misleading zero-sales claim")
 }
@@ -89,6 +92,16 @@ if (releaseScreen.includes("Disponibile da") || releaseScreen.includes("Availabl
 }
 if (releaseScreen.includes("Come leggere il mercato") || releaseScreen.includes("Fonti e verifica")) {
   errors.push("Release detail still exposes analytical methodology/source panels")
+}
+
+const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
+if (!collectionScreen.includes("Mercato osservato") || !collectionScreen.includes("Riferimenti storici disponibili")) {
+  errors.push("Collection does not distinguish historical market context from missing data")
+}
+
+const publicMarket = fs.readFileSync("lib/market/public.ts", "utf8")
+if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listMarketContextEvidence")) {
+  errors.push("Public market service is not carrying safe historical context evidence")
 }
 
 const marketBits = fs.readFileSync("components/market-bits.tsx", "utf8")
