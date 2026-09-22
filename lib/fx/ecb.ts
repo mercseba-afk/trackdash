@@ -5,7 +5,7 @@ export const ECB_FX_SOURCE = "ecb_reference" as const
 export type FxSource = typeof ECB_FX_SOURCE
 
 export interface HistoricalFxRate {
-  currency: Exclude<Currency, "EUR">
+  currency: string
   requestedDate: string
   rateDate: string
   unitsPerEUR: number
@@ -23,6 +23,14 @@ export interface HistoricalEurBasis {
 type FetchLike = typeof fetch
 
 const SUPPORTED_FOREIGN_CURRENCIES = new Set<Exclude<Currency, "EUR">>(["USD", "JPY", "GBP"])
+
+export const ECB_MARKET_FOREIGN_CURRENCIES = new Set([
+  "USD", "JPY", "GBP",
+  "CHF", "ISK", "NOK", "SEK", "DKK", "CZK", "HUF", "PLN", "RON",
+  "AUD", "BRL", "CAD", "CNY", "HKD", "IDR", "ILS", "INR", "KRW", "MXN",
+  "MYR", "NZD", "PHP", "SGD", "THB", "TRY", "ZAR",
+])
+
 const rateCache = new Map<string, Promise<HistoricalFxRate | null>>()
 
 function round2(value: number): number {
@@ -75,7 +83,7 @@ function parseCsvLine(line: string): string[] {
 
 export function parseEcbDailyCsv(
   csv: string,
-  currency: Exclude<Currency, "EUR">,
+  currency: string,
   requestedDate: string,
 ): HistoricalFxRate | null {
   const lines = csv
@@ -113,7 +121,7 @@ export function parseEcbDailyCsv(
 }
 
 async function fetchHistoricalRate(
-  currency: Exclude<Currency, "EUR">,
+  currency: string,
   requestedDate: string,
   fetcher: FetchLike,
 ): Promise<HistoricalFxRate | null> {
@@ -141,6 +149,30 @@ async function fetchHistoricalRate(
   }
 }
 
+async function getHistoricalRateToEURAny(
+  currency: string,
+  requestedDate: string,
+  fetcher: FetchLike = fetch,
+): Promise<HistoricalFxRate | null> {
+  const normalized = currency.toUpperCase()
+  const date = isoDate(requestedDate)
+  if (!date || normalized === "EUR" || !ECB_MARKET_FOREIGN_CURRENCIES.has(normalized)) return null
+
+  const cacheKey = `${normalized}|${date}`
+  if (fetcher !== fetch) return fetchHistoricalRate(normalized, date, fetcher)
+
+  const cached = rateCache.get(cacheKey)
+  if (cached) return cached
+  const pending = fetchHistoricalRate(normalized, date, fetcher)
+  rateCache.set(cacheKey, pending)
+  return pending
+}
+
+export function supportsEcbMarketCurrency(currency: string): boolean {
+  const normalized = currency.toUpperCase()
+  return normalized === "EUR" || ECB_MARKET_FOREIGN_CURRENCIES.has(normalized)
+}
+
 export async function getHistoricalRateToEUR(
   currency: Currency,
   requestedDate: string,
@@ -151,15 +183,7 @@ export async function getHistoricalRateToEUR(
     return null
   }
 
-  const foreignCurrency = currency as Exclude<Currency, "EUR">
-  const cacheKey = `${foreignCurrency}|${date}`
-  if (fetcher !== fetch) return fetchHistoricalRate(foreignCurrency, date, fetcher)
-
-  const cached = rateCache.get(cacheKey)
-  if (cached) return cached
-  const pending = fetchHistoricalRate(foreignCurrency, date, fetcher)
-  rateCache.set(cacheKey, pending)
-  return pending
+  return getHistoricalRateToEURAny(currency, date, fetcher)
 }
 
 export async function resolveHistoricalEurBasis(
@@ -194,6 +218,39 @@ export async function resolveHistoricalEurBasis(
   }
 }
 
+export async function resolveMarketEurBasis(
+  amount: number,
+  currency: string,
+  observationDate: string | null | undefined,
+  fetcher: FetchLike = fetch,
+): Promise<HistoricalEurBasis> {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { amountEUR: null, fxRateToEUR: null, fxRateDate: null, fxSource: null }
+  }
+
+  const normalized = currency.toUpperCase()
+  if (normalized === "EUR") {
+    return { amountEUR: round2(amount), fxRateToEUR: null, fxRateDate: null, fxSource: null }
+  }
+
+  const requestedDate = observationDate ? isoDate(observationDate.slice(0, 10)) : null
+  if (!requestedDate || !ECB_MARKET_FOREIGN_CURRENCIES.has(normalized)) {
+    return { amountEUR: null, fxRateToEUR: null, fxRateDate: null, fxSource: null }
+  }
+
+  const rate = await getHistoricalRateToEURAny(normalized, requestedDate, fetcher)
+  if (!rate) {
+    return { amountEUR: null, fxRateToEUR: null, fxRateDate: null, fxSource: null }
+  }
+
+  return {
+    amountEUR: round2(amount * rate.rateToEUR),
+    fxRateToEUR: rate.rateToEUR,
+    fxRateDate: rate.rateDate,
+    fxSource: rate.source,
+  }
+}
+
 export async function enrichMarketObservationFx<T extends {
   price?: number | null
   currency?: string | null
@@ -201,12 +258,12 @@ export async function enrichMarketObservationFx<T extends {
   fxRateToEUR?: number | null
   fxRateDate?: string | null
 }>(observation: T, fetcher: FetchLike = fetch): Promise<T> {
-  const currency = observation.currency?.toUpperCase() as Currency | undefined
+  const currency = observation.currency?.toUpperCase()
   if (!currency || currency === "EUR" || observation.fxRateToEUR || observation.fxRateDate) return observation
   if (!observation.price || observation.price <= 0 || !observation.soldOn) return observation
-  if (!SUPPORTED_FOREIGN_CURRENCIES.has(currency as Exclude<Currency, "EUR">)) return observation
+  if (!ECB_MARKET_FOREIGN_CURRENCIES.has(currency)) return observation
 
-  const rate = await getHistoricalRateToEUR(currency, observation.soldOn.slice(0, 10), fetcher)
+  const rate = await getHistoricalRateToEURAny(currency, observation.soldOn.slice(0, 10), fetcher)
   if (!rate) return observation
 
   return {
