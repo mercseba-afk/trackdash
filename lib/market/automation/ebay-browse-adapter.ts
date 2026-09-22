@@ -253,6 +253,7 @@ export async function fetchEbayActiveListingByLegacyId(
   if (response.status === 404) return null
   if (!response.ok) throw new Error(`EBAY_BROWSE_LEGACY_HTTP_${response.status}`)
   const row = await response.json().catch(() => { throw new Error("EBAY_BROWSE_LEGACY_INVALID_RESPONSE") }) as EbayItemRow
+  if (row.conditionId == null) throw new Error("EBAY_BROWSE_LEGACY_CONDITION_MISSING")
   return toBrowseListing(row, marketplace, legacyItemId)
 }
 
