@@ -579,6 +579,38 @@ Avante remains **REOPENED — MARKET COMPLETENESS BACKFILL** until this final ga
 
 ---
 
+# 92284 POST-REFRESH DIAGNOSIS — EBAY_MY COVERAGE REQUIRED
+
+The requested Admin refresh was executed after Production alignment.
+
+Verified live outcome:
+
+- the eBay worker claimed and completed the 92284 job successfully with no scan error;
+- the four previously pending recomputes were fully drained;
+- 95000 recomputed with its current observed offer;
+- 92218 and 92207 recomputed with their persisted completed-sale anchors;
+- the Sanfrecce 18074 historical 2023 evidence remains historical context outside the current valuation window;
+- eBay item 204435589176 remained unchanged as needs_review / UNSUPPORTED_CURRENCY because it was not returned by the new scan;
+- 92284 still had no current offer state/public observed price after that refresh.
+
+Root cause is now isolated:
+
+- regional MYR FX support is present and is not the blocker;
+- the automatic eBay worker queried only EBAY_IT / EBAY_DE / EBAY_GB / EBAY_US;
+- the exact listing is Malaysian and requires EBAY_MY retrieval;
+- therefore a successful queue job could still miss that listing entirely.
+
+Canonical repair:
+
+- add EBAY_MY to the supported marketplace type;
+- add EBAY_MY to the automatic eBay scan marketplace set;
+- extend adapter routing tests;
+- do not manually force the candidate, offer state or release signal.
+
+Keep 92284 at temporary high eBay priority until the repaired Production worker has ingested the exact listing. After successful ingestion, restore ordinary family eBay priority and run the final Avante 24/24 completeness audit.
+
+---
+
 # ADMIN MARKET REFRESH — CURRENT OPERATIONAL FACT
 
 The button:
