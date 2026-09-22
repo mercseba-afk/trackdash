@@ -860,7 +860,7 @@ The endpoint is already present in live Supabase:
 
 - exact_release_verified: true
 - enabled: true
-- queue priority: 115
+- queue priority: **100** (temporary closeout boost restored to source baseline)
 - due: yes
 - last_success_at: null
 
