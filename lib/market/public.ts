@@ -5,7 +5,6 @@ import {
   getMarketMonthlySignalsForRelease,
   getMarketSignalForRelease,
   listCurrentObservedOffers,
-  listMarketContextEvidence,
   listMarketMonthlySignals,
   listMarketSignals,
   type CurrentObservedOfferRow,
@@ -16,6 +15,7 @@ import {
   MARKETPLACE_OFFER_MAX_AGE_HOURS,
   RETAIL_OFFER_MAX_AGE_HOURS,
 } from "@/lib/market/pipeline/market-publication-policy"
+import { createAdminClient } from "@/lib/supabase/admin"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -25,14 +25,66 @@ import type {
 
 const DAY_MS = 86_400_000
 
+
+interface SafeMarketContextEvidenceRow {
+  releaseId: string
+  evidenceCount: number
+}
+
+// market_candidates and market_aggregate_observations intentionally have no
+// public RLS policies. Read them only with the trusted server client and return
+// an aggregate count; raw private audit evidence never crosses this boundary.
+async function listSafeMarketContextEvidence(
+  releaseIds?: string[],
+): Promise<SafeMarketContextEvidenceRow[]> {
+  if (releaseIds && releaseIds.length === 0) return []
+
+  const client = createAdminClient()
+  let candidateQuery = client
+    .from("market_candidates")
+    .select("resolved_release_id")
+    .eq("decision", "accepted")
+    .in("match_confidence", ["exact", "strong"])
+    .not("resolved_release_id", "is", null)
+
+  let aggregateQuery = client
+    .from("market_aggregate_observations")
+    .select("release_id")
+    .in("attribution_status", ["release_exact", "release_matched"])
+    .not("release_id", "is", null)
+
+  if (releaseIds?.length) {
+    candidateQuery = candidateQuery.in("resolved_release_id", releaseIds)
+    aggregateQuery = aggregateQuery.in("release_id", releaseIds)
+  }
+
+  const [
+    { data: candidates, error: candidateError },
+    { data: aggregates, error: aggregateError },
+  ] = await Promise.all([candidateQuery, aggregateQuery])
+
+  if (candidateError) throw new Error(`load safe market candidate context: ${candidateError.message}`)
+  if (aggregateError) throw new Error(`load safe aggregate market context: ${aggregateError.message}`)
+
+  const counts = new Map<string, number>()
+  for (const row of [...(candidates ?? []), ...(aggregates ?? [])]) {
+    const releaseId = "resolved_release_id" in row ? row.resolved_release_id : row.release_id
+    if (!releaseId) continue
+    counts.set(releaseId, (counts.get(releaseId) ?? 0) + 1)
+  }
+
+  return [...counts.entries()].map(([releaseId, evidenceCount]) => ({ releaseId, evidenceCount }))
+}
+
+
 const listCachedPublicMarketBundle = unstable_cache(
   async () => Promise.all([
     listMarketSignals(),
     listMarketMonthlySignals(),
     listCurrentObservedOffers(),
-    listMarketContextEvidence(),
+    listSafeMarketContextEvidence(),
   ]),
-  ["trackdash-public-market-signals-v6"],
+  ["trackdash-public-market-signals-v7"],
   { revalidate: 60 },
 )
 
@@ -202,7 +254,7 @@ export async function getPublicMarketSignalForRelease(
     getMarketSignalForRelease(releaseId),
     getMarketMonthlySignalsForRelease(releaseId, undefined, 6),
     listCurrentObservedOffers([releaseId]),
-    listMarketContextEvidence([releaseId]),
+    listSafeMarketContextEvidence([releaseId]),
   ])
   return toPublicMarketSignalView(
     row,
@@ -225,7 +277,7 @@ export async function getPublicMarketSignalMap(
         listMarketSignals(releaseIds),
         listMarketMonthlySignals(releaseIds),
         listCurrentObservedOffers(releaseIds),
-        listMarketContextEvidence(releaseIds),
+        listSafeMarketContextEvidence(releaseIds),
       ])
     : await listCachedPublicMarketBundle()
 
