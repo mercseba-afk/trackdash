@@ -419,6 +419,73 @@ The goal is maximum real evidence, not forced values.
 
 ---
 
+
+# MARKET COMPLETENESS BACKFILL — LIVE CHECKPOINT 2026-09-22
+
+## Automatic revalidation completed
+
+The user ran four Admin market refresh cycles against the prepared 14-target eBay backfill queue.
+
+Verified results:
+
+- all 14 prepared eBay jobs were attempted successfully;
+- scan errors: **0**;
+- temporary backfill priority was restored to the normal policy;
+- `18626` now has multiple accepted current offers and a v4 observed market reference;
+- `18627` now has multiple accepted current offers and a v4 observed market reference;
+- `95469` now has an accepted current offer and a v4 observed market reference;
+- false-positive eBay results for `94692`, `94772`, `94673` were correctly rejected rather than contaminating the exact Release.
+
+## New exact market evidence persisted
+
+- Dyna-Hawk GX `95000`: exact active Mercari listing, new/unused, **JPY 4,900 ≈ EUR 27.12**, current offer; recompute queued.
+- Proto-Emperor Sanfrecce `18074`: exact Yahoo Flea completed sale, unused, **JPY 3,400 ≈ EUR 21.49**, sold 2023-09-05; historical context, recompute queued.
+- Avante Mk.III `92218`: exact Yahoo Auctions completed sale, unused, **JPY 7,000 ≈ EUR 37.62**, ended 2026-06-07; recompute queued.
+- Avante Mk.III `92207`: exact Yahoo Auctions completed sale, unused, **JPY 6,750 ≈ EUR 36.27**, ended 2026-06-07; recompute queued.
+
+Current recompute queue at this checkpoint: **4 jobs, 0 errors**.
+
+## 92207 conflicting Yahoo Shopping page
+
+A Yahoo Shopping page whose title says `92207` also exposes conflicting merchant product number `92195-000`.
+
+TrackDash therefore:
+
+- quarantined the candidate as `needs_review`;
+- removed its current offer state;
+- does **not** publish JPY 40,103 as a 92207 current price.
+
+## Regional currency pipeline blocker
+
+`92284` has an exact active eBay offer in MYR, but the old worker quarantined it only because the market FX path was restricted to EUR/USD/JPY/GBP.
+
+PR #188 adds ECB-backed regional market FX without expanding the user acquisition-currency UI.
+
+- PR head `e09f9fd99e2ada38172309846eee8523c024e9c1`
+- Typecheck: SUCCESS
+- full `pnpm verify`: SUCCESS
+- merged to main as `46fd2396c17e88e4d992d0242c34cc594401c606`
+
+The first Production deployment of that merge failed during `pnpm run build`. The FX branch Preview itself was READY, so the failure is being isolated against the additional market-context commits that landed on main while PR #188 was open. Production remains on the previous READY deployment until repaired.
+
+## Public historical context
+
+Current main already contains the safe UI distinction between:
+
+- current observed price;
+- Market Value;
+- historical/non-current market references.
+
+A Release with verified historical/non-current evidence no longer needs to look identical to a Release with zero market evidence.
+
+Avante remains:
+
+**REOPENED — MARKET COMPLETENESS BACKFILL**
+
+Do not close until the remaining challenge classifications, queued recomputes, 92284 regional-currency rescan, Production alignment and final completeness audit all pass.
+
+---
+
 # ADMIN MARKET REFRESH — CURRENT OPERATIONAL FACT
 
 The button:

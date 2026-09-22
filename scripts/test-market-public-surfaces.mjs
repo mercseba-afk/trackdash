@@ -100,8 +100,8 @@ if (!collectionScreen.includes("Mercato osservato") || !collectionScreen.include
 }
 
 const publicMarket = fs.readFileSync("lib/market/public.ts", "utf8")
-if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listMarketContextEvidence")) {
-  errors.push("Public market service is not carrying safe historical context evidence")
+if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listSafeMarketContextEvidence")) {
+  errors.push("Public market service is not carrying safe historical context evidence through the trusted server boundary")
 }
 
 const marketBits = fs.readFileSync("components/market-bits.tsx", "utf8")

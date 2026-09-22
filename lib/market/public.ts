@@ -42,10 +42,9 @@ async function listSafeMarketContextEvidence(
   const client = createAdminClient()
   let candidateQuery = client
     .from("market_candidates")
-    .select("resolved_release_id")
+    .select("resolved_release_id,possible_release_ids")
     .eq("decision", "accepted")
     .in("match_confidence", ["exact", "strong"])
-    .not("resolved_release_id", "is", null)
 
   let aggregateQuery = client
     .from("market_aggregate_observations")
@@ -54,7 +53,9 @@ async function listSafeMarketContextEvidence(
     .not("release_id", "is", null)
 
   if (releaseIds?.length) {
-    candidateQuery = candidateQuery.in("resolved_release_id", releaseIds)
+    // Keep unresolved exact multi-Release evidence (for example an unsplittable
+    // two-kit lot) available as context. Filtering candidates only by
+    // resolved_release_id would hide that evidence from every possible Release.
     aggregateQuery = aggregateQuery.in("release_id", releaseIds)
   }
 
@@ -66,10 +67,23 @@ async function listSafeMarketContextEvidence(
   if (candidateError) throw new Error(`load safe market candidate context: ${candidateError.message}`)
   if (aggregateError) throw new Error(`load safe aggregate market context: ${aggregateError.message}`)
 
+  const wanted = releaseIds?.length ? new Set(releaseIds) : null
   const counts = new Map<string, number>()
-  for (const row of [...(candidates ?? []), ...(aggregates ?? [])]) {
-    const releaseId = "resolved_release_id" in row ? row.resolved_release_id : row.release_id
-    if (!releaseId) continue
+
+  for (const row of candidates ?? []) {
+    const candidateReleaseIds = row.resolved_release_id
+      ? [row.resolved_release_id]
+      : (row.possible_release_ids ?? [])
+
+    for (const releaseId of candidateReleaseIds) {
+      if (!releaseId || (wanted && !wanted.has(releaseId))) continue
+      counts.set(releaseId, (counts.get(releaseId) ?? 0) + 1)
+    }
+  }
+
+  for (const row of aggregates ?? []) {
+    const releaseId = row.release_id
+    if (!releaseId || (wanted && !wanted.has(releaseId))) continue
     counts.set(releaseId, (counts.get(releaseId) ?? 0) + 1)
   }
 
