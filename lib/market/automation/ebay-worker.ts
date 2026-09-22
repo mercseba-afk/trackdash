@@ -1,8 +1,7 @@
 import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
-import type { Currency } from "@/lib/types"
+import { resolveMarketEurBasis, supportsEcbMarketCurrency } from "@/lib/fx/ecb"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { MarketR3Repository } from "@/lib/market/pipeline/market-r3-repository"
 import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-service"
@@ -20,7 +19,6 @@ import { guardAutomatedPrice } from "./price-guard"
 import { ebaySourceRecordKey, planMissingEbayOffers, type EbayMarketplaceFetchState, type ExistingEbayOfferIdentity } from "./ebay-lifecycle"
 
 const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US"]
-const SUPPORTED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
 
 interface ClaimedEbayJob {
   job_id: string
@@ -499,8 +497,8 @@ async function scanJob(
       continue
     }
 
-    const currency = listing.currency.toUpperCase() as Currency
-    if (!SUPPORTED_CURRENCIES.has(currency)) {
+    const currency = listing.currency.toUpperCase()
+    if (!supportsEcbMarketCurrency(currency)) {
       if (persistNonAccepted) {
         await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["UNSUPPORTED_CURRENCY"], observedAt })
       }
@@ -509,10 +507,10 @@ async function scanJob(
       continue
     }
 
-    const itemFx = await resolveHistoricalEurBasis(listing.price, currency, observedAt.slice(0, 10))
+    const itemFx = await resolveMarketEurBasis(listing.price, currency, observedAt.slice(0, 10))
     const shippingFx = listing.shipping == null
       ? null
-      : await resolveHistoricalEurBasis(listing.shipping || 0.000001, currency, observedAt.slice(0, 10))
+      : await resolveMarketEurBasis(listing.shipping || 0.000001, currency, observedAt.slice(0, 10))
     if (itemFx.amountEUR == null) {
       if (persistNonAccepted) {
         await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["FX_RATE_UNAVAILABLE"], observedAt })
