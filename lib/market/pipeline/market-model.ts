@@ -189,7 +189,10 @@ function isPurchasable(availability: AvailabilityStatus): boolean {
 }
 
 function isEuropeComparableRegion(region: CurrentOfferEvidence["marketRegion"]): boolean {
-  return region === "europe" || region === "internal"
+  // Null is kept for backwards-compatible in-process evidence where no region
+  // was supplied. Persisted Production offers are normalized to an explicit
+  // source/listing region by the repository layer.
+  return region == null || region === "europe" || region === "internal"
 }
 
 function costBasis(offer: CurrentOfferEvidence): {
@@ -247,7 +250,7 @@ function chooseRepresentative(offers: CurrentOfferEvidence[]): OfferRepresentati
       channel: offer.channel,
       sellerFingerprint: offer.sellerFingerprint ?? null,
       merchantKey: offer.merchantKey ?? null,
-      marketRegion: offer.marketRegion ?? "global",
+      marketRegion: offer.marketRegion ?? null,
       observedAt: offer.observedAt,
       itemPriceEUR: cost.itemPriceEUR,
       shippingEUR: cost.shippingEUR,
