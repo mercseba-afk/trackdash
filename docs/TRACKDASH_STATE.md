@@ -935,3 +935,131 @@ Dyna-Hawk is therefore:
 **BLOCKED — PRODUCTION DEPLOYMENT QUOTA**
 
 The family logic/catalog/evidence work is ready, but it is not yet valid to declare COMPLETE or instruct the user to run the normal Production Admin refresh while Production still executes the older publication policy.
+
+
+---
+
+# RCJAZ — SOURCE-LEVEL EXACT RETAIL INTEGRATION — 2026-09-22
+
+RCJAZ is no longer modeled as a one-off endpoint rule for Dyna-Hawk `95467`.
+
+PR #197 introduces source-level integration with these repository migrations:
+
+- `0139_rcjaz_source_level_integration.sql`
+- `0140_rcjaz_exact_endpoint_queue_cleanup.sql`
+- `0141_rcjaz_verified_endpoint_queue_alignment.sql`
+
+## Runtime/parser
+
+New parser kind:
+
+`rcjaz_product_page`
+
+It handles RCJAZ exact-product pages and recognizes:
+
+- exact Item Number on page;
+- product price/currency;
+- `Available in shop` as current stock;
+- `Not Available` / sold-out state as unavailable context;
+- Cloudflare challenge markers as fail-closed review.
+
+Worker dispatch now selects this parser for RCJAZ endpoints.
+
+Tests cover:
+
+- current `95467`-style RCJAZ page;
+- unavailable `94777`-style page;
+- Cloudflare challenge page.
+
+## Persistent enrollment
+
+Safe exact RCJAZ pages are enrolled from:
+
+- curated `release_sources`;
+- accepted exact/strong `market_candidates`.
+
+Future qualifying records auto-enroll through database triggers.
+
+Automatic enrollment requires:
+
+- approved RCJAZ host;
+- individual product-page URL;
+- Item Number present in URL;
+- Item Number unique in the TrackDash catalog.
+
+Shared/reused Item Numbers fail closed and require explicit exact endpoint verification.
+
+Existing explicit `exact_release_verified=true` endpoints remain schedulable even for a shared Item Number.
+
+## Live Supabase verification
+
+The source-level migrations were applied to Production Supabase in this work unit.
+
+Verified live state:
+
+- RCJAZ exact endpoints: **27**
+- Releases with RCJAZ exact endpoint: **25**
+- Releases with enabled RCJAZ queue: **25**
+- Releases with enabled RCJAZ target: **25**
+- enabled RCJAZ jobs without exact endpoint: **0**
+- all RCJAZ endpoints use parser `rcjaz_product_page`
+- source policy remains `adapter_status = planned`
+- baseline retail interval: **336h**
+- `95508` explicit shared-item endpoint has queue/target enabled
+- automatic enrollment test on shared Item Number `18074`: **false**, as required
+
+Security verification:
+
+- `anon` cannot execute `trackdash_enroll_rcjaz_endpoint`
+- `authenticated` cannot execute it
+- `service_role` can execute it
+- Supabase security advisor did not flag the new RCJAZ functions as mutable-search-path or publicly executable SECURITY DEFINER functions
+
+## Dyna-Hawk 95467 RCJAZ evidence
+
+The current exact RCJAZ page was manually verified and persisted as:
+
+- `retail_in_stock`
+- USD **25.30**
+- exact ITEM `95467`
+- GTIN `4950344954674`
+- Brand New / new complete unbuilt
+- European landed shipping/import cost: unknown
+- reason: `EXTRA_EU_LANDED_COST_UNKNOWN`
+
+This proves an independent current retail channel but does not numerically define the European observed price.
+
+## Activation gate
+
+RCJAZ is **integrated but not automatically executed yet**.
+
+Reason:
+
+A previous live Vercel probe received HTTP 403 / Cloudflare challenge. The source therefore remains `PLANNED`.
+
+The dedicated parser detects challenge pages and fails closed, but RCJAZ must not move to `READY` until a live Vercel transport canary succeeds.
+
+External browser/search accessibility is not sufficient proof of Vercel-worker accessibility.
+
+## Current Production blocker
+
+Vercel has reached the daily deployment quota:
+
+`api-deployments-free-per-day`
+
+Therefore executable code merged after Production SHA `80245440dff130d491d4342fa91bf6faeeb76078` is not yet live at `trackdash.it`.
+
+Do not run the one-time 15-job recompute batch through Production Admin until the final market code is deployed and:
+
+**GitHub main SHA = Vercel Production SHA = /api/version**
+
+## Exact next action
+
+1. merge PR #197 after Typecheck + full `pnpm verify` are green;
+2. publish the resulting main commit to Vercel Production when deployment capacity permits;
+3. verify main = Production = `/api/version`;
+4. keep RCJAZ `PLANNED` until a Vercel canary proves direct RCJAZ fetch works;
+5. after Production alignment, run Admin Market Refresh for the prepared Dyna/Avante recompute queue;
+6. verify the four Dyna public signals and Collection;
+7. close the Dyna Completion Gate only after those recomputes/QA pass.
+
