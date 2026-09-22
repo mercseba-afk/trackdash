@@ -142,14 +142,27 @@ function freshObservedOffers(
   })
 }
 
-function latestFreshObservedOffer(
+function startingFreshObservedOffer(
   rows: CurrentObservedOfferRow[],
+  startingCandidateId: string | null,
   asOf = new Date(),
 ): CurrentObservedOfferRow | null {
-  return freshObservedOffers(rows, asOf).sort((a, b) => {
-    const aTime = a.lastCheckedAt instanceof Date ? a.lastCheckedAt.getTime() : Date.parse(String(a.lastCheckedAt))
-    const bTime = b.lastCheckedAt instanceof Date ? b.lastCheckedAt.getTime() : Date.parse(String(b.lastCheckedAt))
-    if (aTime !== bTime) return bTime - aTime
+  const fresh = freshObservedOffers(rows, asOf)
+
+  if (startingCandidateId) {
+    const exactStartingOffer = fresh.find((row) => row.candidateId === startingCandidateId)
+    if (exactStartingOffer) return exactStartingOffer
+  }
+
+  // Fallback only for legacy/incomplete rows: prefer a known delivered cost,
+  // then the lowest item price. Public pricing itself still comes from the
+  // canonical market_release_signals starting_* fields below.
+  return fresh.sort((a, b) => {
+    const aEffective = numberOrNull(a.effectiveCostEUR)
+    const bEffective = numberOrNull(b.effectiveCostEUR)
+    if (aEffective != null && bEffective != null && aEffective !== bEffective) return aEffective - bEffective
+    if (aEffective != null && bEffective == null) return -1
+    if (aEffective == null && bEffective != null) return 1
     return Number(a.itemPriceEUR) - Number(b.itemPriceEUR)
   })[0] ?? null
 }
@@ -193,9 +206,10 @@ export function toPublicMarketSignalView(
   const retailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
   const activeAnchorEUR = numberOrNull(signal.activeAnchorEUR)
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
+  const startingItemPriceEUR = numberOrNull(signal.startingItemPriceEUR)
+  const startingEffectiveCostEUR = numberOrNull(signal.startingEffectiveCostEUR)
   const freshOffers = freshObservedOffers(observedOffers)
-  const observedOffer = latestFreshObservedOffer(freshOffers)
-  const observedPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)
+  const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId)
   const currentOfferCount = freshOffers.length
   const activeOfferCount = freshOffers.filter((offer) => offer.channel === "marketplace").length
   const retailSourceCount = new Set(
@@ -224,7 +238,12 @@ export function toPublicMarketSignalView(
     activeLowEUR: numberOrNull(signal.activeLowEUR),
     activeHighEUR: numberOrNull(signal.activeHighEUR),
     soldAnchorEUR,
-    startingItemPriceEUR: observedPriceEUR != null && observedPriceEUR > 0 ? observedPriceEUR : null,
+    startingItemPriceEUR: startingItemPriceEUR != null && startingItemPriceEUR > 0 ? startingItemPriceEUR : null,
+    startingEffectiveCostEUR: startingEffectiveCostEUR != null && startingEffectiveCostEUR > 0 ? startingEffectiveCostEUR : null,
+    startingCostBasis:
+      signal.startingCostBasis === "delivered" || signal.startingCostBasis === "item_only"
+        ? signal.startingCostBasis
+        : null,
     observedPriceAt: observedOffer
       ? (observedOffer.lastCheckedAt instanceof Date ? observedOffer.lastCheckedAt.toISOString() : String(observedOffer.lastCheckedAt))
       : null,
@@ -232,7 +251,7 @@ export function toPublicMarketSignalView(
       observedOffer?.channel === "retail" || observedOffer?.channel === "marketplace"
         ? observedOffer.channel
         : null,
-    observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
+    observedShippingEUR: numberOrNull(signal.startingShippingEUR) ?? numberOrNull(observedOffer?.shippingEUR),
     retailSourceCount,
     activeOfferCount,
     currentOfferCount,
