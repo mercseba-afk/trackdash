@@ -103,6 +103,25 @@ const publicMarket = fs.readFileSync("lib/market/public.ts", "utf8")
 if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listSafeMarketContextEvidence")) {
   errors.push("Public market service is not carrying safe historical context evidence through the trusted server boundary")
 }
+if (!publicMarket.includes("startingEffectiveCostEUR: startingEffectiveCostEUR")) {
+  errors.push("Public market service is not exposing the canonical starting effective cost")
+}
+if (publicMarket.includes("startingItemPriceEUR: observedPriceEUR")) {
+  errors.push("Public market service is re-deriving the canonical starting price from offer-state ordering")
+}
+
+for (const file of [
+  "components/screens/release-detail-screen.tsx",
+  "components/screens/collection-screen.tsx",
+  "components/market-signal-inline.tsx",
+]) {
+  const source = fs.readFileSync(file, "utf8")
+  const startingIndex = source.indexOf("startingEffectiveCostEUR")
+  const activeIndex = source.indexOf("activeAnchorEUR", startingIndex)
+  if (startingIndex < 0 || activeIndex < 0 || startingIndex > activeIndex) {
+    errors.push(`${file}: canonical starting cost must be preferred before active anchor`)
+  }
+}
 
 const marketBits = fs.readFileSync("components/market-bits.tsx", "utf8")
 if (!marketBits.includes("trendWindowMonths") || !marketBits.includes("TrendIndicator")) {

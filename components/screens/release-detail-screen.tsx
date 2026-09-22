@@ -168,9 +168,10 @@ function MarketValuePanel({
   it: boolean
 }) {
   const observedPrice =
-    signal?.activeAnchorEUR ??
-    signal?.retailAnchorEUR ??
+    signal?.startingEffectiveCostEUR ??
     signal?.startingItemPriceEUR ??
+    signal?.retailAnchorEUR ??
+    signal?.activeAnchorEUR ??
     null
 
   if (!signal || signal.valueEUR == null) {
@@ -269,9 +270,10 @@ function ExternalAvailabilityCard({
 }) {
   const current = signal?.currentOfferCount ?? 0
   const observedPrice =
-    signal?.activeAnchorEUR ??
-    signal?.retailAnchorEUR ??
+    signal?.startingEffectiveCostEUR ??
     signal?.startingItemPriceEUR ??
+    signal?.retailAnchorEUR ??
+    signal?.activeAnchorEUR ??
     null
   const low = signal?.activeLowEUR ?? null
   const high = signal?.activeHighEUR ?? null
@@ -334,9 +336,10 @@ function PriceIntelligenceCard({
   loginHref: string
 }) {
   const observedPrice =
-    signal?.activeAnchorEUR ??
-    signal?.retailAnchorEUR ??
+    signal?.startingEffectiveCostEUR ??
     signal?.startingItemPriceEUR ??
+    signal?.retailAnchorEUR ??
+    signal?.activeAnchorEUR ??
     null
 
   return (

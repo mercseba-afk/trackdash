@@ -193,9 +193,10 @@ export function toPublicMarketSignalView(
   const retailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
   const activeAnchorEUR = numberOrNull(signal.activeAnchorEUR)
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
+  const startingItemPriceEUR = numberOrNull(signal.startingItemPriceEUR)
+  const startingEffectiveCostEUR = numberOrNull(signal.startingEffectiveCostEUR)
   const freshOffers = freshObservedOffers(observedOffers)
   const observedOffer = latestFreshObservedOffer(freshOffers)
-  const observedPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)
   const currentOfferCount = freshOffers.length
   const activeOfferCount = freshOffers.filter((offer) => offer.channel === "marketplace").length
   const retailSourceCount = new Set(
@@ -224,7 +225,12 @@ export function toPublicMarketSignalView(
     activeLowEUR: numberOrNull(signal.activeLowEUR),
     activeHighEUR: numberOrNull(signal.activeHighEUR),
     soldAnchorEUR,
-    startingItemPriceEUR: observedPriceEUR != null && observedPriceEUR > 0 ? observedPriceEUR : null,
+    startingItemPriceEUR: startingItemPriceEUR != null && startingItemPriceEUR > 0 ? startingItemPriceEUR : null,
+    startingEffectiveCostEUR: startingEffectiveCostEUR != null && startingEffectiveCostEUR > 0 ? startingEffectiveCostEUR : null,
+    startingCostBasis:
+      signal.startingCostBasis === "delivered" || signal.startingCostBasis === "item_only"
+        ? signal.startingCostBasis
+        : null,
     observedPriceAt: observedOffer
       ? (observedOffer.lastCheckedAt instanceof Date ? observedOffer.lastCheckedAt.toISOString() : String(observedOffer.lastCheckedAt))
       : null,
@@ -232,7 +238,7 @@ export function toPublicMarketSignalView(
       observedOffer?.channel === "retail" || observedOffer?.channel === "marketplace"
         ? observedOffer.channel
         : null,
-    observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
+    observedShippingEUR: numberOrNull(signal.startingShippingEUR) ?? numberOrNull(observedOffer?.shippingEUR),
     retailSourceCount,
     activeOfferCount,
     currentOfferCount,

@@ -19,6 +19,8 @@ export interface ReleaseMarketSignalView {
   activeHighEUR: number | null
   soldAnchorEUR: number | null
   startingItemPriceEUR: number | null
+  startingEffectiveCostEUR: number | null
+  startingCostBasis: "delivered" | "item_only" | null
   observedPriceAt: string | null
   observedPriceChannel: "retail" | "marketplace" | null
   observedShippingEUR: number | null

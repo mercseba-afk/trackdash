@@ -1256,3 +1256,46 @@ Do not declare the family COMPLETE before:
 Current status:
 
 **RE-AUDIT READY — PENDING PRODUCTION ALIGNMENT + CANONICAL RECOMPUTE**
+
+
+---
+
+# DASH-X1 PROTO-EMPEROR — POST-RECOMPUTE QA — 2026-09-22
+
+The canonical Admin refresh completed for all four family Releases.
+
+Verified live state before the public-surface patch:
+
+- recompute queue: **0**
+- locked recomputes: **0**
+- stale market-method signals: **0**
+- hidden valid current offers: **0**
+- all four signals recomputed under `market_method_version = v4`
+
+Final family signals:
+
+- `94708` — no public current price / no MV. RCJAZ exact is historical OOS. Empty Market Challenge also found an exact current eBay listing at USD 100, but eBay classifies it Used while seller text says unused/unassembled; European landed cost is not verified. It remains context only.
+- standard `18074` — Market Value **EUR 17.49**, supported by 19 recent SOLD / 8 sellers.
+- `95450` Black Special — Market Value correctly **null** after the seller-concentration rule; SOLD anchor **EUR 12.72** remains evidence. Canonical current starting offer is **EUR 18.36 item + EUR 15.77 shipping = EUR 34.13 delivered**.
+- Sanfrecce Hiroshima 2023 — no public current price / no MV; exact historical evidence exists, while the current exact eBay result is box-only / 10-piece lot and is rejected from kit valuation.
+
+QA exposed one **global public-read/UI defect**, not a Proto-Emperor-specific pricing problem:
+
+- `market_release_signals` already stores canonical `starting_item_price_eur`, `starting_shipping_eur`, `starting_effective_cost_eur`;
+- the public market read model was re-deriving `startingItemPriceEUR` from current offer-state ordering;
+- Collection, Release detail and inline market surfaces preferred `activeAnchorEUR` before the canonical starting offer.
+
+This could affect **any family and any Release** whose typical ASK anchor differs from the cheapest valid current offer.
+
+The global fix therefore:
+
+1. exposes canonical `startingEffectiveCostEUR` and `startingCostBasis` from the shared public market view;
+2. keeps canonical `startingItemPriceEUR` / shipping from the recomputed signal instead of re-deriving the price;
+3. makes Collection, Release detail and shared inline market UI prefer canonical starting effective cost before retail/active anchors;
+4. adds a regression guard to `scripts/test-market-public-surfaces.mjs`.
+
+No family-specific pricing rule is introduced.
+
+Family status until this patch is merged and Production-aligned:
+
+**QA COMPLETE — PENDING GLOBAL PUBLIC-SURFACE FIX DEPLOY**

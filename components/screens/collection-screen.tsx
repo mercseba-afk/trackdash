@@ -308,9 +308,10 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
   const observedPrice =
-    signal?.activeAnchorEUR ??
-    signal?.retailAnchorEUR ??
+    signal?.startingEffectiveCostEUR ??
     signal?.startingItemPriceEUR ??
+    signal?.retailAnchorEUR ??
+    signal?.activeAnchorEUR ??
     null
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   const observedDirection =
