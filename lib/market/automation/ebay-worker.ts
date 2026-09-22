@@ -18,7 +18,7 @@ import {
 import { guardAutomatedPrice } from "./price-guard"
 import { ebaySourceRecordKey, planMissingEbayOffers, type EbayMarketplaceFetchState, type ExistingEbayOfferIdentity } from "./ebay-lifecycle"
 
-const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US"]
+const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US", "EBAY_MY"]
 
 interface ClaimedEbayJob {
   job_id: string

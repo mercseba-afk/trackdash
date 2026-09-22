@@ -177,6 +177,16 @@ Purpose:
 - normalize candidate/offer state;
 - enqueue recompute on material changes.
 
+Current Browse marketplace coverage:
+
+- EBAY_IT;
+- EBAY_DE;
+- EBAY_GB;
+- EBAY_US;
+- EBAY_MY.
+
+Regional marketplaces must be added when they are required by real exact-Release evidence; currency support alone is not sufficient if the worker never queries the listing's marketplace.
+
 Important:
 
 - ITEM/release identity first;
