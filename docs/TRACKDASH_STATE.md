@@ -1063,3 +1063,93 @@ Do not run the one-time 15-job recompute batch through Production Admin until th
 6. verify the four Dyna public signals and Collection;
 7. close the Dyna Completion Gate only after those recomputes/QA pass.
 
+
+
+---
+
+# POST-MERGE CHECKPOINT — DYNA + RCJAZ — 2026-09-22 13:xx Europe/Rome
+
+This checkpoint supersedes the earlier deployment-blocker wording above.
+
+## Repository
+
+RCJAZ source-level integration PR #197 is **MERGED**.
+
+Functional merge SHA:
+
+`7401bc4358b92c82eda86e6e162ae0a44600c6b1`
+
+PR #197 final checks:
+
+- Typecheck: **SUCCESS**
+- full `pnpm verify`: **SUCCESS**
+
+The temporary Preview-only RCJAZ canary route was removed before merge.
+
+## Production
+
+Current Vercel Production / `/api/version`:
+
+`03384158e6a173ea3a7621b1e271a404df828e65`
+
+Therefore:
+
+- Production already includes the Dyna Europe-first repair and the PR #195 seller-concentration publication rule;
+- Production does **not yet** include the final PR #197 RCJAZ parser/enrollment application code;
+- GitHub main and Production are not aligned.
+
+Vercel status for merge SHA `7401bc43...` is still blocked by:
+
+`api-deployments-free-per-day`
+
+Do not declare Completion Gate passed while this mismatch exists.
+
+## Live Supabase
+
+RCJAZ data-layer integration is already applied and verified live:
+
+- exact endpoints: **27**
+- endpoint-backed Releases: **25**
+- enabled RCJAZ queue Releases: **25**
+- enabled RCJAZ target Releases: **25**
+- enabled queue jobs without exact endpoint: **0**
+- RCJAZ adapter status: **PLANNED**
+- current exact `95467` RCJAZ candidate: USD 25.30 / in stock / European landed cost unknown
+- shared Item Number automatic enrollment remains fail-closed
+- explicit verified shared-item endpoints remain schedulable
+
+The one-time market recompute queue remains:
+
+- queued: **15**
+- locked: **0**
+
+No recompute has been consumed during the RCJAZ integration work.
+
+## Operational consequence
+
+**Do not ask the user to press Admin → Aggiornamento mercato yet.**
+
+Even though the Dyna publication logic itself is already present in Production, the permanent project gate requires:
+
+**GitHub main SHA = Vercel Production SHA = /api/version**
+
+before the one-time migration/recompute QA is treated as canonical.
+
+## Exact next action
+
+1. deploy current main (functional SHA `7401bc43...` plus this docs-only checkpoint) to Vercel Production;
+2. verify `main = Production = /api/version`;
+3. keep RCJAZ `PLANNED` until a live Vercel outbound canary proves direct RCJAZ fetch succeeds without Cloudflare challenge;
+4. then instruct the user to run **Admin → Aggiornamento mercato → Esegui ora**;
+5. run/inspect enough Admin cycles to consume all 15 queued recomputes (8 per cycle, so normally two cycles if no new jobs are inserted ahead);
+6. verify all four Dyna signals, Release pages and Collection cards;
+7. verify Avante impacted signals were recomputed under Europe-first semantics;
+8. close Dyna only when Completion Gate is green.
+
+RCJAZ integration status:
+
+**INTEGRATED — EXECUTION GATED BY LIVE VERCEL CANARY**
+
+Dyna status:
+
+**BLOCKED — FINAL PRODUCTION ALIGNMENT + RECOMPUTE QA**
