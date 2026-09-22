@@ -4,7 +4,6 @@ import * as React from "react"
 import Link from "next/link"
 import { Search, LayoutGrid, List, SlidersHorizontal, X, Check, Heart, PackageSearch } from "lucide-react"
 import type { Product } from "@/lib/types"
-import { primaryRelease } from "@/lib/data/products"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { ProductCard } from "@/components/product-card"
@@ -193,10 +192,9 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
           {results.map((p) => {
             const owned = isInCollection(p.id)
             const wished = isInWishlist(p.id)
-            const primary = primaryRelease(p)
             return (
               <div key={p.id} className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3 shadow-[0_6px_20px_rgba(15,23,42,0.03)] transition-colors hover:border-brand/25 sm:gap-4 sm:p-3.5">
-                <Link href={`/catalog/${p.id}`} className="overflow-hidden rounded-xl border border-border/50 bg-muted/20"><ProductImage product={p} release={primary} size="sm" className="h-16 w-20 shrink-0 sm:h-20 sm:w-28" /></Link>
+                <Link href={`/catalog/${p.id}`} className="overflow-hidden rounded-xl border border-border/50 bg-muted/20"><ProductImage product={p} size="sm" className="h-16 w-20 shrink-0 sm:h-20 sm:w-28" /></Link>
                 <Link href={`/catalog/${p.id}`} className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">{p.series}</p>
                   <div className="mt-0.5 flex flex-wrap items-start gap-1.5 sm:gap-2">
