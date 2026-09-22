@@ -9,7 +9,7 @@
 //
 // Policy (docs/IMAGES_MVP.md):
 //   specific release: exact release image -> placeholder
-//   generic product:  product image -> suitable release image -> placeholder
+//   generic product:  product image -> oldest photographed release -> placeholder
 //   NEVER release A -> release B for a specifically-selected release.
 import { register } from "node:module"
 
@@ -84,6 +84,17 @@ function makeProduct({ productImages = [], releases = [] }) {
   // And confirm the sibling fallback DOES apply for the generic product view
   // (this is the one place it's allowed).
   t("product view MAY use a sibling release image (allowed there only)", resolveProductImageUrl(p) === SIBLING_IMG)
+}
+
+// --- Product fallback is deterministic: oldest photographed release wins ---
+{
+  const newest = { releaseYear: 2019, releaseDate: "2019-06-01", images: ["https://example.com/2019.jpg"] }
+  const oldestWithoutImage = { releaseYear: 2005, releaseDate: "2005-01-01", images: [] }
+  const oldestWithImage = { releaseYear: 2009, releaseDate: "2009-03-28", images: ["https://example.com/2009.jpg"] }
+  const middle = { releaseYear: 2013, releaseDate: "2013-09-14", images: ["https://example.com/2013.jpg"] }
+  const p = makeProduct({ productImages: [], releases: [newest, oldestWithoutImage, middle, oldestWithImage] })
+
+  t("generic product fallback uses the oldest release that actually has an image", resolveProductImageUrl(p) === oldestWithImage.images[0])
 }
 
 // --- Extra: release image wins even when a product image also exists ---
