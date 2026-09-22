@@ -44,7 +44,6 @@ export function ProductCard({ product }: { product: Product }) {
   const it = locale === "it"
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
-  const release = primaryRelease(product)
   const meta = getCatalogProductMeta(product, it)
   const href = `/catalog/${product.id}`
   const loginHref = `/login?next=${encodeURIComponent(href)}`
@@ -54,7 +53,6 @@ export function ProductCard({ product }: { product: Product }) {
       <Link href={href} className="relative block overflow-hidden border-b border-border/50 bg-gradient-to-br from-white via-muted/10 to-brand/5">
         <ProductImage
           product={product}
-          release={release}
           className="aspect-[4/3] w-full transition-transform duration-300 group-hover:scale-[1.025]"
         />
         <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full border border-white/80 bg-white/90 px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur-sm">
