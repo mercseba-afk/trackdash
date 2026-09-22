@@ -91,7 +91,7 @@ ok("18614: liquid standard kit follows the recent 10-sale window", () => {
   assert.equal(result.confidenceLabel, "medium")
 })
 
-ok("95467: five observed sales from one known seller still publish a cautious sold value", () => {
+ok("95467: five observed eBay sales from one seller remain evidence but do not alone define Market Value", () => {
   const selected = selectCurrentSoldEvidence({
     granular: [],
     aggregate: [
@@ -103,19 +103,34 @@ ok("95467: five observed sales from one known seller still publish a cautious so
   assert.equal(selected[0].sellerCount, 1)
   const result = publish(selected)
   assert.equal(result.soldAnchorEUR, 14.92)
-  assert.equal(result.marketValueEUR, 14.92)
+  assert.equal(result.marketValueEUR, null)
   assert.equal(result.confidenceLabel, "low")
 })
 
-ok("seven sales from one seller publish instead of disappearing", () => {
+ok("seven sales from one seller remain sell-through evidence without standalone Market Value", () => {
   const selected = [
     sold({ id: "single-seller-seven", price: 15, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-09-10", grain: "rolling_window" }),
   ]
   const result = publish(selected)
-  assert.equal(result.marketValueEUR, 15)
+  assert.equal(result.marketValueEUR, null)
   assert.equal(result.soldUnits, 7)
   assert.equal(result.soldSellerCount, 1)
   assert.equal(result.confidenceLabel, "low")
+})
+
+ok("extra-EU retail proves broader market presence but not a European numeric price", () => {
+  const selected = [
+    sold({ id: "single-seller", price: 14.92, count: 5, sellerCount: 1, start: "2026-06-12", end: "2026-08-20", grain: "rolling_window" }),
+  ]
+  const result = publish(selected, [
+    { stableId: "rcjaz-95467", sourceId: "rcjaz", merchantKey: "rcjaz", marketRegion: "asia_pacific", channel: "retail", availability: "in_stock", itemPriceEUR: 21.5, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ebay-eu", sourceId: "ebay", sellerFingerprint: "seller-eu", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 46.36, shippingEUR: 12.2, observedAt: "2026-09-18T10:00:00Z" },
+  ])
+  assert.equal(result.retailSourceCount, 1)
+  assert.equal(result.retailAnchorEUR, null)
+  assert.equal(result.soldAnchorEUR, 14.92)
+  assert.equal(result.activeAnchorEUR, 58.56)
+  assert.equal(result.marketValueEUR, null)
 })
 
 ok("one known seller can publish only when independent current retail corroborates it", () => {
