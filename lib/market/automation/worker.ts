@@ -9,6 +9,7 @@ import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-se
 import {
   isAutoPublishableSnapshot,
   parseExactRetailPage,
+  parseRcjazRetailPage,
   type ExactPageSnapshot,
   type ParsedAvailability,
 } from "./exact-page-adapter"
@@ -105,6 +106,7 @@ async function fetchHtml(url: string): Promise<{ status: number; html: string }>
     redirect: "follow",
     headers: {
       Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.8",
       "User-Agent": USER_AGENT,
     },
     signal: AbortSignal.timeout(12_000),
@@ -397,10 +399,13 @@ async function scanClaimedJob(
     return { jobId: job.job_id, releaseId: job.release_id, sourceSlug: job.source_slug, endpointUrl: job.endpoint_url, status: "failed", materialChange: false, reasonCodes: [message] }
   }
 
-  const snapshot = parseExactRetailPage(fetched.html, {
+  const parseOptions = {
     itemNumber: release.item_number,
     pageUrl: job.endpoint_url,
-  })
+  }
+  const snapshot = job.parser_kind === "rcjaz_product_page"
+    ? parseRcjazRetailPage(fetched.html, parseOptions)
+    : parseExactRetailPage(fetched.html, parseOptions)
 
   const key = candidateKey(job.endpoint_id)
   const existingCandidate = await loadExistingCandidate(client, job.source_id, key)

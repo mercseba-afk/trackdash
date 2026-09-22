@@ -297,6 +297,31 @@ Fonti possibili:
 - retailer giapponesi;
 - altri negozi affidabili.
 
+### RCJAZ — REGOLA PERMANENTE
+
+Durante ogni Initial Market Audit, cercare RCJaz sistematicamente tramite **Item Number exact**.
+
+Quando viene trovata una vera pagina prodotto RCJaz della Release:
+
+- salvare la pagina come fonte/evidenza exact;
+- persistere l'endpoint RCJaz della Release;
+- permettere l'enrollment nel refresh retail secondo la policy della sorgente.
+
+Non trattare come endpoint exact:
+
+- pagine categoria;
+- pagine search;
+- bundle / Memorial Box che contengono più Release;
+- pagine il cui URL/identità non attribuisce la Release in modo sicuro.
+
+Per Item Number riutilizzati/condivisi:
+**FAIL CLOSED**.
+L'enrollment automatico non deve scegliere una Release arbitrariamente.
+È ammesso soltanto un endpoint già verificato esplicitamente come exact Release.
+
+La presenza RCJaz dimostra disponibilità/ampiezza di mercato, ma essendo extra-UE resta valida la regola Europe-first:
+senza landed cost europeo noto, il prezzo RCJaz è **item-only context** e non può da solo abbassare o definire il prezzo europeo.
+
 Raccogli:
 
 - prezzo;

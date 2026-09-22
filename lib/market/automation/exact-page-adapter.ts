@@ -7,7 +7,7 @@ export type ParsedAvailability =
   | "discontinued"
   | "unknown"
 
-export type ExtractionConfidence = "structured" | "meta" | "none"
+export type ExtractionConfidence = "structured" | "meta" | "source_specific" | "none"
 
 export interface ExactPageSnapshot {
   title: string | null
@@ -191,6 +191,90 @@ function containsItemNumber(html: string, itemNumber: string): boolean {
   const escaped = itemNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const text = stripTags(html)
   return new RegExp(`(^|[^0-9])${escaped}([^0-9]|$)`, "i").test(text)
+}
+
+
+function rcjazAvailability(text: string): { availability: ParsedAvailability; raw: string | null } {
+  const normalized = text.toLowerCase()
+  if (/\bnot\s+available\b/.test(normalized) || /\bout\s+of\s+stock\b/.test(normalized) || /\bsold\s+out\b/.test(normalized)) {
+    return { availability: "out_of_stock", raw: "Not Available" }
+  }
+  if (/\bavailable\s+in\s+shop\b/.test(normalized) || /\badd\s+to\s+cart\b/.test(normalized)) {
+    return { availability: "in_stock", raw: "Available in shop" }
+  }
+  return { availability: "unknown", raw: null }
+}
+
+function rcjazPrice(text: string): { price: number | null; currency: string | null } {
+  // RCJAZ exact product pages render the product price as:
+  // "Price: USD$25.30" (currency can vary with storefront preference).
+  // Scope the match to the Price label so unrelated accessory prices cannot leak in.
+  const match = /\bPrice\s*:\s*(USD|EUR|JPY|GBP|AUD|CAD|NZD|HKD)\s*\$?\s*([0-9][0-9.,]*)/i.exec(text)
+  if (!match) return { price: null, currency: null }
+  return {
+    price: parseMoney(match[2]),
+    currency: normalizeCurrency(match[1]),
+  }
+}
+
+export function parseRcjazRetailPage(html: string, options: ParseOptions): ExactPageSnapshot {
+  const generic = parseExactRetailPage(html, options)
+  if (generic.confidence !== "none" && generic.price != null && generic.currency) {
+    return generic
+  }
+
+  const warnings = [...generic.warnings]
+  const text = stripTags(html)
+
+  if (
+    /\bjust\s+a\s+moment\b/i.test(text) ||
+    /cf-chl-|challenge-platform|cdn-cgi\/challenge-platform|id=["']challenge-form["']/i.test(html)
+  ) {
+    return {
+      title: generic.title,
+      itemNumberSeen: false,
+      price: null,
+      currency: null,
+      availability: "unknown",
+      confidence: "none",
+      warnings: [...new Set([...warnings, "RCJAZ_CHALLENGE_PAGE"])],
+      rawAvailability: null,
+    }
+  }
+
+  const itemNumberSeen = containsItemNumber(html, options.itemNumber)
+  if (!itemNumberSeen && !warnings.includes("ITEM_NUMBER_NOT_FOUND_ON_PAGE")) {
+    warnings.push("ITEM_NUMBER_NOT_FOUND_ON_PAGE")
+  }
+
+  const parsedPrice = rcjazPrice(text)
+  const availability = rcjazAvailability(text)
+
+  if (parsedPrice.price == null || parsedPrice.currency == null) {
+    if (!warnings.includes("NO_RELIABLE_STRUCTURED_PRICE")) warnings.push("NO_RELIABLE_STRUCTURED_PRICE")
+    warnings.push("RCJAZ_PRICE_NOT_FOUND")
+    return {
+      title: generic.title,
+      itemNumberSeen,
+      price: null,
+      currency: null,
+      availability: availability.availability,
+      confidence: "none",
+      warnings: [...new Set(warnings)],
+      rawAvailability: availability.raw,
+    }
+  }
+
+  return {
+    title: generic.title,
+    itemNumberSeen,
+    price: parsedPrice.price,
+    currency: parsedPrice.currency,
+    availability: availability.availability,
+    confidence: "source_specific",
+    warnings: [...new Set(warnings.filter((warning) => warning !== "NO_RELIABLE_STRUCTURED_PRICE"))],
+    rawAvailability: availability.raw,
+  }
 }
 
 export function parseExactRetailPage(html: string, options: ParseOptions): ExactPageSnapshot {
