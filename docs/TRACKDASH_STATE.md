@@ -1,7 +1,7 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-21  
+> **Last updated:** 2026-09-22  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
@@ -22,9 +22,9 @@ Do **not** reconstruct project state from chat memory when these repository sour
 
 # CURRENT FOCUS
 
-## Family reopened by Market Completeness Audit
+## Current completed family
 
-**Avante Mk.III — REOPENED — MARKET COMPLETENESS BACKFILL**
+**Avante Mk.III — COMPLETE — MARKET THIN (post-completeness audit)**
 
 Product ID:
 
@@ -323,9 +323,22 @@ The family remains reopened until:
 
 ## Avante Mk.III result
 
-**REOPENED — MARKET COMPLETENESS BACKFILL**
+**COMPLETE — MARKET THIN**
 
-Do not restore `COMPLETE` or `COMPLETE — MARKET THIN` until the new hard gate passes for all 24 Release.
+The reopened Market Completeness backfill has now passed the hard gate for all 24 Release.
+
+Completion rationale:
+
+- canonical family count: **24**;
+- current-offer/public-empty A-class: **0**;
+- stale market-method signals: **0**;
+- Avante recompute queue: **0 jobs / 0 errors**;
+- all empty public-signal Release have been challenged and classified;
+- no current condition-safe exact offer is being suppressed by an empty signal;
+- historical/OOS, undated SOLD and unsplittable lot evidence remain context rather than forced values;
+- Production is aligned to the functional commit carrying the final eBay known-listing repair.
+
+This status does not mean every Release has a Market Value. It means every Release has passed the evidence/completeness rules without inventing a value.
 
 ---
 
@@ -615,6 +628,92 @@ Keep 92284 at temporary high eBay priority until the repaired Production worker 
 
 ---
 
+# AVANTE MK.III — FINAL MARKET COMPLETENESS AUDIT 2026-09-22
+
+## 92284 final revalidation
+
+The repaired Production worker revalidated exact eBay legacy item:
+
+`204435589176`
+
+for:
+
+`92284 — Avante Mk.III Nero STARGEK 10th Anniversary Special`.
+
+Verified result:
+
+- direct legacy-ID retrieval succeeded;
+- eBay returned the listing as EUR **96.25** + EUR **25.67** shipping;
+- exact item identity remained correct;
+- listing end date: **2026-08-29T11:57:42Z**;
+- candidate classification: **rejected / LISTING_ENDED** for the active-ASK lane;
+- no current offer state was created;
+- no current Observed price was published;
+- the existing exact Mercari SOLD candidate remains historical/context-only because its sale date is not exposed.
+
+Therefore 92284 being publicly empty for current price is **intentional and correct**, not a pipeline miss.
+
+Its temporary eBay priority has been restored to the family baseline:
+
+- priority: **95**;
+- activity tier: **normal**;
+- interval: **168h**;
+- next scan: **2026-09-29**.
+
+## Empty Market Challenge — final classifications
+
+The remaining Avante Release with no current public price were challenged and are now explained:
+
+- `94673` — exact RCJAZ historical/out-of-stock only;
+- `94674` — exact RCJAZ historical/out-of-stock only;
+- `94692` — exact RCJAZ historical/out-of-stock evidence exists; current public market results also exist, but the condition-safe evidence found is used/ambiguous for the canonical `new_complete_unbuilt` lane, so no forced current anchor is published;
+- `94715` — exact historical/out-of-stock evidence; no condition-safe current exact offer promoted;
+- `94772` — exact historical/out-of-stock evidence; no condition-safe current exact offer promoted;
+- `94777` — exact historical/out-of-stock evidence; no condition-safe current exact offer promoted;
+- `92219 + 92221` — exact current Mercari two-Release lot at JPY 22,000, new/unassembled, already persisted as unresolved multi-Release context and intentionally **never split** into fake per-Release prices;
+- `92284` — ended exact eBay listing plus undated exact Mercari SOLD context; no current ASK.
+
+This satisfies the Empty Market Challenge rule: every empty Avante Release is now explained by historical/OOS evidence, unsplittable lot evidence, condition ambiguity, or ended/undated market evidence rather than by an uninvestigated gap.
+
+## Final hard-gate numbers
+
+Live Supabase audit:
+
+- canonical family count: **24**;
+- A-class current offer + public empty: **0**;
+- Market Method v4 signals: **24 / 24**;
+- stale method signals: **0**;
+- Avante recompute jobs: **0**;
+- Avante recompute errors: **0**.
+
+## 94692 user Collection alignment
+
+The user's Collection is correctly linked to the canonical 2009 Release:
+
+- Item Number: `94692`;
+- Release ID: `e07a5f39-d476-54c5-a509-4fb3ffb1a0ec`;
+- copy count: **1**;
+- condition: **Sealed**;
+- acquisition price: **EUR 15.00**;
+- exact Release image is present from the Tamiya 94692 asset.
+
+Collection therefore resolves the same exact Release identity used by Catalog/Release detail and remains aligned with canonical Release data.
+
+## Final functional alignment before this STATE documentation update
+
+Verified immediately before writing this checkpoint:
+
+- GitHub main: `065818860828d47ef6a877916fe3b9e57ee44293`;
+- Vercel Production: `065818860828d47ef6a877916fe3b9e57ee44293`;
+- `/api/version`: `065818860828d47ef6a877916fe3b9e57ee44293`;
+- Vercel state: **READY**;
+- PR #191 Typecheck: **SUCCESS**;
+- PR #191 full `pnpm verify`: **SUCCESS**.
+
+The documentation commit that records this checkpoint will advance `main` without changing executable application behavior. Re-check deployment alignment after that docs-only commit before treating the repository snapshot as fully synchronized.
+
+---
+
 # ADMIN MARKET REFRESH — CURRENT OPERATIONAL FACT
 
 The button:
@@ -639,18 +738,14 @@ Do not rediscover or guess this behavior from chat memory in future sessions. Re
 
 # EXACT NEXT ACTIONS
 
-1. Complete the Empty Market Challenge for all Avante Release whose public market signal is empty.
-2. Persist only exact-release current/recent evidence that passes identity/condition checks.
-3. Recompute only affected Release through the canonical queue.
-4. Run the family Market Completeness Audit again.
-5. Require:
-   - A-class current-offer/public-empty = 0;
-   - stale market-method signals = 0;
-   - no unchallenged empty Avante Release.
-6. Rerun Production QA and version alignment.
-7. Only then restore an allowed Completion Gate result.
+Avante Mk.III requires **no further family-completion action**.
 
-Separately, the same one-time completeness backfill must be applied to the other catalog B-class cases already identified, so future family work can proceed under the stabilized method without reopening old releases one by one.
+For future TrackDash work:
+
+1. keep `docs/TRACKDASH_METHOD_MASTER.md`, this STATE file and `docs/TRACKDASH_OPERATIONS.md` as the bootstrap source;
+2. use the stabilized Initial Scan + Empty Market Challenge workflow on the next family;
+3. do not reopen Avante unless new evidence, a catalog identity correction or a pipeline regression creates a real reason;
+4. separately continue the one-time completeness backfill for older non-Avante catalog B-class cases already identified.
 
 ---
 
