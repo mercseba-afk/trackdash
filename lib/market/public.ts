@@ -5,6 +5,7 @@ import {
   getMarketMonthlySignalsForRelease,
   getMarketSignalForRelease,
   listCurrentObservedOffers,
+  listMarketContextEvidence,
   listMarketMonthlySignals,
   listMarketSignals,
   type CurrentObservedOfferRow,
@@ -25,8 +26,13 @@ import type {
 const DAY_MS = 86_400_000
 
 const listCachedPublicMarketBundle = unstable_cache(
-  async () => Promise.all([listMarketSignals(), listMarketMonthlySignals(), listCurrentObservedOffers()]),
-  ["trackdash-public-market-signals-v5"],
+  async () => Promise.all([
+    listMarketSignals(),
+    listMarketMonthlySignals(),
+    listCurrentObservedOffers(),
+    listMarketContextEvidence(),
+  ]),
+  ["trackdash-public-market-signals-v6"],
   { revalidate: 60 },
 )
 
@@ -113,6 +119,7 @@ export function toPublicMarketSignalView(
   signal: MarketReleaseSignal | null | undefined,
   recentSoldActivity: RecentSoldActivity | null = null,
   observedOffers: CurrentObservedOfferRow[] = [],
+  marketContextEvidenceCount = 0,
 ): ReleaseMarketSignalView | null {
   if (!signal) return null
 
@@ -134,7 +141,8 @@ export function toPublicMarketSignalView(
     (activeAnchorEUR != null && activeAnchorEUR > 0) ||
     (soldAnchorEUR != null && soldAnchorEUR > 0) ||
     signal.currentOfferCount > 0 ||
-    signal.soldUnits > 0
+    signal.soldUnits > 0 ||
+    marketContextEvidenceCount > 0
 
   if (!hasMarketEvidence) return null
 
@@ -164,6 +172,7 @@ export function toPublicMarketSignalView(
     currentOfferCount,
     soldUnits: signal.soldUnits,
     soldSellerCount: signal.soldSellerCount ?? null,
+    marketContextEvidenceCount,
     recentSoldUnits3m: recentSoldActivity?.units ?? null,
     recentSoldPeriodStart: recentSoldActivity?.periodStart ?? null,
     recentSoldPeriodEnd: recentSoldActivity?.periodEnd ?? null,
@@ -189,15 +198,17 @@ export function toPublicMarketSignalView(
 export async function getPublicMarketSignalForRelease(
   releaseId: string,
 ): Promise<ReleaseMarketSignalView | null> {
-  const [row, monthlyRows, observedOffers] = await Promise.all([
+  const [row, monthlyRows, observedOffers, contextRows] = await Promise.all([
     getMarketSignalForRelease(releaseId),
     getMarketMonthlySignalsForRelease(releaseId, undefined, 6),
     listCurrentObservedOffers([releaseId]),
+    listMarketContextEvidence([releaseId]),
   ])
   return toPublicMarketSignalView(
     row,
     deriveRecentSoldActivity(monthlyRows),
     observedOffers,
+    contextRows[0]?.evidenceCount ?? 0,
   )
 }
 
@@ -209,11 +220,12 @@ export async function getPublicMarketSignalMap(
   // instead of paying database round trips on every fresh dashboard load.
   // Targeted release lookups remain uncached so exact-detail requests stay
   // immediately current.
-  const [rows, monthlyRows, observedOffers] = releaseIds?.length
+  const [rows, monthlyRows, observedOffers, contextRows] = releaseIds?.length
     ? await Promise.all([
         listMarketSignals(releaseIds),
         listMarketMonthlySignals(releaseIds),
         listCurrentObservedOffers(releaseIds),
+        listMarketContextEvidence(releaseIds),
       ])
     : await listCachedPublicMarketBundle()
 
@@ -231,12 +243,18 @@ export async function getPublicMarketSignalMap(
     observedByRelease.set(offer.releaseId, bucket)
   }
 
+  const contextByRelease = new Map(contextRows.map((row) => [row.releaseId, row.evidenceCount]))
   const result: ReleaseMarketSignalMap = {}
 
   for (const row of rows) {
     const recentSoldActivity = deriveRecentSoldActivity(monthlyByRelease.get(row.releaseId) ?? [])
     const releaseObservedOffers = observedByRelease.get(row.releaseId) ?? []
-    const view = toPublicMarketSignalView(row, recentSoldActivity, releaseObservedOffers)
+    const view = toPublicMarketSignalView(
+      row,
+      recentSoldActivity,
+      releaseObservedOffers,
+      contextByRelease.get(row.releaseId) ?? 0,
+    )
     if (view) result[row.releaseId] = view
   }
 
