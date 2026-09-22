@@ -781,3 +781,157 @@ Update this file in the **same work unit** whenever any of these materially chan
 - exact next action.
 
 Do not finish a material TrackDash work block with the only accurate state living in chat.
+
+
+---
+
+# DYNA-HAWK GX — MASTER ALIGNMENT / DEPLOYMENT GATE 2026-09-22
+
+## Canonical family
+
+The Dyna-Hawk GX family is confirmed at **4 exact Releases**:
+
+- `19201` — Dyna-Hawk GX — 1998 — Super X
+- `94717` — Dyna-Hawk GX Super XX Special — 2010
+- `95000` — Dyna-Hawk GX Black Special — 2013
+- `95467` — Dyna-Hawk GX Super XX Special (2019 Reissue) — 2019
+
+No fifth canonical Release has been established by the current audit.
+
+## Catalog alignment already applied
+
+- `94717` and `95467` remain distinct Releases by Item Number/year/identity.
+- Their visual equivalence is explicitly documented, so `94717` may use the same verified Tamiya visual asset without implying Release identity equivalence.
+- `95467` canonical JAN/GTIN is `4950344954674`, corroborated by Tamiya USA.
+- Migration `0137_dyna_hawk_master_alignment.sql` persists these corrections.
+
+## Europe-first landed-cost repair
+
+PR #192 changed the current-offer model so local shipping from Japan/Asia/US/global sources is not treated as delivered-to-Europe cost.
+
+Permanent runtime semantics:
+
+- Europe/internal shipping can create delivered European cost;
+- extra-EU local shipping remains contextual unless a European landed cost is explicitly known;
+- marketplace region is resolved from exact eBay marketplace metadata where available;
+- extra-EU item-only/local-delivery offers cannot alone define or lower the European observed price.
+
+Merged main SHA for that repair:
+
+`80245440dff130d491d4342fa91bf6faeeb76078`
+
+This SHA is the current Vercel Production runtime at this checkpoint.
+
+## 95467 — SOLD concentration vs whole-market breadth
+
+The older public Market Value around EUR 14.92 came from a recent eBay Product Research rolling window of 5 sales concentrated in one known seller.
+
+The family audit established that:
+
+- this is genuine SOLD/sell-through evidence;
+- one eBay seller in the SOLD dataset does **not** mean the whole market has one seller;
+- RCJAZ is an independent exact retail channel for `95467`;
+- an extra-EU retailer with unknown landed-to-Europe cost proves market breadth, but does not numerically validate a European Market Value;
+- the current exact European eBay offer remains a separate current-market observation.
+
+PR #195 therefore makes seller concentration a quality property of the SOLD sample rather than a statement about the entire market.
+
+Under the new rule:
+
+- concentrated SOLD remains visible as SOLD anchor/history/trend evidence;
+- volume from one known seller does not by itself publish Market Value;
+- Europe-comparable independent price evidence may corroborate it;
+- otherwise the public current observed price remains separate from Market Value.
+
+PR #195 merged main SHA:
+
+`addcdac1c6c6c20adfef9573dcd303d37fd52dfa`
+
+CI on PR #195:
+
+- Typecheck: **SUCCESS**
+- full `pnpm verify`: **SUCCESS**
+
+## 95467 RCJAZ exact endpoint and current manual audit
+
+Migration `0138_dyna_hawk_95467_rcjaz_endpoint.sql` adds the exact RCJAZ Release endpoint.
+
+The endpoint is already present in live Supabase:
+
+- exact_release_verified: true
+- enabled: true
+- queue priority: **100** (temporary closeout boost restored to source baseline)
+- due: yes
+- last_success_at: null
+
+Important operational fact discovered during closeout:
+
+- `rcjaz_public` source policy is currently **adapter_status = planned**;
+- therefore Admin/cron exact-page workers will NOT claim RCJAZ yet;
+- the endpoint is enrollment/preparation for the future READY adapter, not a claim that automatic scanning is already active.
+
+The 2026-09-22 Initial Market Audit manually verified the exact RCJAZ product page and persisted an accepted exact market candidate:
+
+- source_record_key: `rcjaz:95467`
+- observation_type: `retail_in_stock`
+- price: **USD 25.30**
+- condition: Brand New / `new_complete_unbuilt`
+- exact ITEM: `95467`
+- GTIN on page: `4950344954674`
+- shipping / landed cost to Europe: **unknown**
+- reason: `EXTRA_EU_LANDED_COST_UNKNOWN`
+
+This current RCJAZ observation proves an independent market channel and is retained as market breadth/context. It is intentionally NOT converted into a European delivered offer state and cannot define or lower the European observed price.
+
+## One-time recompute migration
+
+The Europe-first method change requires recomputing only signals that can actually change.
+
+A clean one-time queue currently contains **15** jobs:
+
+- all 4 Dyna-Hawk Releases;
+- the 11 Avante Mk.III Releases that currently have active/current offers and can therefore be affected by the new geographic/cost-basis rule.
+
+Queue checkpoint:
+
+- queued: **15**
+- locked: **0**
+- no older recompute jobs are ahead of this batch.
+
+Do not manually manufacture these signals in SQL. They must pass through the canonical recompute worker.
+
+## Current blocker — Vercel daily deployment limit
+
+Repository and Production are temporarily not aligned:
+
+- GitHub main: `addcdac1c6c6c20adfef9573dcd303d37fd52dfa`
+- Vercel Production: `80245440dff130d491d4342fa91bf6faeeb76078`
+
+Vercel rejected the PR/main deployment because the account reached the daily deployment quota:
+
+`api-deployments-free-per-day`
+
+This is an infrastructure/deployment quota blocker, not a code/test failure.
+
+A READY older preview exists with the core seller-concentration publication logic, but Completion Gate must not rely on a preview-only runtime or manual SQL signal fabrication.
+
+## Exact next action
+
+**Do not run Admin → Aggiornamento mercato yet.**
+
+The canonical next sequence is:
+
+1. get the final main commit containing PR #195 into Vercel Production;
+2. verify `main SHA = Production SHA = /api/version`;
+3. then run **Admin → Aggiornamento mercato → Esegui ora**;
+4. inspect the recompute queue and the persisted RCJAZ `95467` market context;
+5. run a second Admin cycle to consume the remaining one-time recomputes; RCJAZ itself remains PLANNED and is not expected to be automatically scanned by that button;
+6. verify all four Dyna public signals, Release pages, Collection alignment and Empty Market Challenge;
+7. restore any temporary scan priority;
+8. close Dyna only after the family Completion Gate passes.
+
+Dyna-Hawk is therefore:
+
+**BLOCKED — PRODUCTION DEPLOYMENT QUOTA**
+
+The family logic/catalog/evidence work is ready, but it is not yet valid to declare COMPLETE or instruct the user to run the normal Production Admin refresh while Production still executes the older publication policy.
