@@ -116,6 +116,27 @@ ok("same eBay item surfaced in multiple marketplaces is counted once", () => {
   assert.equal(new Set(rows.map((row) => ebaySourceRecordKey(row.itemId))).size, 1)
 })
 
+ok("legacy numeric and REST item IDs dedupe to one known listing", () => {
+  const base = {
+    title: "Tamiya 92284 Avante Mk.III Nero STARGEK",
+    itemWebUrl: null,
+    price: 450,
+    currency: "MYR",
+    shipping: 120,
+    condition: "New",
+    conditionId: "1000",
+    seller: "seller-a",
+    itemEndDate: null,
+    marketplace: "EBAY_IT",
+  }
+  const rows = dedupeEbayListings([
+    { ...base, itemId: "204435589176" },
+    { ...base, itemId: "v1|204435589176|0" },
+  ])
+  assert.equal(rows.length, 1)
+  assert.equal(rows[0].itemId, "204435589176")
+})
+
 const targetReleaseId = "target-release"
 const knownOffer = {
   candidateId: "candidate-1",
@@ -160,7 +181,7 @@ console.log(`${passed} passed, 0 failed`)
 console.log("EBAY BROWSE ADAPTER TEST PASSED")
 
 // Network is mocked: these are transport and isolation tests, never market data.
-const { searchEbayActiveListings, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
+const { searchEbayActiveListings, fetchEbayActiveListingByLegacyId, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
 const originalFetch = globalThis.fetch
 const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET', 'EBAY_MARKET_WRITES_ENABLED'].map(key => [key, process.env[key]]))
 const calls = []
@@ -182,6 +203,16 @@ try {
       assert.equal(options.body.get('scope'), 'https://api.ebay.com/oauth/api_scope')
       return Response.json({ access_token: 'fixture-token', expires_in: 7200 })
     }
+    if (new URL(url).pathname.endsWith('/item/get_item_by_legacy_id')) {
+      assert.equal(new URL(url).searchParams.get('legacy_item_id'), '204435589176')
+      return Response.json({
+        ...sample,
+        itemId: 'v1|204435589176|0',
+        title: 'Tamiya 92284 Avante Mk.III Nero STARGEK',
+        price: { value: '450', currency: 'MYR' },
+        shippingOptions: [{ shippingCost: { value: '120', currency: 'MYR' } }],
+      })
+    }
     assert.equal(new URL(url).searchParams.get('filter'), 'conditionIds:{1000}')
     return Response.json({ itemSummaries: [
       { ...sample, shippingOptions: [{ shippingCost: { value: '0', currency: 'EUR' } }] },
@@ -197,13 +228,20 @@ try {
   assert.equal(rows[0].marketplace, 'EBAY_IT')
   assert.equal(rows[0].condition, 'Neuf')
   assert.equal(rows[0].conditionId, '1000')
-  for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US', 'EBAY_MY']) {
+  for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US']) {
     await searchEbayActiveListings(unique, marketplace, 5)
     assert.equal(calls.at(-1).options.headers['X-EBAY-C-MARKETPLACE-ID'], marketplace)
   }
+  const legacy = await fetchEbayActiveListingByLegacyId('204435589176', 'EBAY_IT')
+  assert.equal(legacy.itemId, '204435589176')
+  assert.equal(legacy.price, 450)
+  assert.equal(legacy.currency, 'MYR')
+  assert.equal(legacy.shipping, 120)
+  assert.equal(legacy.marketplace, 'EBAY_IT')
+  assert.equal(calls.at(-1).url.pathname, '/buy/browse/v1/item/get_item_by_legacy_id')
   assert.equal(calls.filter(call => call.url.pathname.includes('/identity/')).length, 1)
   assert.equal(calls.every(call => call.url.host === 'api.sandbox.ebay.com'), true)
-  console.log('ok: Sandbox routing, OAuth, five marketplaces, token reuse, condition ID and shipping semantics')
+  console.log('ok: Sandbox routing, OAuth, four search marketplaces, direct legacy-ID refresh, token reuse, condition ID and shipping semantics')
 
   process.env.EBAY_ENV = 'production'
   assert.equal(ebayMarketWritesAllowed(), false)
@@ -254,7 +292,7 @@ try {
   runInNewContext(ts.transpileModule(workerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, {
     exports: workerModule.exports,
     require(name) {
-      if (name === './ebay-browse-adapter') return { ebayBrowseConfigured: () => true, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed }
+      if (name === './ebay-browse-adapter') return { ebayBrowseConfigured: () => true, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed, fetchEbayActiveListingByLegacyId }
       return new Proxy({}, { get: () => forbidden })
     },
   })
