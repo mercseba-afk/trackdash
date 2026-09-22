@@ -129,7 +129,7 @@ ok("single-seller five-sale cluster publishes cautiously instead of disappearing
 })
 
 
-ok("single exact current offer stays public as observed price even when Market Value is null", () => {
+ok("single exact Japan-local offer stays market context and does not define a European observed price", () => {
   const computed = computeCurrentMarketSignal({
     offers: [{
       stableId: "exact-current-offer",
@@ -149,8 +149,8 @@ ok("single exact current offer stays public as observed price even when Market V
   const published = applyPublicMarketPublicationPolicy(computed, [], "2026-09-21")
 
   assert.equal(published.marketValueEUR, null)
-  assert.equal(published.activeAnchorEUR, 24.5)
-  assert.equal(published.startingOffer?.itemPriceEUR, 24.5)
+  assert.equal(published.activeAnchorEUR, null)
+  assert.equal(published.startingOffer, null)
   assert.equal(published.currentOfferCount, 1)
 })
 

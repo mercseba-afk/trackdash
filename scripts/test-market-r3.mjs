@@ -144,6 +144,98 @@ ok("Europe-first observed price uses delivered acquisition cluster instead of as
   assert.equal(signal.activeHighEUR, 38.13)
 })
 
+ok("Japan-local free shipping is context, not European delivered cost", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [
+      {
+        stableId: "mercari-jp",
+        sourceId: "mercari-jp",
+        channel: "marketplace",
+        sellerFingerprint: "seller-jp",
+        marketRegion: "japan",
+        availability: "in_stock",
+        itemPriceEUR: 27.12,
+        shippingEUR: 0,
+        observedAt: "2026-09-22T06:54:16Z",
+      },
+    ],
+    soldEvidence: [],
+    asOfDate: "2026-09-22",
+  })
+
+  assert.equal(signal.currentOfferCount, 1)
+  assert.equal(signal.activeOfferCount, 1)
+  assert.equal(signal.shippingKnownRatio, 0)
+  assert.equal(signal.activeAnchorEUR, null)
+  assert.equal(signal.startingOffer, null)
+  assert.equal(signal.marketValueEUR, null)
+})
+
+ok("extra-EU retail with local shipping cannot define the European retail anchor", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [
+      {
+        stableId: "rcjaz",
+        sourceId: "rcjaz",
+        channel: "retail",
+        merchantKey: "rcjaz",
+        marketRegion: "asia_pacific",
+        availability: "in_stock",
+        itemPriceEUR: 13.3,
+        shippingEUR: 15,
+        observedAt: "2026-09-22T08:00:00Z",
+      },
+    ],
+    soldEvidence: [],
+    asOfDate: "2026-09-22",
+  })
+
+  assert.equal(signal.currentOfferCount, 1)
+  assert.equal(signal.retailSourceCount, 1)
+  assert.equal(signal.shippingKnownRatio, 0)
+  assert.equal(signal.retailAnchorEUR, null)
+  assert.equal(signal.startingOffer, null)
+  assert.equal(signal.marketValueEUR, null)
+})
+
+ok("one European delivered offer outranks a cheaper Japan-local offer for public observed price", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [
+      {
+        stableId: "mercari-jp",
+        sourceId: "mercari-jp",
+        channel: "marketplace",
+        sellerFingerprint: "seller-jp",
+        marketRegion: "japan",
+        availability: "in_stock",
+        itemPriceEUR: 27.12,
+        shippingEUR: 0,
+        observedAt: "2026-09-22T06:54:16Z",
+      },
+      {
+        stableId: "ebay-it",
+        sourceId: "ebay",
+        channel: "marketplace",
+        sellerFingerprint: "seller-eu",
+        marketRegion: "europe",
+        availability: "in_stock",
+        itemPriceEUR: 46.36,
+        shippingEUR: 12.2,
+        observedAt: "2026-09-22T07:00:00Z",
+      },
+    ],
+    soldEvidence: [],
+    asOfDate: "2026-09-22",
+  })
+
+  assert.equal(signal.activeAnchorEUR, 58.56)
+  assert.equal(signal.activeLowEUR, 58.56)
+  assert.equal(signal.activeHighEUR, 58.56)
+  assert.equal(signal.startingOffer?.sourceId, "ebay")
+  assert.equal(signal.startingOffer?.costBasis, "delivered")
+  assert.equal(signal.startingOffer?.effectiveCostEUR, 58.56)
+})
+
 ok("monthly sold trend uses complete recent consecutive months and 3-month smoothing", () => {
   const monthly = [
     ["2026-01-01", "2026-01-31", 25, 5],

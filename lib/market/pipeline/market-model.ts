@@ -188,6 +188,13 @@ function isPurchasable(availability: AvailabilityStatus): boolean {
   return availability === "in_stock" || availability === "low_stock"
 }
 
+function isEuropeComparableRegion(region: CurrentOfferEvidence["marketRegion"]): boolean {
+  // Null is kept for backwards-compatible in-process evidence where no region
+  // was supplied. Persisted Production offers are normalized to an explicit
+  // source/listing region by the repository layer.
+  return region == null || region === "europe" || region === "internal"
+}
+
 function costBasis(offer: CurrentOfferEvidence): {
   itemPriceEUR: number
   shippingEUR: number | null
@@ -199,9 +206,19 @@ function costBasis(offer: CurrentOfferEvidence): {
   if (!Number.isFinite(offer.itemPriceEUR) || offer.itemPriceEUR <= 0) return null
 
   const itemPriceEUR = round2(offer.itemPriceEUR)
-  if (offer.shippingEUR != null) {
-    if (!Number.isFinite(offer.shippingEUR) || offer.shippingEUR < 0) return null
-    const shippingEUR = round2(offer.shippingEUR)
+  const shippingEUR = offer.shippingEUR != null
+    ? Number.isFinite(offer.shippingEUR) && offer.shippingEUR >= 0
+      ? round2(offer.shippingEUR)
+      : null
+    : null
+
+  if (offer.shippingEUR != null && shippingEUR == null) return null
+
+  // Europe-first invariant: shipping shown by a Japan/US/other local marketplace
+  // is normally domestic-to-that-market shipping, not landed cost to Europe.
+  // Keep it as contextual evidence, but never label it "delivered" for the
+  // European public signal unless the source itself is Europe-facing/internal.
+  if (shippingEUR != null && isEuropeComparableRegion(offer.marketRegion)) {
     return {
       itemPriceEUR,
       shippingEUR,
@@ -214,11 +231,11 @@ function costBasis(offer: CurrentOfferEvidence): {
 
   return {
     itemPriceEUR,
-    shippingEUR: null,
+    shippingEUR,
     effectiveCostEUR: null,
     costBasis: "item_only",
     comparableCostEUR: itemPriceEUR,
-    weight: offer.availability === "low_stock" ? 0.55 : 0.65,
+    weight: offer.availability === "low_stock" ? 0.45 : 0.55,
   }
 }
 
@@ -233,7 +250,7 @@ function chooseRepresentative(offers: CurrentOfferEvidence[]): OfferRepresentati
       channel: offer.channel,
       sellerFingerprint: offer.sellerFingerprint ?? null,
       merchantKey: offer.merchantKey ?? null,
-      marketRegion: offer.marketRegion ?? "global",
+      marketRegion: offer.marketRegion ?? null,
       observedAt: offer.observedAt,
       itemPriceEUR: cost.itemPriceEUR,
       shippingEUR: cost.shippingEUR,
@@ -297,15 +314,14 @@ function comparableOfferPrice(rep: OfferRepresentative): number {
 }
 
 function europeFirstPool(reps: OfferRepresentative[]): OfferRepresentative[] {
-  const europe = reps.filter((rep) => rep.marketRegion === "europe")
-  if (europe.length >= 2) return europe
+  const europe = reps.filter((rep) => isEuropeComparableRegion(rep.marketRegion))
+  if (europe.length) return europe
 
-  // When Europe is thin, prefer offers with a known delivered cost before
-  // falling back to item-only prices from other regions. This prevents a cheap
-  // Japanese/US sticker price with unknown shipping from defining Europe.
-  const delivered = reps.filter((rep) => rep.costBasis === "delivered")
-  if (delivered.length >= 2) return delivered
-  return reps
+  // Extra-EU item-only/local-delivery offers remain real market context, but
+  // cannot by themselves define the public European observed price. If we gain
+  // an explicit landed-to-Europe cost in the future, it should be represented
+  // as Europe-comparable evidence rather than inferred from local shipping.
+  return []
 }
 
 function activeAskStats(reps: OfferRepresentative[]): {
@@ -384,20 +400,25 @@ function retailAnchorStats(reps: OfferRepresentative[]): {
 
   const byRegion = new Map<string, number[]>()
   for (const rep of reps) {
-    const region = rep.marketRegion || "global"
+    // Unscoped in-process evidence predates region tagging and is kept
+    // backwards-compatible for tests/manual callers. Persisted Production
+    // evidence is normalized to an explicit region before reaching the model.
+    const region = rep.marketRegion == null ? "europe" : rep.marketRegion
     const bucket = byRegion.get(region) ?? []
     bucket.push(comparableOfferPrice(rep))
     byRegion.set(region, bucket)
   }
 
-  const european = byRegion.get("europe")
+  const european = [
+    ...(byRegion.get("europe") ?? []),
+    ...(byRegion.get("internal") ?? []),
+  ]
   const regionalAnchors = [...byRegion.values()].map((values) => median(values))
-  // Europe is TrackDash's initial public market. When we have a credible
-  // European retail cluster, use it directly; other regions remain supporting
-  // evidence rather than silently pulling the headline toward local prices.
-  const anchorEUR = european && european.length >= 2
+  // Europe is TrackDash's public reference market. Non-European retail with
+  // local shipping remains context, but cannot manufacture a European anchor.
+  const anchorEUR = european.length
     ? round2(median(european))
-    : round2(median(regionalAnchors))
+    : null
   const regionalSpreadRatio = regionalAnchors.length >= 2
     ? round2(Math.max(...regionalAnchors) / Math.min(...regionalAnchors))
     : null
@@ -757,7 +778,7 @@ export function computeCurrentMarketSignal(input: {
     activeLowEUR: activeStats.lowEUR,
     activeHighEUR: activeStats.highEUR,
     soldAnchorEUR,
-    startingOffer: chooseStartingOffer(offers.current),
+    startingOffer: chooseStartingOffer(europeFirstPool(offers.current)),
     retailSourceCount,
     activeOfferCount,
     currentOfferCount,

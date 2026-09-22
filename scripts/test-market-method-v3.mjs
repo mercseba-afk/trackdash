@@ -139,13 +139,13 @@ ok("two strongly split retail regions do not manufacture a global midpoint", () 
   assert.equal(result.marketValueEUR, null)
 })
 
-ok("three item-only regional retail lanes remain observed context without manufacturing Market Value", () => {
+ok("European item-only retail remains the observed reference while extra-EU lanes stay context", () => {
   const result = publish([], [
     { stableId: "jp", sourceId: "jp", merchantKey: "jp-shop", marketRegion: "japan", channel: "retail", availability: "in_stock", itemPriceEUR: 5.5, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
     { stableId: "eu", sourceId: "eu", merchantKey: "eu-shop", marketRegion: "europe", channel: "retail", availability: "in_stock", itemPriceEUR: 17.7, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
     { stableId: "us", sourceId: "us", merchantKey: "us-shop", marketRegion: "north_america", channel: "retail", availability: "in_stock", itemPriceEUR: 16.2, shippingEUR: null, observedAt: "2026-09-18T10:00:00Z" },
   ])
-  assert.equal(result.retailAnchorEUR, 16.2)
+  assert.equal(result.retailAnchorEUR, 17.7)
   assert.equal(result.marketValueEUR, null)
 })
 
@@ -173,8 +173,8 @@ ok("completed sales remain the headline when corroborating retail is available",
 
 ok("active ASK prices never manufacture Market Value", () => {
   const result = publish([], [
-    { stableId: "ask-a", sourceId: "ebay", sellerFingerprint: "seller-a", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 35, shippingEUR: 10, observedAt: "2026-09-18T10:00:00Z" },
-    { stableId: "ask-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 75, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-a", sourceId: "ebay", sellerFingerprint: "seller-a", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 35, shippingEUR: 10, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 75, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.activeOfferCount, 2)
   assert.equal(result.activeAnchorEUR, 60)
@@ -183,11 +183,11 @@ ok("active ASK prices never manufacture Market Value", () => {
 
 ok("fantasy ASK outlier is excluded from typical ask and public ask range", () => {
   const result = publish([], [
-    { stableId: "ask-25", sourceId: "ebay", sellerFingerprint: "seller-25", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 25, observedAt: "2026-09-18T10:00:00Z" },
-    { stableId: "ask-29", sourceId: "ebay", sellerFingerprint: "seller-29", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 29, observedAt: "2026-09-18T10:00:00Z" },
-    { stableId: "ask-30", sourceId: "ebay", sellerFingerprint: "seller-30", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 30, observedAt: "2026-09-18T10:00:00Z" },
-    { stableId: "ask-35", sourceId: "ebay", sellerFingerprint: "seller-35", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 35, observedAt: "2026-09-18T10:00:00Z" },
-    { stableId: "ask-100", sourceId: "ebay", sellerFingerprint: "seller-100", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 100, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-25", sourceId: "ebay", sellerFingerprint: "seller-25", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 25, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-29", sourceId: "ebay", sellerFingerprint: "seller-29", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 29, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-30", sourceId: "ebay", sellerFingerprint: "seller-30", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 30, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-35", sourceId: "ebay", sellerFingerprint: "seller-35", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 35, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-100", sourceId: "ebay", sellerFingerprint: "seller-100", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 100, observedAt: "2026-09-18T10:00:00Z" },
   ])
   assert.equal(result.activeOfferCount, 5)
   assert.equal(result.activeAnchorEUR, 29.5)
@@ -198,8 +198,8 @@ ok("fantasy ASK outlier is excluded from typical ask and public ask range", () =
 
 ok("ASK trend compares today's typical ask with a recent historical snapshot", () => {
   const current = publish([], [
-    { stableId: "ask-current-a", sourceId: "ebay", sellerFingerprint: "seller-a", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 29, observedAt: "2026-09-18T10:00:00Z" },
-    { stableId: "ask-current-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "global", channel: "marketplace", availability: "in_stock", itemPriceEUR: 31, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-current-a", sourceId: "ebay", sellerFingerprint: "seller-a", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 29, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "ask-current-b", sourceId: "ebay", sellerFingerprint: "seller-b", marketRegion: "europe", channel: "marketplace", availability: "in_stock", itemPriceEUR: 31, observedAt: "2026-09-18T10:00:00Z" },
   ])
   const trended = applyAskTrend(current, [
     { snapshotDate: "2026-09-10", typicalEUR: 25, lowEUR: 22, highEUR: 28, offerCount: 4 },
