@@ -456,6 +456,7 @@ async function scanJob(
   const sourceErrors: string[] = []
   const rawByMarketplace: Partial<Record<EbayMarketplaceId, number>> = {}
   const fetchStates: EbayMarketplaceFetchState[] = []
+  let marketplaceFailures = 0
   const marketplaceLimit = Math.max(1, Math.min(options.marketplaceLimit ?? 50, 200))
 
   // Keyword search is discovery, not an authoritative refresh mechanism. If a
@@ -493,11 +494,12 @@ async function scanJob(
         itemIds: new Set(rows.map((row) => row.itemId)),
       })
     } catch (error) {
+      marketplaceFailures += 1
       sourceErrors.push(`${marketplace}:${shortError(error)}`)
       fetchStates.push({ marketplace, succeeded: false, complete: false, itemIds: new Set() })
     }
   }
-  if (!fetched.length && sourceErrors.length === MARKETPLACES.length) {
+  if (!fetched.length && marketplaceFailures === MARKETPLACES.length) {
     throw new Error(`EBAY_ALL_MARKETPLACES_FAILED:${sourceErrors.join("|")}`)
   }
 
