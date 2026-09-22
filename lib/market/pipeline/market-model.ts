@@ -400,7 +400,10 @@ function retailAnchorStats(reps: OfferRepresentative[]): {
 
   const byRegion = new Map<string, number[]>()
   for (const rep of reps) {
-    const region = rep.marketRegion || "global"
+    // Unscoped in-process evidence predates region tagging and is kept
+    // backwards-compatible for tests/manual callers. Persisted Production
+    // evidence is normalized to an explicit region before reaching the model.
+    const region = rep.marketRegion == null ? "europe" : rep.marketRegion
     const bucket = byRegion.get(region) ?? []
     bucket.push(comparableOfferPrice(rep))
     byRegion.set(region, bucket)
