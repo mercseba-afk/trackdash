@@ -1,4 +1,4 @@
-export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_GB" | "EBAY_US" | "EBAY_MY"
+export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_GB" | "EBAY_US"
 
 export interface EbayReleaseSearchInput {
   itemNumber: string
@@ -117,18 +117,21 @@ interface EbayTokenResponse {
   expires_in: number
 }
 
+interface EbayItemRow {
+  itemId?: string
+  title?: string
+  itemWebUrl?: string
+  price?: { value?: string; currency?: string }
+  shippingOptions?: Array<{ shippingCost?: { value?: string; currency?: string } }>
+  condition?: string
+  conditionId?: string
+  seller?: { username?: string }
+  itemEndDate?: string
+  listingMarketplaceId?: string
+}
+
 interface EbaySearchResponse {
-  itemSummaries?: Array<{
-    itemId?: string
-    title?: string
-    itemWebUrl?: string
-    price?: { value?: string; currency?: string }
-    shippingOptions?: Array<{ shippingCost?: { value?: string; currency?: string } }>
-    condition?: string
-    conditionId?: string
-    seller?: { username?: string }
-    itemEndDate?: string
-  }>
+  itemSummaries?: EbayItemRow[]
 }
 
 export type EbayEnvironment = "sandbox" | "production"
@@ -207,6 +210,52 @@ function toNumber(value: string | undefined, allowZero = false): number | null {
   return Number.isFinite(parsed) && (allowZero ? parsed >= 0 : parsed > 0) ? parsed : null
 }
 
+function toBrowseListing(row: EbayItemRow, marketplace: EbayMarketplaceId, itemIdOverride?: string): EbayBrowseListing | null {
+  const price = toNumber(row.price?.value)
+  const currency = row.price?.currency?.toUpperCase()
+  const itemId = itemIdOverride ?? row.itemId
+  if (!itemId || !row.title || price == null || !currency) return null
+  const shippingCost = row.shippingOptions?.[0]?.shippingCost
+  const shipping = shippingCost?.currency?.toUpperCase() === currency ? toNumber(shippingCost.value, true) : null
+  return {
+    itemId,
+    title: row.title,
+    itemWebUrl: row.itemWebUrl ?? null,
+    price,
+    currency,
+    shipping,
+    condition: row.condition ?? null,
+    conditionId: row.conditionId ?? null,
+    seller: row.seller?.username ?? null,
+    marketplace,
+    itemEndDate: row.itemEndDate ?? null,
+  }
+}
+
+export async function fetchEbayActiveListingByLegacyId(
+  legacyItemId: string,
+  marketplace: EbayMarketplaceId = "EBAY_IT",
+): Promise<EbayBrowseListing | null> {
+  if (!/^\d{9,15}$/.test(legacyItemId)) throw new Error("EBAY_LEGACY_ITEM_ID_INVALID")
+  const environment = ebayEnvironment()
+  const token = await getApplicationToken(environment)
+  const params = new URLSearchParams({ legacy_item_id: legacyItemId })
+  const response = await fetch(`${apiOrigin(environment)}/buy/browse/v1/item/get_item_by_legacy_id?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-EBAY-C-MARKETPLACE-ID": marketplace,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  }).catch(() => { throw new Error("EBAY_BROWSE_LEGACY_NETWORK_ERROR") })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`EBAY_BROWSE_LEGACY_HTTP_${response.status}`)
+  const row = await response.json().catch(() => { throw new Error("EBAY_BROWSE_LEGACY_INVALID_RESPONSE") }) as EbayItemRow
+  return toBrowseListing(row, marketplace, legacyItemId)
+}
+
 export async function searchEbayActiveListings(
   input: EbayReleaseSearchInput,
   marketplace: EbayMarketplaceId,
@@ -234,30 +283,22 @@ export async function searchEbayActiveListings(
 
   const results: EbayBrowseListing[] = []
   for (const row of json.itemSummaries ?? []) {
-    const price = toNumber(row.price?.value)
-    const currency = row.price?.currency?.toUpperCase()
-    if (!row.itemId || !row.title || price == null || !currency) continue
-    const shippingCost = row.shippingOptions?.[0]?.shippingCost
-    const shipping = shippingCost?.currency?.toUpperCase() === currency ? toNumber(shippingCost.value, true) : null
-    results.push({
-      itemId: row.itemId,
-      title: row.title,
-      itemWebUrl: row.itemWebUrl ?? null,
-      price,
-      currency,
-      shipping,
-      condition: row.condition ?? null,
-      conditionId: row.conditionId ?? null,
-      seller: row.seller?.username ?? null,
-      marketplace,
-      itemEndDate: row.itemEndDate ?? null,
-    })
+    const listing = toBrowseListing(row, marketplace)
+    if (listing) results.push(listing)
   }
   return results
 }
 
+function dedupeIdentity(itemId: string): string {
+  const match = /^v1\|(\d+)\|0$/.exec(itemId)
+  return match?.[1] ?? itemId
+}
+
 export function dedupeEbayListings(rows: EbayBrowseListing[]): EbayBrowseListing[] {
   const byId = new Map<string, EbayBrowseListing>()
-  for (const row of rows) if (!byId.has(row.itemId)) byId.set(row.itemId, row)
+  for (const row of rows) {
+    const identity = dedupeIdentity(row.itemId)
+    if (!byId.has(identity)) byId.set(identity, row)
+  }
   return [...byId.values()]
 }
