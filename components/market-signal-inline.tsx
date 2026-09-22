@@ -21,9 +21,10 @@ export function MarketSignalInline({
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
   const observedPrice =
-    signal.activeAnchorEUR ??
-    signal.retailAnchorEUR ??
+    signal.startingEffectiveCostEUR ??
     signal.startingItemPriceEUR ??
+    signal.retailAnchorEUR ??
+    signal.activeAnchorEUR ??
     null
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   const observedDirection =

@@ -22,11 +22,13 @@ export type MarketReleaseSignal = InferSelectModel<typeof marketReleaseSignals>
 export type MarketReleaseMonthlySignal = InferSelectModel<typeof marketReleaseMonthlySignals>
 
 export interface CurrentObservedOfferRow {
+  candidateId: string
   releaseId: string
   sourceId: string
   channel: string
   itemPriceEUR: string
   shippingEUR: string | null
+  effectiveCostEUR: string | null
   lastCheckedAt: Date
 }
 
@@ -111,11 +113,13 @@ export async function listCurrentObservedOffers(
 
   return db
     .select({
+      candidateId: marketOfferStates.candidateId,
       releaseId: marketOfferStates.releaseId,
       sourceId: marketOfferStates.sourceId,
       channel: marketOfferStates.channel,
       itemPriceEUR: marketOfferStates.itemPriceEUR,
       shippingEUR: marketOfferStates.shippingEUR,
+      effectiveCostEUR: marketOfferStates.effectiveCostEUR,
       lastCheckedAt: marketOfferStates.lastCheckedAt,
     })
     .from(marketOfferStates)
