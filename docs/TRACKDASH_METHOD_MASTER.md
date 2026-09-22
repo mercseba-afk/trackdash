@@ -536,6 +536,22 @@ Il Market Value può essere sostenuto da convergenza fra:
 
 ---
 
+## DIVERSITÀ VENDITORI NEI SOLD
+
+Più vendite attribuibili allo **stesso venditore** dimostrano sell-through reale, ma non costituiscono da sole consenso di mercato.
+
+Regola permanente:
+
+- un cluster SOLD multi-venditore / multi-fonte può sostenere il Market Value quando recenza e qualità sono adeguate;
+- un cluster SOLD concentrato su un solo venditore resta evidenza reale e alimenta storico/trend;
+- il solo volume di un singolo venditore NON basta a trasformare quel prezzo in Market Value;
+- un cluster single-seller può sostenere il Market Value soltanto quando è corroborato da evidenza corrente indipendente e confrontabile;
+- gli ASK indipendenti restano contesto e non vengono mediati nel Market Value.
+
+Questo evita che lo stock o la politica prezzo di un singolo commerciante diventino artificialmente il “valore” dell'intero mercato europeo.
+
+---
+
 # SOLD 0
 
 Non mostrare pubblicamente:
