@@ -1299,3 +1299,82 @@ No family-specific pricing rule is introduced.
 Family status until this patch is merged and Production-aligned:
 
 **QA COMPLETE — PENDING GLOBAL PUBLIC-SURFACE FIX DEPLOY**
+
+
+---
+
+# DASH-X1 PROTO-EMPEROR — COMPLETION CHECKPOINT — 2026-09-22
+
+The controlled re-audit is closed under the frozen TrackDash method.
+
+Final Production application SHA before this docs-only checkpoint:
+
+`f9a7e75a310c0ba80c51c8754d68389b49503ba8`
+
+Verified:
+
+- GitHub main = Production = `/api/version`
+- Vercel Production state: **READY**
+- family Release count: **4**
+- recompute queue: **0**
+- locked recomputes: **0**
+- stale market-method signals: **0**
+- hidden valid current offers: **0**
+- all family signals: `market_method_version = v4`
+
+## Final family result
+
+1. `94708` — 2009 VS
+   - identity/catalog/status audited
+   - exact image not found after serious audit; placeholder is intentional
+   - RCJAZ exact historical OOS evidence
+   - Empty Market Challenge completed with an exact current eBay listing, but target condition is unresolved and European landed cost is unknown
+   - no public current European price / no MV
+
+2. standard `18074` — Premium 2013
+   - canonical JAN `4950344180745`
+   - current catalog / active status
+   - Market Value **EUR 17.49**
+   - recent SOLD evidence: **19 units / 8 sellers**
+
+3. `95450` — Premium Black Special 2019
+   - canonical JAN `4950344954506`
+   - Market Value **null** under the seller-concentration rule
+   - SOLD anchor **EUR 12.72** remains historical evidence
+   - canonical cheapest current delivered offer **EUR 34.13**
+   - public market surfaces now read the canonical starting offer before the typical ASK anchor
+   - the global fix applies to every family/Release, not only `95450`
+
+4. shared-item `18074` — Sanfrecce Hiroshima 2023
+   - distinct collector Release
+   - exact official Sanfrecce image
+   - historical exact sale evidence retained
+   - current box-only / multi-piece lot excluded from complete-kit valuation
+   - no public current price / no MV
+
+## Global public-market correction closed in PR #200
+
+The final QA found that the engine had already computed canonical `starting_*` fields correctly, while public surfaces could prefer `activeAnchorEUR`.
+
+PR #200 fixed this globally:
+
+- canonical `startingOfferCandidateId` binds observed-offer metadata to the same starting offer when possible;
+- canonical `startingItemPriceEUR`, `startingShippingEUR`, `startingEffectiveCostEUR` are carried through the shared public read model;
+- Collection, Release detail and shared inline market surfaces prefer the canonical starting effective cost before active/retail anchors;
+- regression checks prevent this display drift from recurring.
+
+No Market Engine pricing rule changed.
+
+## Operational status
+
+**DASH-X1 Proto-Emperor — COMPLETE — MARKET THIN**
+
+Documented residuals that do not block Completion:
+
+- `94708` exact image unavailable after audit;
+- `94708` and Sanfrecce current market remain thin / valuation-ineligible;
+- RCJAZ automatic execution remains a separate global PLANNED transport issue and does not keep this family open.
+
+No further Admin Market Refresh is required for this family.
+
+A COMPLETE family stays closed unless a documented material error is found or an explicit future backfill/migration is planned.
