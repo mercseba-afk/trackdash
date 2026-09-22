@@ -852,19 +852,36 @@ CI on PR #195:
 - Typecheck: **SUCCESS**
 - full `pnpm verify`: **SUCCESS**
 
-## 95467 RCJAZ exact endpoint
+## 95467 RCJAZ exact endpoint and current manual audit
 
-Migration `0138_dyna_hawk_95467_rcjaz_endpoint.sql` adds the exact RCJAZ Release endpoint and makes it due for one closeout refresh.
+Migration `0138_dyna_hawk_95467_rcjaz_endpoint.sql` adds the exact RCJAZ Release endpoint.
 
-The same endpoint is already present in live Supabase and currently:
+The endpoint is already present in live Supabase:
 
 - exact_release_verified: true
 - enabled: true
-- priority: 115
+- queue priority: 115
 - due: yes
 - last_success_at: null
 
-A real worker fetch must determine current RCJAZ availability/price. The database was not manually marked successful.
+Important operational fact discovered during closeout:
+
+- `rcjaz_public` source policy is currently **adapter_status = planned**;
+- therefore Admin/cron exact-page workers will NOT claim RCJAZ yet;
+- the endpoint is enrollment/preparation for the future READY adapter, not a claim that automatic scanning is already active.
+
+The 2026-09-22 Initial Market Audit manually verified the exact RCJAZ product page and persisted an accepted exact market candidate:
+
+- source_record_key: `rcjaz:95467`
+- observation_type: `retail_in_stock`
+- price: **USD 25.30**
+- condition: Brand New / `new_complete_unbuilt`
+- exact ITEM: `95467`
+- GTIN on page: `4950344954674`
+- shipping / landed cost to Europe: **unknown**
+- reason: `EXTRA_EU_LANDED_COST_UNKNOWN`
+
+This current RCJAZ observation proves an independent market channel and is retained as market breadth/context. It is intentionally NOT converted into a European delivered offer state and cannot define or lower the European observed price.
 
 ## One-time recompute migration
 
@@ -907,8 +924,8 @@ The canonical next sequence is:
 1. get the final main commit containing PR #195 into Vercel Production;
 2. verify `main SHA = Production SHA = /api/version`;
 3. then run **Admin → Aggiornamento mercato → Esegui ora**;
-4. inspect the recompute queue and the exact RCJAZ `95467` scan result;
-5. run a second Admin cycle only if recomputes were enqueued after the first cycle's parallel recompute lane;
+4. inspect the recompute queue and the persisted RCJAZ `95467` market context;
+5. run a second Admin cycle to consume the remaining one-time recomputes; RCJAZ itself remains PLANNED and is not expected to be automatically scanned by that button;
 6. verify all four Dyna public signals, Release pages, Collection alignment and Empty Market Challenge;
 7. restore any temporary scan priority;
 8. close Dyna only after the family Completion Gate passes.
