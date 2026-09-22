@@ -7,6 +7,8 @@ const {
   getHistoricalRateToEUR,
   parseEcbDailyCsv,
   resolveHistoricalEurBasis,
+  resolveMarketEurBasis,
+  supportsEcbMarketCurrency,
   enrichMarketObservationFx,
 } = await import("../lib/fx/ecb.ts")
 
@@ -50,6 +52,27 @@ assert.deepEqual(eurBasis, {
   fxSource: null,
 })
 console.log("ok: native EUR basis never invents FX provenance")
+
+const myrCsv = `KEY,FREQ,CURRENCY,CURRENCY_DENOM,EXR_TYPE,EXR_SUFFIX,TIME_PERIOD,OBS_VALUE
+EXR.D.MYR.EUR.SP00.A,D,MYR,EUR,SP00,A,2026-09-21,4.8621
+`
+const myrFetch = async (url) => {
+  const target = String(url)
+  assert.match(target, /D\.MYR\.EUR\.SP00\.A/)
+  return new Response(myrCsv, { status: 200, headers: { "content-type": "text/csv" } })
+}
+assert.equal(supportsEcbMarketCurrency("MYR"), true)
+const myrBasis = await resolveMarketEurBasis(450, "MYR", "2026-09-22", myrFetch)
+assert.equal(myrBasis.fxRateDate, "2026-09-21")
+assert.equal(myrBasis.fxSource, ECB_FX_SOURCE)
+assert.ok(myrBasis.amountEUR > 92 && myrBasis.amountEUR < 93)
+console.log("ok: regional marketplace currencies can use ECB FX without expanding user currency settings")
+
+assert.equal(supportsEcbMarketCurrency("TWD"), false)
+const unsupportedMarketFx = await resolveMarketEurBasis(1000, "TWD", "2026-09-22", myrFetch)
+assert.equal(unsupportedMarketFx.amountEUR, null)
+console.log("ok: market FX still fails closed for currencies outside the ECB reference set")
+
 
 const missingDate = await resolveHistoricalEurBasis(50, "USD", null, fakeFetch)
 assert.equal(missingDate.amountEUR, null)
