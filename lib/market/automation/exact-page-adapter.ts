@@ -226,7 +226,10 @@ export function parseRcjazRetailPage(html: string, options: ParseOptions): Exact
   const warnings = [...generic.warnings]
   const text = stripTags(html)
 
-  if (/\bjust\s+a\s+moment\b/i.test(text) || /cf-chl|cloudflare/i.test(html)) {
+  if (
+    /\bjust\s+a\s+moment\b/i.test(text) ||
+    /cf-chl-|challenge-platform|cdn-cgi\/challenge-platform|id=["']challenge-form["']/i.test(html)
+  ) {
     return {
       title: generic.title,
       itemNumberSeen: false,
