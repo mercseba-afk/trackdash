@@ -329,6 +329,96 @@ Do not restore `COMPLETE` or `COMPLETE — MARKET THIN` until the new hard gate 
 
 ---
 
+
+# MARKET COMPLETENESS BACKFILL — QUEUE PREPARED 2026-09-22
+
+## Hard-gate audit baseline
+
+Global catalog audit: **184 Release**
+
+- A — current valid stored offer but public signal empty: **2**
+- B — market evidence exists but public signal empty: **17**
+- OK / other: **165**
+
+The two A rows are stale Market Method v3 signals:
+
+- `18025` Dash-1 Emperor (2026 Reissue)
+- `94704` Dash-1 Emperor Black Special
+
+Both have been enqueued for canonical v4 recompute.
+
+## Identity-safe classification
+
+The backfill must not force an Item Number onto the wrong production occurrence.
+
+Confirmed reused Item Numbers among the suspect rows:
+
+- `18014` → original + 2012 reissue + 2024 reissue;
+- `95501` → 2019 + 2021 + 2024 occurrences;
+- `18074` → regular Proto-Emperor Premium + Sanfrecce Hiroshima special.
+
+Therefore these remain fail-closed until evidence identifies the exact physical occurrence. Current marketplace evidence for the Item Number alone must not be assigned arbitrarily to one of those Release rows.
+
+## Unique suspect Release — eBay canonical revalidation
+
+Fourteen unambiguous suspect Release have been prepared for a one-time canonical eBay Production revalidation:
+
+- `18626`
+- `18627`
+- `92207`
+- `92218`
+- `92284`
+- `94673`
+- `94674`
+- `94692`
+- `94715`
+- `94772`
+- `94777`
+- `95469`
+- `94717`
+- `95000`
+
+For these eBay queue rows:
+
+- `priority = 200`;
+- `next_scan_at = 2000-01-01` as a **temporary one-time backfill override**;
+- normal `scan_interval_hours` was not changed.
+
+This is necessary because `trackdash_claim_ebay_active_jobs` orders by:
+
+`next_scan_at ASC, priority DESC, id`
+
+so priority alone does not overtake older due backlog.
+
+Live queue verification confirms these 14 rows are currently the **first 14 eligible eBay jobs**, before the normal Aero Manta Ray backlog.
+
+Admin eBay batch size is 4, so four successful Admin market refresh executions are sufficient to attempt all 14 prepared jobs, subject to per-job failures/retries.
+
+After the one-time revalidation, restore normal priority policy where the scheduler does not do so automatically.
+
+## External challenge already confirms first-scan misses
+
+The second-pass challenge has already established that some previously empty rows do have real market activity. Examples include:
+
+- `18626` — exact new current eBay market observed;
+- `18627` — exact new current eBay/Italian-market listing observed;
+- `94692` — multiple exact-item marketplace/search-market signals observed; prior TrackDash state only retained historical RCJAZ OOS;
+- `94715` — recent exact Mercari completed sale observed;
+- `95469` — exact recent/current Mercari market and completed-sale evidence observed;
+- `95000` — exact current eBay fixed-price listing observed externally despite an earlier canonical eBay scan yielding no accepted candidate.
+
+These findings confirm the backfill is a real **Initial Market Scan completeness correction**, not a relaxation of Market Value standards.
+
+## Important distinction
+
+A valid current exact offer can support **Observed price** without automatically becoming Market Value.
+
+Active auctions, ambiguous production occurrences, used/built/incomplete kits and historical OOS references do not get promoted merely to avoid an empty UI.
+
+The goal is maximum real evidence, not forced values.
+
+---
+
 # ADMIN MARKET REFRESH — CURRENT OPERATIONAL FACT
 
 The button:
