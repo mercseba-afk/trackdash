@@ -579,35 +579,39 @@ Avante remains **REOPENED — MARKET COMPLETENESS BACKFILL** until this final ga
 
 ---
 
-# 92284 POST-REFRESH DIAGNOSIS — EBAY_MY COVERAGE REQUIRED
+# 92284 POST-REFRESH DIAGNOSIS — KNOWN LISTING DIRECT REFRESH REQUIRED
 
-The requested Admin refresh was executed after Production alignment.
+Two requested Admin refreshes were executed after Production alignment.
 
 Verified live outcome:
 
-- the eBay worker claimed and completed the 92284 job successfully with no scan error;
-- the four previously pending recomputes were fully drained;
+- the first refresh drained the four previously pending recomputes;
 - 95000 recomputed with its current observed offer;
 - 92218 and 92207 recomputed with their persisted completed-sale anchors;
 - the Sanfrecce 18074 historical 2023 evidence remains historical context outside the current valuation window;
-- eBay item 204435589176 remained unchanged as needs_review / UNSUPPORTED_CURRENCY because it was not returned by the new scan;
+- the second 92284-specific refresh completed successfully with targets_attempted=1 and targets_succeeded=1;
+- that run found 0 candidates, so eBay item 204435589176 remained unchanged as needs_review / UNSUPPORTED_CURRENCY;
 - 92284 still had no current offer state/public observed price after that refresh.
 
-Root cause is now isolated:
+The first diagnosis that EBAY_MY should be queried was corrected after checking the official eBay Buy API marketplace support matrix. EBAY_MY is not a supported Buy/Browse marketplace identifier. The stored exact listing is exposed through ebay.it with MYR pricing, so marketplace and currency must not be conflated.
 
-- regional MYR FX support is present and is not the blocker;
-- the automatic eBay worker queried only EBAY_IT / EBAY_DE / EBAY_GB / EBAY_US;
-- the exact listing is Malaysian and requires EBAY_MY retrieval;
-- therefore a successful queue job could still miss that listing entirely.
+Root cause:
+
+- regional MYR FX support is present;
+- queue claim, worker execution and recompute are healthy;
+- normal keyword Browse search does not return the already-known exact listing;
+- therefore a successful search job can still miss a known active listing because of eBay indexing/ranking.
 
 Canonical repair:
 
-- add EBAY_MY to the supported marketplace type;
-- add EBAY_MY to the automatic eBay scan marketplace set;
-- extend adapter routing tests;
-- do not manually force the candidate, offer state or release signal.
+- keep normal keyword discovery on supported marketplaces;
+- use Browse getItemByLegacyId for persisted exact numeric eBay item IDs on unique Releases;
+- run direct known-listing refresh before keyword discovery;
+- deduplicate numeric legacy IDs against REST v1|...|0 IDs;
+- preserve fail-closed behavior for shared Item Numbers;
+- do not manually force the candidate, offer state or Release signal.
 
-Keep 92284 at temporary high eBay priority until the repaired Production worker has ingested the exact listing. After successful ingestion, restore ordinary family eBay priority and run the final Avante 24/24 completeness audit.
+Keep 92284 at temporary high eBay priority until the repaired Production worker has revalidated item 204435589176 through the direct legacy-ID path. After successful ingestion, restore ordinary family eBay priority and run the final Avante 24/24 completeness audit.
 
 ---
 

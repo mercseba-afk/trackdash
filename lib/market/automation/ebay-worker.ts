@@ -11,6 +11,7 @@ import {
   ebayBrowseConfigured,
   ebayMarketWritesAllowed,
   ebayScheduledMarketWritesAllowed,
+  fetchEbayActiveListingByLegacyId,
   searchEbayActiveListings,
   type EbayBrowseListing,
   type EbayMarketplaceId,
@@ -18,7 +19,7 @@ import {
 import { guardAutomatedPrice } from "./price-guard"
 import { ebaySourceRecordKey, planMissingEbayOffers, type EbayMarketplaceFetchState, type ExistingEbayOfferIdentity } from "./ebay-lifecycle"
 
-const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US", "EBAY_MY"]
+const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US"]
 
 interface ClaimedEbayJob {
   job_id: string
@@ -170,6 +171,35 @@ async function loadExistingCandidateAssignment(
     candidateId: candidate.id,
     resolvedReleaseId: candidate.resolved_release_id,
   }
+}
+
+async function loadKnownLegacyCandidates(
+  client: SupabaseClient,
+  sourceId: string,
+  release: ReleaseContext,
+): Promise<Array<{ itemId: string; marketplace: EbayMarketplaceId }>> {
+  if (release.sharedReleaseIds.length > 1) return []
+  const { data, error } = await client
+    .from("market_candidates")
+    .select("external_listing_id,raw_payload,match_evidence")
+    .eq("source_id", sourceId)
+    .eq("item_number_observed", release.itemNumber)
+    .in("decision", ["accepted", "needs_review"])
+    .contains("match_evidence", ["item_number_exact"])
+    .limit(10)
+  fail(error, "load known eBay legacy candidates")
+
+  const seen = new Set<string>()
+  return (data ?? []).flatMap((row: any) => {
+    const itemId = typeof row.external_listing_id === "string" ? row.external_listing_id : ""
+    if (!/^\d{9,15}$/.test(itemId) || seen.has(itemId)) return []
+    seen.add(itemId)
+    const rawMarketplace = row.raw_payload?.marketplace
+    const marketplace = MARKETPLACES.includes(rawMarketplace as EbayMarketplaceId)
+      ? rawMarketplace as EbayMarketplaceId
+      : "EBAY_IT"
+    return [{ itemId, marketplace }]
+  })
 }
 
 async function loadExistingOffer(client: SupabaseClient, sourceId: string, sourceRecordKey: string): Promise<ExistingOffer | null> {
@@ -426,11 +456,34 @@ async function scanJob(
   const sourceErrors: string[] = []
   const rawByMarketplace: Partial<Record<EbayMarketplaceId, number>> = {}
   const fetchStates: EbayMarketplaceFetchState[] = []
+  let marketplaceFailures = 0
   const marketplaceLimit = Math.max(1, Math.min(options.marketplaceLimit ?? 50, 200))
+
+  // Keyword search is discovery, not an authoritative refresh mechanism. If a
+  // prior exact candidate stores a legacy eBay listing ID, re-fetch that item
+  // directly so ranking/indexing changes cannot make a known listing disappear.
+  const knownLegacyCandidates = await loadKnownLegacyCandidates(client, job.source_id, release)
+  for (const known of knownLegacyCandidates) {
+    try {
+      const listing = await fetchEbayActiveListingByLegacyId(known.itemId, known.marketplace)
+      if (!listing) continue
+      rawByMarketplace[known.marketplace] = (rawByMarketplace[known.marketplace] ?? 0) + 1
+      fetched.push(listing)
+      fetchStates.push({
+        marketplace: known.marketplace,
+        succeeded: true,
+        complete: false,
+        itemIds: new Set([listing.itemId]),
+      })
+    } catch (error) {
+      sourceErrors.push(`KNOWN_ITEM_${known.itemId}:${shortError(error)}`)
+    }
+  }
+
   for (const marketplace of MARKETPLACES) {
     try {
       const rows = await searchEbayActiveListings(input, marketplace, marketplaceLimit)
-      rawByMarketplace[marketplace] = rows.length
+      rawByMarketplace[marketplace] = (rawByMarketplace[marketplace] ?? 0) + rows.length
       fetched.push(...rows)
       fetchStates.push({
         marketplace,
@@ -441,11 +494,12 @@ async function scanJob(
         itemIds: new Set(rows.map((row) => row.itemId)),
       })
     } catch (error) {
+      marketplaceFailures += 1
       sourceErrors.push(`${marketplace}:${shortError(error)}`)
       fetchStates.push({ marketplace, succeeded: false, complete: false, itemIds: new Set() })
     }
   }
-  if (!fetched.length && sourceErrors.length === MARKETPLACES.length) {
+  if (!fetched.length && marketplaceFailures === MARKETPLACES.length) {
     throw new Error(`EBAY_ALL_MARKETPLACES_FAILED:${sourceErrors.join("|")}`)
   }
 

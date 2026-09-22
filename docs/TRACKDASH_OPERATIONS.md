@@ -177,15 +177,16 @@ Purpose:
 - normalize candidate/offer state;
 - enqueue recompute on material changes.
 
-Current Browse marketplace coverage:
+Current keyword-search marketplace coverage:
 
 - EBAY_IT;
 - EBAY_DE;
 - EBAY_GB;
-- EBAY_US;
-- EBAY_MY.
+- EBAY_US.
 
-Regional marketplaces must be added when they are required by real exact-Release evidence; currency support alone is not sufficient if the worker never queries the listing's marketplace.
+Known exact listings are not allowed to depend only on keyword-search ranking. When TrackDash already stores an exact numeric eBay legacy item ID for a unique Release, the worker also refreshes that listing directly through Browse `getItemByLegacyId` before normal keyword discovery. The direct result is deduplicated against the REST item-ID form returned by search.
+
+Do not add unsupported marketplace identifiers merely because a seller lists in another currency or country. Marketplace support and listing currency are separate concerns.
 
 Important:
 
