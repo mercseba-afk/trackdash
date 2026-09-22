@@ -202,16 +202,26 @@ function MarketValuePanel({
       )
     }
 
+    const hasHistoricalContext = (signal?.marketContextEvidenceCount ?? 0) > 0
+
     return (
       <div className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">
           {it ? "Mercato" : "Market"}
         </p>
-        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
+        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">
+          {hasHistoricalContext
+            ? (it ? "Mercato osservato" : "Market observed")
+            : (it ? "Dati di mercato in verifica" : "Market data under review")}
+        </p>
         <p className="mt-2 text-sm leading-6 text-[#718198]">
-          {it
-            ? "Stiamo verificando i dati di mercato per questa Release."
-            : "We are reviewing the market data for this Release."}
+          {hasHistoricalContext
+            ? (it
+                ? "Esistono riferimenti reali attribuiti a questa Release, ma al momento non abbiamo un prezzo corrente o un Valore stimato abbastanza robusto da pubblicare."
+                : "Real market references are attributed to this Release, but there is currently no sufficiently robust current price or Estimated value to publish.")
+            : (it
+                ? "Stiamo verificando i dati di mercato per questa Release."
+                : "We are reviewing the market data for this Release.")}
         </p>
       </div>
     )
@@ -293,9 +303,13 @@ function ExternalAvailabilityCard({
         </div>
       ) : (
         <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
-          {it
-            ? "Nessun prezzo corrente sufficientemente chiaro è osservabile in questo momento."
-            : "No sufficiently clear current price is observable right now."}
+          {(signal?.marketContextEvidenceCount ?? 0) > 0
+            ? (it
+                ? "Nessun prezzo corrente sufficientemente chiaro è osservabile in questo momento. TrackDash ha però riferimenti di mercato storici o non idonei al prezzo corrente per questa Release."
+                : "No sufficiently clear current price is observable right now. TrackDash does have historical or non-current market references for this Release.")
+            : (it
+                ? "Nessun prezzo corrente sufficientemente chiaro è osservabile in questo momento."
+                : "No sufficiently clear current price is observable right now.")}
         </div>
       )}
 
@@ -336,8 +350,22 @@ function PriceIntelligenceCard({
       {signal ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <Metric
-            label={signal.valueEUR != null ? (it ? "Valore stimato" : "Estimated value") : (it ? "Prezzo osservato" : "Observed price")}
-            value={signal.valueEUR != null ? formatMoney(signal.valueEUR) : observedPrice != null ? `≈ ${formatMoney(observedPrice)}` : "—"}
+            label={
+              signal.valueEUR != null
+                ? (it ? "Valore stimato" : "Estimated value")
+                : observedPrice != null
+                  ? (it ? "Prezzo osservato" : "Observed price")
+                  : (it ? "Stato mercato" : "Market status")
+            }
+            value={
+              signal.valueEUR != null
+                ? formatMoney(signal.valueEUR)
+                : observedPrice != null
+                  ? `≈ ${formatMoney(observedPrice)}`
+                  : signal.marketContextEvidenceCount > 0
+                    ? (it ? "Riferimenti disponibili" : "References available")
+                    : "—"
+            }
           />
           <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
         </div>
