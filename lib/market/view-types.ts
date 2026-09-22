@@ -27,6 +27,7 @@ export interface ReleaseMarketSignalView {
   currentOfferCount: number
   soldUnits: number
   soldSellerCount: number | null
+  marketContextEvidenceCount: number
   recentSoldUnits3m: number | null
   recentSoldPeriodStart: string | null
   recentSoldPeriodEnd: string | null
