@@ -91,7 +91,7 @@ ok("18614: liquid standard kit follows the recent 10-sale window", () => {
   assert.equal(result.confidenceLabel, "medium")
 })
 
-ok("95467: five observed sales from one known seller still publish a cautious sold value", () => {
+ok("95467: five observed sales from one known seller remain evidence but do not alone define Market Value", () => {
   const selected = selectCurrentSoldEvidence({
     granular: [],
     aggregate: [
@@ -103,18 +103,19 @@ ok("95467: five observed sales from one known seller still publish a cautious so
   assert.equal(selected[0].sellerCount, 1)
   const result = publish(selected)
   assert.equal(result.soldAnchorEUR, 14.92)
-  assert.equal(result.marketValueEUR, 14.92)
+  assert.equal(result.marketValueEUR, null)
   assert.equal(result.confidenceLabel, "low")
 })
 
-ok("seven sales from one seller publish instead of disappearing", () => {
+ok("seven sales from one seller remain sell-through evidence without independent corroboration", () => {
   const selected = [
     sold({ id: "single-seller-seven", price: 15, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-09-10", grain: "rolling_window" }),
   ]
   const result = publish(selected)
-  assert.equal(result.marketValueEUR, 15)
+  assert.equal(result.marketValueEUR, null)
   assert.equal(result.soldUnits, 7)
   assert.equal(result.soldSellerCount, 1)
+  assert.equal(result.soldAnchorEUR, 15)
   assert.equal(result.confidenceLabel, "low")
 })
 
