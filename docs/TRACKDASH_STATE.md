@@ -486,6 +486,99 @@ Do not close until the remaining challenge classifications, queued recomputes, 9
 
 ---
 
+
+# MARKET COMPLETENESS BACKFILL — PRODUCTION ALIGNED / 92284 NEXT
+
+## Production alignment
+
+The market-context build regression was isolated to a stale regression-test marker and repaired.
+
+Current verified functional alignment before this documentation checkpoint:
+
+- GitHub main: `53f9f2bd045b6df85b5ed9e4ce077c953def75e9`
+- Vercel Production: `53f9f2bd045b6df85b5ed9e4ce077c953def75e9`
+- `/api/version`: `53f9f2bd045b6df85b5ed9e4ce077c953def75e9`
+- Vercel state: **READY**
+- Typecheck on repair branch: **SUCCESS**
+- full `pnpm verify`: **SUCCESS**
+
+This Production includes:
+
+- safe historical/non-current market context surfaces;
+- unresolved exact multi-Release lots counted as context without splitting their price;
+- ECB-backed regional marketplace FX, including MYR, for market ingestion;
+- user acquisition-currency UI remains unchanged.
+
+## 92284 STARGEK — exact next scan
+
+Release:
+
+`92284 — Avante Mk.III Nero STARGEK 10th Anniversary Special`
+
+Release ID:
+
+`805c2619-0c0c-5aa1-adc5-df25cafe5c8f`
+
+Known exact active eBay listing:
+
+`204435589176`
+
+- price: MYR 450
+- shipping: MYR 120
+- condition: new / unassembled
+- previous status: `needs_review`
+- previous reason: `UNSUPPORTED_CURRENCY`
+
+The regional FX fix is now in Production, so this Release is prepared for canonical rescan.
+
+Its eBay queue row is temporarily:
+
+- `priority = 200`
+- `next_scan_at = 2000-01-01`
+
+Live claim-order verification confirms **92284 is the first eligible eBay job**.
+
+After its scan, restore ordinary queue priority.
+
+## Current recompute queue before next Admin run
+
+Four known jobs are already pending, with no recorded errors:
+
+- `95000` — Dyna-Hawk GX Black Special
+- `18074` — Proto-Emperor Sanfrecce Hiroshima
+- `92218` — Avante Mk.III EVA Awakening
+- `92207` — Avante Mk.III EVA Unit-01
+
+Because Admin scan/recompute lanes run concurrently, the 92284 scan may enqueue its recompute after the same run has already claimed the existing four jobs. Re-check the queue after the Admin run rather than assuming 92284 recomputed in that same cycle.
+
+## QA correction — 92422 / 92428
+
+The identical-looking active prices on `92422` and `92428` are **not cross-assignment**.
+
+Each Release has its own exact eBay listing with the correct Item Number in the title:
+
+- `92422`: EUR 73.20 + EUR 12.20 shipping
+- `92428`: EUR 73.20 + EUR 12.20 shipping
+
+The matching equal prices come from the seller/listing market, not from Release contamination.
+
+## Exact next action
+
+Run **Admin → Aggiornamento mercato → Esegui ora** once.
+
+After it finishes:
+
+1. verify eBay item `204435589176` is accepted and resolved to 92284;
+2. verify MYR→EUR FX provenance and current offer state;
+3. restore 92284 queue priority;
+4. inspect the recompute queue;
+5. run a second Admin refresh only if 92284 or another backfill recompute remains;
+6. perform the final 24/24 Avante completeness audit.
+
+Avante remains **REOPENED — MARKET COMPLETENESS BACKFILL** until this final gate passes.
+
+---
+
 # ADMIN MARKET REFRESH — CURRENT OPERATIONAL FACT
 
 The button:
