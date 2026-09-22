@@ -356,6 +356,19 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
     )
   }
 
+  if ((signal?.marketContextEvidenceCount ?? 0) > 0) {
+    return (
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium leading-tight text-muted-foreground">
+          {it ? "Mercato osservato" : "Market observed"}
+        </p>
+        <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
+          {it ? "Riferimenti storici disponibili · nessun prezzo corrente consolidato" : "Historical references available · no consolidated current price"}
+        </p>
+      </div>
+    )
+  }
+
   return <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
 }
 
