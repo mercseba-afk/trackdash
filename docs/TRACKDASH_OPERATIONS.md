@@ -164,6 +164,90 @@ Important:
 
 ---
 
+## RCJAZ source-level integration
+
+RCJAZ is integrated as a reusable exact-retail source, not as a one-off Release rule.
+
+Parser:
+
+`rcjaz_product_page`
+
+The dedicated parser recognizes the RCJAZ exact-product fields used by the public product page, including:
+
+- exact Item Number;
+- product price/currency;
+- `Available in shop` → `in_stock`;
+- `Not Available` / sold-out states → `out_of_stock`;
+- Cloudflare challenge pages → fail closed / review.
+
+### Automatic enrollment
+
+A RCJAZ endpoint may be auto-enrolled only when:
+
+- host is an approved RCJAZ domain;
+- URL is an individual product page (`-p-<id>.html`);
+- URL contains the Release Item Number;
+- the Item Number is unique in the current TrackDash catalog.
+
+Exact RCJAZ pages found in either:
+
+- `release_sources`;
+- accepted exact/strong `market_candidates`;
+
+are backfilled into `market_scan_endpoints`.
+
+Future qualifying `release_sources` / accepted candidates auto-enroll through database triggers.
+
+### Reused/shared Item Numbers
+
+Shared Item Numbers are **never inferred automatically**.
+
+They may still have RCJAZ automation when an endpoint was explicitly curated and already has:
+
+`exact_release_verified = true`
+
+In that case queue/target enrollment is allowed because Release identity was established separately.
+
+### Queue hygiene
+
+RCJAZ queue/target rows without an exact verified endpoint are disabled.
+
+Therefore:
+
+**enabled RCJAZ queue job = exact endpoint-backed Release**
+
+and generic catalog cross-product rows do not consume worker capacity.
+
+### Current execution gate
+
+RCJAZ currently remains:
+
+`adapter_status = planned`
+
+because a prior Vercel live probe received HTTP 403 / Cloudflare challenge.
+
+The parser/enrollment/queue integration is live in Supabase, but Admin/cron must not claim RCJAZ until a live Vercel canary succeeds.
+
+Do not switch RCJAZ to `ready` merely because a page works in a browser or external crawler.
+
+### Europe-first semantics
+
+RCJAZ is extra-EU.
+
+A current RCJAZ price is valid evidence of:
+
+- availability;
+- market breadth;
+- retail history / sell-through.
+
+But when European landed shipping/import cost is unknown it remains:
+
+**EXTRA-EU ITEM-ONLY / LANDED COST UNKNOWN**
+
+and cannot alone define or lower the European observed price.
+
+---
+
 # 4. EBAY ACTIVE MARKET SCAN
 
 Admin batch:
