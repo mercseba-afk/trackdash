@@ -38,7 +38,7 @@ export function resolveReleaseImageUrl(release: ProductRelease | null | undefine
  * Resolves the image for a PRODUCT in general (no specific release
  * selected — e.g. a catalog grid card). Priority:
  *   1. The product's own image (product_images)
- *   2. Any release of the product that has an image
+ *   2. The oldest release (by year, then date) that has an image
  *   3. null — caller should show the placeholder
  *
  * The sibling-release fallback (step 2) is intentionally only here, not
@@ -50,10 +50,26 @@ export function resolveProductImageUrl(product: Product | null | undefined): str
   const productImage = firstImage(product?.images)
   if (productImage) return productImage
 
-  const anyReleaseImage = product?.releases?.map((r) => firstImage(r.images)).find((url): url is string => Boolean(url))
-  if (anyReleaseImage) return anyReleaseImage
+  let oldestReleaseImage: { image: string; year: number; date: string; index: number } | null = null
 
-  return null
+  for (const [index, release] of (product?.releases ?? []).entries()) {
+    const image = firstImage(release.images)
+    if (!image) continue
+
+    const year = release.releaseYear ?? Number.POSITIVE_INFINITY
+    const date = release.releaseDate ?? "9999-12-31"
+
+    if (
+      !oldestReleaseImage ||
+      year < oldestReleaseImage.year ||
+      (year === oldestReleaseImage.year && date < oldestReleaseImage.date) ||
+      (year === oldestReleaseImage.year && date === oldestReleaseImage.date && index < oldestReleaseImage.index)
+    ) {
+      oldestReleaseImage = { image, year, date, index }
+    }
+  }
+
+  return oldestReleaseImage?.image ?? null
 }
 
 /**
