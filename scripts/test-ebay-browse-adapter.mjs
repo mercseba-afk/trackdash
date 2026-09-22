@@ -197,13 +197,13 @@ try {
   assert.equal(rows[0].marketplace, 'EBAY_IT')
   assert.equal(rows[0].condition, 'Neuf')
   assert.equal(rows[0].conditionId, '1000')
-  for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US']) {
+  for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US', 'EBAY_MY']) {
     await searchEbayActiveListings(unique, marketplace, 5)
     assert.equal(calls.at(-1).options.headers['X-EBAY-C-MARKETPLACE-ID'], marketplace)
   }
   assert.equal(calls.filter(call => call.url.pathname.includes('/identity/')).length, 1)
   assert.equal(calls.every(call => call.url.host === 'api.sandbox.ebay.com'), true)
-  console.log('ok: Sandbox routing, OAuth, four marketplaces, token reuse, condition ID and shipping semantics')
+  console.log('ok: Sandbox routing, OAuth, five marketplaces, token reuse, condition ID and shipping semantics')
 
   process.env.EBAY_ENV = 'production'
   assert.equal(ebayMarketWritesAllowed(), false)
