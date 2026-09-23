@@ -1824,3 +1824,113 @@ The shared eBay marketplace type is extended additively only so the Hot Wheels a
    - lowest credible EU-delivered cost;
 5. if European breadth materially improves and matching stays clean, freeze HCJ81 ASK discovery policy;
 6. only then design first controlled persistence into the shared Market Engine.
+
+
+### 2026-09-23 — Step 20: verified secondary identifiers
+
+Status: **IMPLEMENTED ON BRANCH — HCJ81 UPC prepared; no market writes**.
+
+The wider eBay marketplace audit confirmed that additional European marketplace IDs do not add distinct HCJ81 inventory:
+
+- context-query result remains **26 unique / 5 accepted / 6 review / 15 rejected**;
+- accepted EU-delivered offers remain **1**;
+- lowest accepted EU-delivered total remains **€99.50**;
+- NL/BE/AT/IE/PL mostly expose the same cross-listed inventory already seen through IT/DE/FR/ES/GB.
+
+Decision:
+
+Do not expand eBay marketplace coverage further merely to chase duplicate inventory.
+
+Instead, improve exact discovery using verified **secondary identifiers** attached to the same Release.
+
+#### HCJ81 secondary identifier
+
+Mattel's official 2022 Hot Wheels catalog identifies the Mountain Drifters LB-ER34 release as:
+
+- Mattel toy number: `HCJ81`
+- printed UPC-A: `1 94735 01163 6`
+- normalized UPC-A: **`194735011636`**
+
+Migration prepared:
+
+`supabase/migrations/0152_hotwheels_hcj81_upc_identifier.sql`
+
+The UPC is stored as:
+
+- scheme: `upc_a`
+- value: `194735011636`
+- `is_primary = false`
+- verification: `verified`
+- source: official Mattel catalog
+
+This remains the **same ProductRelease**.
+
+It is not:
+
+- a new Release;
+- a Subvariant;
+- a replacement for HCJ81.
+
+#### Matcher / audit behavior
+
+Hot Wheels Release profiles can now contain:
+
+- one primary identifier;
+- zero or more verified secondary identifiers.
+
+Exact discovery queries are generated for all verified identifiers.
+
+For HCJ81 that means:
+
+1. `Hot Wheels HCJ81 ...`
+2. `Hot Wheels 194735011636 ...`
+3. optional context query when recall mode is enabled
+
+The acceptance matcher can confirm the Release through:
+
+- primary identifier in title;
+- verified secondary identifier in title;
+- primary identifier in structured eBay item details;
+- verified secondary identifier in structured eBay item details;
+- existing strong commercial context tuple.
+
+A GTIN with leading zero, such as:
+
+`0194735011636`
+
+matches the verified UPC-A:
+
+`194735011636`
+
+through normalized exact-identifier containment.
+
+#### Sibling-safety correction
+
+When a Release owns multiple verified identifiers, its own secondary identifiers must never be treated as sibling Release codes.
+
+Sibling detection is now built from identifiers belonging to **other Releases of the same Casting only**.
+
+This prevents HCJ81's UPC from becoming a false sibling exclusion.
+
+Only identifiers with:
+
+`verification_status = verified`
+
+participate in automatic Hot Wheels exact matching.
+
+#### Safety
+
+- no Mini 4WD matcher/worker behavior is changed;
+- no Hot Wheels Market Engine writes are enabled;
+- public Hot Wheels gate remains closed;
+- the existing new/carded and delivered-cost rules remain unchanged.
+
+### Exact next Hot Wheels action
+
+1. run typecheck + verify;
+2. if green, apply migration 0152 to live Supabase;
+3. verify HCJ81 exposes both HCJ81 and UPC 194735011636;
+4. deploy the secondary-identifier matcher;
+5. re-run HCJ81 with context query ON;
+6. compare unique listings / accepted listings / EU delivered coverage against the current 26 / 5 / 1 baseline;
+7. if UPC adds no distinct inventory, freeze eBay discovery and move to the next independent ASK/SOLD source rather than adding more eBay query permutations.
