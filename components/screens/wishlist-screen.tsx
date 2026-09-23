@@ -56,7 +56,14 @@ export function WishlistScreen({ catalogProducts }: { catalogProducts: Product[]
       </div>
       <p className="text-xs leading-relaxed text-muted-foreground">{it ? "Il confronto con il target usa il Prezzo osservato corrente quando disponibile. Il Valore stimato resta separato e viene mostrato solo quando TrackDash dispone di dati di mercato affidabili per la Release." : "Target matching uses the current Observed price when available. Estimated value remains separate and is shown only when TrackDash has reliable market data for the Release."}</p>
       <div className="grid gap-3">
-        {sorted.map((entry) => <WishlistRow key={entry.item.id} entry={entry} onRemove={async () => { try { await removeFromWishlist(entry.item.id); toast.success(it ? `${entry.product.name} rimosso dai desideri` : `Removed ${entry.product.name} from wishlist`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }} onAcquire={async () => { try { await moveWishlistToCollection(entry.item.id, { condition: "New / Opened", acquisitionDate: new Date().toISOString(), acquisitionPrice: entry.item.targetPrice ?? entry.currentPrice ?? 0, acquisitionCurrency: "EUR" }); toast.success(it ? "Spostato nella collezione" : "Moved to collection", { description: entry.product.name }) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile spostarlo nella collezione" : "Couldn't move this item to your collection") } }} />)}
+        {sorted.map((entry) => <WishlistRow key={entry.item.id} entry={entry} onRemove={async () => { try { await removeFromWishlist(entry.item.id); toast.success(it ? `${entry.product.name} rimosso dai desideri` : `Removed ${entry.product.name} from wishlist`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }} onAcquire={async () => { try {
+          const canonicalRelease = entry.release
+            ?? entry.product.releases.find((release) => release.isOriginal)
+            ?? [...entry.product.releases].sort((a, b) => (a.releaseYear ?? Number.MAX_SAFE_INTEGER) - (b.releaseYear ?? Number.MAX_SAFE_INTEGER))[0]
+          if (!canonicalRelease) throw new Error(it ? "Nessuna Release canonica disponibile" : "No canonical Release available")
+          await moveWishlistToCollection(entry.item.id, { releaseId: canonicalRelease.id, condition: "New / Opened", acquisitionDate: new Date().toISOString(), acquisitionPrice: entry.item.targetPrice ?? entry.currentPrice ?? 0, acquisitionCurrency: "EUR" })
+          toast.success(it ? "Spostato nella collezione" : "Moved to collection", { description: entry.product.name })
+        } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile spostarlo nella collezione" : "Couldn't move this item to your collection") } }} />)}
       </div>
     </div>
   )

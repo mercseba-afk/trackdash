@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import type { CollectionItem, Condition, Currency, User, WishlistItem, WishlistPriority } from "@/lib/types"
-import { getProductById, primaryRelease } from "@/lib/data/products"
 import { createClient } from "@/lib/supabase/client"
 import { getMyProfileAction } from "@/lib/actions/profile"
 import {
@@ -72,7 +71,7 @@ interface Store {
   removeFromWishlist: (id: string) => Promise<void>
   moveWishlistToCollection: (
     wishlistId: string,
-    input: Omit<AddCollectionInput, "productId" | "releaseId">,
+    input: Omit<AddCollectionInput, "productId">,
   ) => Promise<void>
   isInCollection: (productId: string) => boolean
   isInWishlist: (productId: string) => boolean
@@ -322,21 +321,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     const moveWishlistToCollection: Store["moveWishlistToCollection"] = async (wishlistId, input) => {
-      const wishlistItem = wishlist.find((w) => w.id === wishlistId)
-      // The wishlist item may already pin a specific release; if it was
-      // added as "any edition", fall back to the model's primary release --
-      // resolved synchronously from the (now id-matching) local catalog
-      // data, same as Step 4A did, since there's no concrete release
-      // selection step in the wishlist "I got it" flow's UI.
-      let releaseId = wishlistItem?.releaseId
-      if (!releaseId && wishlistItem) {
-        const product = getProductById(wishlistItem.productId)
-        releaseId = product ? primaryRelease(product).id : undefined
-      }
-      if (!releaseId) throw new Error("Could not resolve a release for this wishlist item")
-
       await moveWishlistItemToCollectionAction(wishlistId, {
-        releaseId,
+        releaseId: input.releaseId,
         condition: input.condition,
         acquisitionDate: input.acquisitionDate,
         acquisitionPrice: input.acquisitionPrice,
