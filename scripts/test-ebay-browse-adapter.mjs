@@ -181,7 +181,7 @@ console.log(`${passed} passed, 0 failed`)
 console.log("EBAY BROWSE ADAPTER TEST PASSED")
 
 // Network is mocked: these are transport and isolation tests, never market data.
-const { searchEbayActiveListings, fetchEbayActiveListingByLegacyId, fetchEbayActiveItemDetails, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
+const { searchEbayActiveListings, searchEbayActiveListingsByQuery, fetchEbayActiveListingByLegacyId, fetchEbayActiveItemDetails, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
 const originalFetch = globalThis.fetch
 const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET', 'EBAY_MARKET_WRITES_ENABLED'].map(key => [key, process.env[key]]))
 const calls = []
@@ -193,7 +193,16 @@ try {
   assert.equal(ebayScheduledMarketWritesAllowed(), false)
   process.env.EBAY_CLIENT_ID = 'fixture-SBX-client'
   process.env.EBAY_CLIENT_SECRET = 'fixture-only'
-  const sample = { itemId: 'v1|fixture|0', title: 'Tamiya 95467 kit', price: { value: '20', currency: 'EUR' }, condition: 'Neuf', conditionId: '1000', seller: { username: 'fixture-seller' }, itemWebUrl: 'https://example.com/item' }
+  const sample = {
+    itemId: 'v1|fixture|0',
+    title: 'Tamiya 95467 kit',
+    price: { value: '20', currency: 'EUR' },
+    condition: 'Neuf',
+    conditionId: '1000',
+    seller: { username: 'fixture-seller' },
+    itemWebUrl: 'https://example.com/item',
+    itemLocation: { country: 'DE' },
+  }
   globalThis.fetch = async (url, options) => {
     calls.push({ url: new URL(url), options })
     assert.equal(options.cache, 'no-store')
@@ -227,10 +236,11 @@ try {
         ],
       })
     }
-    assert.equal(new URL(url).searchParams.get('filter'), 'conditionIds:{1000}')
+    const filter = new URL(url).searchParams.get('filter')
+    assert.equal(filter?.includes('conditionIds:{1000}'), true)
     return Response.json({ itemSummaries: [
-      { ...sample, shippingOptions: [{ shippingCost: { value: '0', currency: 'EUR' } }] },
-      { ...sample, itemId: 'paid', shippingOptions: [{ shippingCost: { value: '4.50', currency: 'EUR' } }] },
+      { ...sample, shippingOptions: [{ shippingCost: { value: '0', currency: 'EUR' }, shipToLocationUsedForEstimate: { country: 'IT' } }] },
+      { ...sample, itemId: 'paid', shippingOptions: [{ shippingCost: { value: '4.50', currency: 'EUR' }, shipToLocationUsedForEstimate: { country: 'IT' } }] },
       { ...sample, itemId: 'unknown' },
       { ...sample, itemId: 'different-currency', shippingOptions: [{ shippingCost: { value: '5', currency: 'USD' } }] },
     ] })
@@ -242,6 +252,16 @@ try {
   assert.equal(rows[0].marketplace, 'EBAY_IT')
   assert.equal(rows[0].condition, 'Neuf')
   assert.equal(rows[0].conditionId, '1000')
+  assert.equal(rows[0].itemLocationCountry, 'DE')
+  assert.equal(rows[0].shippingEstimateCountry, 'IT')
+  const defaultFilter = calls.at(-1).url.searchParams.get('filter')
+  assert.equal(defaultFilter, 'conditionIds:{1000}')
+
+  await searchEbayActiveListingsByQuery('Hot Wheels HCJ81 LB-ER34', 'EBAY_DE', 5, { deliveryCountry: 'IT' })
+  assert.equal(calls.at(-1).url.searchParams.get('filter'), 'conditionIds:{1000},deliveryCountry:IT')
+  assert.equal(calls.at(-1).options.headers['X-EBAY-C-ENDUSERCTX'], undefined)
+  console.log('ok: deliveryCountry filter is opt-in and does not change legacy Mini 4WD search semantics')
+
   for (const marketplace of ['EBAY_DE', 'EBAY_GB', 'EBAY_US']) {
     await searchEbayActiveListings(unique, marketplace, 5)
     assert.equal(calls.at(-1).options.headers['X-EBAY-C-MARKETPLACE-ID'], marketplace)
