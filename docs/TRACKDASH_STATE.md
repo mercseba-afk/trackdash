@@ -1,9 +1,124 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-22  
+> **Last updated:** 2026-09-23  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
+
+---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23
+
+**This section supersedes older runtime/UI wording and version checkpoints below.**  
+Older sections remain as historical audit trail unless explicitly restated here.
+
+### Final repository / Production baseline
+
+- GitHub `main`: **`203434b969f7a7f46fa26a636dcf9cdcf6a01234`**
+- merged PR **#209**: `Simplify market pricing labels and Release market UI`
+- previous semantic alignment PR **#208** is included in this baseline
+- Vercel Production: **`dpl_59uvTir1eT3J3vCZYTSbJQETL4zP`**
+- Vercel state: **READY**
+- Production aliases include `trackdash.it`
+- `https://trackdash.it/api/version`: **`203434b969f7a7f46fa26a636dcf9cdcf6a01234`**
+- PR #209 `typecheck`: **SUCCESS**
+- PR #209 `verify`: **SUCCESS**
+
+This is the final code/runtime checkpoint for the market-presentation cleanup completed on 2026-09-23.
+
+### Canonical public market terminology — FINAL
+
+Public collector-facing UI must use the following semantics everywhere:
+
+- **Valore stimato** / **Estimated value**  
+  Used only when TrackDash has a sufficiently supported consolidated market value.
+
+- **Prezzo minimo richiesto** / **Lowest asking price**  
+  Used when publishing the minimum valid current ASK from observed listings.  
+  It is **not** a completed sale and **not** Market Value.
+
+- **Trend prezzi richiesti** / **Asking price trend**  
+  Used only when the existing ASK trend guard rails pass.
+
+- current ASK evidence count: **`N annunci osservati`** / **`N observed listings`**
+- completed-sale evidence count: **`N vendite osservate`** / **`N observed sales`**
+- when no publishable current reference exists: **Dati di mercato in verifica**
+
+Do not reintroduce the old public labels:
+
+- `Prezzo osservato`
+- `Richiesta venditore osservata`
+- `Richiesta più bassa osservata`
+- `Trend richieste osservate`
+
+Internal field/function names may retain legacy `observed` terminology where they are implementation details; the public meaning above is authoritative.
+
+### Release / Collection market card — FINAL
+
+The shared market overview used by exact Release pages and Collection copy detail is intentionally compact.
+
+Show only:
+
+1. **Valore stimato** when available, otherwise **Prezzo minimo richiesto**;
+2. a valid market/ASK trend when publishable;
+3. a compact evidence line when evidence exists, for example:
+   - `2 annunci osservati`
+   - `4 annunci osservati · 7 vendite osservate`
+
+Do **not** repeat on every Release card:
+
+- methodology prose such as “Riferimento ricavato da…”;
+- seller-concentration warnings;
+- “Ultimo aggiornamento …”;
+- “Trend in raccolta …” when no valid trend exists.
+
+Methodology belongs in the dedicated Market explanation, not in every Release card.
+
+### Verified public examples
+
+**94951 — Avante Mk.III Nero Clear Violet Special (2013)**
+
+- Market Value: absent
+- SOLD anchor: **€13.56**, 1 observed sale / 1 seller
+- current listings observed: **2**
+- canonical minimum effective current ASK: **€186.64**
+- public Release card in Production:
+  - **Lowest asking price / Prezzo minimo richiesto ≈ €186.64**
+  - **2 listings observed / 2 annunci osservati**
+- no fake consolidated Market Value and no invalid trend are shown.
+
+**95450 — Proto-Emperor Premium Black Special (2019)**
+
+- Market Value: absent
+- canonical minimum effective current ASK: **€34.13**
+- current listings observed: **4**
+- observed sales: **7**
+- public Release card:
+  - **Lowest asking price / Prezzo minimo richiesto ≈ €34.13**
+  - **4 listings observed · 7 observed sales**
+- the thin 3-day ASK movement remains suppressed by the trend guard.
+
+### Canonical catalog / Collection alignment — current invariant
+
+Current code keeps canonical DB Release data aligned across:
+
+- Catalog;
+- exact Release pages;
+- Collection list and copy detail;
+- Dashboard;
+- Market;
+- Wishlist;
+- Scanner result presentation after identity matching;
+- site / PWA.
+
+The Scanner's tested local Item/JAN matcher remains the identity index, but matched IDs are hydrated from the canonical DB catalog before display/actions and fail closed when a matched Release no longer exists canonically.
+
+### Exact next action
+
+No further UI work is required for this market-label cleanup.
+
+The next Product Research / SOLD batch is a separate market-data task and does not block this checkpoint.  
+Any future material TrackDash change must update this file in the same work unit and create a newer authoritative checkpoint.
 
 ---
 
