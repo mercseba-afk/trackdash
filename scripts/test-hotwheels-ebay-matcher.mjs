@@ -83,13 +83,13 @@ ok("exact Mattel identifier plus casting is accepted", () => {
   assert.deepEqual(result.reasonCodes, ["MATTEL_IDENTIFIER_EXACT"])
 })
 
-ok("same casting without exact identifier is review-only during pilot", () => {
+ok("same casting with exact subseries and series position is accepted without Mattel code", () => {
   const result = classifyHotWheelsEbayListing(
     listing("Hot Wheels Premium Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline red 4/5"),
     mountain,
   )
-  assert.equal(result.decision, "needs_review")
-  assert.equal(result.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE"), true)
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
 })
 
 ok("sibling Chase identifier is rejected from regular Mountain Drifters release", () => {
@@ -101,13 +101,13 @@ ok("sibling Chase identifier is rejected from regular Mountain Drifters release"
   assert.equal(result.reasonCodes.includes("SIBLING_RELEASE_IDENTIFIER"), true)
 })
 
-ok("chase wording without exact code remains review-only for Chase target", () => {
+ok("chase wording plus exact subseries and series position is accepted without Mattel code", () => {
   const result = classifyHotWheelsEbayListing(
     listing("Hot Wheels LB-ER34 Super Silhouette Nissan Skyline Mountain Drifters 0/5 Chase"),
     chase,
   )
-  assert.equal(result.decision, "needs_review")
-  assert.equal(result.reasonCodes.includes("CHASE_CONTEXT_MATCH"), true)
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
 })
 
 ok("regular target rejects Chase listing even if casting matches", () => {
