@@ -15,7 +15,6 @@ import {
   ShoppingBag,
   TrendingUp,
 } from "lucide-react"
-import { PRODUCTS } from "@/lib/data/corrected-products"
 import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
@@ -35,19 +34,19 @@ interface Row {
   signal: ReleaseMarketSignalView
 }
 
-export function MarketScreen() {
+export function MarketScreen({ products }: { products: Product[] }) {
   const { locale } = useI18n()
   const { user } = useStore()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
   const liveLoginHref = `/login?next=${encodeURIComponent("/market#live-market")}`
 
-  const rows = React.useMemo<Row[]>(() => PRODUCTS.flatMap((product) =>
+  const rows = React.useMemo<Row[]>(() => products.flatMap((product) =>
     product.releases.flatMap((release) => {
       const signal = marketSignals[release.id]
       return signal ? [{ product, release, signal }] : []
     }),
-  ), [marketSignals])
+  ), [marketSignals, products])
 
   const valued = React.useMemo(() => rows
     .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0)
