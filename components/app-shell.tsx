@@ -156,6 +156,11 @@ function UserMenu() {
           ) : null}
         </div>
         <DropdownMenuSeparator />
+        <div className="flex items-center justify-between gap-3 px-1.5 py-1.5">
+          <span className="text-sm text-foreground">{locale === "it" ? "Lingua" : "Language"}</span>
+          <LanguageSwitch />
+        </div>
+        <DropdownMenuSeparator />
         <PwaInstallMenuItem />
         <DropdownMenuItem
           variant="destructive"
@@ -180,6 +185,7 @@ type AppShellProps = {
 
 export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }: AppShellProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user } = useStore()
   const { t } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
@@ -189,8 +195,26 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
 
   React.useEffect(() => {
     if (!hotWheelsPilotUser) return
-    window.localStorage.setItem("trackdash.collectible.vertical", vertical)
-  }, [hotWheelsPilotUser, vertical])
+
+    const isHotWheelsRoute = pathname === "/hotwheels" || pathname.startsWith("/hotwheels/")
+    const isMini4wdRoute =
+      pathname === "/catalog" || pathname.startsWith("/catalog/") ||
+      pathname === "/collection" || pathname.startsWith("/collection/") ||
+      pathname === "/scanner" || pathname.startsWith("/scanner/")
+
+    if (isHotWheelsRoute) {
+      window.localStorage.setItem("trackdash.collectible.vertical", "hotwheels")
+    } else if (isMini4wdRoute) {
+      window.localStorage.setItem("trackdash.collectible.vertical", "mini4wd")
+    }
+  }, [hotWheelsPilotUser, pathname])
+
+  React.useEffect(() => {
+    if (!hotWheelsPilotUser || pathname !== "/dashboard") return
+    if (window.localStorage.getItem("trackdash.collectible.vertical") === "hotwheels") {
+      router.replace("/hotwheels/catalog")
+    }
+  }, [hotWheelsPilotUser, pathname, router])
 
   const refreshUnread = React.useCallback(async () => {
     if (!user) {
@@ -276,25 +300,12 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           </nav>
 
           <div className="flex items-center gap-1.5">
-            <LanguageSwitch className="hidden sm:inline-flex" />
-            <LanguageSwitch compact className="sm:hidden" />
+            {hotWheelsPilotUser ? <CollectibleVerticalSwitch active={vertical} /> : null}
             <PwaInstallButton />
             <NotificationCenter />
             <UserMenu />
           </div>
         </div>
-        {hotWheelsPilotUser ? (
-          <div className="border-t border-border/60 bg-white/80">
-            <div className="mx-auto flex min-h-12 w-full max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6 lg:px-8">
-              <CollectibleVerticalSwitch active={vertical} />
-              {vertical === "hotwheels" ? (
-                <span className="hidden text-[10px] font-medium text-muted-foreground md:inline">
-                  Collection e Scanner restano disattivati finché non colleghiamo i dati Hot Wheels.
-                </span>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
       </header>
 
       <main
