@@ -137,6 +137,19 @@ ok("loose/custom/accessory listings are rejected", () => {
   }
 })
 
+ok("opened or damaged packaging is rejected from the canonical new-carded market", () => {
+  for (const title of [
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline opened blister",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline damaged card",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline cracked blister",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline without card",
+  ]) {
+    const result = classifyHotWheelsEbayListing(listing(title), mountain)
+    assert.equal(result.decision, "rejected")
+    assert.equal(result.reasonCodes.includes("LOOSE_CUSTOM_OR_ACCESSORY"), true)
+  }
+})
+
 ok("ordinary multi-item lot is rejected", () => {
   const result = classifyHotWheelsEbayListing(
     listing("Hot Wheels HCJ81 LB-ER34 Nissan Skyline lot bundle"),
