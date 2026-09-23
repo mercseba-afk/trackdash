@@ -4,6 +4,8 @@
 
 export * from "./taxonomy"
 export * from "./catalog"
+export * from "./identifiers"
+export * from "./hotwheels"
 export * from "./profiles"
 export * from "./collection"
 export * from "./sharing"
