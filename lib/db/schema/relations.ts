@@ -8,7 +8,7 @@ import { relations } from "drizzle-orm"
 import { productImages, productReleases, products, releaseImages, releaseSources } from "./catalog"
 import { brands, categories } from "./taxonomy"
 import { releaseIdentifiers } from "./identifiers"
-import { hotwheelsReleaseDetails } from "./hotwheels"
+import { hotwheelsReleaseDetails, hotwheelsReleaseSubvariants } from "./hotwheels"
 
 export const brandsRelations = relations(brands, ({ many }) => ({
   products: many(products),
@@ -40,6 +40,7 @@ export const productReleasesRelations = relations(productReleases, ({ one, many 
     fields: [productReleases.id],
     references: [hotwheelsReleaseDetails.releaseId],
   }),
+  hotwheelsSubvariants: many(hotwheelsReleaseSubvariants),
 }))
 
 export const releaseImagesRelations = relations(releaseImages, ({ one }) => ({
@@ -57,4 +58,9 @@ export const releaseIdentifiersRelations = relations(releaseIdentifiers, ({ one 
 
 export const hotwheelsReleaseDetailsRelations = relations(hotwheelsReleaseDetails, ({ one }) => ({
   release: one(productReleases, { fields: [hotwheelsReleaseDetails.releaseId], references: [productReleases.id] }),
+}))
+
+
+export const hotwheelsReleaseSubvariantsRelations = relations(hotwheelsReleaseSubvariants, ({ one }) => ({
+  release: one(productReleases, { fields: [hotwheelsReleaseSubvariants.releaseId], references: [productReleases.id] }),
 }))
