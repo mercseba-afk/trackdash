@@ -288,7 +288,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
             <div className="mx-auto flex min-h-12 w-full max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6 lg:px-8">
               <CollectibleVerticalSwitch active={vertical} />
               {vertical === "hotwheels" ? (
-                <span className="text-[10px] font-medium text-muted-foreground">
+                <span className="hidden text-[10px] font-medium text-muted-foreground md:inline">
                   Collection e Scanner restano disattivati finché non colleghiamo i dati Hot Wheels.
                 </span>
               ) : null}
