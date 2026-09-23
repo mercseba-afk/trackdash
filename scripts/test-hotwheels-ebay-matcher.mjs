@@ -262,6 +262,48 @@ ok("item details can match identifier embedded in a longer aspect value", () => 
   assert.equal(refined.decision, "accepted")
 })
 
+ok("item details MPN can match the Mattel code inside a longer value", () => {
+  const audi = {
+    releaseId: "audi-sth",
+    castingName: "87 Audi quattro",
+    releaseYear: 2025,
+    primaryIdentifier: "JBC35",
+    lineName: "Mainline",
+    subseries: "Factory Fresh",
+    chaseType: "Super Treasure Hunt",
+    commercialForm: "single",
+  }
+  const initial = classifyHotWheelsEbayListing(
+    listing("2025 Hot Wheels 87 Audi quattro STH Super Treasure Hunt 16/250"),
+    audi,
+  )
+  assert.equal(initial.decision, "needs_review")
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ mpn: "JBC35-N521" }),
+    audi,
+  )
+  assert.equal(refined.decision, "accepted")
+  assert.deepEqual(refined.reasonCodes, ["MATTEL_IDENTIFIER_ITEM_DETAILS"])
+})
+
+ok("item details never override a packaging-subvariant review", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels HCJ81 LB-ER34 Nissan Skyline international card"),
+    mountain,
+  )
+  assert.equal(initial.decision, "needs_review")
+  assert.deepEqual(initial.reasonCodes, ["PACKAGE_SUBVARIANT_REVIEW"])
+
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ mpn: "HCJ81" }),
+    mountain,
+  )
+  assert.equal(refined.decision, "needs_review")
+  assert.deepEqual(refined.reasonCodes, ["PACKAGE_SUBVARIANT_REVIEW"])
+})
+
 ok("item details sibling identifier rejects a review-only listing", () => {
   const initial = classifyHotWheelsEbayListing(
     listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline"),
