@@ -7,7 +7,108 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS DEFINITIVE CATALOG MODEL CHECKPOINT
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS EBAY ASK AUDIT-READY CHECKPOINT
+
+**This checkpoint supersedes older Hot Wheels continuation instructions while preserving every frozen Mini 4WD market rule below.**
+
+### Runtime / branch state before merge
+
+- GitHub `main`: **`7622532749372909c6589b50be447114d9260db5`**
+- Vercel Production: **`dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`**, READY
+- `/api/version`: **`7622532749372909c6589b50be447114d9260db5`**
+- Hot Wheels branch: **`feat/hotwheels-pilot-shell`**
+- PR: **#212**, open / mergeable at checkpoint creation
+- Hot Wheels public Production gate: **closed**
+- automatic Hot Wheels Preview deploys: **disabled**
+
+### Hot Wheels catalog state retained
+
+Permanent pilot hierarchy remains:
+
+**Product = Casting → ProductRelease = meaningful commercial Release → Subvariant = minor physical/package difference**
+
+Live catalog:
+
+- Mini 4WD Products: **55**, unchanged
+- Hot Wheels Products/Castings: **5**
+- Hot Wheels Releases currently in audit population: **13**
+- LB-ER34 family: **9 Releases**
+- all Hot Wheels UI work remains IT/EN
+
+### Hot Wheels eBay ASK matcher — audit-ready
+
+Dedicated matcher:
+
+`lib/market/automation/hotwheels-ebay-matcher.ts`
+
+Read-only audit:
+
+`lib/market/automation/hotwheels-ebay-audit.ts`
+
+Protected Admin UI:
+
+- `lib/actions/hotwheels-admin.ts`
+- `components/admin/hotwheels-market-audit.tsx`
+
+Existing Mini 4WD eBay classifier/worker behavior remains unchanged.
+
+Canonical Hot Wheels market condition for this pilot:
+
+**NEW + unopened + original commercial packaging/card**
+
+Loose, opened, damaged-package, custom/accessory-only and ordinary lot evidence is excluded from automatic canonical ASK matching.
+
+Regional/Factory Set/short-card/long-card packaging remains review-only as a potential Subvariant.
+
+### Two-stage exact identity strategy
+
+1. Browse search + title classification.
+2. Only a review caused by missing identifier may receive a bounded eBay `getItem` lookup.
+3. MPN / GTIN / localized aspects can confirm the exact Mattel code.
+4. Longer structured identifiers such as `JBC35-N521` can confirm `JBC35`.
+5. sibling code → reject.
+6. package/subvariant or other independent review reason cannot be overridden by structured identifier data.
+
+This preserves high precision without discarding valid listings whose seller omitted the Mattel code from the title.
+
+### Validation
+
+Latest matcher/audit reconciliation:
+
+- `typecheck`: **SUCCESS**
+- `verify`: **SUCCESS**
+- PR #212: mergeable
+- Hot Wheels market candidates: **0**
+- Hot Wheels market offer states: **0**
+- Hot Wheels market signals: **0**
+
+No Hot Wheels ASK has yet been persisted into the shared Price Engine.
+
+### Environment decision
+
+A temporary Preview audit proved that Preview does not contain Production eBay credentials:
+
+`EBAY_BROWSE_CREDENTIALS_NOT_CONFIGURED`
+
+Do not duplicate Production eBay secrets into Preview solely for this pilot.
+
+The first real API audit will run through the existing protected Production Admin + MFA path after this macro-checkpoint is merged.
+
+### Exact next action
+
+1. merge PR #212;
+2. verify GitHub `main` = Vercel Production = `/api/version`;
+3. verify Mini 4WD Production remains unchanged;
+4. keep Hot Wheels public gate closed;
+5. run **HCJ81** first in Admin → Hot Wheels eBay ASK audit, exact-code query only;
+6. inspect accepted/review/rejected results before enabling context-query recall;
+7. continue across the remaining pilot Releases only after HCJ81 precision is satisfactory;
+8. keep Hot Wheels market writes disabled until matching quality is explicitly accepted;
+9. validate SOLD source/licensing separately later.
+
+---
+
+## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS DEFINITIVE CATALOG MODEL
 
 **This checkpoint supersedes older Hot Wheels branch/catalog wording below while preserving all frozen Mini 4WD market semantics.**
 
