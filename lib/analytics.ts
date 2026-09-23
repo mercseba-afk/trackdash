@@ -9,6 +9,7 @@ import type {
   ReleaseMarketSignalMap,
   ReleaseMarketSignalView,
 } from "@/lib/market/view-types"
+import { collectorMarketTrend, observedMarketPrice } from "@/lib/market/presentation"
 import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
@@ -69,7 +70,7 @@ export function enrichCollection(
         : null
       const marketReferenceValue = marketValue ?? observedPrice
       const marketReferenceKind = marketValue != null ? "estimated" : observedPrice != null ? "observed" : null
-      const marketTrend = comparableCondition ? marketSignal?.trendPercent ?? marketSignal?.askTrendPercent ?? null : null
+      const marketTrend = comparableCondition ? collectorMarketTrend(marketSignal) : null
       const acquisitionBasisEUR = item.acquisitionPriceEUR ?? null
       const canCalculatePersonalPerformance =
         marketValue != null &&
@@ -234,14 +235,6 @@ export interface EnrichedWishlistItem {
   currentPrice: number | null
   label?: string
   belowTarget: boolean
-}
-
-function observedMarketPrice(signal: ReleaseMarketSignalView | null | undefined): number | null {
-  return signal?.startingEffectiveCostEUR
-    ?? signal?.startingItemPriceEUR
-    ?? signal?.retailAnchorEUR
-    ?? signal?.activeAnchorEUR
-    ?? null
 }
 
 function lowestObservedPrice(product: Product, marketSignals: ReleaseMarketSignalMap): number | null {
