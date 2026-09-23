@@ -2,14 +2,6 @@ import type { EbayBrowseItemDetails, EbayBrowseListing, EbayListingDecision } fr
 
 export type HotWheelsCommercialForm = "single" | "team_transport" | "two_pack" | "club_exclusive"
 
-export interface HotWheelsEbayListingEvidence {
-  title: string
-  condition: string | null
-  conditionId: string | null
-  itemEndDate: string | null
-  structuredIdentifiers?: string[]
-}
-
 export interface HotWheelsEbayReleaseProfile {
   releaseId: string
   castingName: string
@@ -118,14 +110,6 @@ function hasExactIdentifier(value: string, identifier: string): boolean {
   return normalizeCompact(value).includes(normalizeCompact(identifier))
 }
 
-function listingHasIdentifier(
-  listing: Pick<HotWheelsEbayListingEvidence, "title" | "structuredIdentifiers">,
-  identifier: string,
-): boolean {
-  if (hasExactIdentifier(listing.title, identifier)) return true
-  return (listing.structuredIdentifiers ?? []).some((value) => hasExactIdentifier(value, identifier))
-}
-
 function hasAnyTerm(normalizedTitle: string, terms: string[]): boolean {
   return terms.some((term) => {
     const normalizedTerm = normalizeText(term)
@@ -196,7 +180,7 @@ export function buildHotWheelsEbayQueries(profile: HotWheelsEbayReleaseProfile):
 }
 
 export function classifyHotWheelsEbayListing(
-  listing: HotWheelsEbayListingEvidence,
+  listing: Pick<EbayBrowseListing, "title" | "condition" | "conditionId" | "itemEndDate">,
   profile: HotWheelsEbayReleaseProfile,
   now = new Date(),
 ): EbayListingDecision {
@@ -226,7 +210,7 @@ export function classifyHotWheelsEbayListing(
   }
 
   for (const siblingIdentifier of profile.siblingIdentifiers ?? []) {
-    if (siblingIdentifier !== profile.primaryIdentifier && listingHasIdentifier(listing, siblingIdentifier)) {
+    if (siblingIdentifier !== profile.primaryIdentifier && hasExactIdentifier(listing.title, siblingIdentifier)) {
       return { decision: "rejected", reasonCodes: ["SIBLING_RELEASE_IDENTIFIER"] }
     }
   }
@@ -235,7 +219,7 @@ export function classifyHotWheelsEbayListing(
     return { decision: "rejected", reasonCodes: ["CASTING_NOT_CONFIRMED"] }
   }
 
-  const exactIdentifier = listingHasIdentifier(listing, profile.primaryIdentifier)
+  const exactIdentifier = hasExactIdentifier(listing.title, profile.primaryIdentifier)
   const titleHasChaseMarker = hasChaseMarker(normalized)
   const targetIsChase = isChaseRelease(profile)
 
@@ -294,6 +278,12 @@ export function refineHotWheelsEbayListingWithItemDetails(
   profile: HotWheelsEbayReleaseProfile,
 ): EbayListingDecision {
   if (initial.decision === "rejected" || initial.decision === "accepted") return initial
+
+  // Structured eBay details may only resolve identity uncertainty. They must
+  // never override an independent review reason such as regional packaging or
+  // a missing release-specific discriminator.
+  const canRefineIdentity = initial.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE")
+  if (!canRefineIdentity) return initial
 
   const values = itemIdentityValues(details)
 
