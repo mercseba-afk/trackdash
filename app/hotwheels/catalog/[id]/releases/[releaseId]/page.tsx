@@ -3,14 +3,14 @@ import { notFound } from "next/navigation"
 import { HotWheelsPilotShell } from "@/components/hotwheels/hotwheels-pilot-shell"
 import { HotWheelsReleaseDetailScreen } from "@/components/hotwheels/hotwheels-release-detail-screen"
 import { fetchHotWheelsPilotRelease } from "@/lib/actions/hotwheels"
-import { isVerticalRouteEnabled } from "@/lib/server/vertical-gates"
+import { canAccessVerticalRoute } from "@/lib/server/vertical-gates"
 
-export const revalidate = 45
+export const dynamic = "force-dynamic"
 
 type PageParams = Promise<{ id: string; releaseId: string }>
 
 export async function generateMetadata({ params }: { params: PageParams }): Promise<Metadata> {
-  if (!isVerticalRouteEnabled("hotwheels")) {
+  if (!(await canAccessVerticalRoute("hotwheels"))) {
     return { title: "Not found | TrackDash", robots: { index: false, follow: false } }
   }
 
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
 }
 
 export default async function HotWheelsReleasePage({ params }: { params: PageParams }) {
-  if (!isVerticalRouteEnabled("hotwheels")) notFound()
+  if (!(await canAccessVerticalRoute("hotwheels"))) notFound()
 
   const { id, releaseId } = await params
   const entry = await fetchHotWheelsPilotRelease(releaseId)
