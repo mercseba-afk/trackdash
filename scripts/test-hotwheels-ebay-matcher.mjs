@@ -150,6 +150,30 @@ ok("opened or damaged packaging is rejected from the canonical new-carded market
   }
 })
 
+ok("known packaging subvariants remain review-only even with the exact Mattel code", () => {
+  for (const title of [
+    "Hot Wheels JBC35 87 Audi quattro Super Treasure Hunt factory sealed set",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline international card",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline short card",
+  ]) {
+    const profile = title.includes("JBC35")
+      ? {
+          releaseId: "audi-sth",
+          castingName: "87 Audi quattro",
+          releaseYear: 2025,
+          primaryIdentifier: "JBC35",
+          lineName: "Mainline",
+          subseries: "Factory Fresh",
+          chaseType: "Super Treasure Hunt",
+          commercialForm: "single",
+        }
+      : mountain
+    const result = classifyHotWheelsEbayListing(listing(title), profile)
+    assert.equal(result.decision, "needs_review")
+    assert.equal(result.reasonCodes.includes("PACKAGE_SUBVARIANT_REVIEW"), true)
+  }
+})
+
 ok("ordinary multi-item lot is rejected", () => {
   const result = classifyHotWheelsEbayListing(
     listing("Hot Wheels HCJ81 LB-ER34 Nissan Skyline lot bundle"),
