@@ -221,7 +221,10 @@ export async function runHotWheelsEbayAskAuditForRelease(
     let classification = initial
     let detailLookup: HotWheelsAskAuditListing["detailLookup"] = "not_needed"
 
-    if (initial.decision === "needs_review") {
+    const canEnrichIdentity = initial.decision === "needs_review" &&
+      initial.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE")
+
+    if (canEnrichIdentity) {
       if (detailLookups >= maxDetailLookups) {
         detailLookup = "limit_reached"
       } else {
