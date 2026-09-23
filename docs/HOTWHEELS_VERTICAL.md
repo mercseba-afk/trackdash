@@ -949,6 +949,7 @@ Pilot matching policy:
 7. loose/custom/wheel-swap/card-only/accessory listings → **rejected**;
 8. ordinary lots/bundles → **rejected**;
 9. legitimate Team Transport / 2-Pack package wording is allowed.
+10. regional / Factory Set / short-card packaging wording stays **needs_review** even with an exact code, because it may represent a meaningful Subvariant rather than the baseline package.
 
 Exact-title acceptance reason:
 
