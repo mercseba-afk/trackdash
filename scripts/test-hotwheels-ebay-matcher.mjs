@@ -231,9 +231,9 @@ const detailFixture = (overrides = {}) => ({
   ...overrides,
 })
 
-ok("item details MPN can promote a review-only listing", () => {
+ok("item details MPN can promote an otherwise ambiguous review-only listing", () => {
   const initial = classifyHotWheelsEbayListing(
-    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Nissan Skyline red 4/5"),
+    listing("Hot Wheels Premium 2022 Mountain Drifters LB-ER34 Nissan Skyline red"),
     mountain,
   )
   assert.equal(initial.decision, "needs_review")
