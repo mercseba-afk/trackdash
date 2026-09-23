@@ -276,7 +276,7 @@ function ScanResult({ product, matchedReleaseId, onScanAgain }: { product: Produ
             <Link href={releaseHref} className="text-xl font-semibold tracking-tight hover:text-brand">{release.editionName}</Link>
             <p className="text-sm text-muted-foreground">{product.name}</p>
             <p className="font-mono text-xs text-muted-foreground">#{release.itemNumber ?? "—"} · {release.releaseYear ?? "—"} · {release.chassis ?? "—"}</p>
-            <div className="flex flex-wrap items-center gap-1.5"><RarityBadge rarity={release.rarity ?? product.rarity} /><Badge variant="outline">{product.series}</Badge></div>
+            <div className="flex flex-wrap items-center gap-1.5">{(release.rarity ?? product.rarity) ? <RarityBadge rarity={(release.rarity ?? product.rarity)!} /> : null}<Badge variant="outline">{product.series}</Badge></div>
             <div className="mt-1"><MarketSignalInline signal={marketSignal} showStartingPrice /></div>
           </div>
         </div>
