@@ -61,7 +61,7 @@ Vale anche il principio opposto:
 **DATO REALE DISPONIBILE > “DATI DI MERCATO IN ARRIVO” CAUSATO DA REGOLE TROPPO RIGIDE**
 Non aspettare arbitrariamente 5 o 10 SOLD prima di mostrare un'informazione utile.
 Quando esiste mercato reale ma non ancora abbastanza robusto per un Market Value, utilizzare:
-**Prezzo osservato \~€XX**
+**Prezzo minimo richiesto \~€XX**
 
 ---
 
@@ -533,7 +533,7 @@ Il recompute deve calcolare:
 
 Se esiste mercato reale ma non abbastanza robusto per Market Value:
 mostrare:
-**Prezzo osservato \~€XX**
+**Prezzo minimo richiesto \~€XX**
 Non mostrare:
 “Dati di mercato in arrivo”
 se i dati esistono già.
