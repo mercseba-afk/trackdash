@@ -19,7 +19,28 @@ export type HotWheelsPilotDetails = {
   seriesPosition?: string
   chaseType?: string
   packagingVariant?: string
+  variationCode?: string
+  countryOfManufacture?: string
+  wheelType?: string
+  exclusivity?: string
+  masterSeries?: string
+  theme?: string
   metadata: Record<string, unknown>
+}
+
+export type HotWheelsPilotSubvariant = {
+  id: string
+  code?: string
+  name: string
+  countryOfManufacture?: string
+  wheelType?: string
+  packagingVariant?: string
+  baseVariant?: string
+  interiorVariant?: string
+  windowVariant?: string
+  decoVariant?: string
+  marketDistinct: boolean
+  verificationStatus: string
 }
 
 export type HotWheelsPilotEntry = {
@@ -28,6 +49,7 @@ export type HotWheelsPilotEntry = {
   primaryIdentifier?: HotWheelsPilotIdentifier
   identifiers: HotWheelsPilotIdentifier[]
   details: HotWheelsPilotDetails
+  subvariants: HotWheelsPilotSubvariant[]
   sources: ReleaseSource[]
 }
 
@@ -64,8 +86,28 @@ export async function fetchHotWheelsPilotCatalog(): Promise<HotWheelsPilotEntry[
           seriesPosition: details.seriesPosition ?? undefined,
           chaseType: details.chaseType ?? undefined,
           packagingVariant: details.packagingVariant ?? undefined,
+          variationCode: details.variationCode ?? undefined,
+          countryOfManufacture: details.countryOfManufacture ?? undefined,
+          wheelType: details.wheelType ?? undefined,
+          exclusivity: details.exclusivity ?? undefined,
+          masterSeries: details.masterSeries ?? undefined,
+          theme: details.theme ?? undefined,
           metadata: (details.metadata ?? {}) as Record<string, unknown>,
         },
+        subvariants: releaseRow.hotwheelsSubvariants.map((subvariant) => ({
+          id: subvariant.id,
+          code: subvariant.code ?? undefined,
+          name: subvariant.name,
+          countryOfManufacture: subvariant.countryOfManufacture ?? undefined,
+          wheelType: subvariant.wheelType ?? undefined,
+          packagingVariant: subvariant.packagingVariant ?? undefined,
+          baseVariant: subvariant.baseVariant ?? undefined,
+          interiorVariant: subvariant.interiorVariant ?? undefined,
+          windowVariant: subvariant.windowVariant ?? undefined,
+          decoVariant: subvariant.decoVariant ?? undefined,
+          marketDistinct: subvariant.marketDistinct,
+          verificationStatus: subvariant.verificationStatus,
+        })),
         sources: release.sources,
       }]
     })
