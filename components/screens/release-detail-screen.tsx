@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, BarChart3, Check, Heart, Info, LockKeyhole, Plus, ShoppingBag, Tag } from "lucide-react"
+import { ArrowLeft, Check, Heart, LockKeyhole, Plus, Tag } from "lucide-react"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { ProductImage } from "@/components/catalog/product-image"
-import { TrendIndicator } from "@/components/market-bits"
 import { ReleaseCollectorOffers } from "@/components/release-collector-offers"
+import { ReleaseMarketOverview } from "@/components/release-market-overview"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
@@ -48,7 +48,6 @@ export function ReleaseDetailScreen({
     : localizedDescription?.en ?? product.description
   const releasePath = `/catalog/${product.id}/releases/${release.id}`
   const loginHref = `/login?next=${encodeURIComponent(releasePath)}`
-  const showAdvancedMarketEvidence = Boolean(user)
 
   return (
     <div className="flex flex-col gap-7 pb-8">
@@ -98,7 +97,7 @@ export function ReleaseDetailScreen({
             ) : null}
           </div>
 
-          <MarketValuePanel signal={marketSignal} it={it} />
+          <ReleaseMarketOverview signal={marketSignal} />
 
           <div className="flex flex-wrap gap-2">
             {user ? (
@@ -128,16 +127,6 @@ export function ReleaseDetailScreen({
 
       <ReleaseCollectorOffers offers={collectorOffers} />
 
-      <section className="grid gap-5 lg:grid-cols-2">
-        <ExternalAvailabilityCard signal={marketSignal} it={it} />
-        <PriceIntelligenceCard
-          signal={marketSignal}
-          it={it}
-          authenticated={showAdvancedMarketEvidence}
-          loginHref={loginHref}
-        />
-      </section>
-
       <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
         <div className="flex items-center gap-2">
           <Tag className="size-4 text-[#0f4bb4]" />
@@ -156,260 +145,6 @@ export function ReleaseDetailScreen({
           <Spec label={it ? "Rarità" : "Rarity"} value={release.rarity ?? "—"} />
         </div>
       </section>
-    </div>
-  )
-}
-
-function MarketValuePanel({
-  signal,
-  it,
-}: {
-  signal?: ReleaseMarketSignalView | null
-  it: boolean
-}) {
-  const observedPrice =
-    signal?.startingEffectiveCostEUR ??
-    signal?.startingItemPriceEUR ??
-    signal?.retailAnchorEUR ??
-    signal?.activeAnchorEUR ??
-    null
-
-  if (!signal || signal.valueEUR == null) {
-    if (observedPrice != null && observedPrice > 0) {
-      const observedRange =
-        signal?.activeLowEUR != null &&
-        signal?.activeHighEUR != null &&
-        Math.abs(signal.activeHighEUR - signal.activeLowEUR) >= 0.01
-          ? `${formatMoney(signal.activeLowEUR)} – ${formatMoney(signal.activeHighEUR)}`
-          : null
-
-      return (
-        <div className="rounded-2xl border border-[#bfd2ee] bg-[linear-gradient(135deg,#f7fbff_0%,#eef5ff_100%)] p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">
-            {it ? "Prezzo osservato" : "Observed price"}
-          </p>
-          <p className="mt-2 text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">
-            ≈ {formatMoney(observedPrice)}
-          </p>
-          {observedRange ? (
-            <p className="mt-1 text-sm text-[#607089]">{it ? "Fascia recente" : "Recent range"} · {observedRange}</p>
-          ) : null}
-          <p className="mt-2 text-sm leading-6 text-[#718198]">
-            {it
-              ? "È il riferimento del mercato recente osservabile, con priorità al costo effettivo per un acquirente europeo. Non è ancora un Valore stimato consolidato."
-              : "This is the recent observable market reference, prioritising the effective cost for a European buyer. It is not yet a consolidated Estimated value."}
-          </p>
-        </div>
-      )
-    }
-
-    const hasHistoricalContext = (signal?.marketContextEvidenceCount ?? 0) > 0
-
-    return (
-      <div className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f4bb4]">
-          {it ? "Mercato" : "Market"}
-        </p>
-        <p className="mt-2 text-2xl font-semibold text-[#081a3a]">
-          {hasHistoricalContext
-            ? (it ? "Mercato osservato" : "Market observed")
-            : (it ? "Dati di mercato in verifica" : "Market data under review")}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-[#718198]">
-          {hasHistoricalContext
-            ? (it
-                ? "Esistono riferimenti reali attribuiti a questa Release, ma al momento non abbiamo un prezzo corrente o un Valore stimato abbastanza robusto da pubblicare."
-                : "Real market references are attributed to this Release, but there is currently no sufficiently robust current price or Estimated value to publish.")
-            : (it
-                ? "Stiamo verificando i dati di mercato per questa Release."
-                : "We are reviewing the market data for this Release.")}
-        </p>
-      </div>
-    )
-  }
-
-  const hasRange =
-    signal.lowEUR != null &&
-    signal.highEUR != null &&
-    Math.abs(signal.highEUR - signal.lowEUR) >= 0.01
-  const range = hasRange ? `${formatMoney(signal.lowEUR!)} – ${formatMoney(signal.highEUR!)}` : null
-
-  return (
-    <div className="rounded-2xl border border-[#bfd2ee] bg-[linear-gradient(135deg,#f7fbff_0%,#eef5ff_100%)] p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4bb4]">
-        {it ? "Valore stimato" : "Estimated value"}
-      </p>
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <p className="text-4xl font-semibold tracking-[-0.04em] tabular-nums text-[#081a3a]">
-          ≈ {formatMoney(signal.valueEUR)}
-        </p>
-        {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} className="text-base" /> : null}
-      </div>
-      {range ? <p className="mt-1 text-sm text-[#607089]">{it ? "Fascia stimata" : "Estimated range"} · {range}</p> : null}
-      <p className="mt-2 text-sm leading-6 text-[#718198]">
-        {it
-          ? "Stima TrackDash costruita incrociando le evidenze recenti disponibili, con priorità al mercato europeo e al costo effettivo di acquisto."
-          : "TrackDash estimate built from the available recent evidence, prioritising the European market and effective acquisition cost."}
-      </p>
-      <p className="mt-4 flex gap-2 text-xs leading-5 text-[#667991]">
-        <Info className="mt-0.5 size-3.5 shrink-0" />
-        {it
-          ? "È una stima di mercato, non un prezzo garantito di vendita o acquisto."
-          : "This is a market estimate, not a guaranteed sale or purchase price."}
-      </p>
-    </div>
-  )
-}
-
-function ExternalAvailabilityCard({
-  signal,
-  it,
-}: {
-  signal?: ReleaseMarketSignalView | null
-  it: boolean
-}) {
-  const current = signal?.currentOfferCount ?? 0
-  const observedPrice =
-    signal?.startingEffectiveCostEUR ??
-    signal?.startingItemPriceEUR ??
-    signal?.retailAnchorEUR ??
-    signal?.activeAnchorEUR ??
-    null
-  const low = signal?.activeLowEUR ?? null
-  const high = signal?.activeHighEUR ?? null
-  const direction =
-    signal?.askTrendPercent != null && signal.askTrendPercent >= 5
-      ? (it ? "Prezzo osservato in salita" : "Observed price rising")
-      : signal?.askTrendPercent != null && signal.askTrendPercent <= -5
-        ? (it ? "Prezzo osservato in calo" : "Observed price falling")
-        : null
-
-  return (
-    <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
-      <div className="flex items-center gap-2">
-        <ShoppingBag className="size-4 text-[#0f4bb4]" />
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">{it ? "Mercato osservato" : "Observed market"}</p>
-      </div>
-      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Prezzo corrente" : "Current price"}</h2>
-
-      {current > 0 && observedPrice != null ? (
-        <div className="mt-5 rounded-xl border border-[#dce5ef] bg-[#f8fafc] p-4">
-          <p className="text-sm text-[#607089]">{it ? "Prezzo osservato" : "Observed price"}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[#081a3a]">≈ {formatMoney(observedPrice)}</p>
-          {low != null && high != null && Math.abs(high - low) >= 0.01 ? (
-            <p className="mt-1 text-xs text-[#718198]">
-              {it ? "Fascia recente" : "Recent range"} · {formatMoney(low)} – {formatMoney(high)}
-            </p>
-          ) : null}
-          {direction ? <p className="mt-2 text-xs font-medium text-[#0f4bb4]">{direction}</p> : null}
-        </div>
-      ) : (
-        <div className="mt-5 rounded-xl border border-dashed border-[#cbd8e7] bg-[#f8fafc] p-4 text-sm leading-6 text-[#607089]">
-          {(signal?.marketContextEvidenceCount ?? 0) > 0
-            ? (it
-                ? "Nessun prezzo corrente sufficientemente chiaro è osservabile in questo momento. TrackDash ha però riferimenti di mercato storici o non idonei al prezzo corrente per questa Release."
-                : "No sufficiently clear current price is observable right now. TrackDash does have historical or non-current market references for this Release.")
-            : (it
-                ? "Nessun prezzo corrente sufficientemente chiaro è osservabile in questo momento."
-                : "No sufficiently clear current price is observable right now.")}
-        </div>
-      )}
-
-      <p className="mt-4 text-xs leading-5 text-[#7a8aa0]">
-        {it
-          ? "TrackDash privilegia il mercato europeo e, quando disponibile, confronta il costo dell'articolo insieme alla spedizione. Le offerte estere con costo di consegna sconosciuto pesano meno."
-          : "TrackDash prioritises the European market and, when available, compares item price together with shipping. Foreign offers with unknown delivery cost receive less weight."}
-      </p>
-    </section>
-  )
-}
-
-function PriceIntelligenceCard({
-  signal,
-  it,
-  authenticated,
-  loginHref,
-}: {
-  signal?: ReleaseMarketSignalView | null
-  it: boolean
-  authenticated: boolean
-  loginHref: string
-}) {
-  const observedPrice =
-    signal?.startingEffectiveCostEUR ??
-    signal?.startingItemPriceEUR ??
-    signal?.retailAnchorEUR ??
-    signal?.activeAnchorEUR ??
-    null
-
-  return (
-    <section className="rounded-2xl border border-[#d8e3f0] bg-white p-5 shadow-sm md:p-6">
-      <div className="flex items-center gap-2">
-        <BarChart3 className="size-4 text-[#0f4bb4]" />
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0f4bb4]">Price Intelligence</p>
-      </div>
-      <h2 className="mt-2 text-xl font-semibold text-[#081a3a]">{it ? "Lettura del mercato" : "Market view"}</h2>
-
-      {signal ? (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <Metric
-            label={
-              signal.valueEUR != null
-                ? (it ? "Valore stimato" : "Estimated value")
-                : observedPrice != null
-                  ? (it ? "Prezzo osservato" : "Observed price")
-                  : (it ? "Stato mercato" : "Market status")
-            }
-            value={
-              signal.valueEUR != null
-                ? formatMoney(signal.valueEUR)
-                : observedPrice != null
-                  ? `≈ ${formatMoney(observedPrice)}`
-                  : signal.marketContextEvidenceCount > 0
-                    ? (it ? "Riferimenti disponibili" : "References available")
-                    : "—"
-            }
-          />
-          <Metric label={it ? "Aggiornato" : "Updated"} value={formatDate(signal.computedAt)} />
-        </div>
-      ) : (
-        <p className="mt-5 text-sm leading-6 text-[#607089]">{it ? "Dati di mercato in verifica in questo momento." : "Market evidence is thin right now."}</p>
-      )}
-
-      <p className="mt-4 text-xs leading-5 text-[#718198]">
-        {it
-          ? "TrackDash combina le evidenze recenti disponibili senza trattare l'assenza di vendite visibili come assenza di mercato. Il riferimento pubblico privilegia il mercato europeo e il costo effettivo di acquisto."
-          : "TrackDash combines the recent evidence available without treating unobserved sales as an absence of market. The public reference prioritises Europe and effective acquisition cost."}
-      </p>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {!authenticated ? (
-          <Button size="sm" render={<Link href={loginHref} />}>
-            <LockKeyhole className="size-4" /> {it ? "Accedi a TrackDash" : "Sign in to TrackDash"}
-          </Button>
-        ) : null}
-        <Button variant="outline" size="sm" render={<Link href="/market" />}>
-          {it ? "Come funziona Price Intelligence" : "How Price Intelligence works"}
-        </Button>
-      </div>
-    </section>
-  )
-}
-
-function ConfidenceBadge({ value, it }: { value: ReleaseMarketSignalView["confidenceLabel"]; it: boolean }) {
-  const label = value === "high"
-    ? (it ? "Copertura dati alta" : "High data coverage")
-    : value === "medium"
-      ? (it ? "Copertura dati media" : "Medium data coverage")
-      : (it ? "Copertura dati limitata" : "Limited data coverage")
-  return <Badge variant="outline" className="border-[#aac4e9] bg-white/70 text-[#0f4bb4]">{label}</Badge>
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-white/80 bg-white/70 p-3">
-      <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#7a8aa0]">{label}</p>
-      <p className="mt-1 text-sm font-semibold tabular-nums text-[#081a3a]">{value}</p>
     </div>
   )
 }
