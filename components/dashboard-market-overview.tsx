@@ -9,6 +9,7 @@ import { getMarketLiquidity, marketLiquidityLabel } from "@/lib/market/liquidity
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
+import { collectorMarketTrend } from "@/lib/market/presentation"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +23,7 @@ interface MarketRow {
 }
 
 function hasMeaningfulActivity(signal: ReleaseMarketSignalView): boolean {
-  if (signal.trendPercent != null) return true
+  if (collectorMarketTrend(signal) != null) return true
   return signal.recentSoldUnits3m != null && signal.recentSoldUnits3m >= 2
 }
 
@@ -89,7 +90,7 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
     .sort((a, b) => {
       const recentDelta = (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0)
       if (recentDelta !== 0) return recentDelta
-      const trendDelta = Math.abs(b.signal.trendPercent ?? 0) - Math.abs(a.signal.trendPercent ?? 0)
+      const trendDelta = Math.abs(collectorMarketTrend(b.signal) ?? 0) - Math.abs(collectorMarketTrend(a.signal) ?? 0)
       if (trendDelta !== 0) return trendDelta
       return (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)
     }), 4), [active])
@@ -99,8 +100,8 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
     .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)), 4), [active])
 
   const movers = React.useMemo(() => takeDistinctProducts(rows
-    .filter((row) => row.signal.trendPercent != null)
-    .sort((a, b) => Math.abs(b.signal.trendPercent ?? 0) - Math.abs(a.signal.trendPercent ?? 0)), 4), [rows])
+    .filter((row) => collectorMarketTrend(row.signal) != null)
+    .sort((a, b) => Math.abs(collectorMarketTrend(b.signal) ?? 0) - Math.abs(collectorMarketTrend(a.signal) ?? 0)), 4), [rows])
 
   const mostTraded = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
@@ -229,10 +230,14 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
         ) : (
           <Badge variant="secondary">{it ? "In definizione" : "Forming"}</Badge>
         )}
-        {row.signal.trendPercent != null ? (
+        {collectorMarketTrend(row.signal) != null ? (
           <div className="mt-0.5 flex flex-col items-end">
-            <TrendIndicator value={row.signal.trendPercent} className="text-xs" />
-            {row.signal.trendWindowMonths != null ? <span className="text-[10px] text-muted-foreground">{it ? `trend ${row.signal.trendWindowMonths}m` : `${row.signal.trendWindowMonths}m trend`}</span> : null}
+            <TrendIndicator value={collectorMarketTrend(row.signal)!} className="text-xs" />
+            {row.signal.trendPercent != null && row.signal.trendWindowMonths != null
+              ? <span className="text-[10px] text-muted-foreground">{it ? `trend ${row.signal.trendWindowMonths}m` : `${row.signal.trendWindowMonths}m trend`}</span>
+              : row.signal.askTrendWindowDays != null
+                ? <span className="text-[10px] text-muted-foreground">{it ? `trend ${row.signal.askTrendWindowDays}g` : `${row.signal.askTrendWindowDays}d trend`}</span>
+                : null}
           </div>
         ) : null}
       </div>
