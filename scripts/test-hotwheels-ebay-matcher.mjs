@@ -262,6 +262,53 @@ ok("item details can match identifier embedded in a longer aspect value", () => 
   assert.equal(refined.decision, "accepted")
 })
 
+ok("series position plus subseries can identify a non-chase Release without Mattel code", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("1/64 Hot Wheels Premium Mountain Drifters LB-ER34 Super Nissan Skyline 4/5 Rosso"),
+    mountain,
+  )
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
+})
+
+ok("broad year/color context without exact series position remains review-only", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels 2022 Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline Red"),
+    mountain,
+  )
+  assert.equal(result.decision, "needs_review")
+  assert.equal(result.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE"), true)
+})
+
+ok("chase context needs both strong release discriminators and a chase marker", () => {
+  const chase = {
+    releaseId: "mountain-chase",
+    castingName: "LB-ER34 Super Silhouette Nissan Skyline",
+    releaseYear: 2022,
+    primaryIdentifier: "HCK01",
+    lineName: "Car Culture",
+    subseries: "Mountain Drifters",
+    seriesPosition: "0/5",
+    chaseType: "Chase",
+    commercialForm: "single",
+    siblingIdentifiers: ["HCJ81"],
+  }
+
+  const accepted = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline Chase 0/5 Black"),
+    chase,
+  )
+  assert.equal(accepted.decision, "accepted")
+  assert.deepEqual(accepted.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
+
+  const review = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline 0/5 Black"),
+    chase,
+  )
+  assert.equal(review.decision, "needs_review")
+  assert.equal(review.reasonCodes.includes("CHASE_NOT_CONFIRMED"), true)
+})
+
 ok("item details MPN can match the Mattel code inside a longer value", () => {
   const audi = {
     releaseId: "audi-sth",
