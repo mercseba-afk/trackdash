@@ -110,6 +110,28 @@ The log contains only public listing diagnostics and aggregate matching outcomes
 
 Mini 4WD code/data behavior remains unchanged.
 
+### HCJ81 FIRST REAL ASK AUDIT — 2026-09-23
+
+Production read-only audit result for HCJ81:
+
+- 27 raw results;
+- 19 unique listings;
+- 2 accepted;
+- 11 review;
+- 6 rejected;
+- 1 valid listing recovered via structured eBay item details;
+- previous 5-item detail cap left 7 review items uninspected.
+
+No Hot Wheels market candidate, offer or signal was persisted.
+
+Decision:
+
+- keep context query OFF;
+- raise only the diagnostic `getItem` depth from 5 to 15;
+- re-run HCJ81 exact-query before expanding recall.
+
+Mini 4WD behavior remains unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;
