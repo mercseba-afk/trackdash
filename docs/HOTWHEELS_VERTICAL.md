@@ -423,3 +423,61 @@ Current behavior while the gate is false:
 The Hot Wheels catalog shell already uses `fetchCatalogProductsForVertical("hotwheels")` when enabled, so it is structurally isolated from the Mini 4WD catalog.
 
 Next action remains the first five real pilot Releases; the public gate stays false until those are validated end-to-end.
+
+
+### 2026-09-23 — Step 6: first five pilot Releases seeded
+
+Status: **applied to live Supabase; still hidden behind the Hot Wheels public gate**.
+
+Pilot set:
+
+1. **RLC '71 Lamborghini Miura P400 SV — HWF11**
+   - year: 2025
+   - line: Red Line Club
+   - official Mattel source
+2. **Elite 64 Aston Martin Valkyrie — HWR91**
+   - year: 2025
+   - line: Elite 64
+   - official Mattel source
+3. **2025 Super Treasure Hunt '87 Audi quattro — JBC35**
+   - year: 2025
+   - line: Mainline / Factory Fresh 2/5
+   - Mix A
+   - 016/250
+   - two independent trusted collector references
+4. **Boulevard Alfa Romeo GTV6 3.0 — JBL16**
+   - year: 2025
+   - line: Boulevard
+   - official Mattel source
+5. **Car Culture Silhouettes LB-ER34 Super Silhouette Nissan Skyline — JBK59**
+   - year: 2025
+   - line: Car Culture / Silhouettes 1/5
+   - official Mattel source + collector corroboration for color/series position
+
+Repository migration:
+
+`supabase/migrations/0148_hotwheels_pilot_five_releases.sql`
+
+Cross-vertical hardening immediately before the seed:
+
+- migration `0147_product_rarity_optional.sql`;
+- Product rarity may now be NULL;
+- existing Mini 4WD rarity values were not changed;
+- Hot Wheels pilot rows intentionally use NULL rarity rather than an invented rarity label.
+
+Live verification after seed:
+
+- Mini 4WD products: **55**
+- Hot Wheels products: **5**
+- Hot Wheels exact Releases: **5**
+- `release_identifiers`: **5 rows**
+- `hotwheels_release_details`: **5 rows**
+- Hot Wheels provenance rows: **7**
+
+Image policy for the pilot:
+
+- no Mattel/retailer image is copied into `product_images` or `release_images`;
+- official pages are stored as provenance/reference URLs only;
+- UI uses TrackDash placeholder art until a publishable/licensed canonical image is available.
+
+No market observations have been seeded. ASK/SOLD/MV remain a separate next step.
