@@ -28,12 +28,12 @@ export function MarketDataEmptyCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        <p className="text-xl font-semibold">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
-        <p className="text-sm text-muted-foreground">{it ? "Non ci sono ancora abbastanza dati per una stima affidabile." : "There is not enough data for a reliable estimate yet."}</p>
+        <p className="text-xl font-semibold">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
+        <p className="text-sm text-muted-foreground">{it ? "Non c'è ancora un riferimento di prezzo abbastanza chiaro da pubblicare." : "There is not yet a sufficiently clear price reference to publish."}</p>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "La scheda si aggiornerà quando saranno disponibili nuovi dati di mercato."
-            : "This page will update as new market data becomes available."}
+            ? "TrackDash continuerà ad aggiornare questa Release quando arriveranno nuovi dati."
+            : "TrackDash will keep updating this Release as new data arrives."}
         </p>
       </CardContent>
     </Card>
