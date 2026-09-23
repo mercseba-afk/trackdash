@@ -207,13 +207,44 @@ Production behavior on `main` is intentionally unchanged. This is a working-bran
 
 ---
 
+### 2026-09-23 — Step 2: dormant canonical catalog identities
+
+Status: **applied to live Supabase and represented on the working branch; no public Hot Wheels catalog yet**.
+
+Canonical reference identities added:
+
+- brand: `Mattel`
+  - id: `6f100164-74bd-56bd-9dd1-221ea269ed8a`
+  - slug: `mattel`
+- category/vertical: `Hot Wheels`
+  - id: `cdaaff01-f4f9-52ff-951a-ddbbba542d5c`
+  - slug: `hotwheels`
+
+Repository representation:
+
+- `supabase/migrations/0145_hotwheels_vertical_foundation.sql`
+- canonical IDs also pinned in `lib/verticals.ts`
+
+Live verification after insertion:
+
+- `mini4wd`: **55 products**
+- `hotwheels`: **0 products**
+
+Therefore this step changes no visible catalog content and cannot mix Hot Wheels into the existing Mini 4WD catalog.
+
+Important deployment state:
+
+- live Supabase now contains the dormant Mattel/Hot Wheels reference rows;
+- application `main` / Production code is still unchanged;
+- PR #211 remains unmerged.
+
+---
+
 ## Exact next action
 
 Before adding any Hot Wheels Release:
 
-1. let GitHub `verify` finish on the current branch and resolve any failure before proceeding;
-2. then add the dormant canonical identities for:
-   - brand: Mattel;
-   - category/vertical: Hot Wheels;
-3. verify that existing Mini 4WD catalog queries and UI remain unchanged;
-4. do **not** expose Hot Wheels publicly yet.
+1. make catalog list queries explicitly vertical-aware while keeping the existing `/catalog` path pinned to `mini4wd`;
+2. verify Mini 4WD still returns the same canonical catalog and Hot Wheels returns an empty catalog;
+3. only then design the dormant Hot Wheels routing shell;
+4. do **not** import the first Hot Wheels Release until vertical isolation is proven.
