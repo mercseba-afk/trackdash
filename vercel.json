@@ -5,5 +5,10 @@
       "path": "/api/cron/market-scan",
       "schedule": "17 3 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "feat/hotwheels-multivertical-foundation": false
+    }
+  }
 }
