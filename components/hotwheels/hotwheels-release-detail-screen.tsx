@@ -21,7 +21,7 @@ function sourceLabel(type: string, it: boolean) {
 export function HotWheelsReleaseDetailScreen({ entry }: { entry: HotWheelsPilotEntry }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const { product, release, details, primaryIdentifier, sources, subvariants } = entry
+  const { product, casting, release, details, primaryIdentifier, sources, subvariants } = entry
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 lg:px-8">
@@ -41,6 +41,37 @@ export function HotWheelsReleaseDetailScreen({ entry }: { entry: HotWheelsPilotE
             </div>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{release.editionName}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{product.name}</p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {it ? "Casting / famiglia" : "Casting / family"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-foreground">{product.name}</p>
+                {casting?.modelReference ? (
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{casting.modelReference}</p>
+                ) : null}
+              </div>
+              <span className="rounded-full border border-border px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+                {it ? `${product.releases.length} Release` : `${product.releases.length} Releases`}
+              </span>
+            </div>
+
+            {casting ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {casting.castingDebutYear ? (
+                  <Fact label={it ? "Debutto casting" : "Casting debut"} value={String(casting.castingDebutYear)} />
+                ) : null}
+                {casting.debutSeries ? (
+                  <Fact label={it ? "Serie di debutto" : "Debut series"} value={casting.debutSeries} />
+                ) : null}
+                {casting.designer ? (
+                  <Fact label="Designer" value={casting.designer} />
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
