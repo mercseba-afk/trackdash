@@ -315,3 +315,77 @@ Before adding any Hot Wheels Release:
 2. verify Vercel Production and `/api/version` align with the merged main;
 3. QA that the existing Mini 4WD catalog/Collection/Scanner public behavior is unchanged;
 4. after Production parity is confirmed, start the next Hot Wheels branch for the dormant UI/routing shell and first 5 pilot Releases.
+
+
+---
+
+## POST-MERGE MACRO CHECKPOINT — 2026-09-23
+
+First multi-vertical foundation checkpoint is now **MERGED + PRODUCTION VERIFIED**.
+
+Merged PR:
+
+**#211 — Add multi-vertical foundation for Hot Wheels**
+
+Merged main SHA:
+
+`7622532749372909c6589b50be447114d9260db5`
+
+Vercel Production:
+
+`dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`
+
+Production state:
+
+**READY**
+
+Verified:
+
+- GitHub `main` = `7622532749372909c6589b50be447114d9260db5`
+- `https://trackdash.it/api/version` = `7622532749372909c6589b50be447114d9260db5`
+- public `/catalog` = HTTP 200
+- public catalog still exposes **55 Mini 4WD products**
+- no Hot Wheels Product/Release is mixed into the legacy catalog
+- Collection and Scanner protected routes still resolve correctly through Auth
+- Vercel runtime errors in the immediate post-deploy window: **none observed**
+
+Live Supabase foundation remains:
+
+- `mini4wd`: 55 products
+- `hotwheels`: 0 products
+- `release_identifiers`: 0 rows
+- `hotwheels_release_details`: 0 rows
+
+This is the point at which Mini 4WD catalog/family work may safely resume in parallel, provided shared infrastructure is not being refactored simultaneously.
+
+### Parallel-work rule
+
+Safe in parallel:
+
+- Mini 4WD family audit/data work;
+- Hot Wheels Release research/import;
+- vertical-specific market/source research.
+
+Coordinate before parallel edits to:
+
+- shared Collection engine;
+- shared Wishlist engine;
+- shared Scanner engine;
+- shared Market Engine/publication policy;
+- common navigation/onboarding;
+- shared DB schema.
+
+Current Hot Wheels continuation branch:
+
+`feat/hotwheels-pilot-shell`
+
+Automatic Vercel Preview deployments are disabled for branches matching:
+
+`feat/hotwheels-*`
+
+### Exact next Hot Wheels action
+
+1. create the dormant Hot Wheels routing/shell behind a non-public gate;
+2. keep existing Mini 4WD routes unchanged;
+3. prepare the first 5 real Hot Wheels pilot Releases;
+4. only after those work end-to-end, expand to the 40-Release pilot.
