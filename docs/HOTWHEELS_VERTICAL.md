@@ -389,3 +389,37 @@ Automatic Vercel Preview deployments are disabled for branches matching:
 2. keep existing Mini 4WD routes unchanged;
 3. prepare the first 5 real Hot Wheels pilot Releases;
 4. only after those work end-to-end, expand to the 40-Release pilot.
+
+
+### 2026-09-23 — Step 5: dormant gated Hot Wheels shell
+
+Status: **implemented on `feat/hotwheels-pilot-shell`, not merged to main**.
+
+Changes:
+
+- `lib/verticals.ts` now carries:
+  - `basePath`
+  - `publicEnabled`
+- Mini 4WD:
+  - `basePath = ""`
+  - `publicEnabled = true`
+- Hot Wheels:
+  - `basePath = "/hotwheels"`
+  - `publicEnabled = false`
+
+Dormant routes added:
+
+- `/hotwheels`
+- `/hotwheels/catalog`
+
+Current behavior while the gate is false:
+
+- both routes fail closed with 404;
+- no navigation entry is added;
+- no onboarding choice is added;
+- no crawler indexing is allowed for the Hot Wheels catalog shell;
+- legacy Mini 4WD routes remain unchanged.
+
+The Hot Wheels catalog shell already uses `fetchCatalogProductsForVertical("hotwheels")` when enabled, so it is structurally isolated from the Mini 4WD catalog.
+
+Next action remains the first five real pilot Releases; the public gate stays false until those are validated end-to-end.
