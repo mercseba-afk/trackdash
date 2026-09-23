@@ -3,7 +3,6 @@
 import * as React from "react"
 import Link from "next/link"
 import { Activity, ArrowRight, Gem, History, TrendingUp } from "lucide-react"
-import { PRODUCTS } from "@/lib/data/corrected-products"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { getMarketLiquidity, marketLiquidityLabel } from "@/lib/market/liquidity"
@@ -68,17 +67,17 @@ function recentSalesLabel(signal: ReleaseMarketSignalView, it: boolean): string 
     : `${signal.soldUnits} observed ${signal.soldUnits === 1 ? "sale" : "sales"}`
 }
 
-export function DashboardMarketOverview() {
+export function DashboardMarketOverview({ products }: { products: Product[] }) {
   const { locale } = useI18n()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
 
-  const rows = React.useMemo<MarketRow[]>(() => PRODUCTS.flatMap((product) =>
+  const rows = React.useMemo<MarketRow[]>(() => products.flatMap((product) =>
     product.releases.flatMap((release) => {
       const signal = marketSignals[release.id]
       return signal ? [{ product, release, signal }] : []
     }),
-  ), [marketSignals])
+  ), [marketSignals, products])
 
   const active = React.useMemo(() => rows.filter((row) => hasMeaningfulActivity(row.signal)), [rows])
 
