@@ -261,11 +261,57 @@ No public routing/UI change has been made in this step.
 
 ---
 
+### 2026-09-23 — Step 4: Hot Wheels identity schema foundation
+
+Status: **implemented on branch and applied to live Supabase; tables intentionally empty**.
+
+New shared table:
+
+- `release_identifiers`
+  - generic per-Release identifier registry;
+  - supports multiple schemes such as Mattel product code, UPC/EAN and future vertical identifiers;
+  - reused identifiers are allowed across different Releases;
+  - lookup index on `scheme + value`;
+  - public read only through RLS/policies;
+  - existing Mini 4WD `item_number` / `barcode_jan` remain untouched and authoritative for the current scanner.
+
+New Hot Wheels-specific extension:
+
+- `hotwheels_release_details`
+  - one row per Hot Wheels Release;
+  - `line_slug`, `line_name`, `subseries`, `mix_code`, `collector_number`, `series_position`, `chase_type`, `packaging_variant`;
+  - JSON metadata only for long-tail attributes that do not yet justify dedicated columns.
+
+Repository migration:
+
+`supabase/migrations/0146_hotwheels_release_identity_foundation.sql`
+
+Live verification after migration:
+
+- `release_identifiers`: **0 rows**
+- `hotwheels_release_details`: **0 rows**
+- Mini 4WD products: **55**
+- Hot Wheels products: **0**
+
+Supabase advisor result:
+
+- no new security finding is attached to either new table;
+- both tables have RLS + explicit public SELECT policy/grant;
+- their new indexes are currently reported as unused only because the tables are empty;
+- existing unrelated project advisor warnings remain separate work and were not changed by this Hot Wheels block.
+
+Mini 4WD preservation:
+
+- no Mini 4WD Release, identifier, Collection row, Wishlist row, scanner index or market observation was migrated or rewritten;
+- no backfill into `release_identifiers` was performed.
+
+---
+
 ## Exact next action
 
 Before adding any Hot Wheels Release:
 
-1. wait for GitHub `typecheck` + `verify` on the vertical-query changes;
-2. if green, create a dormant Hot Wheels routing/catalog shell that explicitly requests `hotwheels`;
-3. keep the shell out of the primary navigation/onboarding until pilot data exists;
-4. do **not** import the first Hot Wheels Release until the empty vertical shell is verified.
+1. merge PR #211 as the first multi-vertical macro-checkpoint only after current branch checks remain green;
+2. verify Vercel Production and `/api/version` align with the merged main;
+3. QA that the existing Mini 4WD catalog/Collection/Scanner public behavior is unchanged;
+4. after Production parity is confirmed, start the next Hot Wheels branch for the dormant UI/routing shell and first 5 pilot Releases.
