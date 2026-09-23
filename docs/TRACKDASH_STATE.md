@@ -155,7 +155,7 @@ Deployment discipline for this work:
 
 - develop multiple small steps on the same Hot Wheels branch;
 - rely on GitHub Actions `typecheck` + `verify` between steps;
-- suppress automatic Vercel Preview builds on the working branch where possible;
+- automatic Vercel Git deployments are disabled for `feat/hotwheels-multivertical-foundation` in `vercel.json`;
 - merge only at meaningful macro-checkpoints;
 - use one Production deploy + QA per macro-checkpoint rather than one deploy per small implementation step.
 
