@@ -1415,3 +1415,76 @@ Decision:
 - keep the matcher thresholds unchanged.
 
 Next audit should re-run HCJ81 exact-query only with the higher detail depth. If review volume materially collapses while accepted precision remains clean, then context-query recall can be tested.
+
+
+### 2026-09-23 — Step 16: strong release context discriminators
+
+Status: **IMPLEMENTED ON BRANCH — matcher threshold extended only with high-precision Release structure**.
+
+Second HCJ81 exact-query audit result:
+
+- unique listings: **19**
+- accepted: **2**
+- review: **9**
+- rejected: **8**
+- item-detail matched: **3**
+  - target HCJ81 recovered: **1**
+  - sibling Release codes detected and rejected: **2**
+- item-detail no match: **9**
+- item-detail not needed: **7**
+- no remaining `limit_reached` cases
+
+Interpretation:
+
+The higher detail depth resolved all pending structured eBay lookups. The remaining 9 review items are genuinely missing a usable Mattel identifier in title/item specifics.
+
+Catalog comparison across the nine LB-ER34 Releases shows that some commercial Releases have a second exact identity tuple that is safe enough to use:
+
+- subseries + exact series position;
+- subseries + exact collector number;
+- line + exact collector number.
+
+Examples:
+
+- HCJ81 = **Mountain Drifters + 4/5**
+- HCK01 = **Mountain Drifters + 0/5 + Chase**
+- HKF21 = **Boulevard + #70**
+
+This is now implemented as a high-precision context acceptance path:
+
+`RELEASE_CONTEXT_DISCRIMINATORS_EXACT`
+
+Important safeguards:
+
+- broad context such as year + color is **not** enough;
+- casting match is still mandatory;
+- non-chase target + chase wording is rejected;
+- chase target requires chase context in addition to the strong Release discriminators;
+- sibling Mattel codes still reject;
+- package/Subvariant wording still remains review-only;
+- new/carded condition guards remain unchanged.
+
+HCJ81 examples:
+
+Accepted without Mattel code:
+
+`Mountain Drifters ... 4/5`
+
+Still review-only:
+
+`2022 Mountain Drifters ... Red`
+
+Reason:
+
+4/5 is a Release-level discriminator; year/color alone can still overlap or be seller-entered ambiguously.
+
+No Mini 4WD matcher/worker behavior is changed.
+
+### Exact next Hot Wheels action
+
+1. deploy this matcher update after CI passes;
+2. re-run HCJ81 exact-code query only;
+3. compare accepted/review/rejected against the 2/9/8 baseline;
+4. manually inspect any newly accepted context-only listings via runtime sample;
+5. if precision remains clean, then enable the broader context query for HCJ81 to measure recall;
+6. keep all Hot Wheels market writes disabled until this validation is complete.
