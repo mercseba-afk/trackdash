@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatDate, formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
-import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskCountLabel, observedMarketAskLabel, observedMarketAskTrendLabel, observedMarketPrice } from "@/lib/market/presentation"
 
 function trendDirection(value: number, it: boolean) {
   if (value > 1) return it ? "In salita" : "Rising"
@@ -51,18 +51,15 @@ export function ReleaseMarketOverview({
     : hasReliableAskTrend
       ? {
           value: signal!.askTrendPercent!,
-          label: it ? "Trend prezzo osservato" : "Observed price trend",
+          label: observedMarketAskTrendLabel(it),
           window: askTrendWindow(signal!.askTrendWindowDays, it),
         }
       : null
 
   const evidence: string[] = []
   if ((signal?.currentOfferCount ?? 0) >= 3) {
-    evidence.push(
-      it
-        ? `${signal!.currentOfferCount} riferimenti correnti osservati`
-        : `${signal!.currentOfferCount} current references observed`,
-    )
+    const askCountLabel = observedMarketAskCountLabel(signal, it)
+    if (askCountLabel) evidence.push(askCountLabel)
   }
   if ((signal?.soldUnits ?? 0) >= 3) {
     evidence.push(
@@ -105,14 +102,14 @@ export function ReleaseMarketOverview({
             </div>
             {hasObserved ? (
               <p className="mt-2 text-sm text-muted-foreground">
-                {it ? "Prezzo osservato" : "Observed price"}{" "}
+                {observedMarketAskLabel(signal, it)}{" "}
                 <strong className="font-semibold tabular-nums text-foreground">≈ {formatMoney(observed!)}</strong>
               </p>
             ) : null}
           </div>
         ) : hasObserved ? (
           <div className="mt-3">
-            <p className="text-sm font-medium text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p>
+            <p className="text-sm font-medium text-muted-foreground">{observedMarketAskLabel(signal, it)}</p>
             <div className="mt-1 flex flex-wrap items-end gap-x-3 gap-y-1">
               <p className={compact ? "text-2xl font-semibold tabular-nums" : "text-4xl font-semibold tracking-[-0.04em] tabular-nums"}>
                 ≈ {formatMoney(observed!)}
@@ -163,8 +160,8 @@ export function ReleaseMarketOverview({
                   : "TrackDash estimate built by combining available market evidence, prioritising observed sales and the European market.")
               : hasObserved
                 ? (it
-                    ? "Riferimento ricavato dall'osservazione corrente del mercato. Quando il costo di consegna è noto, TrackDash considera il costo effettivo per un acquirente europeo."
-                    : "Reference derived from the current observed market. When delivery cost is known, TrackDash considers the effective cost for a European buyer.")
+                    ? "Riferimento ricavato dalle richieste correnti dei venditori, non dalle vendite concluse. Quando il costo di consegna è noto, TrackDash considera il costo effettivo per un acquirente europeo."
+                    : "Reference derived from current seller asks, not completed sales. When delivery cost is known, TrackDash considers the effective cost for a European buyer.")
                 : (it
                     ? "TrackDash continuerà ad aggiornare questa Release quando arriveranno nuovi dati."
                     : "TrackDash will keep updating this Release as new data arrives.")}
