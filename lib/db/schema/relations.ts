@@ -25,6 +25,10 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   releases: many(productReleases),
   images: many(productImages),
   canonicalRelease: one(productReleases, { fields: [products.canonicalReleaseId], references: [productReleases.id] }),
+  hotwheelsCastingDetails: one(hotwheelsCastingDetails, {
+    fields: [products.id],
+    references: [hotwheelsCastingDetails.productId],
+  }),
 }))
 
 export const productImagesRelations = relations(productImages, ({ one }) => ({
@@ -60,6 +64,15 @@ export const hotwheelsReleaseDetailsRelations = relations(hotwheelsReleaseDetail
   release: one(productReleases, { fields: [hotwheelsReleaseDetails.releaseId], references: [productReleases.id] }),
 }))
 
+
+export const hotwheelsReleaseSubvariantsRelations = relations(hotwheelsReleaseSubvariants, ({ one }) => ({
+  release: one(productReleases, { fields: [hotwheelsReleaseSubvariants.releaseId], references: [productReleases.id] }),
+}))
+
+
+export const hotwheelsCastingDetailsRelations = relations(hotwheelsCastingDetails, ({ one }) => ({
+  product: one(products, { fields: [hotwheelsCastingDetails.productId], references: [products.id] }),
+}))
 
 export const hotwheelsReleaseSubvariantsRelations = relations(hotwheelsReleaseSubvariants, ({ one }) => ({
   release: one(productReleases, { fields: [hotwheelsReleaseSubvariants.releaseId], references: [productReleases.id] }),
