@@ -17,7 +17,6 @@ const UNGATED_PREFIXES = [
   "/api/telemetry",
   "/api/ebay/marketplace-account-deletion",
   "/api/internal/ebay-95467-microbatch",
-  "/api/hotwheels/pilot-ebay-audit",
   "/auth/callback",
   "/update-password",
   "/pwa-debug",
