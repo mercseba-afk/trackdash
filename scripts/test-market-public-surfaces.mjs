@@ -54,7 +54,20 @@ for (const file of sourceFiles("app").concat(sourceFiles("components"), sourceFi
 }
 for (const file of sourceFiles("app").concat(sourceFiles("components"), sourceFiles("lib"))) {
   const source = fs.readFileSync(file, "utf8")
-  for (const ambiguousAskCopy of ["Prezzo osservato", "Observed price", "Trend prezzo osservato", "Observed price trend"]) {
+  for (const ambiguousAskCopy of [
+    "Prezzo osservato",
+    "Observed price",
+    "Trend prezzo osservato",
+    "Observed price trend",
+    "Richiesta venditore osservata",
+    "Observed seller ask",
+    "Richiesta più bassa osservata",
+    "Lowest observed ask",
+    "Richiesta osservata",
+    "Observed ask",
+    "Trend richieste osservate",
+    "Observed ask trend",
+  ]) {
     if (source.includes(ambiguousAskCopy)) {
       errors.push(`${file}: still exposes ambiguous seller-ask wording ${JSON.stringify(ambiguousAskCopy)}`)
     }
@@ -102,11 +115,12 @@ if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("obser
 }
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
 for (const requiredSellerAskCopy of [
-  "Richiesta venditore osservata",
-  "Richiesta più bassa osservata",
-  "Observed seller ask",
-  "Lowest observed ask",
-  "Trend richieste osservate",
+  "Prezzo minimo richiesto",
+  "Lowest asking price",
+  "Trend prezzi richiesti",
+  "Asking price trend",
+  "annuncio osservato",
+  "listings observed",
 ]) {
   if (!marketPresentation.includes(requiredSellerAskCopy)) {
     errors.push(`Shared market presentation is missing seller-ask wording ${JSON.stringify(requiredSellerAskCopy)}`)
@@ -115,14 +129,22 @@ for (const requiredSellerAskCopy of [
 if (!marketPresentation.includes("askTrendWindowDays >= 7") || !marketPresentation.includes("currentOfferCount >= 3")) {
   errors.push("Observed-price trend is not guarded against thin or too-short ASK windows")
 }
-if (!marketOverview.includes("costo effettivo")) {
-  errors.push("Shared market overview does not explain the Europe-first delivered-cost basis")
+if (!marketOverview.includes("observedMarketAskCountLabel") || !marketOverview.includes("soldUnits")) {
+  errors.push("Shared market overview does not expose compact listing/sales evidence")
 }
-if (!marketOverview.includes("currentOfferCount") || !marketOverview.includes("soldUnits")) {
-  errors.push("Shared market overview does not expose meaningful market evidence counts")
-}
-if (!marketOverview.includes(">= 3")) {
-  errors.push("Shared market overview does not suppress low-signal one/two-item evidence counts")
+for (const verboseReleaseToken of [
+  "Riferimento ricavato",
+  "Reference derived from",
+  "Le vendite osservate sono concentrate",
+  "Observed sales are concentrated",
+  "Ultimo aggiornamento",
+  "Last update",
+  "Trend in raccolta",
+  "Trend gathering",
+]) {
+  if (marketOverview.includes(verboseReleaseToken)) {
+    errors.push(`Shared Release market overview still exposes verbose detail ${JSON.stringify(verboseReleaseToken)}`)
+  }
 }
 if (marketOverview.includes("SOLD 0") || marketOverview.includes("0 SOLD")) {
   errors.push("Shared market overview exposes a misleading zero-sales claim")
@@ -250,4 +272,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Public R3 market surfaces: ${publicSurfaces.length}/${publicSurfaces.length} clean`)
-console.log("Collector UI separates Estimated value from seller asks, with Europe-first delivered-cost semantics and no ambiguous observed-price wording.")
+console.log("Collector UI uses one clear Lowest asking price concept everywhere and keeps Release market cards compact.")
