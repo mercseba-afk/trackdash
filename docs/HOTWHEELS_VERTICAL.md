@@ -195,14 +195,25 @@ Validation so far:
 
 ---
 
+### 2026-09-23 — Deployment policy applied
+
+Status: **implemented on branch, not merged to main**.
+
+`vercel.json` now disables automatic Git deployments specifically for:
+
+`feat/hotwheels-multivertical-foundation`
+
+Production behavior on `main` is intentionally unchanged. This is a working-branch optimization only, intended to avoid consuming Vercel Preview build capacity while the Hot Wheels macro-block is developed and validated through GitHub Actions.
+
+---
+
 ## Exact next action
 
 Before adding any Hot Wheels Release:
 
-1. suppress automatic Vercel Preview deploys for the current Hot Wheels working branch;
-2. let GitHub `verify` finish and resolve any failure before proceeding;
-3. then add the dormant canonical identities for:
+1. let GitHub `verify` finish on the current branch and resolve any failure before proceeding;
+2. then add the dormant canonical identities for:
    - brand: Mattel;
    - category/vertical: Hot Wheels;
-4. verify that existing Mini 4WD catalog queries and UI remain unchanged;
-5. do **not** expose Hot Wheels publicly yet.
+3. verify that existing Mini 4WD catalog queries and UI remain unchanged;
+4. do **not** expose Hot Wheels publicly yet.
