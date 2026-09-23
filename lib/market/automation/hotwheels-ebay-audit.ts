@@ -3,6 +3,7 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import {
   dedupeEbayListings,
+  fetchEbayActiveItemDetails,
   searchEbayActiveListingsByQuery,
   type EbayBrowseListing,
   type EbayMarketplaceId,
@@ -10,6 +11,7 @@ import {
 import {
   buildHotWheelsEbayQueries,
   classifyHotWheelsEbayListing,
+  refineHotWheelsEbayListingWithItemDetails,
   type HotWheelsCommercialForm,
   type HotWheelsEbayReleaseProfile,
 } from "./hotwheels-ebay-matcher"
@@ -48,6 +50,7 @@ export type HotWheelsAskAuditListing = EbayBrowseListing & {
   queryIndex: number
   decision: "accepted" | "needs_review" | "rejected"
   reasonCodes: string[]
+  detailLookup: "not_needed" | "matched" | "no_match" | "failed" | "limit_reached"
 }
 
 export type HotWheelsAskAuditResult = {
@@ -178,6 +181,7 @@ export async function runHotWheelsEbayAskAuditForRelease(
     marketplaces?: EbayMarketplaceId[]
     perQueryLimit?: number
     includeFallbackQuery?: boolean
+    maxDetailLookups?: number
   } = {},
 ): Promise<HotWheelsAskAuditResult> {
   const profiles = await loadHotWheelsAuditProfiles()
@@ -188,6 +192,7 @@ export async function runHotWheelsEbayAskAuditForRelease(
   const perQueryLimit = Math.max(1, Math.min(options.perQueryLimit ?? 10, 25))
   const allQueries = buildHotWheelsEbayQueries(profile)
   const queries = options.includeFallbackQuery ? allQueries : allQueries.slice(0, 1)
+  const maxDetailLookups = Math.max(0, Math.min(options.maxDetailLookups ?? 8, 20))
 
   const rows: Array<EbayBrowseListing & { queryIndex: number }> = []
   const rawByMarketplace: Partial<Record<EbayMarketplaceId, number>> = {}
@@ -208,15 +213,47 @@ export async function runHotWheelsEbayAskAuditForRelease(
   }
 
   const unique = dedupeEbayListings(rows)
-  const listings = unique.map((listing) => {
-    const classification = classifyHotWheelsEbayListing(listing, profile)
-    return {
+  const listings: HotWheelsAskAuditListing[] = []
+  let detailLookups = 0
+
+  for (const listing of unique) {
+    const initial = classifyHotWheelsEbayListing(listing, profile)
+    let classification = initial
+    let detailLookup: HotWheelsAskAuditListing["detailLookup"] = "not_needed"
+
+    if (initial.decision === "needs_review") {
+      if (detailLookups >= maxDetailLookups) {
+        detailLookup = "limit_reached"
+      } else {
+        detailLookups += 1
+        try {
+          const details = await fetchEbayActiveItemDetails(listing.itemId, listing.marketplace)
+          if (details) {
+            classification = refineHotWheelsEbayListingWithItemDetails(initial, details, profile)
+            detailLookup = classification.decision === "accepted" || classification.decision === "rejected"
+              ? "matched"
+              : "no_match"
+          } else {
+            detailLookup = "no_match"
+          }
+        } catch {
+          detailLookup = "failed"
+          classification = {
+            decision: initial.decision,
+            reasonCodes: [...initial.reasonCodes, "ITEM_DETAILS_LOOKUP_FAILED"],
+          }
+        }
+      }
+    }
+
+    listings.push({
       ...listing,
       queryIndex: queryIndexByItem.get(listing.itemId) ?? 0,
       decision: classification.decision,
       reasonCodes: classification.reasonCodes,
-    }
-  })
+      detailLookup,
+    })
+  }
 
   return {
     releaseId,
