@@ -17,6 +17,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
+import { CollectibleVerticalSwitch, type CollectibleUiVertical } from "@/components/collectible-vertical-switch"
 import { LanguageSwitch } from "@/components/language-switch"
 import { NotificationCenter } from "@/components/notification-center"
 import { PwaInstallButton, PwaInstallMenuItem } from "@/components/pwa-install-menu-item"
@@ -36,7 +37,14 @@ import { useI18n } from "@/lib/i18n"
 import { initials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
-const DESKTOP_NAV = [
+type NavItem = {
+  href?: string
+  labelKey: string
+  icon: typeof LayoutDashboard
+  disabled?: boolean
+}
+
+const MINI4WD_DESKTOP_NAV: NavItem[] = [
   { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/catalog", labelKey: "nav.catalog", icon: LibraryBig },
   { href: "/collection", labelKey: "nav.collection", icon: Boxes },
@@ -44,10 +52,26 @@ const DESKTOP_NAV = [
   { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
 ]
 
-const MOBILE_NAV = [
+const MINI4WD_MOBILE_NAV: NavItem[] = [
   { href: "/catalog", labelKey: "nav.catalog", icon: LibraryBig },
   { href: "/collection", labelKey: "nav.collection", icon: Boxes },
   { href: "/scanner", labelKey: "nav.scanner", icon: ScanLine },
+  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
+  { href: "/profile", labelKey: "menu.profile", icon: UserIcon },
+]
+
+const HOTWHEELS_DESKTOP_NAV: NavItem[] = [
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/hotwheels/catalog", labelKey: "nav.catalog", icon: LibraryBig },
+  { labelKey: "nav.collection", icon: Boxes, disabled: true },
+  { labelKey: "nav.scanner", icon: ScanLine, disabled: true },
+  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
+]
+
+const HOTWHEELS_MOBILE_NAV: NavItem[] = [
+  { href: "/hotwheels/catalog", labelKey: "nav.catalog", icon: LibraryBig },
+  { labelKey: "nav.collection", icon: Boxes, disabled: true },
+  { labelKey: "nav.scanner", icon: ScanLine, disabled: true },
   { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
   { href: "/profile", labelKey: "menu.profile", icon: UserIcon },
 ]
@@ -125,16 +149,10 @@ function UserMenu() {
             {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
           </Link>
           {user.email.toLowerCase() === "merc.seba@gmail.com" ? (
-            <>
-              <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
-                <ShieldCheck />
-                Admin
-              </Link>
-              <Link href="/hotwheels/catalog" className={ACCOUNT_LINK_CLASS} role="menuitem">
-                <LibraryBig />
-                Hot Wheels Beta
-              </Link>
-            </>
+            <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
+              <ShieldCheck />
+              Admin
+            </Link>
           ) : null}
         </div>
         <DropdownMenuSeparator />
@@ -157,13 +175,22 @@ function UserMenu() {
 type AppShellProps = {
   children: React.ReactNode
   contentMode?: "app" | "public"
+  vertical?: CollectibleUiVertical
 }
 
-export function AppShell({ children, contentMode = "app" }: AppShellProps) {
+export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }: AppShellProps) {
   const pathname = usePathname()
   const { user } = useStore()
   const { t } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
+  const hotWheelsPilotUser = user?.email.toLowerCase() === "merc.seba@gmail.com"
+  const desktopNav = vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : MINI4WD_DESKTOP_NAV
+  const mobileNav = vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : MINI4WD_MOBILE_NAV
+
+  React.useEffect(() => {
+    if (!hotWheelsPilotUser) return
+    window.localStorage.setItem("trackdash.collectible.vertical", vertical)
+  }, [hotWheelsPilotUser, vertical])
 
   const refreshUnread = React.useCallback(async () => {
     if (!user) {
@@ -212,9 +239,23 @@ export function AppShell({ children, contentMode = "app" }: AppShellProps) {
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
-            {DESKTOP_NAV.map((item) => {
-              const active = isActive(pathname, item.href)
+            {desktopNav.map((item, index) => {
+              const active = item.href ? isActive(pathname, item.href) : false
               const isMessages = item.href === "/messages"
+              if (item.disabled || !item.href) {
+                return (
+                  <span
+                    key={`disabled-desktop-${index}`}
+                    aria-disabled="true"
+                    title={vertical === "hotwheels" ? "Disponibile nella prossima fase Hot Wheels" : undefined}
+                    className="relative inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground/45"
+                  >
+                    <item.icon className="size-4" />
+                    {t(item.labelKey)}
+                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]">Beta</span>
+                  </span>
+                )
+              }
               return (
                 <Link
                   key={item.href}
@@ -242,6 +283,18 @@ export function AppShell({ children, contentMode = "app" }: AppShellProps) {
             <UserMenu />
           </div>
         </div>
+        {hotWheelsPilotUser ? (
+          <div className="border-t border-border/60 bg-white/80">
+            <div className="mx-auto flex min-h-12 w-full max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6 lg:px-8">
+              <CollectibleVerticalSwitch active={vertical} />
+              {vertical === "hotwheels" ? (
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  Collection e Scanner restano disattivati finché non colleghiamo i dati Hot Wheels.
+                </span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </header>
 
       <main
@@ -255,9 +308,24 @@ export function AppShell({ children, contentMode = "app" }: AppShellProps) {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/96 pb-[max(env(safe-area-inset-bottom),0px)] backdrop-blur-md lg:hidden">
-        {MOBILE_NAV.map((item) => {
-          const active = isActive(pathname, item.href)
+        {mobileNav.map((item, index) => {
+          const active = item.href ? isActive(pathname, item.href) : false
           const isMessages = item.href === "/messages"
+          if (item.disabled || !item.href) {
+            return (
+              <span
+                key={`disabled-mobile-${index}`}
+                aria-disabled="true"
+                className="relative flex min-h-16 flex-1 cursor-not-allowed flex-col items-center justify-center gap-1 px-1 text-[10px] font-semibold text-muted-foreground/40"
+              >
+                <span className="relative">
+                  <item.icon className="size-5" />
+                  <span className="absolute -right-3 -top-2 rounded-full bg-muted px-1 text-[7px] font-bold uppercase">Beta</span>
+                </span>
+                <span className="max-w-[68px] truncate">{t(item.labelKey)}</span>
+              </span>
+            )
+          }
           return (
             <Link
               key={item.href}
