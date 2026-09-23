@@ -15,7 +15,6 @@ import {
   ShoppingBag,
   TrendingUp,
 } from "lucide-react"
-import { PRODUCTS } from "@/lib/data/corrected-products"
 import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
@@ -35,19 +34,19 @@ interface Row {
   signal: ReleaseMarketSignalView
 }
 
-export function MarketScreen() {
+export function MarketScreen({ products }: { products: Product[] }) {
   const { locale } = useI18n()
   const { user } = useStore()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
   const liveLoginHref = `/login?next=${encodeURIComponent("/market#live-market")}`
 
-  const rows = React.useMemo<Row[]>(() => PRODUCTS.flatMap((product) =>
+  const rows = React.useMemo<Row[]>(() => products.flatMap((product) =>
     product.releases.flatMap((release) => {
       const signal = marketSignals[release.id]
       return signal ? [{ product, release, signal }] : []
     }),
-  ), [marketSignals])
+  ), [marketSignals, products])
 
   const valued = React.useMemo(() => rows
     .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0)
@@ -198,7 +197,7 @@ export function MarketScreen() {
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b7a42]">Market Value</span>
             <Badge variant="outline" className="border-[#e8d8ba] bg-[#fffaf1] text-[#785c30]">{it ? "Dati limitati" : "Limited data"}</Badge>
           </div>
-          <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+          <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Mercato in osservazione" : "Market under observation"}</p>
           <p className="mt-2 text-sm leading-6 text-[#77684f]">{it ? "Mostriamo ciò che sappiamo già, ma aspettiamo dati sufficienti prima di pubblicare una stima." : "We show what is already known, but wait for enough data before publishing an estimate."}</p>
         </div>
       </section>

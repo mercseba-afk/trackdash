@@ -6,6 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
+import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -307,17 +308,13 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const observedPrice =
-    signal?.startingEffectiveCostEUR ??
-    signal?.startingItemPriceEUR ??
-    signal?.retailAnchorEUR ??
-    signal?.activeAnchorEUR ??
-    null
+  const observedPrice = observedMarketPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
+  const observedTrend = hasReliableObservedPriceTrend(signal) ? signal?.askTrendPercent ?? null : null
   const observedDirection =
-    signal?.askTrendPercent != null && signal.askTrendPercent >= 5
+    observedTrend != null && observedTrend >= 5
       ? (it ? "Prezzo osservato in salita" : "Observed price rising")
-      : signal?.askTrendPercent != null && signal.askTrendPercent <= -5
+      : observedTrend != null && observedTrend <= -5
         ? (it ? "Prezzo osservato in calo" : "Observed price falling")
         : null
 

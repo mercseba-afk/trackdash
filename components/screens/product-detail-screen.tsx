@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Info, LockKeyhole, Plus, UsersRound } from "lucide-react"
+import { ArrowLeft, Check, ChevronDown, Handshake, Heart, LockKeyhole, Plus, UsersRound } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
@@ -17,9 +17,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { ProductCard } from "@/components/product-card"
-import { MarketSignalCard, RarityBadge, TrendIndicator } from "@/components/market-bits"
+import { RarityBadge } from "@/components/market-bits"
 import { MarketSignalInline } from "@/components/market-signal-inline"
-import { MarketDataEmptyCard } from "@/components/market-data-empty-card"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
@@ -40,7 +39,6 @@ export function ProductDetailScreen({
   const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
 
   const primary = primaryRelease(product)
-  const primaryMarketSignal = marketSignals[primary.id] ?? null
   const sortedReleases = React.useMemo(() => sortReleasesForDisplay(product.releases), [product.releases])
   const owned = enrichCollection(collection, marketSignals)
   const mine = itemsForProduct(owned, product.id)
@@ -149,18 +147,6 @@ export function ProductDetailScreen({
         </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {primaryMarketSignal ? (
-          <MarketSignalCard signal={primaryMarketSignal} title={t("product.marketOriginal")} msrp={product.msrpEUR} />
-        ) : (
-          <MarketDataEmptyCard title={t("product.marketOriginal")} msrp={product.msrpEUR} />
-        )}
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Info className="size-4 text-muted-foreground" /> {t("product.howValue")}</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground"><p>{t("product.valueText1")}</p><p>{t("product.valueText2")}</p></CardContent>
-        </Card>
-      </div>
-
       {related.length > 0 && <section className="flex flex-col gap-4 pt-2"><h2 className="text-lg font-semibold tracking-tight">{t("product.related")}</h2><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{related.map((relatedProduct) => <ProductCard key={relatedProduct.id} product={relatedProduct} />)}</div></section>}
     </div>
   )
@@ -168,18 +154,16 @@ export function ProductDetailScreen({
 
 function CollectionMarketValue({ entry, it }: { entry: ReturnType<typeof enrichCollection>[number]; it: boolean }) {
   if (!conditionUsesNewUnbuiltReference(entry.item.condition)) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+    return (
+      <p className="max-w-40 text-right text-[11px] leading-tight text-muted-foreground">
+        {it ? "Riferimento mercato non disponibile per questa condizione" : "Market reference unavailable for this condition"}
+      </p>
+    )
   }
-  if (!entry.marketSignal) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
-  }
-  if (entry.marketValue == null) {
-    return <p className="max-w-32 text-right text-[11px] leading-tight text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
-  }
+
   return (
-    <div className="text-right">
-      <p className="font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
-      {entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}
+    <div className="max-w-44 text-right">
+      <MarketSignalInline signal={entry.marketSignal} />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import type {
   ReleaseMarketSignalMap,
   ReleaseMarketSignalView,
 } from "@/lib/market/view-types"
+import { collectorMarketTrend, observedMarketPrice } from "@/lib/market/presentation"
 import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
@@ -69,7 +70,7 @@ export function enrichCollection(
         : null
       const marketReferenceValue = marketValue ?? observedPrice
       const marketReferenceKind = marketValue != null ? "estimated" : observedPrice != null ? "observed" : null
-      const marketTrend = comparableCondition ? marketSignal?.trendPercent ?? marketSignal?.askTrendPercent ?? null : null
+      const marketTrend = comparableCondition ? collectorMarketTrend(marketSignal) : null
       const acquisitionBasisEUR = item.acquisitionPriceEUR ?? null
       const canCalculatePersonalPerformance =
         marketValue != null &&
@@ -236,10 +237,10 @@ export interface EnrichedWishlistItem {
   belowTarget: boolean
 }
 
-function lowestStartingPrice(product: Product, marketSignals: ReleaseMarketSignalMap): number | null {
+function lowestObservedPrice(product: Product, marketSignals: ReleaseMarketSignalMap): number | null {
   let lowest: number | null = null
   for (const release of product.releases) {
-    const price = marketSignals[release.id]?.startingItemPriceEUR
+    const price = observedMarketPrice(marketSignals[release.id])
     if (price == null || price <= 0) continue
     if (lowest == null || price < lowest) lowest = price
   }
@@ -249,17 +250,23 @@ function lowestStartingPrice(product: Product, marketSignals: ReleaseMarketSigna
 export function enrichWishlist(
   wishlist: WishlistItem[],
   marketSignals: ReleaseMarketSignalMap = {},
+  catalogProducts?: Product[],
 ): EnrichedWishlistItem[] {
+  const canonicalCatalog = catalogProducts ? new Map(catalogProducts.map((product) => [product.id, product])) : null
+
   return wishlist
     .map((item): EnrichedWishlistItem | null => {
-      const product = getProductById(item.productId)
+      const product = canonicalCatalog?.get(item.productId) ?? getProductById(item.productId)
       if (!product) return null
-      const release = item.releaseId ? resolveRelease(product, item.releaseId) : undefined
+      const release = item.releaseId
+        ? product.releases.find((candidate) => candidate.id === item.releaseId)
+          ?? (canonicalCatalog ? undefined : resolveRelease(product, item.releaseId))
+        : undefined
       const marketSignal = release ? marketSignals[release.id] ?? null : null
       const marketValue = release ? marketSignal?.valueEUR ?? null : null
       const currentPrice = release
-        ? marketSignal?.startingItemPriceEUR ?? null
-        : lowestStartingPrice(product, marketSignals)
+        ? observedMarketPrice(marketSignal)
+        : lowestObservedPrice(product, marketSignals)
       const belowTarget = item.targetPrice != null && currentPrice != null
         ? currentPrice <= item.targetPrice
         : false

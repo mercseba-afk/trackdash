@@ -6,16 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatDate, formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
-
-function observedPrice(signal?: ReleaseMarketSignalView | null) {
-  return (
-    signal?.startingEffectiveCostEUR ??
-    signal?.startingItemPriceEUR ??
-    signal?.retailAnchorEUR ??
-    signal?.activeAnchorEUR ??
-    null
-  )
-}
+import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
 
 function trendDirection(value: number, it: boolean) {
   if (value > 1) return it ? "In salita" : "Rising"
@@ -45,15 +36,11 @@ export function ReleaseMarketOverview({
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const observed = observedPrice(signal)
+  const observed = observedMarketPrice(signal)
   const hasValue = signal?.valueEUR != null && signal.valueEUR > 0
   const hasObserved = observed != null && observed > 0
 
-  const hasReliableAskTrend =
-    signal?.askTrendPercent != null &&
-    signal.askTrendWindowDays != null &&
-    signal.askTrendWindowDays >= 7 &&
-    signal.currentOfferCount >= 3
+  const hasReliableAskTrend = hasReliableObservedPriceTrend(signal)
 
   const trend = signal?.trendPercent != null
     ? {

@@ -4,6 +4,7 @@ import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import { TrendIndicator } from "@/components/market-bits"
+import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
   signal,
@@ -20,17 +21,13 @@ export function MarketSignalInline({
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
-  const observedPrice =
-    signal.startingEffectiveCostEUR ??
-    signal.startingItemPriceEUR ??
-    signal.retailAnchorEUR ??
-    signal.activeAnchorEUR ??
-    null
+  const observedPrice = observedMarketPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
+  const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
   const observedDirection =
-    signal.askTrendPercent != null && signal.askTrendPercent >= 5
+    observedTrend != null && observedTrend >= 5
       ? (it ? "Prezzo osservato in salita" : "Observed price rising")
-      : signal.askTrendPercent != null && signal.askTrendPercent <= -5
+      : observedTrend != null && observedTrend <= -5
         ? (it ? "Prezzo osservato in calo" : "Observed price falling")
         : null
 
@@ -44,7 +41,10 @@ export function MarketSignalInline({
       ) : hasObservedPrice ? (
         <>
           <span className="text-xs font-medium text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</span>
-          <span className="text-lg font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-lg font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</span>
+            {observedTrend != null ? <TrendIndicator value={observedTrend} className="text-xs" /> : null}
+          </div>
         </>
       ) : (
         <span className="text-xs font-medium text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>

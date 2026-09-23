@@ -14,6 +14,7 @@ import {
   topValued,
 } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
+import type { Product } from "@/lib/types"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { DashboardMarketOverview } from "@/components/dashboard-market-overview"
@@ -23,15 +24,21 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
-export function DashboardScreen() {
+export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[] }) {
   const { collection, wishlist, user } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
 
-  const enriched = React.useMemo(() => enrichCollection(collection, marketSignals), [collection, marketSignals])
+  const enriched = React.useMemo(
+    () => enrichCollection(collection, marketSignals, catalogProducts),
+    [catalogProducts, collection, marketSignals],
+  )
   const summary = React.useMemo(() => portfolioSummary(enriched), [enriched])
-  const wl = React.useMemo(() => enrichWishlist(wishlist, marketSignals), [wishlist, marketSignals])
+  const wl = React.useMemo(
+    () => enrichWishlist(wishlist, marketSignals, catalogProducts),
+    [catalogProducts, marketSignals, wishlist],
+  )
   const recent = React.useMemo(() => recentAdditions(enriched, 4), [enriched])
   const top = React.useMemo(() => topValued(enriched, 5), [enriched])
 
@@ -39,7 +46,7 @@ export function DashboardScreen() {
     return (
       <div className="flex flex-col gap-6">
         <Header username={user?.username} />
-        <DashboardMarketOverview />
+        <DashboardMarketOverview products={catalogProducts} />
         <Empty className="rounded-lg border border-dashed border-border py-16">
           <EmptyHeader>
             <EmptyMedia variant="icon"><Boxes /></EmptyMedia>
@@ -58,7 +65,7 @@ export function DashboardScreen() {
   return (
     <div className="flex flex-col gap-6">
       <Header username={user?.username} />
-      <DashboardMarketOverview />
+      <DashboardMarketOverview products={catalogProducts} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "con Valore stimato" : "with an Estimated value"}</span>} />
@@ -105,7 +112,16 @@ export function DashboardScreen() {
               <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="group flex flex-col gap-1.5">
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
-                {entry.marketValue != null ? <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>}
+                {entry.marketValue != null ? (
+                  <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
+                ) : entry.observedPrice != null ? (
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p>
+                    <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.observedPrice)}</p>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
+                )}
               </Link>
             ))}
           </div>
@@ -124,7 +140,7 @@ export function DashboardScreen() {
                 <Link key={entry.item.id} href={entry.release ? `/catalog/${entry.product.id}/releases/${entry.release.id}` : `/catalog/${entry.product.id}`} className="flex items-center gap-3 rounded-lg border border-border p-2 hover:bg-accent">
                   <ProductImage product={entry.product} release={entry.release} size="sm" className="h-12 w-16 shrink-0" />
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><div className="mt-1 flex items-center gap-1.5"><RarityBadge rarity={entry.release?.rarity ?? entry.product.rarity} />{entry.belowTarget && <Badge className="bg-success text-white">{t("dashboard.target")}</Badge>}</div></div>
-                  <div className="text-right">{entry.marketValue != null ? <p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : entry.currentPrice != null ? <p className="text-sm font-semibold tabular-nums">{it ? "Da " : "From "}{formatMoney(entry.currentPrice)}</p> : <p className="text-xs text-muted-foreground">—</p>}{entry.item.targetPrice && <p className="text-xs text-muted-foreground">{t("wishlist.target")} {formatMoney(entry.item.targetPrice)}</p>}</div>
+                  <div className="text-right">{entry.marketValue != null ? <p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : entry.currentPrice != null ? <><p className="text-[10px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.currentPrice)}</p></> : <p className="text-xs text-muted-foreground">—</p>}{entry.item.targetPrice && <p className="text-xs text-muted-foreground">{t("wishlist.target")} {formatMoney(entry.item.targetPrice)}</p>}</div>
                 </Link>
               ))}
             </div>
