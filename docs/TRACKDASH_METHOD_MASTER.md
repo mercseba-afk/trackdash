@@ -1,5 +1,8 @@
 # TRACKDASH — METODO OPERATIVO MASTER
 
+> Mini 4WD vertical state / continuation index: `docs/MINI4WD_VERTICAL.md`
+> Global runtime/project checkpoint: `docs/TRACKDASH_STATE.md`
+
 Stiamo lavorando su **TrackDash**, piattaforma indipendente per collezionisti Tamiya Mini 4WD.
 Questo documento definisce il metodo operativo permanente da utilizzare ogni volta che viene richiesto di:
 
