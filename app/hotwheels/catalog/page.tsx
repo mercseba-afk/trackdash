@@ -13,14 +13,20 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default async function HotWheelsCatalogPage() {
+export default async function HotWheelsCatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>
+}) {
   if (!(await canAccessVerticalRoute("hotwheels"))) notFound()
 
+  const params = await searchParams
+  const initialQuery = Array.isArray(params.q) ? params.q[0] ?? "" : params.q ?? ""
   const entries = await fetchHotWheelsPilotCatalog()
 
   return (
     <HotWheelsPilotShell>
-      <HotWheelsCatalogScreen entries={entries} />
+      <HotWheelsCatalogScreen entries={entries} initialQuery={initialQuery} />
     </HotWheelsPilotShell>
   )
 }
