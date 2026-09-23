@@ -257,6 +257,28 @@ Decision:
 
 Hot Wheels market writes remain disabled and Mini 4WD behavior remains unchanged.
 
+### HOT WHEELS EBAY ASK DISCOVERY FROZEN — 2026-09-23
+
+HCJ81 pilot conclusion:
+
+- exact Mattel-code discovery validated;
+- context query improves recall without loosening matching;
+- wider eBay marketplace IDs mostly duplicate the same cross-listed inventory;
+- HCJ81 verified secondary UPC-A is `194735011636`;
+- eBay public item data confirms HCJ81 listings expose matching MPN/UPC identifiers;
+- the production approach should use native Browse GTIN discovery rather than a UPC keyword query;
+- no Hot Wheels market evidence has been persisted yet.
+
+Final eBay Hot Wheels discovery strategy:
+
+**Mattel code query → native GTIN query(s) → optional context query → dedupe → exact Release matcher → bounded getItem refinement**
+
+Do not continue adding marketplace IDs/query permutations for HCJ81.
+
+Next market step: independent ASK/SOLD source validation before controlled persistence.
+
+Mini 4WD remains unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;
