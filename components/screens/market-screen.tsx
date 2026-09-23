@@ -227,7 +227,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
               </TabsContent>
               <TabsContent value="trends" className="mt-4">
                 {trends.length === 0 ? (
-                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend disponibile per ora" : "No trend available yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "I trend compariranno quando avremo abbastanza vendite nel tempo per quella specifica Release." : "Trends will appear once there is enough completed-sale history for that specific Release."}</p></CardContent></Card>
+                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend disponibile per ora" : "No trend available yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "I trend compariranno quando avremo abbastanza osservazioni comparabili nel tempo per quella specifica Release." : "Trends will appear once there are enough comparable observations over time for that specific Release."}</p></CardContent></Card>
                 ) : (
                   <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((entry) => entry.trend >= 0).map((entry) => entry.row)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((entry) => entry.trend < 0).map((entry) => entry.row)} icon={ArrowDownRight} /></div>
                 )}
