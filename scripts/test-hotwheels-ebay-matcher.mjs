@@ -1,0 +1,185 @@
+import assert from "node:assert/strict"
+import {
+  buildHotWheelsEbayQueries,
+  classifyHotWheelsEbayListing,
+} from "../lib/market/automation/hotwheels-ebay-matcher.ts"
+
+let passed = 0
+function ok(name, fn) {
+  fn()
+  passed += 1
+  console.log(`ok: ${name}`)
+}
+
+const mountain = {
+  releaseId: "mountain-red",
+  castingName: "LB-ER34 Super Silhouette Nissan Skyline",
+  releaseYear: 2022,
+  primaryIdentifier: "HCJ81",
+  lineName: "Car Culture",
+  subseries: "Mountain Drifters",
+  seriesPosition: "4/5",
+  commercialForm: "single",
+  siblingIdentifiers: ["HCK01"],
+}
+
+const chase = {
+  ...mountain,
+  releaseId: "mountain-chase",
+  primaryIdentifier: "HCK01",
+  seriesPosition: "0/5",
+  chaseType: "Chase",
+  siblingIdentifiers: ["HCJ81"],
+}
+
+const teamTransport = {
+  releaseId: "team-transport",
+  castingName: "LB-ER34 Super Silhouette Nissan Skyline",
+  releaseYear: 2022,
+  primaryIdentifier: "HCN54",
+  lineName: "Team Transport",
+  collectorNumber: "44",
+  commercialForm: "team_transport",
+}
+
+const twoPack = {
+  releaseId: "two-pack",
+  castingName: "LB-ER34 Super Silhouette Nissan Skyline",
+  releaseYear: 2023,
+  primaryIdentifier: "HKF49",
+  lineName: "Car Culture 2-Pack",
+  subseries: "Nissan Skylines",
+  commercialForm: "two_pack",
+}
+
+const listing = (title, extra = {}) => ({
+  title,
+  condition: "New",
+  conditionId: "1000",
+  itemEndDate: null,
+  ...extra,
+})
+
+ok("exact query leads with Hot Wheels and the exact Mattel identifier", () => {
+  const [query] = buildHotWheelsEbayQueries(mountain)
+  assert.equal(query.startsWith("Hot Wheels HCJ81"), true)
+  assert.equal(query.includes("LB-ER34"), true)
+})
+
+ok("query builder also returns a context fallback for recall measurement", () => {
+  const queries = buildHotWheelsEbayQueries(chase)
+  assert.equal(queries.length, 2)
+  assert.equal(queries[1].includes("Mountain Drifters"), true)
+  assert.equal(queries[1].includes("Chase"), true)
+})
+
+ok("exact Mattel identifier plus casting is accepted", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Car Culture Mountain Drifters LB-ER34 Nissan Skyline HCJ81"),
+    mountain,
+  )
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["MATTEL_IDENTIFIER_EXACT"])
+})
+
+ok("same casting without exact identifier is review-only during pilot", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline red 4/5"),
+    mountain,
+  )
+  assert.equal(result.decision, "needs_review")
+  assert.equal(result.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE"), true)
+})
+
+ok("sibling Chase identifier is rejected from regular Mountain Drifters release", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels LB-ER34 Super Silhouette Nissan Skyline HCK01 Chase 0/5"),
+    mountain,
+  )
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("SIBLING_RELEASE_IDENTIFIER"), true)
+})
+
+ok("chase wording without exact code remains review-only for Chase target", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels LB-ER34 Super Silhouette Nissan Skyline Mountain Drifters 0/5 Chase"),
+    chase,
+  )
+  assert.equal(result.decision, "needs_review")
+  assert.equal(result.reasonCodes.includes("CHASE_CONTEXT_MATCH"), true)
+})
+
+ok("regular target rejects Chase listing even if casting matches", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels LB-ER34 Super Silhouette Nissan Skyline Mountain Drifters Chase 0/5"),
+    mountain,
+  )
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("CHASE_MISMATCH"), true)
+})
+
+ok("wrong casting is rejected even when text contains the target code", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels HCJ81 Porsche 911 Premium Car Culture"),
+    mountain,
+  )
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("CASTING_NOT_CONFIRMED"), true)
+})
+
+ok("loose/custom/accessory listings are rejected", () => {
+  for (const title of [
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline loose",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline custom wheel swap",
+    "Hot Wheels HCJ81 LB-ER34 Nissan Skyline card only",
+  ]) {
+    assert.equal(classifyHotWheelsEbayListing(listing(title), mountain).decision, "rejected")
+  }
+})
+
+ok("ordinary multi-item lot is rejected", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels HCJ81 LB-ER34 Nissan Skyline lot bundle"),
+    mountain,
+  )
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("MULTI_ITEM_LOT"), true)
+})
+
+ok("Team Transport commercial package is not rejected merely for multi-vehicle wording", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Team Transport HCN54 LB-ER34 Nissan Skyline & Fleet Street 2pcs"),
+    teamTransport,
+  )
+  assert.equal(result.decision, "accepted")
+})
+
+ok("2-Pack commercial release is accepted by exact SKU", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Car Culture 2-Pack Nissan Skylines HKF49 LB-ER34 Super Silhouette"),
+    twoPack,
+  )
+  assert.equal(result.decision, "accepted")
+})
+
+ok("structured used condition is rejected regardless of title", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels HCJ81 LB-ER34 Nissan Skyline", { conditionId: "3000" }),
+    mountain,
+  )
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("NOT_NEW_CONDITION"), true)
+})
+
+ok("ended active listing is rejected", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels HCJ81 LB-ER34 Nissan Skyline", { itemEndDate: "2026-01-01T00:00:00.000Z" }),
+    mountain,
+    new Date("2026-09-23T00:00:00Z"),
+  )
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("LISTING_ENDED"), true)
+})
+
+console.log(`${passed} passed, 0 failed`)
+console.log("HOT WHEELS EBAY MATCHER TEST PASSED")
