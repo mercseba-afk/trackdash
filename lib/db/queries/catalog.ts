@@ -4,6 +4,7 @@ import { eq, inArray } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import { brands, categories, productReleases, products } from "../schema"
+import { COLLECTIBLE_VERTICALS, type CollectibleVertical } from "@/lib/verticals"
 
 export type Brand = InferSelectModel<typeof brands>
 export type Category = InferSelectModel<typeof categories>
@@ -23,12 +24,19 @@ export async function listCategories() {
 // since the catalog screen shows a primary image + release count and the
 // product-detail screen needs the release list (and, per Catalog Model
 // V2, its verification/provenance) right away.
-export async function listProducts(limit = 50) {
+export async function listProductsForVertical(vertical: CollectibleVertical, limit = 50) {
   return db.query.products.findMany({
+    where: eq(products.categoryId, COLLECTIBLE_VERTICALS[vertical].categoryId),
     with: { brand: true, category: true, images: true, releases: { with: { images: true, sources: true } } },
     orderBy: (fields, { asc }) => [asc(fields.name)],
     limit,
   })
+}
+
+// Backwards-compatible Mini 4WD catalog entry point. Existing callers keep
+// receiving only the current Mini 4WD catalog until routing is made vertical-aware.
+export async function listProducts(limit = 50) {
+  return listProductsForVertical("mini4wd", limit)
 }
 
 export async function listProductsByIds(ids: string[]) {

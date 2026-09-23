@@ -13,7 +13,9 @@
 // collectible categories (e.g. trading cards) without a rewrite. Category-specific
 // vocabulary (chassis, series) lives in optional, Mini 4WD-flavoured fields.
 
-export type ProductCategory = "mini4wd"
+import type { CollectibleVertical } from "@/lib/verticals"
+
+export type ProductCategory = CollectibleVertical
 
 export type Chassis =
   | "Type 1"

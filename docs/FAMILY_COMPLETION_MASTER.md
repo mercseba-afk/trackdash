@@ -1,5 +1,8 @@
 # TrackDash — Family Completion Master
 
+> Mini 4WD vertical state / continuation index: `docs/MINI4WD_VERTICAL.md`
+> Global runtime/project checkpoint: `docs/TRACKDASH_STATE.md`
+
 This document is the persistent operational contract for catalog/family work.
 
 ## Single Source of Truth — mandatory

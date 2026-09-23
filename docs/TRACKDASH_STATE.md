@@ -122,16 +122,79 @@ Any future material TrackDash change must update this file in the same work unit
 
 ---
 
+## HOT WHEELS SECOND VERTICAL — WORK IN PROGRESS (NOT MERGED)
+
+A dedicated operational record now exists at:
+
+`docs/HOTWHEELS_VERTICAL.md`
+
+That file is the detailed source of truth for Hot Wheels-specific architecture, roadmap, source strategy, implementation log and next actions.
+
+Current branch:
+
+`feat/hotwheels-multivertical-foundation`
+
+Current PR:
+
+**#211 — Add multi-vertical foundation for Hot Wheels**
+
+Branch base:
+
+`0e091747ad6a4944ba16aa0c5bfecda8c0f90168`
+
+Current implementation state:
+
+- central vertical registry added with `mini4wd` + `hotwheels`;
+- `ProductCategory` generalized to the central vertical type;
+- catalog mapper now resolves the canonical DB category instead of hardcoding `mini4wd`;
+- live Supabase now contains dormant canonical reference rows for Mattel + Hot Wheels, represented by `0145_hotwheels_vertical_foundation.sql`;
+- live category counts after the insertion: `mini4wd = 55 products`, `hotwheels = 0 products`;
+- no Hot Wheels Product/Release, route or public UI has been added yet;
+- catalog query layer is now vertical-aware; the legacy `/catalog` fetch remains explicitly pinned to `mini4wd`;
+- live Supabase now also contains empty `release_identifiers` and `hotwheels_release_details` tables from migration `0146_hotwheels_release_identity_foundation.sql`;
+- post-migration counts remain `mini4wd = 55 products`, `hotwheels = 0 products`, with both new tables at 0 rows;
+- no Mini 4WD data was backfilled or rewritten by the multi-vertical foundation;
+- no Collection, Wishlist, Scanner, Market Engine or Mini 4WD catalog behavior has intentionally changed;
+- Mini 4WD preservation is a hard invariant for the whole integration.
+
+Deployment discipline for this work:
+
+- develop multiple small steps on the same Hot Wheels branch;
+- rely on GitHub Actions `typecheck` + `verify` between steps;
+- automatic Vercel Git deployments are disabled for `feat/hotwheels-multivertical-foundation` in `vercel.json`;
+- merge only at meaningful macro-checkpoints;
+- use one Production deploy + QA per macro-checkpoint rather than one deploy per small implementation step.
+
+Do not infer Hot Wheels status from chat memory: read `docs/HOTWHEELS_VERTICAL.md` first, then this file.
+
+---
+
+## VERTICAL STATE INDEX
+
+TrackDash now keeps one dedicated operational state file per collectible vertical:
+
+- `docs/MINI4WD_VERTICAL.md` — Tamiya Mini 4WD vertical state, durable rules, reference families and continuation index.
+- `docs/HOTWHEELS_VERTICAL.md` — Hot Wheels vertical architecture, rollout, implementation log, data-source strategy and next actions.
+
+`docs/TRACKDASH_STATE.md` remains the global cross-project/runtime checkpoint.
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
-For every TrackDash continuation/new chat, read in this order:
+For every TrackDash continuation/new chat:
 
-1. `docs/TRACKDASH_METHOD_MASTER.md` — authoritative method and Completion Gate.
-2. `docs/TRACKDASH_STATE.md` — latest project/family status and exact next action.
-3. `docs/TRACKDASH_OPERATIONS.md` — behavior of Admin refresh, cron, recompute and operational commands.
-4. Then verify only the live facts that can have changed: current `main`, Vercel Production commit, queue/status in Supabase.
+1. read `docs/TRACKDASH_STATE.md` first for the latest global/runtime checkpoint;
+2. read the active vertical file:
+   - Mini 4WD → `docs/MINI4WD_VERTICAL.md`
+   - Hot Wheels → `docs/HOTWHEELS_VERTICAL.md`
+3. for Mini 4WD family/catalog/market work, also read:
+   - `docs/TRACKDASH_METHOD_MASTER.md`
+   - `docs/FAMILY_COMPLETION_MASTER.md`
+4. read `docs/TRACKDASH_OPERATIONS.md` when Admin refresh, cron, recompute or operational commands are involved;
+5. then verify only live facts that can have changed: current `main`, Vercel Production commit, `/api/version`, and relevant live Supabase queue/status.
 
-Do **not** reconstruct project state from chat memory when these repository sources exist.
+Do **not** reconstruct project or vertical state from chat memory when these repository sources exist.
 
 ---
 

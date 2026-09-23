@@ -1,5 +1,6 @@
 import "server-only"
 
+import { requireCollectibleVertical } from "@/lib/verticals"
 import type {
   Chassis,
   CollectionItem,
@@ -180,6 +181,7 @@ export function mapReleaseRow(row: ReleaseRow): ProductRelease {
 
 type ProductRow = {
   id: string
+  category?: { slug: string } | null
   slug: string
   canonicalItemNumber: string | null
   name: string
@@ -208,7 +210,7 @@ export function mapProductRow(row: ProductRow): Product {
   const canonicalRelease = row.canonicalReleaseId ? releases.find((r) => r.id === row.canonicalReleaseId) : undefined
   return {
     id: row.id,
-    category: "mini4wd",
+    category: requireCollectibleVertical(row.category?.slug),
     itemNumber: canonicalRelease?.itemNumber ?? row.canonicalItemNumber ?? undefined,
     name: row.name,
     japaneseName: row.japaneseName ?? undefined,
