@@ -638,7 +638,7 @@ Deployment discipline restored after QA:
 
 ### 2026-09-23 — Step 8: catalog hierarchy hardening
 
-Status: **implemented on branch; migration pending green CI before live Supabase application**.
+Status: **implemented on branch + applied to live Supabase after green CI**.
 
 Architecture changes:
 
@@ -679,3 +679,100 @@ Bilingual UI hardening in the same branch:
 - new Hot Wheels Release fields are displayed only when verified/present.
 
 No Vercel Preview was intentionally requested for this ordinary follow-up block; automatic Hot Wheels previews remain disabled.
+
+
+### 2026-09-23 — Step 9: first complete Hot Wheels casting family
+
+Status: **LIVE IN SUPABASE — catalog-only; public Hot Wheels gate still closed**.
+
+Casting:
+
+**LB-ER34 Super Silhouette Nissan Skyline**
+
+Product ID:
+
+`5fbe93c1-ec35-5351-a34f-f754cd032920`
+
+Canonical/debut Release:
+
+`HCJ81 — Car Culture Mountain Drifters 4/5 — 2022`
+
+Canonical Release ID:
+
+`f16ed92f-34fb-5fd6-bd8b-c26ff3e831ee`
+
+Verified canonical family:
+
+1. `HCJ81` — 2022 — Car Culture / Mountain Drifters — 4/5 — Red — A1
+2. `HCK01` — 2022 — Car Culture / Mountain Drifters — 0/5 Chase — Black — B1
+3. `HCN54` — 2022 — Team Transport #44 / Fleet Street — Imperial red — C1
+4. `HKF21` — 2023 — Boulevard #70 — White — D1
+5. `HKF49` — 2023 — Car Culture 2-Pack Nissan Skylines — Red — set SKU
+6. `HPX97` — 2023 — Team Transport Fast & Furious / Carry On — Silver
+7. `JDJ24` — 2024 — Boulevard All Stars — White — D2
+8. `JBK59` — 2025 — Car Culture / Silhouettes — 1/5 — White — F1
+9. `JKF36` — 2026 — Car Culture / Aérostyles — 0/5 Chase — Gold — G1
+
+Live verification:
+
+- Product count for this casting: **1**
+- Release count under the casting: **9**
+- canonical release points to `HCJ81`
+- original release year: **2022**
+- all nine Releases have Hot Wheels line/series identity;
+- verified variation codes are stored when supported by the reference catalog;
+- manufacturing country and wheel type are stored when verified;
+- no Mini 4WD Product or Release was changed.
+
+Repository migration:
+
+`supabase/migrations/0150_hotwheels_lb_er34_family.sql`
+
+### Deliberately unresolved / not promoted
+
+**2023 HKF21 ZAMAC — reported 10 produced**
+
+A collector reference reports an ultra-limited ZAMAC version made for a Liberty Walk Los Angeles pop-up.
+
+Current handling:
+
+- NOT inserted as a canonical Release;
+- NOT inserted as a verified Subvariant yet;
+- candidate classification: **Subvariant, likely market-distinct**;
+- requires independent corroboration before public catalog/market publication.
+
+**HPX97 Chase wording**
+
+One collector checklist labels the 2023 Fast & Furious Team Transport `HPX97` as CHASE, while another detailed reference confirms the release but does not explicitly present the Skyline itself as a chase.
+
+Current handling:
+
+- Release is canonical and verified;
+- `chase_type` remains NULL;
+- secondary chase wording is retained only as context metadata;
+- no public Chase label until stronger corroboration exists.
+
+### Family-model result
+
+This family validates the intended Hot Wheels structure:
+
+- one casting can contain many collector Releases;
+- different line/SKU/year/deco issues remain separate Releases;
+- repackaging with a new Mattel identifier can remain a separate commercial Release;
+- minor physical differences do not automatically multiply Release rows;
+- uncertain micro-variants remain UNKNOWN / pending rather than being invented.
+
+### Exact next Hot Wheels action
+
+**Market Intelligence pilot on the five original pilot identities + the now-expanded LB-ER34 family.**
+
+Order:
+
+1. define exact eBay ASK queries and exclusion rules per Release;
+2. run controlled EU-first ASK audit;
+3. measure false-positive rate when matching casting vs exact Release;
+4. validate SOLD provider/licensing path separately;
+5. only after clean matching, write market observations into the shared TrackDash engine;
+6. do not merge/open public Hot Wheels UI until market + Collection/Wishlist behavior is validated.
+
+Do not create a new Vercel Preview for catalog-only follow-up commits unless a visual QA checkpoint is explicitly useful.
