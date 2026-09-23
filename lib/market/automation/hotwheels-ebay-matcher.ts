@@ -78,6 +78,16 @@ const CHASE_MARKERS = [
   " 0/5 ",
 ]
 
+const SUBVARIANT_REVIEW_TERMS = [
+  "factory sealed set",
+  "factory set",
+  "from factory set",
+  "short card",
+  "international card",
+  "long card",
+  "regional card",
+]
+
 function normalizeText(value: string): string {
   return ` ${value
     .toLowerCase()
@@ -219,6 +229,10 @@ export function classifyHotWheelsEbayListing(
 
   if (targetIsChase && !exactIdentifier && !titleHasChaseMarker) {
     return { decision: "needs_review", reasonCodes: ["CHASE_NOT_CONFIRMED", "IDENTIFIER_NOT_IN_TITLE"] }
+  }
+
+  if (exactIdentifier && hasAnyTerm(normalized, SUBVARIANT_REVIEW_TERMS)) {
+    return { decision: "needs_review", reasonCodes: ["PACKAGE_SUBVARIANT_REVIEW"] }
   }
 
   for (const term of profile.extraRequiredTerms ?? []) {
