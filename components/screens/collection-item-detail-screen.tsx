@@ -17,7 +17,7 @@ import {
 } from "@/lib/actions/sharing"
 import { CollectionItemPhotoGallery } from "@/components/collection-item-photo-gallery"
 import { ProductImage } from "@/components/catalog/product-image"
-import { TrendIndicator } from "@/components/market-bits"
+import { ReleaseMarketOverview } from "@/components/release-market-overview"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -139,7 +139,6 @@ export function CollectionItemDetailScreen({ collectionItemId }: { collectionIte
   }
 
   const releaseHref = `/catalog/${entry.product.id}/releases/${entry.release.id}`
-  const marketValue = entry.marketValue
   const gain = entry.personalGainEUR
   const gainPercent = entry.personalGainPercent
 
@@ -166,8 +165,9 @@ export function CollectionItemDetailScreen({ collectionItemId }: { collectionIte
         </CardContent>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">{it ? "Valore di mercato" : "Market value"}</p><p className="mt-1 text-xl font-semibold">{marketValue != null ? formatMoney(marketValue) : "—"}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="mt-1 text-xs" /> : null}</CardContent></Card>
+      <ReleaseMarketOverview signal={entry.marketSignal} />
+
+      <div className="grid gap-3 sm:grid-cols-2">
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">{it ? "Prezzo pagato" : "Purchase price"}</p><p className="mt-1 text-xl font-semibold">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</p><p className="mt-1 text-xs text-muted-foreground">{entry.item.acquisitionDate ? formatDate(entry.item.acquisitionDate) : (it ? "Data non indicata" : "Date not provided")}</p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">{it ? "Rendimento personale" : "Personal performance"}</p><p className="mt-1 text-xl font-semibold">{gain != null ? `${gain > 0 ? "+" : ""}${formatMoney(gain)}` : "—"}</p><p className="mt-1 text-xs text-muted-foreground">{gainPercent != null ? formatPercent(gainPercent) : (it ? "Non calcolabile" : "Not available")}</p></CardContent></Card>
       </div>
