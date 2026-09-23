@@ -1934,3 +1934,59 @@ participate in automatic Hot Wheels exact matching.
 5. re-run HCJ81 with context query ON;
 6. compare unique listings / accepted listings / EU delivered coverage against the current 26 / 5 / 1 baseline;
 7. if UPC adds no distinct inventory, freeze eBay discovery and move to the next independent ASK/SOLD source rather than adding more eBay query permutations.
+
+
+### 2026-09-23 — Step 21: eBay ASK discovery freeze
+
+Status: **EBAY ASK DISCOVERY METHOD FROZEN FOR PILOT — no further user reruns required**.
+
+The final HCJ81 pilot established the following:
+
+- expanding eBay marketplace IDs beyond IT/DE/FR/ES/GB produced duplicate cross-listed inventory rather than meaningful new unique offers;
+- context query improved recall without increasing review volume;
+- exact Mattel toy number remains the primary release identifier;
+- official UPC/GTIN is useful as a verified secondary identifier for the same Release;
+- HCJ81 official UPC-A: `194735011636`;
+- public eBay pages confirm HCJ81 listings exposing both MPN `HCJ81` and UPC/GTIN `194735011636`;
+- no Hot Wheels ASK has yet been persisted into the shared Market Engine.
+
+The last production audit attempt with toy-number query + UPC keyword query + context query across 10 marketplace IDs did not emit a final audit summary. The fan-out itself is therefore not adopted as the production method.
+
+#### Final eBay discovery policy
+
+Do **not** keep multiplying keyword queries or marketplace IDs.
+
+For Hot Wheels ASK discovery, use:
+
+1. exact Mattel toy number query;
+2. native eBay Browse **GTIN** search for each verified GTIN/UPC;
+3. one context query for recall when enabled;
+4. dedupe by eBay listing identity;
+5. run the same fail-closed Release matcher after discovery;
+6. use `getItem` only when structured details are still required to resolve identity.
+
+Important:
+
+The UPC is not treated as a fuzzy keyword.
+
+eBay Browse supports direct GTIN-based discovery, which is the canonical path for verified UPC/EAN identifiers.
+
+#### Price semantics retained
+
+- canonical condition remains NEW / unopened / original package;
+- UE-origin + known shipping → delivered EUR cost;
+- extra-EU listings remain valid market context but do not automatically undercut a verified EU delivered offer when import cost is unknown;
+- one isolated EU delivered listing is not sufficient to define a reliable market minimum or Market Value.
+
+#### Pilot conclusion
+
+The eBay ASK source is now sufficiently validated to stop iterating on HCJ81 discovery mechanics.
+
+Next Hot Wheels market work should move to an **independent second source**, especially:
+
+- additional ASK source(s) for broader European coverage;
+- SOLD/comps provider validation;
+- licensing / ToS / commercial display rights;
+- only after that, first controlled persistence into the shared TrackDash Market Engine.
+
+Mini 4WD behavior remains unchanged.
