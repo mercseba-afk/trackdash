@@ -18,6 +18,7 @@ export async function listHotWheelsPilotProducts() {
           sources: true,
           identifiers: true,
           hotwheelsDetails: true,
+          hotwheelsSubvariants: true,
         },
       },
     },
