@@ -8,8 +8,10 @@ import { useI18n } from "@/lib/i18n"
 
 function identifierLabel(scheme: string, it: boolean) {
   if (scheme === "mattel_sku") return "Mattel SKU"
+  if (scheme === "mattel_set_sku") return it ? "SKU set Mattel" : "Mattel set SKU"
   if (scheme === "mattel_toy_number") return it ? "Codice Mattel" : "Mattel toy number"
-  return scheme
+  if (scheme === "upc_a") return "UPC-A"
+  return scheme.replaceAll("_", " ")
 }
 
 function sourceLabel(type: string, it: boolean) {
@@ -21,7 +23,12 @@ function sourceLabel(type: string, it: boolean) {
 export function HotWheelsReleaseDetailScreen({ entry }: { entry: HotWheelsPilotEntry }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const { product, casting, release, details, primaryIdentifier, sources, subvariants } = entry
+  const { product, casting, release, details, primaryIdentifier, identifiers, sources, subvariants } = entry
+  const familyReleases = [...product.releases].sort((a, b) => {
+    const yearDiff = (a.releaseYear ?? Infinity) - (b.releaseYear ?? Infinity)
+    if (yearDiff !== 0) return yearDiff
+    return a.editionName.localeCompare(b.editionName)
+  })
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 lg:px-8">
@@ -74,6 +81,50 @@ export function HotWheelsReleaseDetailScreen({ entry }: { entry: HotWheelsPilotE
             ) : null}
           </div>
 
+          {familyReleases.length > 1 ? (
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {it ? "Release della stessa famiglia" : "Releases in this family"}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">{product.name}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {it
+                      ? "Stesso casting, Release commerciali distinte: anno, linea, deco, packaging e identificatori restano separati."
+                      : "Same casting, distinct commercial Releases: year, line, deco, packaging and identifiers remain separate."}
+                  </p>
+                </div>
+                <span className="rounded-full border border-border px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+                  {familyReleases.length} Release
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {familyReleases.map((familyRelease) => {
+                  const current = familyRelease.id === release.id
+                  return (
+                    <Link
+                      key={familyRelease.id}
+                      href={`/hotwheels/catalog/${product.id}/releases/${familyRelease.id}`}
+                      aria-current={current ? "page" : undefined}
+                      className={`rounded-xl border px-3 py-2.5 transition-colors ${current ? "border-brand/35 bg-brand/5" : "border-border/70 hover:border-brand/25 hover:bg-brand/5"}`}
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                        {familyRelease.releaseYear ?? "—"}{familyRelease.color ? ` · ${familyRelease.color}` : ""}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+                        {familyRelease.editionName}
+                      </p>
+                      {current ? (
+                        <p className="mt-1 text-[10px] font-semibold text-brand">{it ? "Release aperta" : "Current Release"}</p>
+                      ) : null}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Fact label={primaryIdentifier ? identifierLabel(primaryIdentifier.scheme, it) : (it ? "Identificatore" : "Identifier")} value={primaryIdentifier?.value ?? "—"} mono />
             <Fact label={it ? "Anno Release" : "Release year"} value={release.releaseYear?.toString() ?? "—"} />
@@ -85,6 +136,23 @@ export function HotWheelsReleaseDetailScreen({ entry }: { entry: HotWheelsPilotE
             {details.wheelType ? <Fact label={it ? "Ruote" : "Wheels"} value={details.wheelType} /> : null}
             {details.countryOfManufacture ? <Fact label={it ? "Produzione" : "Made in"} value={details.countryOfManufacture} /> : null}
           </div>
+
+          {identifiers.length > 1 ? (
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {it ? "Identificatori della Release" : "Release identifiers"}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {identifiers.map((identifier) => (
+                  <span key={`${identifier.scheme}:${identifier.value}`} className="rounded-lg border border-border/70 bg-muted/20 px-2.5 py-2 text-xs text-foreground">
+                    <span className="text-muted-foreground">{identifierLabel(identifier.scheme, it)}:</span>{" "}
+                    <span className="font-mono font-semibold">{identifier.value}</span>
+                    {identifier.isPrimary ? <span className="ml-1.5 text-[9px] font-bold uppercase tracking-[0.06em] text-brand">{it ? "primario" : "primary"}</span> : null}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {details.packagingVariant || details.exclusivity ? (
             <div className="grid gap-3 sm:grid-cols-2">
