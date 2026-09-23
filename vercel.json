@@ -8,8 +8,7 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "feat/hotwheels-*": false,
-      "feat/hotwheels-pilot-shell": true
+      "feat/hotwheels-*": false
     }
   }
 }
