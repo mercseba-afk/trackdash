@@ -11,8 +11,8 @@ Catalog, Release pages, Collection, scanner and PWA/app MUST project the same ca
 - Collection MUST NOT maintain a parallel image catalog, price engine or stale release identity.
 - A cron/recompute update to a Release must propagate automatically to Catalog, Release page, Collection and PWA/app.
 - Collection cards use the exact Release image; never silently fall back to a sibling/reissue image.
-- The same public market semantics apply everywhere: Market Value when robust, otherwise Observed Price when credible, otherwise "Dati di mercato in verifica".
-- Collection totals must count exactly what its cards expose. A copy with an Observed Price is a market-referenced copy even when it has no consolidated Market Value.
+- The same public market semantics apply everywhere: **Valore stimato** when robust; otherwise **Prezzo minimo richiesto** when a valid current ASK exists; otherwise "Dati di mercato in verifica".
+- Collection totals must count exactly what its cards expose. A copy with a Prezzo minimo richiesto is a market-referenced copy even when it has no consolidated Market Value.
 - Personal gain/loss can remain more conservative and use only a consolidated Market Value.
 - When a legacy catalog identity is corrected, owned collection rows must be migrated to the correct Release without losing purchase price/date, condition, notes, personal photos or sharing state.
 
@@ -53,7 +53,7 @@ Europe-first. Prefer effective delivered cost when shipping is known. Extra-EU i
 
 Do not require an arbitrary SOLD count before exposing useful market information:
 - robust convergence → Valore stimato
-- credible current evidence → Prezzo osservato
+- valid current ASK → Prezzo minimo richiesto
 - evidence under audit / no publishable reference yet → Dati di mercato in verifica
 
 Never display SOLD 0 as a statement that no sales occurred.
@@ -69,3 +69,14 @@ Only due + READY jobs are automatically claimed. Failed jobs are not marked succ
 ## Completion
 
 A family is complete only after every Release has been audited through the workflow. Honest documented gaps are allowed (for example exact image not found or genuinely thin market); unperformed work is not.
+
+
+## Public ASK terminology — 2026-09-23 invariant
+
+The public ASK label is always **Prezzo minimo richiesto** / **Lowest asking price**.
+
+It means the minimum valid current asking cost among observed listings, using effective delivered cost when shipping is known. It is not a completed sale and must never be presented as Market Value.
+
+ASK evidence counts use **N annunci osservati** / **N observed listings**. ASK-derived trend, when the trend guard passes, uses **Trend prezzi richiesti** / **Asking price trend**.
+
+Do not vary the main label according to whether one or multiple listings are present. Do not reintroduce "Prezzo osservato", "Richiesta venditore osservata" or "Richiesta più bassa osservata" as public labels.
