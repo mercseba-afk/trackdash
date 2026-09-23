@@ -49,17 +49,23 @@ export function ReleaseMarketOverview({
   const hasValue = signal?.valueEUR != null && signal.valueEUR > 0
   const hasObserved = observed != null && observed > 0
 
+  const hasReliableAskTrend =
+    signal?.askTrendPercent != null &&
+    signal.askTrendWindowDays != null &&
+    signal.askTrendWindowDays >= 7 &&
+    signal.currentOfferCount >= 3
+
   const trend = signal?.trendPercent != null
     ? {
         value: signal.trendPercent,
         label: it ? "Trend mercato" : "Market trend",
         window: valueTrendWindow(signal.trendWindowMonths, it),
       }
-    : signal?.askTrendPercent != null
+    : hasReliableAskTrend
       ? {
-          value: signal.askTrendPercent,
+          value: signal!.askTrendPercent!,
           label: it ? "Trend prezzo osservato" : "Observed price trend",
-          window: askTrendWindow(signal.askTrendWindowDays, it),
+          window: askTrendWindow(signal!.askTrendWindowDays, it),
         }
       : null
 
