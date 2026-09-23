@@ -428,6 +428,63 @@ Next Hot Wheels phase:
 
 ---
 
+## HOT WHEELS EBAY ASK AUDIT READY — PR #212
+
+Current Hot Wheels working branch:
+
+`feat/hotwheels-pilot-shell`
+
+Current PR:
+
+**#212 — Prepare gated Hot Wheels pilot shell**
+
+Current runtime remains unchanged until merge:
+
+- GitHub `main`: `7622532749372909c6589b50be447114d9260db5`
+- Vercel Production: `dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`
+- `/api/version`: `7622532749372909c6589b50be447114d9260db5`
+- Hot Wheels Production public gate: **closed**
+- Mini 4WD behavior/data: **unchanged**
+
+PR #212 now contains the first Hot Wheels Market Intelligence matching layer:
+
+- dedicated Hot Wheels eBay title matcher;
+- Europe-first ASK audit runner for IT/DE/FR/ES/GB;
+- exact Mattel-code auto-match;
+- context-only matches remain review-only;
+- sibling/chase/custom/loose/lot exclusions;
+- bounded second-pass eBay `getItem` lookup for MPN / GTIN / localized aspects;
+- read-only Admin + MFA audit panel;
+- zero market persistence during audit.
+
+Current live Hot Wheels audit population:
+
+**13 unique Releases**
+
+The original five pilot identities overlap with the nine-Release LB-ER34 family through `JBK59`.
+
+Preview eBay test was intentionally attempted once and returned:
+
+`EBAY_BROWSE_CREDENTIALS_NOT_CONFIGURED`
+
+No secrets were copied into Preview. The temporary diagnostic route was removed and Hot Wheels auto-preview suppression was restored.
+
+Latest branch validation:
+
+- `typecheck`: **SUCCESS**
+- `verify`: **SUCCESS**
+- PR #212: **mergeable**
+
+Exact next action after Production alignment:
+
+**Admin + MFA → Hot Wheels · Audit eBay ASK → HCJ81 → exact query only**
+
+The audit is read-only and must not write market observations until matching quality has been reviewed.
+
+Detailed rules and reasoning live in `docs/HOTWHEELS_VERTICAL.md`.
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat:
