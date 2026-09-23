@@ -35,6 +35,8 @@ export function ProductArt({
   const bgDeep = `oklch(0.42 0.12 ${hue})`
   const chassis = release?.chassis ?? product.chassis
   const itemNumber = release?.itemNumber ?? product.itemNumber
+  const leftLabel = chassis ?? (product.category === "hotwheels" ? "1:64" : undefined)
+  const rightLabel = itemNumber ? `#${itemNumber}` : (release?.releaseYear ?? product.originalReleaseYear)?.toString()
 
   return (
     <div
@@ -69,7 +71,7 @@ export function ProductArt({
             size === "sm" ? "text-[9px]" : "text-[10px]",
           )}
         >
-          {chassis}
+          {leftLabel ?? "—"}
         </span>
         <span
           className={cn(
@@ -77,7 +79,7 @@ export function ProductArt({
             size === "sm" ? "text-[9px]" : "text-[10px]",
           )}
         >
-          #{itemNumber}
+          {rightLabel ?? "—"}
         </span>
       </div>
       <div className="relative">
