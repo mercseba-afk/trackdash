@@ -197,6 +197,53 @@ No canonical Hot Wheels images or market observations have been inserted yet.
 
 ---
 
+## HOT WHEELS PRIVATE PREVIEW CHECKPOINT — 2026-09-23
+
+Current Hot Wheels branch:
+
+`feat/hotwheels-pilot-shell`
+
+Current PR:
+
+**#212 — Prepare gated Hot Wheels pilot shell**
+
+Private Vercel Preview:
+
+- deployment: `dpl_BPBRn4f68WvPNSvcX3RCUr5Ws8jX`
+- verified Preview commit: `4036fbee1227b5bf0e6cdcce3a74e6008f45189c`
+- branch hostname: `trackdash-git-feat-hotwheels-pilot-shell-mercseba-8773.vercel.app`
+- state: **READY**
+
+Preview QA:
+
+- Hot Wheels catalog HTTP 200;
+- five exact pilot Releases visible with identifiers `HWF11`, `HWR91`, `JBC35`, `JBL16`, `JBK59`;
+- RLC Miura exact detail HTTP 200;
+- market section intentionally remains in Initial Scan pending state;
+- Production Mini 4WD catalog remains **55 products**;
+- Hot Wheels remains unmerged/not exposed in the Production navigation.
+
+Live Supabase pilot state:
+
+- Mini 4WD products: **55**
+- Hot Wheels products: **5**
+- Hot Wheels exact Releases: **5**
+- Release identifiers: **5**
+- Hot Wheels detail rows: **5**
+- Hot Wheels provenance rows: **7**
+
+Known Preview-only environment note:
+
+- the Preview environment logs a non-fatal public R3 bootstrap warning because a Supabase server secret is unavailable there;
+- the pilot pages still render successfully;
+- do not treat this as a Hot Wheels catalog failure or change shared Production market behavior solely for the Preview warning.
+
+Automatic Vercel deploys are disabled again for `feat/hotwheels-*` after this QA checkpoint.
+
+Detailed Hot Wheels state remains in `docs/HOTWHEELS_VERTICAL.md`.
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat:
