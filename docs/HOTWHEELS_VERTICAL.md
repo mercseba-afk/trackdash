@@ -776,3 +776,135 @@ Order:
 6. do not merge/open public Hot Wheels UI until market + Collection/Wishlist behavior is validated.
 
 Do not create a new Vercel Preview for catalog-only follow-up commits unless a visual QA checkpoint is explicitly useful.
+
+
+### 2026-09-23 — Step 10: definitive casting data layer
+
+Status: **IMPLEMENTED ON BRANCH + APPLIED TO LIVE SUPABASE — public Hot Wheels gate still closed**.
+
+This step does **not** change the frozen hierarchy from Step 8/9. It completes it.
+
+Permanent hierarchy remains:
+
+**Product = exact Casting → ProductRelease = meaningful commercial Release → Subvariant = minor physical/package difference**
+
+#### Schema reconciliation
+
+The already-live Release/Subvariant model from migration `0149_hotwheels_casting_variant_model.sql` remains authoritative and unchanged:
+
+Release-level fields retained:
+
+- `variation_code`
+- `country_of_manufacture`
+- `wheel_type`
+- `exclusivity`
+- `master_series`
+- `theme`
+- existing line/subseries/mix/collector/chase/packaging fields
+
+Subvariant fields retained:
+
+- code/name
+- country of manufacture
+- wheel type
+- packaging
+- base/interior/window/deco variation
+- `market_distinct`
+- verification + source metadata
+
+No duplicate competing schema was introduced.
+
+#### New casting-level extension
+
+Migration:
+
+`supabase/migrations/0151_hotwheels_casting_details.sql`
+
+New tables:
+
+- `hotwheels_casting_details`
+- `hotwheels_casting_sources`
+
+Casting-level facts now have dedicated queryable fields:
+
+- real/model reference
+- designer
+- casting debut year
+- debut series
+- scale when verified
+- verification status
+- casting-specific metadata
+
+Casting provenance is stored separately from Release provenance so future audits can explain exactly why a designer/debut fact exists.
+
+#### First verified casting backfill
+
+**LB-ER34 Super Silhouette Nissan Skyline**
+
+- Product ID: `5fbe93c1-ec35-5351-a34f-f754cd032920`
+- designer: **Mark Jones**
+- casting debut year: **2022**
+- debut series: **Car Culture: Mountain Drifters**
+- model reference: **Nissan Skyline R34 with Liberty Walk LB-ER34 Super Silhouette body kit**
+- verification status: **verified**
+- casting sources: **3**
+- existing Release count remains: **9**
+
+Sources recorded at casting level:
+
+- Orange Track Diecast casting database
+- Hot Wheels Newsletter
+- Hot Wheels collector reference for body-kit/debut corroboration
+
+#### UI / language
+
+The pilot catalog now reports both:
+
+- number of exact Releases
+- number of distinct Castings
+
+Exact Release detail shows a separate **Casting / famiglia** block before Release-specific facts.
+
+For LB-ER34 this includes, in both Italiano and English:
+
+- casting debut
+- debut series
+- designer
+- number of Releases in the family
+
+No user-facing Hot Wheels copy was added in English-only form.
+
+#### Validation
+
+Branch checkpoint before the live migration:
+
+- `typecheck`: **SUCCESS**
+- `verify`: **SUCCESS**
+
+Live verification after migration:
+
+- Mini 4WD Products: **55**
+- Hot Wheels Products/Castings: **5**
+- LB-ER34 Releases: **9**
+- LB-ER34 casting sources: **3**
+- new casting tables have RLS enabled and explicit SELECT policies for `anon` + `authenticated`
+- no new security-advisor finding is attached to the new Hot Wheels casting tables
+
+No Vercel Preview was requested for this data/schema follow-up; automatic Hot Wheels previews remain disabled.
+
+### Exact next Hot Wheels action
+
+The catalog model is now considered **structurally frozen for the pilot**.
+
+Do not add more schema layers before market evidence proves one is required.
+
+Proceed with:
+
+1. exact-release eBay EU ASK query rules for the five original pilot identities and the full LB-ER34 family;
+2. false-positive/false-negative measurement per Release;
+3. controlled ASK ingestion through the shared TrackDash market pipeline;
+4. independent SOLD provider/licensing validation;
+5. Market Value only where shared TrackDash consolidation rules pass;
+6. Collection/Wishlist parity after market signals exist;
+7. then decide the next merge/public-opening checkpoint.
+
