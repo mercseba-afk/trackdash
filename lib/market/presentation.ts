@@ -31,17 +31,14 @@ export function collectorMarketTrend(
 
 
 export function observedMarketAskLabel(
-  signal: ReleaseMarketSignalView | null | undefined,
+  _signal: ReleaseMarketSignalView | null | undefined,
   it: boolean,
 ): string {
-  const count = signal?.currentOfferCount ?? 0
-  if (count === 1) return it ? "Richiesta venditore osservata" : "Observed seller ask"
-  if (count > 1) return it ? "Richiesta più bassa osservata" : "Lowest observed ask"
-  return it ? "Richiesta osservata" : "Observed ask"
+  return it ? "Prezzo minimo richiesto" : "Lowest asking price"
 }
 
 export function observedMarketAskTrendLabel(it: boolean): string {
-  return it ? "Trend richieste osservate" : "Observed ask trend"
+  return it ? "Trend prezzi richiesti" : "Asking price trend"
 }
 
 export function observedMarketAskDirection(
@@ -49,8 +46,8 @@ export function observedMarketAskDirection(
   it: boolean,
 ): string | null {
   if (value == null) return null
-  if (value >= 5) return it ? "Richieste in salita" : "Asks rising"
-  if (value <= -5) return it ? "Richieste in calo" : "Asks falling"
+  if (value >= 5) return it ? "Prezzi richiesti in salita" : "Asking prices rising"
+  if (value <= -5) return it ? "Prezzi richiesti in calo" : "Asking prices falling"
   return null
 }
 
@@ -60,6 +57,6 @@ export function observedMarketAskCountLabel(
 ): string | null {
   const count = signal?.currentOfferCount ?? 0
   if (count <= 0) return null
-  if (it) return `${count} ${count === 1 ? "richiesta corrente osservata" : "richieste correnti osservate"}`
-  return `${count} ${count === 1 ? "current ask observed" : "current asks observed"}`
+  if (it) return `${count} ${count === 1 ? "annuncio osservato" : "annunci osservati"}`
+  return `${count} ${count === 1 ? "listing observed" : "listings observed"}`
 }
