@@ -47,6 +47,11 @@ export type Series =
   | "Mighty"
   | "Super Mini 4WD"
   | "Classic"
+  | "Red Line Club"
+  | "Elite 64"
+  | "Mainline"
+  | "Boulevard"
+  | "Car Culture"
 
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Very Rare" | "Grail"
 
@@ -216,7 +221,7 @@ export interface Product {
   chassis?: Chassis
   /** COMPATIBILITY/CACHE field — denormalized from canonicalRelease.releaseYear. Optional (hardening point 1): undefined when there is no canonical release. */
   originalReleaseYear?: number
-  rarity: Rarity
+  rarity?: Rarity
   description: string
   images: string[]
   releases: ProductRelease[]
