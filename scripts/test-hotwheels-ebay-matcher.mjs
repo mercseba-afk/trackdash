@@ -302,7 +302,7 @@ ok("chase context needs both strong release discriminators and a chase marker", 
   assert.deepEqual(accepted.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
 
   const review = classifyHotWheelsEbayListing(
-    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline 0/5 Black"),
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline Black"),
     chase,
   )
   assert.equal(review.decision, "needs_review")
