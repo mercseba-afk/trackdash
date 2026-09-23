@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import {
+  buildHotWheelsEbayIdentifierQueries,
   buildHotWheelsEbayQueries,
   classifyHotWheelsEbayListing,
   refineHotWheelsEbayListingWithItemDetails,
@@ -17,6 +18,7 @@ const mountain = {
   castingName: "LB-ER34 Super Silhouette Nissan Skyline",
   releaseYear: 2022,
   primaryIdentifier: "HCJ81",
+  alternateIdentifiers: ["194735011636"],
   lineName: "Car Culture",
   subseries: "Mountain Drifters",
   seriesPosition: "4/5",
@@ -65,6 +67,22 @@ ok("exact query leads with Hot Wheels and the exact Mattel identifier", () => {
   const [query] = buildHotWheelsEbayQueries(mountain)
   assert.equal(query.startsWith("Hot Wheels HCJ81"), true)
   assert.equal(query.includes("LB-ER34"), true)
+})
+
+ok("verified secondary identifier gets its own exact discovery query", () => {
+  const queries = buildHotWheelsEbayIdentifierQueries(mountain)
+  assert.equal(queries.length, 2)
+  assert.equal(queries[0].includes("HCJ81"), true)
+  assert.equal(queries[1].includes("194735011636"), true)
+})
+
+ok("secondary UPC in title can identify the same Release", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Nissan Skyline UPC 194735011636"),
+    mountain,
+  )
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["MATTEL_SECONDARY_IDENTIFIER_EXACT"])
 })
 
 ok("query builder also returns a context fallback for recall measurement", () => {
@@ -231,6 +249,22 @@ const detailFixture = (overrides = {}) => ({
   ...overrides,
 })
 
+ok("item details GTIN can promote a listing through the verified UPC identifier", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Nissan Skyline red"),
+    mountain,
+  )
+  assert.equal(initial.decision, "needs_review")
+
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ gtin: "0194735011636" }),
+    mountain,
+  )
+  assert.equal(refined.decision, "accepted")
+  assert.deepEqual(refined.reasonCodes, ["MATTEL_SECONDARY_IDENTIFIER_ITEM_DETAILS"])
+})
+
 ok("item details MPN can promote an otherwise ambiguous review-only listing", () => {
   const initial = classifyHotWheelsEbayListing(
     listing("Hot Wheels Premium 2022 Mountain Drifters LB-ER34 Nissan Skyline red"),
@@ -349,6 +383,20 @@ ok("item details never override a packaging-subvariant review", () => {
   )
   assert.equal(refined.decision, "needs_review")
   assert.deepEqual(refined.reasonCodes, ["PACKAGE_SUBVARIANT_REVIEW"])
+})
+
+ok("a Release own secondary identifier is not treated as a sibling", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline"),
+    mountain,
+  )
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ gtin: "0194735011636" }),
+    mountain,
+  )
+  assert.equal(refined.decision, "accepted")
+  assert.deepEqual(refined.reasonCodes, ["MATTEL_SECONDARY_IDENTIFIER_ITEM_DETAILS"])
 })
 
 ok("item details sibling identifier rejects a review-only listing", () => {
