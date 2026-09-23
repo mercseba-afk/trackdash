@@ -233,6 +233,30 @@ Hot Wheels-only audit coverage is being expanded to eBay NL/BE/AT/IE/PL in addit
 
 The matcher, Mini 4WD pipeline, and Hot Wheels market-write state remain unchanged.
 
+### HOT WHEELS SECONDARY IDENTIFIER CHECKPOINT — 2026-09-23
+
+Latest HCJ81 audit after wider European marketplace coverage:
+
+- 26 unique listings;
+- 5 accepted;
+- 6 review;
+- 15 rejected;
+- 1 accepted EU-delivered offer;
+- lowest EU-delivered total: €99.50;
+- extra marketplace IDs added duplicate cross-listed inventory rather than distinct listings.
+
+Decision:
+
+- stop expanding eBay marketplace IDs;
+- add verified secondary identifiers to improve exact discovery;
+- first pilot: HCJ81 official UPC-A `194735011636`;
+- primary identifier remains `HCJ81`;
+- same Release, no Subvariant/new Release;
+- only verified identifiers may drive automatic matching;
+- own secondary identifiers are excluded from sibling-code logic.
+
+Hot Wheels market writes remain disabled and Mini 4WD behavior remains unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;
