@@ -84,7 +84,7 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
       <section className="overflow-hidden rounded-3xl border border-brand/10 bg-gradient-to-br from-white via-white to-brand/5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
         <div className="flex flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-7">
           <div className="max-w-2xl">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">{it ? "CATALOGO TRACKDASH" : "TRACKDASH CATALOG"}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">TRACKDASH · MINI 4WD</p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t("catalog.title")}</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
               {it
