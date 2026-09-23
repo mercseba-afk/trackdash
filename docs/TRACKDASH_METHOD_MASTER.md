@@ -414,7 +414,7 @@ classificare come:
 **EXTRA-EU ITEM-ONLY / LANDED COST UNKNOWN**
 e ridurne il peso.
 Regola:
-**un'offerta extra-UE senza costo europeo noto non può da sola definire o abbassare il Prezzo osservato europeo.**
+**un'offerta extra-UE senza costo europeo noto non può da sola definire o abbassare il Prezzo minimo richiesto europeo.**
 Se IVA/dogana/import non sono determinabili con affidabilità:
 NON inventarli.
 
@@ -518,7 +518,7 @@ Prende tutti i dati già raccolti e applica il motore TrackDash.
 Il recompute deve calcolare:
 
 - market regime;
-- Prezzo osservato;
+- Prezzo minimo richiesto;
 - fascia recente;
 - Market Value se giustificato;
 - retail anchor;
@@ -529,7 +529,7 @@ Il recompute deve calcolare:
 
 ---
 
-# PREZZO OSSERVATO
+# PREZZO MINIMO RICHIESTO
 
 Se esiste mercato reale ma non abbastanza robusto per Market Value:
 mostrare:
@@ -572,7 +572,7 @@ Regola permanente:
 - però la presenza di un canale extra-UE con landed cost europeo sconosciuto NON corrobora automaticamente il valore numerico europeo;
 - un cluster SOLD single-seller non deve da solo diventare Market Value solo perché il volume è alto;
 - può sostenere un Market Value quando esiste corroborazione di prezzo indipendente e confrontabile, preferibilmente Europe-first / delivered-cost;
-- in assenza di convergenza, mantenere SOLD anchor/storico/trend come evidenza reale e pubblicare il Prezzo osservato corrente quando disponibile.
+- in assenza di convergenza, mantenere SOLD anchor/storico/trend come evidenza reale e pubblicare il Prezzo minimo richiesto corrente quando disponibile.
 
 Quindi:
 **SINGLE SELLER NEL DATASET SOLD ≠ SINGLE SELLER NEL MERCATO.**
@@ -606,7 +606,7 @@ Per ogni Release controllare:
 - nome;
 - production status;
 - rarità;
-- Prezzo osservato / Market Value;
+- Prezzo minimo richiesto / Market Value;
 - fallback;
 - Collection preview;
 - scanner;
@@ -720,7 +720,7 @@ READY
 MANUAL
 PLANNED
 Non fingere che una fonte manuale sia automaticamente aggiornata.
-Il fatto che SOLD research non sia automatizzato NON deve cancellare un Prezzo osservato valido.
+Il fatto che SOLD research non sia automatizzato NON deve cancellare un Prezzo minimo richiesto valido.
 
 ---
 
