@@ -132,6 +132,29 @@ Decision:
 
 Mini 4WD behavior remains unchanged.
 
+### HCJ81 SECOND AUDIT — STRUCTURED LOOKUPS EXHAUSTED
+
+Second exact-query read-only audit with detail depth 15:
+
+- 19 unique listings;
+- 2 accepted;
+- 9 review;
+- 8 rejected;
+- 1 target Release recovered via structured item details;
+- 2 sibling Release codes discovered and rejected;
+- 9 item-detail lookups returned no exact identifier;
+- 0 lookup-limit cases remain.
+
+Decision:
+
+- do not broaden query yet;
+- add a Hot Wheels-only high-precision fallback based on Release structure:
+  - subseries + exact series position;
+  - subseries + exact collector number;
+  - line + exact collector number;
+- do not use year/color alone for automatic acceptance;
+- Mini 4WD remains unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;
