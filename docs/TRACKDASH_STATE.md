@@ -175,6 +175,28 @@ Current branch: `feat/hotwheels-pilot-shell`
 
 ---
 
+## HOT WHEELS PILOT DATA — 5 RELEASES
+
+Live Supabase now contains the first **5** Hot Wheels pilot Products/Releases while the public Hot Wheels gate remains disabled.
+
+Pilot identifiers:
+
+- `HWF11` — RLC '71 Lamborghini Miura P400 SV
+- `HWR91` — Elite 64 Aston Martin Valkyrie
+- `JBC35` — 2025 Super Treasure Hunt '87 Audi quattro
+- `JBL16` — Boulevard Alfa Romeo GTV6 3.0
+- `JBK59` — Car Culture Silhouettes LB-ER34 Super Silhouette Nissan Skyline
+
+Current live category counts:
+
+- `mini4wd = 55 products`
+- `hotwheels = 5 products`
+
+No canonical Hot Wheels images or market observations have been inserted yet.
+
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat:
