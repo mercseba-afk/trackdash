@@ -125,10 +125,16 @@ function UserMenu() {
             {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
           </Link>
           {user.email.toLowerCase() === "merc.seba@gmail.com" ? (
-            <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
-              <ShieldCheck />
-              Admin
-            </Link>
+            <>
+              <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
+                <ShieldCheck />
+                Admin
+              </Link>
+              <Link href="/hotwheels/catalog" className={ACCOUNT_LINK_CLASS} role="menuitem">
+                <LibraryBig />
+                Hot Wheels Beta
+              </Link>
+            </>
           ) : null}
         </div>
         <DropdownMenuSeparator />
