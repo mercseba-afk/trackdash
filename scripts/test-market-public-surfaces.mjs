@@ -189,6 +189,19 @@ const wishlistScreen = fs.readFileSync("components/screens/wishlist-screen.tsx",
 if (!wishlistPage.includes("fetchCatalogProductsByIds") || !wishlistScreen.includes("enrichWishlist(wishlist, marketSignals, catalogProducts)")) {
   errors.push("Wishlist is not resolved against the canonical catalog")
 }
+const storeSource = fs.readFileSync("lib/store.tsx", "utf8")
+if (storeSource.includes("getProductById") || storeSource.includes("primaryRelease")) {
+  errors.push("Client store still resolves wishlist transfers through the local catalog")
+}
+if (!wishlistScreen.includes("releaseId: canonicalRelease.id")) {
+  errors.push("Wishlist transfer does not pass the canonical Release id into Collection")
+}
+if (!marketScreen.includes("observedMarketPrice(row.signal)") || marketScreen.includes("row.signal.startingItemPriceEUR")) {
+  errors.push("Market screen is not using the shared canonical observed-price presentation")
+}
+if (!marketScreen.includes("collectorMarketTrend(row.signal)") || !dashboardMarket.includes("collectorMarketTrend(row.signal)")) {
+  errors.push("Market and dashboard trend surfaces are not aligned to the shared trend guard rails")
+}
 for (const storefrontToken of ["In vendita da", "Listed from", "Disponibile da", "Available from"]) {
   if (marketBits.includes(storefrontToken) || productDetail.includes(storefrontToken) || collectionScreen.includes(storefrontToken) || wishlistScreen.includes(storefrontToken)) {
     errors.push(`Collector surfaces still expose storefront wording ${JSON.stringify(storefrontToken)}`)
