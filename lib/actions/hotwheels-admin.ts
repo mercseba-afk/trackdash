@@ -96,7 +96,7 @@ export async function runHotWheelsAskAuditAction(input: {
   const result = await runHotWheelsEbayAskAuditForRelease(releaseId, {
     perQueryLimit: 10,
     includeFallbackQuery,
-    maxDetailLookups: 5,
+    maxDetailLookups: 15,
   })
 
   // Production-only observability for the controlled Hot Wheels pilot.

@@ -1341,3 +1341,77 @@ After this observability patch reaches Production:
 3. measure accepted/review/rejected quality and second-pass MPN recovery;
 4. only if precision is clean, enable context-query recall for HCJ81;
 5. then proceed through the remaining 12 pilot Releases one at a time.
+
+
+### 2026-09-23 — Step 15: first real HCJ81 audit result
+
+Status: **FIRST PRODUCTION READ-ONLY AUDIT OBSERVED — no market writes**.
+
+Release:
+
+**HCJ81 — 2022 Car Culture Mountain Drifters 4/5**
+
+Mode:
+
+- exact-code query only;
+- context query OFF;
+- read-only;
+- original new/carded market condition;
+- no candidates/offers/signals persisted.
+
+Observed result:
+
+- raw eBay results across IT/DE/FR/ES/GB: **27**
+- unique listings after dedupe: **19**
+- accepted: **2**
+- needs review: **11**
+- rejected: **6**
+
+Marketplace raw counts:
+
+- IT: **7**
+- DE: **2**
+- FR: **0**
+- ES: **8**
+- GB: **10**
+
+Reason-code distribution:
+
+- `IDENTIFIER_NOT_IN_TITLE`: **11**
+- `MATTEL_IDENTIFIER_ITEM_DETAILS`: **1**
+- `CASTING_NOT_CONFIRMED`: **6**
+- `MATTEL_IDENTIFIER_EXACT`: **1**
+
+Second-pass detail enrichment:
+
+- matched: **1**
+- no match: **4**
+- limit reached: **7**
+- not needed: **7**
+
+Interpretation:
+
+- the accepted set is high-confidence;
+- one valid HCJ81 listing was recovered through structured eBay item details even though the code was absent from the title;
+- six false positives were rejected because the target casting could not be confirmed;
+- eleven candidates remain review-only primarily because sellers omitted the Mattel code from the title;
+- the previous diagnostic cap of 5 detail lookups was too low to resolve the remaining review population.
+
+One accepted listing recovered through item details:
+
+- eBay IT
+- title: `Hot Wheels Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline Rosso 2022`
+- item price: **€42.57**
+- shipping: **€13.46**
+- reason: `MATTEL_IDENTIFIER_ITEM_DETAILS`
+
+This is diagnostic evidence only and is **not** yet a TrackDash ASK observation.
+
+Decision:
+
+- do **not** enable the broader context query yet;
+- first exhaust the exact-query review population more thoroughly;
+- increase the controlled read-only `getItem` diagnostic cap from **5 to 15**;
+- keep the matcher thresholds unchanged.
+
+Next audit should re-run HCJ81 exact-query only with the higher detail depth. If review volume materially collapses while accepted precision remains clean, then context-query recall can be tested.
