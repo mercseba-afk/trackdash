@@ -481,3 +481,59 @@ Image policy for the pilot:
 - UI uses TrackDash placeholder art until a publishable/licensed canonical image is available.
 
 No market observations have been seeded. ASK/SOLD/MV remain a separate next step.
+
+
+### 2026-09-23 — Step 7: private Hot Wheels pilot Preview
+
+Status: **READY — private Vercel Preview QA passed; not merged to Production**.
+
+Preview branch:
+
+`feat/hotwheels-pilot-shell`
+
+Preview commit:
+
+`4036fbee1227b5bf0e6cdcce3a74e6008f45189c`
+
+Vercel Preview deployment:
+
+`dpl_BPBRn4f68WvPNSvcX3RCUr5Ws8jX`
+
+Stable branch Preview hostname:
+
+`trackdash-git-feat-hotwheels-pilot-shell-mercseba-8773.vercel.app`
+
+QA verified:
+
+- `/hotwheels/catalog` → HTTP 200;
+- all five pilot identifiers are rendered: `HWF11`, `HWR91`, `JBC35`, `JBL16`, `JBK59`;
+- exact Release detail route for the RLC Miura `HWF11` → HTTP 200;
+- Release detail renders the expected identity and the intentional “Initial scan not run yet” market placeholder;
+- Production `/catalog` still renders **55 Mini 4WD products**;
+- Hot Wheels is **not exposed on Production** because PR #212 is still unmerged and the Production Hot Wheels gate remains disabled.
+
+Preview authentication correction:
+
+- root `proxy.ts` now treats `/hotwheels` as public-content routing, so signed-out Preview visitors can reach the pilot;
+- this does not open Production Hot Wheels by itself: the server-side vertical gate remains authoritative.
+
+Preview-only environment warning:
+
+- Vercel reports a non-fatal R3 bootstrap warning because the Preview environment does not currently expose `SUPABASE_SECRET_KEY` / `SUPABASE_SERVICE_ROLE_KEY`;
+- Hot Wheels pilot catalog/detail pages still render HTTP 200;
+- Production has not shown this as a Hot Wheels runtime regression;
+- do not modify the shared Market Engine merely to silence this Preview environment warning.
+
+Deployment discipline restored after QA:
+
+- automatic Vercel previews are disabled again for `feat/hotwheels-*`;
+- no additional Preview should be created for ordinary follow-up commits unless a new visual/runtime QA checkpoint explicitly requires one.
+
+### Exact next Hot Wheels action
+
+1. keep PR #212 unmerged while the user reviews the private Preview;
+2. start the first exact-release Market Intelligence scan on the five pilot Releases;
+3. validate eBay EU ASK matching first;
+4. validate a sustainable SOLD source separately before treating third-party SOLD data as a Production dependency;
+5. attach market observations to the existing shared TrackDash Market Engine rather than creating a Hot Wheels-specific price engine;
+6. only after identity + market + Collection/Wishlist parity are proven, decide the next Production merge/public-opening checkpoint.
