@@ -1488,3 +1488,164 @@ No Mini 4WD matcher/worker behavior is changed.
 4. manually inspect any newly accepted context-only listings via runtime sample;
 5. if precision remains clean, then enable the broader context query for HCJ81 to measure recall;
 6. keep all Hot Wheels market writes disabled until this validation is complete.
+
+
+### 2026-09-23 — Step 17: Italy-delivered ASK cost semantics
+
+Status: **IMPLEMENTED ON BRANCH — read-only audit only; no Market Engine writes**.
+
+This step addresses two goals from the first real HCJ81 audits:
+
+1. recover valid Hot Wheels listings without becoming overly strict;
+2. make ASK values realistic for an Italian/European collector by considering shipping and origin.
+
+#### Matching policy — less drastic without becoming fuzzy
+
+The second HCJ81 exact-query audit exhausted all structured eBay item-detail lookups:
+
+- 19 unique listings;
+- 2 accepted;
+- 9 review;
+- 8 rejected;
+- 1 target HCJ81 recovered via structured item details;
+- 2 sibling Release codes detected and correctly rejected;
+- no remaining lookup-limit cases.
+
+The remaining review population genuinely lacked usable Mattel identifiers.
+
+TrackDash now allows a second high-precision acceptance path when the catalog itself provides an exact commercial tuple:
+
+- subseries + exact series position;
+- subseries + exact collector number;
+- line + exact collector number.
+
+Example:
+
+- HCJ81 = `Mountain Drifters + 4/5`
+- HCK01 = `Mountain Drifters + 0/5 + Chase`
+- HKF21 = `Boulevard + #70`
+
+Reason code:
+
+`RELEASE_CONTEXT_DISCRIMINATORS_EXACT`
+
+Still **not** sufficient on their own:
+
+- generic year;
+- generic color;
+- casting-only wording;
+- broad “Premium” wording.
+
+This preserves real recall without turning TrackDash into a fuzzy title matcher.
+
+#### Shipping / delivered-cost policy for Hot Wheels
+
+The Hot Wheels audit now requests eBay results with:
+
+`deliveryCountry:IT`
+
+This restricts discovery to items eBay says can be shipped to Italy.
+
+Important: TrackDash does **not** infer a postal code. eBay's optional `contextualLocation` with postal code is not used until a real destination ZIP is intentionally available. No fake ZIP is introduced.
+
+The eBay transport now records, when supplied by Browse:
+
+- real item-location country;
+- shipping estimate country;
+- item price;
+- shipping amount.
+
+These fields are additive. Existing Mini 4WD search callers do not pass a delivery country and keep their previous transport behavior.
+
+#### EUR audit cost semantics
+
+Each Hot Wheels audit listing now computes:
+
+- `itemPriceEUR`;
+- `shippingEUR`;
+- `shippingAdjustedSubtotalEUR`;
+- `effectiveCostEUR`;
+- `costBasis`.
+
+Supported cost bases:
+
+- `delivered_eu`
+  - origin country is in the EU;
+  - shipping amount is known;
+  - effective cost = item + shipping in EUR;
+  - eligible to become a future European/Italian Lowest Asking Price after market-write validation.
+
+- `extra_eu_import_unknown`
+  - origin is outside the EU;
+  - item + visible shipping remains useful market context;
+  - effective European landed cost stays unknown because VAT/import/duty handling is not safely inferred;
+  - cannot automatically undercut a verified EU delivered offer.
+
+- `shipping_unknown`
+  - item is shippable to Italy but Browse returned no usable shipping amount;
+  - item-only price remains context.
+
+- `origin_unknown`
+  - shipping may be visible but the real item origin is not available;
+  - do not label it delivered.
+
+- `fx_unavailable`
+  - currency cannot be reliably converted for the audit.
+
+Free shipping naturally produces:
+
+`effectiveCostEUR = itemPriceEUR`
+
+#### Why this is stricter than a raw eBay price but not overly conservative
+
+TrackDash does **not** discard extra-EU listings merely because landed cost is incomplete.
+
+They remain:
+
+- valid identity/availability evidence;
+- useful price context;
+- potentially useful for trend/market breadth later.
+
+They simply do not become the canonical European delivered minimum unless the true landed basis is known.
+
+Likewise, a high shipping charge does not cause rejection. If it is a real EU-delivery cost, the listing remains valid and its higher effective cost simply loses against a cheaper delivered offer.
+
+This preserves real market information while preventing misleading €15 item-only listings from beating a genuine €25 delivered offer.
+
+#### Admin audit UI
+
+The protected Hot Wheels eBay audit table now shows, in IT/EN:
+
+- item price;
+- shipping;
+- effective/adjusted EUR cost;
+- cost-basis label;
+- origin country;
+- shipping-estimate country.
+
+The Production diagnostic log also reports:
+
+- lowest accepted EU delivered cost;
+- accepted delivered-offer count;
+- cost basis and origin for sampled accepted/review listings.
+
+#### eBay API basis
+
+Current eBay Browse documentation confirms:
+
+- `deliveryCountry` filters for items shippable to the specified country;
+- `itemLocation.country` exposes item origin;
+- `X-EBAY-C-ENDUSERCTX contextualLocation` improves calculated shipping and requires a postal code where applicable.
+
+TrackDash uses only the information it can verify and leaves postal-code contextual shipping for a later explicit buyer-location feature.
+
+### Exact next Hot Wheels action
+
+1. run CI on context-discriminator + destination-aware audit changes;
+2. deploy only after `typecheck` + `verify` are green;
+3. re-run HCJ81 with exact-code query only;
+4. inspect newly accepted context-only listings and Italy-delivered cost diagnostics;
+5. confirm that `Mountain Drifters + 4/5` improves recall without accepting HCK01 or other siblings;
+6. confirm realistic EU delivered minimum;
+7. only then enable the broader context query for HCJ81;
+8. keep market candidates/offers/signals at zero until this validation is explicitly accepted.
