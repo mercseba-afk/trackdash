@@ -122,6 +122,47 @@ Any future material TrackDash change must update this file in the same work unit
 
 ---
 
+## HOT WHEELS SECOND VERTICAL — WORK IN PROGRESS (NOT MERGED)
+
+A dedicated operational record now exists at:
+
+`docs/HOTWHEELS_VERTICAL.md`
+
+That file is the detailed source of truth for Hot Wheels-specific architecture, roadmap, source strategy, implementation log and next actions.
+
+Current branch:
+
+`feat/hotwheels-multivertical-foundation`
+
+Current PR:
+
+**#211 — Add multi-vertical foundation for Hot Wheels**
+
+Branch base:
+
+`0e091747ad6a4944ba16aa0c5bfecda8c0f90168`
+
+Current implementation state:
+
+- central vertical registry added with `mini4wd` + `hotwheels`;
+- `ProductCategory` generalized to the central vertical type;
+- catalog mapper now resolves the canonical DB category instead of hardcoding `mini4wd`;
+- no Hot Wheels DB rows, Releases, routes or public UI have been added yet;
+- no Collection, Wishlist, Scanner, Market Engine or Mini 4WD catalog behavior has intentionally changed;
+- Mini 4WD preservation is a hard invariant for the whole integration.
+
+Deployment discipline for this work:
+
+- develop multiple small steps on the same Hot Wheels branch;
+- rely on GitHub Actions `typecheck` + `verify` between steps;
+- suppress automatic Vercel Preview builds on the working branch where possible;
+- merge only at meaningful macro-checkpoints;
+- use one Production deploy + QA per macro-checkpoint rather than one deploy per small implementation step.
+
+Do not infer Hot Wheels status from chat memory: read `docs/HOTWHEELS_VERTICAL.md` first, then this file.
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat, read in this order:
