@@ -46,7 +46,7 @@ export function MarketSignalInline({
       )}
       {hasValue && showStartingPrice && hasObservedPrice ? (
         <span className="text-xs text-muted-foreground">
-          {it ? "Prezzo osservato" : "Observed price"} <span className="font-medium text-foreground">{formatMoney(observedPrice)}</span>
+          {observedMarketAskLabel(signal, it)} <span className="font-medium text-foreground">{formatMoney(observedPrice)}</span>
           {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
         </span>
       ) : null}
