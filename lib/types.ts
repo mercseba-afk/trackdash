@@ -52,6 +52,7 @@ export type Series =
   | "Mainline"
   | "Boulevard"
   | "Car Culture"
+  | "Hot Wheels"
 
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Very Rare" | "Grail"
 
