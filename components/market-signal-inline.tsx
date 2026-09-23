@@ -4,7 +4,7 @@ import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import { TrendIndicator } from "@/components/market-bits"
-import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
   signal,
@@ -24,12 +24,7 @@ export function MarketSignalInline({
   const observedPrice = observedMarketPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
-  const observedDirection =
-    observedTrend != null && observedTrend >= 5
-      ? (it ? "Prezzo osservato in salita" : "Observed price rising")
-      : observedTrend != null && observedTrend <= -5
-        ? (it ? "Prezzo osservato in calo" : "Observed price falling")
-        : null
+  const observedDirection = observedMarketAskDirection(observedTrend, it)
 
   return (
     <div className="flex flex-col gap-1">
@@ -40,7 +35,7 @@ export function MarketSignalInline({
         </div>
       ) : hasObservedPrice ? (
         <>
-          <span className="text-xs font-medium text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</span>
+          <span className="text-xs font-medium text-muted-foreground">{observedMarketAskLabel(signal, it)}</span>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-lg font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</span>
             {observedTrend != null ? <TrendIndicator value={observedTrend} className="text-xs" /> : null}
