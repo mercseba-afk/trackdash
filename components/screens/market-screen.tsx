@@ -197,7 +197,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b7a42]">Market Value</span>
             <Badge variant="outline" className="border-[#e8d8ba] bg-[#fffaf1] text-[#785c30]">{it ? "Dati limitati" : "Limited data"}</Badge>
           </div>
-          <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
+          <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Mercato in osservazione" : "Market under observation"}</p>
           <p className="mt-2 text-sm leading-6 text-[#77684f]">{it ? "Mostriamo ciò che sappiamo già, ma aspettiamo dati sufficienti prima di pubblicare una stima." : "We show what is already known, but wait for enough data before publishing an estimate."}</p>
         </div>
       </section>
