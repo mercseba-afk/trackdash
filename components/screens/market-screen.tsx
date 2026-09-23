@@ -19,7 +19,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
 import type { Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -149,7 +149,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
           <div className="grid grid-cols-2 gap-3">
             <MiniStat label={it ? "Release con dati" : "Releases with data"} value={String(rows.length)} />
             <MiniStat label={it ? "Valori disponibili" : "Available values"} value={String(valued.length)} />
-            <MiniStat label={it ? "Offerte trovate" : "Offers found"} value={String(currentOffers)} />
+            <MiniStat label={it ? "Richieste venditori" : "Seller asks"} value={String(currentOffers)} />
             <MiniStat label={it ? "Trend disponibili" : "Available trends"} value={String(trends.length)} />
           </div>
         </div>
@@ -215,7 +215,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
 
         {user ? (
           <>
-            <Alert className="mb-5 bg-white"><Info /><AlertTitle>{it ? "Come leggere questi dati" : "How to read this data"}</AlertTitle><AlertDescription>{it ? "I prezzi degli annunci aiutano a capire la disponibilità, mentre il valore stimato dà più peso alle vendite concluse. I trend compaiono solo quando c'è abbastanza storico." : "Listings help describe availability, while estimated value gives more weight to completed sales. Trends appear only when there is enough history."}</AlertDescription></Alert>
+            <Alert className="mb-5 bg-white"><Info /><AlertTitle>{it ? "Come leggere questi dati" : "How to read this data"}</AlertTitle><AlertDescription>{it ? "Le richieste dei venditori negli annunci aiutano a leggere il mercato corrente, mentre il Valore stimato dà più peso alle vendite concluse. I trend compaiono solo quando c'è abbastanza storico comparabile." : "Seller asks in listings help describe the current market, while Estimated value gives more weight to completed sales. Trends appear only when there is enough comparable history."}</AlertDescription></Alert>
 
             <Tabs defaultValue="values">
               <TabsList className="bg-white"><TabsTrigger value="values"><Activity data-icon="inline-start" />{it ? "Valori" : "Values"}</TabsTrigger><TabsTrigger value="trends"><TrendingUp data-icon="inline-start" />{it ? "Trend" : "Trends"}</TabsTrigger></TabsList>
@@ -281,7 +281,7 @@ function ValueExample({ row }: { row: Row }) {
       <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-xs text-[#9fb6d5]">
         {row.signal.soldUnits > 0 ? <span>{row.signal.soldUnits} {it ? "vendite" : "sold units"}</span> : null}
         {row.signal.retailSourceCount > 0 ? <span>{row.signal.retailSourceCount} retail</span> : null}
-        {row.signal.currentOfferCount > 0 ? <span>{row.signal.currentOfferCount} {it ? "offerte" : "offers"}</span> : null}
+        {row.signal.currentOfferCount > 0 ? <span>{row.signal.currentOfferCount} {it ? "richieste venditori" : "seller asks"}</span> : null}
       </div>
     </div>
   )
@@ -315,11 +315,11 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
       <div className="max-w-40 text-right">
         {forming
           ? observedPrice != null
-            ? <><p className="text-[10px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p><p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(observedPrice)}</p></>
+            ? <><p className="text-[10px] text-muted-foreground">{observedMarketAskLabel(row.signal, it)}</p><p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(observedPrice)}</p></>
             : <p className="text-xs font-medium text-[#6f7f91]">{it ? "Dati in verifica" : "Data under review"}</p>
           : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
         {trend != null ? <TrendIndicator value={trend} className="justify-end text-xs" /> : null}
-        {!forming && observedPrice != null ? <p className="text-[11px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"} {formatMoney(observedPrice)}</p> : null}
+        {!forming && observedPrice != null ? <p className="text-[11px] text-muted-foreground">{observedMarketAskLabel(row.signal, it)} {formatMoney(observedPrice)}</p> : null}
       </div>
     </Link>
   )

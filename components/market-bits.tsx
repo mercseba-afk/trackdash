@@ -4,7 +4,7 @@ import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react"
 import type { MarketEstimate, Rarity } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { useI18n } from "@/lib/i18n"
-import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { RARITY_STYLE, formatMoney, formatPercent } from "@/lib/format"
@@ -145,7 +145,7 @@ export function MarketSignalCard({
           </div>
         ) : hasObservedPrice ? (
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p>
+            <p className="text-sm font-medium text-muted-foreground">{observedMarketAskLabel(signal, it)}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <p className="text-2xl font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice!)}</p>
               {observedTrend != null ? <TrendIndicator value={observedTrend} className="text-sm" /> : null}

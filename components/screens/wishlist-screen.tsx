@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { enrichWishlist, type EnrichedWishlistItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
+import { observedMarketAskLabel } from "@/lib/market/presentation"
 import type { Product, WishlistPriority } from "@/lib/types"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
@@ -54,7 +55,7 @@ export function WishlistScreen({ catalogProducts }: { catalogProducts: Product[]
         <Card className="flex-1 py-0"><CardContent className="flex items-center justify-between px-4 py-3"><span className="text-sm text-muted-foreground">{t("wishlist.complete")}</span><span className="text-lg font-semibold tabular-nums">{formatMoney(totalTarget)}</span></CardContent></Card>
         <Card className="flex-1 py-0"><CardContent className="flex items-center justify-between px-4 py-3"><span className="text-sm text-muted-foreground">{t("wishlist.targetPrice")}</span><span className="text-lg font-semibold tabular-nums text-success">{atTarget.length}</span></CardContent></Card>
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">{it ? "Il confronto con il target usa il Prezzo osservato corrente quando disponibile. Il Valore stimato resta separato e viene mostrato solo quando TrackDash dispone di dati di mercato affidabili per la Release." : "Target matching uses the current Observed price when available. Estimated value remains separate and is shown only when TrackDash has reliable market data for the Release."}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">{it ? "Il confronto con il target usa la richiesta corrente osservata quando disponibile. Le richieste dei venditori restano separate dal Valore stimato, che viene mostrato solo quando TrackDash dispone di dati di mercato affidabili per la Release." : "Target matching uses the current observed seller ask when available. Seller asks remain separate from Estimated value, which is shown only when TrackDash has reliable market data for the Release."}</p>
       <div className="grid gap-3">
         {sorted.map((entry) => <WishlistRow key={entry.item.id} entry={entry} onRemove={async () => { try { await removeFromWishlist(entry.item.id); toast.success(it ? `${entry.product.name} rimosso dai desideri` : `Removed ${entry.product.name} from wishlist`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }} onAcquire={async () => { try {
           const canonicalRelease = entry.release
@@ -90,10 +91,10 @@ function WishlistRow({ entry, onRemove, onAcquire }: { entry: EnrichedWishlistIt
 
 function MarketReadout({ entry, it, marketLabel }: { entry: EnrichedWishlistItem; it: boolean; marketLabel: string }) {
   if (entry.marketValue != null) {
-    return <span className="inline-flex items-center gap-1">{marketLabel} <span className="font-medium text-foreground">{formatMoney(entry.marketValue)}</span>{entry.marketSignal?.trendPercent != null ? <TrendIndicator value={entry.marketSignal.trendPercent} className="text-xs" /> : null}{entry.currentPrice != null ? <span>· {it ? "Prezzo osservato" : "Observed price"} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span> : null}</span>
+    return <span className="inline-flex items-center gap-1">{marketLabel} <span className="font-medium text-foreground">{formatMoney(entry.marketValue)}</span>{entry.marketSignal?.trendPercent != null ? <TrendIndicator value={entry.marketSignal.trendPercent} className="text-xs" /> : null}{entry.currentPrice != null ? <span>· {observedMarketAskLabel(entry.marketSignal, it)} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span> : null}</span>
   }
   if (entry.currentPrice != null) {
-    return <span className="inline-flex items-center gap-1">{it ? "Prezzo osservato" : "Observed price"} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span>
+    return <span className="inline-flex items-center gap-1">{observedMarketAskLabel(entry.marketSignal, it)} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span>
   }
   if (entry.marketSignal) {
     return <span>{it ? "Mercato in osservazione" : "Market under observation"}</span>

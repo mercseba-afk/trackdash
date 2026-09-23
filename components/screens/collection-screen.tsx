@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -154,8 +154,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.count || summary.acquisitionCostCount < summary.count ? (
                 <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
                   {it
-                    ? "Il valore indicativo usa il Valore stimato quando disponibile e, in alternativa, il Prezzo osservato della stessa Release. Il rendimento personale resta più conservativo e viene calcolato solo quando esiste un Valore stimato compatibile con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
-                    : "Value and performance are shown only when TrackDash has reliable market data compatible with the copy condition. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day); if the date or rate is unavailable, performance remains uncalculated."}
+                    ? "Il valore indicativo usa il Valore stimato quando disponibile e, in alternativa, una richiesta corrente osservata per la stessa Release. Le richieste dei venditori restano separate dalle vendite concluse. Il rendimento personale resta più conservativo e viene calcolato solo quando esiste un Valore stimato compatibile con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
+                    : "Indicative value uses Estimated value when available and otherwise a current observed seller ask for the same Release. Seller asks remain separate from completed sales. Personal performance stays more conservative and is calculated only when a compatible Estimated value exists. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day)."}
                 </p>
               ) : null}
             </div>
@@ -286,7 +286,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
             <p className="mt-2 text-xs text-muted-foreground">
               {summary.marketReferenceCount}/{summary.count} {it ? "copie con un riferimento di mercato disponibile" : "copies with an available market reference"}
               {summary.marketReferenceCount > 0 ? (
-                <span> · {summary.marketValueCount} {it ? "Valore stimato" : "Estimated"} · {summary.observedPriceCount} {it ? "Prezzo osservato" : "Observed"}</span>
+                <span> · {summary.marketValueCount} {it ? "Valore stimato" : "Estimated"} · {summary.observedPriceCount} {it ? "con richieste osservate" : "with observed asks"}</span>
               ) : null}
             </p>
             <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
@@ -311,12 +311,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
   const observedPrice = observedMarketPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal?.askTrendPercent ?? null : null
-  const observedDirection =
-    observedTrend != null && observedTrend >= 5
-      ? (it ? "Prezzo osservato in salita" : "Observed price rising")
-      : observedTrend != null && observedTrend <= -5
-        ? (it ? "Prezzo osservato in calo" : "Observed price falling")
-        : null
+  const observedDirection = observedMarketAskDirection(observedTrend, it)
 
   if (entry.marketValue != null) {
     return (
@@ -333,7 +328,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         </div>
         {hasObservedPrice ? (
           <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
-            {it ? "Prezzo osservato" : "Observed price"} <strong className="font-medium tabular-nums text-foreground">{formatMoney(observedPrice)}</strong>
+            {observedMarketAskLabel(signal, it)} <strong className="font-medium tabular-nums text-foreground">{formatMoney(observedPrice)}</strong>
             {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
           </p>
         ) : null}
@@ -345,10 +340,10 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
     return (
       <div className="min-w-0">
         <p className="text-[11px] leading-tight text-muted-foreground">
-          {it ? "Prezzo osservato" : "Observed price"} <strong className="text-sm font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</strong>
+          {observedMarketAskLabel(signal, it)} <strong className="text-sm font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</strong>
         </p>
         <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">
-          {observedDirection ?? (it ? "Mercato europeo osservato" : "Observed European market")}
+          {observedDirection ?? (it ? "Richieste venditori osservate sul mercato europeo" : "Seller asks observed in the European market")}
         </p>
       </div>
     )

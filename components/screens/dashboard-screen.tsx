@@ -14,6 +14,7 @@ import {
   topValued,
 } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
+import { observedMarketAskLabel } from "@/lib/market/presentation"
 import type { Product } from "@/lib/types"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -116,7 +117,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                   <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
                 ) : entry.observedPrice != null ? (
                   <div>
-                    <p className="text-[10px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p>
+                    <p className="text-[10px] text-muted-foreground">{observedMarketAskLabel(entry.marketSignal, it)}</p>
                     <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.observedPrice)}</p>
                   </div>
                 ) : (
@@ -140,7 +141,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                 <Link key={entry.item.id} href={entry.release ? `/catalog/${entry.product.id}/releases/${entry.release.id}` : `/catalog/${entry.product.id}`} className="flex items-center gap-3 rounded-lg border border-border p-2 hover:bg-accent">
                   <ProductImage product={entry.product} release={entry.release} size="sm" className="h-12 w-16 shrink-0" />
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><div className="mt-1 flex items-center gap-1.5"><RarityBadge rarity={entry.release?.rarity ?? entry.product.rarity} />{entry.belowTarget && <Badge className="bg-success text-white">{t("dashboard.target")}</Badge>}</div></div>
-                  <div className="text-right">{entry.marketValue != null ? <p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : entry.currentPrice != null ? <><p className="text-[10px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.currentPrice)}</p></> : <p className="text-xs text-muted-foreground">—</p>}{entry.item.targetPrice && <p className="text-xs text-muted-foreground">{t("wishlist.target")} {formatMoney(entry.item.targetPrice)}</p>}</div>
+                  <div className="text-right">{entry.marketValue != null ? <p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : entry.currentPrice != null ? <><p className="text-[10px] text-muted-foreground">{observedMarketAskLabel(entry.marketSignal, it)}</p><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.currentPrice)}</p></> : <p className="text-xs text-muted-foreground">—</p>}{entry.item.targetPrice && <p className="text-xs text-muted-foreground">{t("wishlist.target")} {formatMoney(entry.item.targetPrice)}</p>}</div>
                 </Link>
               ))}
             </div>
