@@ -7,7 +7,139 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS DEFINITIVE CATALOG MODEL CHECKPOINT
+
+**This checkpoint supersedes older Hot Wheels branch/catalog wording below while preserving all frozen Mini 4WD market semantics.**
+
+### Global runtime baseline
+
+Verified immediately before recording this checkpoint:
+
+- GitHub `main`: **`7622532749372909c6589b50be447114d9260db5`**
+- Vercel Production: **`dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`**
+- Production state: **READY**
+- `https://trackdash.it/api/version`: **`7622532749372909c6589b50be447114d9260db5`**
+- current Hot Wheels working branch: **`feat/hotwheels-pilot-shell`**
+- current Hot Wheels PR: **#212**
+- Hot Wheels public gate in Production: **closed**
+- Mini 4WD public Production behavior: unchanged
+
+The existing public market terminology and Market Engine rules documented in the previous checkpoint remain fully authoritative.
+
+### Hot Wheels identity hierarchy — FINAL FOR PILOT
+
+TrackDash Hot Wheels now uses one frozen hierarchy:
+
+**Product = exact Casting → ProductRelease = meaningful commercial Release → Hot Wheels Subvariant = minor physical/package difference**
+
+Do not create a separate family entity.
+
+Do not create a new Release merely for a regional card, minor wheel/base/interior/window/deco difference or similar manufacturing/package variance.
+
+Those belong under `hotwheels_release_subvariants` unless reliable evidence later proves that the item is a distinct commercial/market identity.
+
+### Live Hot Wheels data state
+
+Current live Supabase counts:
+
+- Mini 4WD Products: **55**
+- Hot Wheels Products/Castings: **5**
+- first complete Hot Wheels casting family: **LB-ER34 Super Silhouette Nissan Skyline**
+- LB-ER34 canonical Releases: **9**
+- LB-ER34 canonical/debut Release: **HCJ81 — 2022 Mountain Drifters 4/5**
+- LB-ER34 casting sources: **3**
+
+The five original pilot identities remain represented inside the wider pilot catalog:
+
+- `HWF11`
+- `HWR91`
+- `JBC35`
+- `JBL16`
+- `JBK59`
+
+### Definitive Hot Wheels schema layers
+
+Already live and retained:
+
+- `release_identifiers`
+- `hotwheels_release_details`
+- `hotwheels_release_subvariants`
+
+New casting layer from migration `0151_hotwheels_casting_details.sql`:
+
+- `hotwheels_casting_details`
+- `hotwheels_casting_sources`
+
+Casting facts may include, when verified:
+
+- model/real-car reference
+- designer
+- debut year
+- debut series
+- scale
+- verification state
+- casting-level metadata
+
+Release facts continue to include line/subseries/mix/collector/chase/variation/country/wheels/exclusivity/master-series/theme/packaging where verified.
+
+### LB-ER34 verified casting facts
+
+- designer: **Mark Jones**
+- casting debut: **2022**
+- debut series: **Car Culture: Mountain Drifters**
+- model reference: **Nissan Skyline R34 with Liberty Walk LB-ER34 Super Silhouette body kit**
+- Release count: **9**
+- casting provenance rows: **3**
+
+### UI invariant — Italiano / English
+
+Every Hot Wheels user-facing change must ship with both:
+
+- **Italiano**
+- **English**
+
+Current pilot catalog/detail already follows this rule.
+
+Catalog UI now distinguishes:
+
+- distinct Castings
+- exact Releases
+
+Release detail shows Casting/family facts separately from Release-specific facts.
+
+### Validation
+
+Latest code checkpoint before the casting migration:
+
+- PR #212 branch `typecheck`: **SUCCESS**
+- PR #212 branch `verify`: **SUCCESS**
+
+Live DB validation:
+
+- new casting tables created successfully
+- LB-ER34 casting row verified live
+- LB-ER34 remains exactly **9 Releases**
+- category counts remain **55 Mini 4WD / 5 Hot Wheels**
+- explicit public-read RLS policies exist on both new casting tables
+- existing unrelated Supabase advisor warnings were not changed by this work
+
+### Exact next Hot Wheels action
+
+The Hot Wheels catalog model is now **structurally frozen for the pilot**.
+
+Next work is Market Intelligence, not more catalog-schema redesign:
+
+1. define exact eBay EU ASK query/exclusion rules per pilot Release;
+2. run a controlled ASK audit over the five original pilot identities plus all LB-ER34 Releases;
+3. measure exact-release matching quality;
+4. validate SOLD source/API licensing separately;
+5. feed accepted observations into the existing shared TrackDash Market Engine;
+6. validate Collection/Wishlist behavior with real Hot Wheels signals;
+7. only then decide the next Production merge/public-opening checkpoint.
+
+---
+
+## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-23 — MARKET UI
 
 **This section supersedes older runtime/UI wording and version checkpoints below.**  
 Older sections remain as historical audit trail unless explicitly restated here.
