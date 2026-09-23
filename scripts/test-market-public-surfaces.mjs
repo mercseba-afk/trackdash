@@ -92,7 +92,8 @@ if (!marketOverview.includes("Prezzo osservato")) {
 if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("Trend prezzo osservato")) {
   errors.push("Shared market overview does not expose collector-facing market trend context")
 }
-if (!marketOverview.includes("askTrendWindowDays >= 7") || !marketOverview.includes("currentOfferCount >= 3")) {
+const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
+if (!marketPresentation.includes("askTrendWindowDays >= 7") || !marketPresentation.includes("currentOfferCount >= 3")) {
   errors.push("Observed-price trend is not guarded against thin or too-short ASK windows")
 }
 if (!marketOverview.includes("costo effettivo")) {
@@ -130,6 +131,12 @@ if (publicMarket.includes("startingItemPriceEUR: observedPriceEUR")) {
   errors.push("Public market service is re-deriving the canonical starting price from offer-state ordering")
 }
 
+const startingIndex = marketPresentation.indexOf("startingEffectiveCostEUR")
+const activeIndex = marketPresentation.indexOf("activeAnchorEUR", startingIndex)
+if (startingIndex < 0 || activeIndex < 0 || startingIndex > activeIndex) {
+  errors.push("Shared market presentation must use canonical starting effective cost before active anchor")
+}
+
 for (const file of [
   "components/release-market-overview.tsx",
   "components/screens/collection-screen.tsx",
@@ -137,14 +144,57 @@ for (const file of [
   "lib/analytics.ts",
 ]) {
   const source = fs.readFileSync(file, "utf8")
-  const startingIndex = source.indexOf("startingEffectiveCostEUR")
-  const activeIndex = source.indexOf("activeAnchorEUR", startingIndex)
-  if (startingIndex < 0 || activeIndex < 0 || startingIndex > activeIndex) {
-    errors.push(`${file}: observed-price priority must use canonical starting effective cost before active anchor`)
+  if (!source.includes("@/lib/market/presentation")) {
+    errors.push(`${file}: market presentation rules are not centralized`)
   }
 }
 
 const marketBits = fs.readFileSync("components/market-bits.tsx", "utf8")
+const productDetail = fs.readFileSync("components/screens/product-detail-screen.tsx", "utf8")
+for (const legacyToken of ["MarketSignalCard", "MarketDataEmptyCard", "product.marketOriginal", "product.howValue"]) {
+  if (productDetail.includes(legacyToken)) {
+    errors.push(`Product family detail still contains legacy family-market token ${JSON.stringify(legacyToken)}`)
+  }
+}
+
+const collectionItemPage = fs.readFileSync("app/collection/[id]/page.tsx", "utf8")
+if (!collectionItemPage.includes("fetchCatalogProductById") || !collectionItemPage.includes("catalogProduct={catalogProduct}")) {
+  errors.push("Collection item page is not loading the canonical catalog product")
+}
+if (!collectionItemScreen.includes("catalogProduct") || !collectionItemScreen.includes("enrichCollection([item], marketSignals, [catalogProduct])")) {
+  errors.push("Collection item detail can drift back to the local catalog instead of the canonical DB product")
+}
+
+const dashboardPage = fs.readFileSync("app/dashboard/page.tsx", "utf8")
+const dashboardScreen = fs.readFileSync("components/screens/dashboard-screen.tsx", "utf8")
+const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.tsx", "utf8")
+if (!dashboardPage.includes("fetchCatalogProducts") || !dashboardScreen.includes("catalogProducts")) {
+  errors.push("Dashboard is not fed from the canonical catalog")
+}
+if (dashboardMarket.includes("@/lib/data/corrected-products") || dashboardMarket.includes("PRODUCTS.flatMap")) {
+  errors.push("Dashboard market overview still uses the local catalog copy")
+}
+
+const marketPage = fs.readFileSync("app/market/page.tsx", "utf8")
+const marketScreen = fs.readFileSync("components/screens/market-screen.tsx", "utf8")
+if (!marketPage.includes("fetchCatalogProducts") || !marketScreen.includes("products.flatMap")) {
+  errors.push("Market page is not fed from the canonical catalog")
+}
+if (marketScreen.includes("@/lib/data/corrected-products") || marketScreen.includes("PRODUCTS.flatMap")) {
+  errors.push("Market screen still uses the local catalog copy")
+}
+
+const wishlistPage = fs.readFileSync("app/wishlist/page.tsx", "utf8")
+const wishlistScreen = fs.readFileSync("components/screens/wishlist-screen.tsx", "utf8")
+if (!wishlistPage.includes("fetchCatalogProductsByIds") || !wishlistScreen.includes("enrichWishlist(wishlist, marketSignals, catalogProducts)")) {
+  errors.push("Wishlist is not resolved against the canonical catalog")
+}
+for (const storefrontToken of ["In vendita da", "Listed from", "Disponibile da", "Available from"]) {
+  if (marketBits.includes(storefrontToken) || productDetail.includes(storefrontToken) || collectionScreen.includes(storefrontToken) || wishlistScreen.includes(storefrontToken)) {
+    errors.push(`Collector surfaces still expose storefront wording ${JSON.stringify(storefrontToken)}`)
+  }
+}
+
 if (!marketBits.includes("trendWindowMonths") || !marketBits.includes("TrendIndicator")) {
   errors.push("Collector market UI is missing the value/trend indicator")
 }
