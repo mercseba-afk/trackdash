@@ -8,7 +8,7 @@ import { relations } from "drizzle-orm"
 import { productImages, productReleases, products, releaseImages, releaseSources } from "./catalog"
 import { brands, categories } from "./taxonomy"
 import { releaseIdentifiers } from "./identifiers"
-import { hotwheelsReleaseDetails, hotwheelsReleaseSubvariants } from "./hotwheels"
+import { hotwheelsCastingDetails, hotwheelsCastingSources, hotwheelsReleaseDetails, hotwheelsReleaseSubvariants } from "./hotwheels"
 
 export const brandsRelations = relations(brands, ({ many }) => ({
   products: many(products),
@@ -70,10 +70,14 @@ export const hotwheelsReleaseSubvariantsRelations = relations(hotwheelsReleaseSu
 }))
 
 
-export const hotwheelsCastingDetailsRelations = relations(hotwheelsCastingDetails, ({ one }) => ({
+export const hotwheelsCastingDetailsRelations = relations(hotwheelsCastingDetails, ({ one, many }) => ({
   product: one(products, { fields: [hotwheelsCastingDetails.productId], references: [products.id] }),
+  sources: many(hotwheelsCastingSources),
 }))
 
-export const hotwheelsReleaseSubvariantsRelations = relations(hotwheelsReleaseSubvariants, ({ one }) => ({
-  release: one(productReleases, { fields: [hotwheelsReleaseSubvariants.releaseId], references: [productReleases.id] }),
+export const hotwheelsCastingSourcesRelations = relations(hotwheelsCastingSources, ({ one }) => ({
+  casting: one(hotwheelsCastingDetails, {
+    fields: [hotwheelsCastingSources.productId],
+    references: [hotwheelsCastingDetails.productId],
+  }),
 }))
