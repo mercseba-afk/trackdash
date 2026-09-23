@@ -32,6 +32,7 @@ import { getUnreadDealNotificationCount } from "@/lib/db/queries/deal-notificati
 import { resolveHistoricalEurBasis } from "@/lib/fx/ecb"
 import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-service"
 import type { MarketCondition } from "@/lib/market/pipeline/types"
+import { COLLECTIBLE_VERTICALS, type CollectibleVertical } from "@/lib/verticals"
 
 const DEAL_CURRENCIES = new Set<DealCurrency>(["EUR", "USD", "JPY", "GBP"])
 
@@ -115,8 +116,12 @@ export async function getMyConversationsAction() {
       const offerStillOpen = row.collectionShare?.shareMode === "open_to_offers"
       const rawAskingPrice = row.collectionShare?.askingPrice
 
+      const vertical: CollectibleVertical =
+        row.product.categoryId === COLLECTIBLE_VERTICALS.hotwheels.categoryId ? "hotwheels" : "mini4wd"
+
       return {
         id: row.id,
+        vertical,
         status: row.status as "pending" | "accepted" | "declined",
         isOwner,
         otherUserId,
