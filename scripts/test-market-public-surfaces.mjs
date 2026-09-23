@@ -4,6 +4,8 @@ import path from "node:path"
 const publicSurfaces = [
   "components/screens/scanner-screen.tsx",
   "components/screens/release-detail-screen.tsx",
+  "components/screens/collection-item-detail-screen.tsx",
+  "components/release-market-overview.tsx",
   "components/screens/product-detail-screen.tsx",
   "components/screens/collection-screen.tsx",
   "components/screens/dashboard-screen.tsx",
@@ -72,26 +74,41 @@ if (!releasePage.includes("getPublicMarketSignalForRelease")) {
 }
 
 const releaseScreen = fs.readFileSync("components/screens/release-detail-screen.tsx", "utf8")
-if (!releaseScreen.includes("Valore stimato")) {
-  errors.push("Release detail does not expose the public estimated market value")
+const collectionItemScreen = fs.readFileSync("components/screens/collection-item-detail-screen.tsx", "utf8")
+const marketOverview = fs.readFileSync("components/release-market-overview.tsx", "utf8")
+
+if (!releaseScreen.includes("ReleaseMarketOverview")) {
+  errors.push("Release detail is not using the shared collector-facing market overview")
 }
-if (!releaseScreen.includes("Prezzo osservato")) {
-  errors.push("Release detail does not expose the observed market price separately from Market Value")
+if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
+  errors.push("Collection item detail is not using the same shared market overview as the Release")
 }
-if (!releaseScreen.includes("costo effettivo")) {
-  errors.push("Release detail does not explain the Europe-first delivered-cost basis")
+if (!marketOverview.includes("Valore stimato")) {
+  errors.push("Shared market overview does not expose the public estimated market value")
 }
-if (!releaseScreen.includes("Mercato osservato") || !releaseScreen.includes("Riferimenti disponibili")) {
-  errors.push("Release detail does not distinguish historical market context from missing data")
+if (!marketOverview.includes("Prezzo osservato")) {
+  errors.push("Shared market overview does not expose the observed market price separately from Market Value")
 }
-if (releaseScreen.includes("SOLD 0") || releaseScreen.includes("0 SOLD")) {
-  errors.push("Release detail exposes a misleading zero-sales claim")
+if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("Trend prezzo osservato")) {
+  errors.push("Shared market overview does not expose collector-facing market trend context")
 }
-if (releaseScreen.includes("Disponibile da") || releaseScreen.includes("Available from")) {
-  errors.push("Release detail still presents observed external prices with storefront-like availability wording")
+if (!marketOverview.includes("costo effettivo")) {
+  errors.push("Shared market overview does not explain the Europe-first delivered-cost basis")
 }
-if (releaseScreen.includes("Come leggere il mercato") || releaseScreen.includes("Fonti e verifica")) {
-  errors.push("Release detail still exposes analytical methodology/source panels")
+if (!marketOverview.includes("currentOfferCount") || !marketOverview.includes("soldUnits")) {
+  errors.push("Shared market overview does not expose meaningful market evidence counts")
+}
+if (!marketOverview.includes(">= 3")) {
+  errors.push("Shared market overview does not suppress low-signal one/two-item evidence counts")
+}
+if (marketOverview.includes("SOLD 0") || marketOverview.includes("0 SOLD")) {
+  errors.push("Shared market overview exposes a misleading zero-sales claim")
+}
+if (marketOverview.includes("Disponibile da") || marketOverview.includes("Available from")) {
+  errors.push("Shared market overview still presents external prices with storefront-like availability wording")
+}
+if (releaseScreen.includes("ExternalAvailabilityCard") || releaseScreen.includes("PriceIntelligenceCard")) {
+  errors.push("Release detail still duplicates the market into multiple technical cards")
 }
 
 const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
@@ -111,9 +128,10 @@ if (publicMarket.includes("startingItemPriceEUR: observedPriceEUR")) {
 }
 
 for (const file of [
-  "components/screens/release-detail-screen.tsx",
+  "components/release-market-overview.tsx",
   "components/screens/collection-screen.tsx",
   "components/market-signal-inline.tsx",
+  "lib/analytics.ts",
 ]) {
   const source = fs.readFileSync(file, "utf8")
   const startingIndex = source.indexOf("startingEffectiveCostEUR")
