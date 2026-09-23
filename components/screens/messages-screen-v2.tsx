@@ -26,6 +26,21 @@ import { toast } from "sonner"
 
 type Conversation = Awaited<ReturnType<typeof getMyConversationsAction>>[number]
 type ChatMessage = Awaited<ReturnType<typeof getConversationMessagesAction>>[number]
+type UniverseFilter = "all" | "mini4wd" | "hotwheels"
+
+function universeBadge(vertical: Conversation["vertical"]) {
+  return (
+    <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[9px] font-bold uppercase tracking-[0.08em]">
+      {vertical === "hotwheels" ? "Hot Wheels" : "Mini 4WD"}
+    </Badge>
+  )
+}
+
+function releaseHref(conversation: Conversation) {
+  return conversation.vertical === "hotwheels"
+    ? `/hotwheels/catalog/${conversation.product.id}/releases/${conversation.release.id}`
+    : `/catalog/${conversation.product.id}/releases/${conversation.release.id}`
+}
 
 function statusBadge(status: Conversation["status"], it: boolean) {
   if (status === "accepted") return <Badge className="bg-brand/15 text-brand">{it ? "Chat aperta" : "Chat open"}</Badge>
@@ -50,6 +65,7 @@ export function MessagesScreenV2() {
   const searchParams = useSearchParams()
   const requestedConversationId = searchParams.get("conversation")
   const [conversations, setConversations] = React.useState<Conversation[]>([])
+  const [universeFilter, setUniverseFilter] = React.useState<UniverseFilter>("all")
   const [selectedId, setSelectedId] = React.useState<string | null>(requestedConversationId)
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -58,6 +74,10 @@ export function MessagesScreenV2() {
   const [busy, setBusy] = React.useState(false)
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null)
   const selected = conversations.find((conversation) => conversation.id === selectedId) ?? null
+  const filteredConversations = React.useMemo(
+    () => universeFilter === "all" ? conversations : conversations.filter((conversation) => conversation.vertical === universeFilter),
+    [conversations, universeFilter],
+  )
   const directOfferConversation = selected?.requestMessage.startsWith("Offerta iniziale ·") ?? false
 
   const refreshConversations = React.useCallback(async () => {
@@ -230,15 +250,33 @@ export function MessagesScreenV2() {
 
         <Card className="overflow-hidden py-0">
           <CardHeader className="border-b bg-muted/20 py-4">
-            <CardTitle className="text-base">{it ? "Conversazioni" : "Conversations"}</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-base">{it ? "Conversazioni" : "Conversations"}</CardTitle>
+              <div className="inline-flex rounded-lg border border-border bg-background p-0.5" aria-label={it ? "Filtra conversazioni per universo" : "Filter conversations by universe"}>
+                {(["all", "mini4wd", "hotwheels"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setUniverseFilter(filter)}
+                    className={`rounded-md px-2.5 py-1.5 text-[10px] font-semibold transition-colors ${universeFilter === filter ? "bg-brand text-white" : "text-muted-foreground hover:bg-brand-muted hover:text-brand"}`}
+                  >
+                    {filter === "all" ? (it ? "Tutti" : "All") : filter === "hotwheels" ? "Hot Wheels" : "Mini 4WD"}
+                  </button>
+                ))}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
-            {conversations.map((conversation, index) => (
+            {filteredConversations.length === 0 ? (
+              <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+                {it ? "Nessuna conversazione per questo universo." : "No conversations for this universe."}
+              </div>
+            ) : filteredConversations.map((conversation, index) => (
               <button
                 type="button"
                 key={conversation.id}
                 onClick={() => selectConversation(conversation.id)}
-                className={`flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/45 ${index !== conversations.length - 1 ? "border-b" : ""}`}
+                className={`flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/45 ${index !== filteredConversations.length - 1 ? "border-b" : ""}`}
               >
                 <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand/10 font-semibold uppercase text-brand">
                   {conversation.otherUsername.slice(0, 1)}
@@ -248,9 +286,12 @@ export function MessagesScreenV2() {
                     <p className="truncate text-[15px] font-semibold">{conversation.otherUsername}</p>
                     {statusBadge(conversation.status, it)}
                   </div>
-                  <p className="mt-0.5 truncate text-sm text-foreground/80">
-                    {conversation.release.editionName}{conversation.release.itemNumber ? ` · #${conversation.release.itemNumber}` : ""}
-                  </p>
+                  <div className="mt-1 flex min-w-0 items-center gap-2">
+                    {universeBadge(conversation.vertical)}
+                    <p className="min-w-0 truncate text-sm text-foreground/80">
+                      {conversation.release.editionName}{conversation.release.itemNumber ? ` · #${conversation.release.itemNumber}` : ""}
+                    </p>
+                  </div>
                   <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{conversation.requestMessage}</p>
                 </div>
                 <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
@@ -275,9 +316,12 @@ export function MessagesScreenV2() {
             </span>
             <div className="min-w-0 flex-1">
               <CardTitle className="truncate text-base sm:text-lg">{selected.otherUsername}</CardTitle>
-              <Link href={`/catalog/${selected.product.id}/releases/${selected.release.id}`} className="block truncate text-xs text-muted-foreground hover:text-brand sm:text-sm">
-                {selected.release.editionName}{selected.release.itemNumber ? ` · #${selected.release.itemNumber}` : ""}
-              </Link>
+              <div className="mt-1 flex min-w-0 items-center gap-2">
+                {universeBadge(selected.vertical)}
+                <Link href={releaseHref(selected)} className="min-w-0 truncate text-xs text-muted-foreground hover:text-brand sm:text-sm">
+                  {selected.release.editionName}{selected.release.itemNumber ? ` · #${selected.release.itemNumber}` : ""}
+                </Link>
+              </div>
             </div>
             <div className="hidden shrink-0 sm:block">{statusBadge(selected.status, it)}</div>
             {selected.blockedByMe ? (
