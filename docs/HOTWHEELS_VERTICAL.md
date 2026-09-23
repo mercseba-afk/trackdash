@@ -18,6 +18,103 @@
 
 ---
 
+
+## Hot Wheels catalog hierarchy — FROZEN 2026-09-23
+
+TrackDash uses the following permanent identity hierarchy for Hot Wheels:
+
+**Product = exact casting → ProductRelease = meaningful commercial variation → Hot Wheels Subvariant = minor physical/package difference**
+
+This was chosen after comparing established collector-catalog patterns rather than treating every visible difference as a separate Release.
+
+### Product = casting
+
+A TrackDash Hot Wheels Product represents the **exact Hot Wheels casting/tooling identity**, not merely the real-world vehicle name.
+
+Two Hot Wheels with the same real-car name but different castings/tooling must not be forced into the same Product merely because they depict the same vehicle.
+
+### ProductRelease = commercial collector Release / major variation
+
+Create a separate TrackDash Release when the market and catalog identity meaningfully distinguish the item, for example:
+
+- different Mattel toy number / SKU;
+- different year + line / series;
+- Mainline vs Premium / Boulevard / Car Culture / RLC / Elite 64;
+- Treasure Hunt / Super Treasure Hunt / Chase;
+- retailer / convention / club exclusive when commercially distinct;
+- materially different deco/colorway intentionally issued as a collectible variation;
+- a retool that is treated by established collector references as a distinct casting identity should normally become a different Product rather than merely a Release.
+
+Release-level Hot Wheels fields include, when verified:
+
+- Mattel identifier(s);
+- year;
+- line;
+- subseries;
+- mix/case;
+- overall collector number;
+- position within the mini-series;
+- chase type;
+- variation code;
+- country of manufacture;
+- wheel type;
+- exclusivity;
+- master series/theme;
+- packaging form.
+
+### Subvariant = minor difference under one Release
+
+Do **not** create a new ProductRelease solely for a minor manufacturing/package difference when the underlying commercial release is the same.
+
+Use `hotwheels_release_subvariants` for examples such as:
+
+- regional card/package difference;
+- minor wheel variation;
+- base variation;
+- interior/window variation;
+- small deco/tampo variation;
+- production-country difference that does not represent a separate commercial issue.
+
+A subvariant may be marked `market_distinct = true` only when reliable collector/market evidence shows that the minor variant should eventually be valued separately. The shared TrackDash Market Engine remains Release-based until explicit subvariant valuation support is implemented.
+
+### Loose vs packaged
+
+Loose vs packaged is primarily a **copy/condition attribute**, not a reason to create duplicate catalog Releases. A separate catalog entry is justified only when the item was genuinely issued as a different commercial configuration (for example a set-only exclusive).
+
+### Why this hierarchy
+
+Reference patterns consulted on 2026-09-23:
+
+- hobbyDB Model Cars guidance: variants belong under the exact same casting; minor wheel/packaging differences are subvariants; loose vs packaged should generally not create duplicate database items:
+  `https://help.hobbydb.com/support/solutions/articles/36000580147-model-cars`
+- Hot Wheels Newsletter digital catalog consistently exposes:
+  `Toy # / Casting / Variation / Country / Year / Wheels / Packaging`, together with series, line, number-in-series, exclusivity and master-series data:
+  `https://catalog.hwcollectorsnews.com/`
+- HWtreasure distinguishes regular Mainline, Treasure Hunt and Super Treasure Hunt through exact toy number, Mix, overall collector number, mini-series position and chase identity:
+  `https://www.hwtreasure.com/2025-super/`
+
+TrackDash does not copy those databases mechanically; these sources are used to validate the **domain model and vocabulary**.
+
+---
+
+## Language invariant — IT / EN
+
+Every new or modified user-facing Hot Wheels surface must be implemented in both:
+
+- **Italiano**
+- **English**
+
+This is part of the definition of done for Hot Wheels changes, not a later translation pass.
+
+Whenever a Hot Wheels UI component is added or materially changed:
+
+1. both IT and EN copy must exist in the same work unit;
+2. the existing TrackDash locale switch must continue to work;
+3. new fixed English-only labels are not acceptable unless the term itself is an industry proper name/acronym (e.g. RLC, SKU, Super Treasure Hunt);
+4. the Hot Wheels vertical state file must be updated in the same work unit.
+
+---
+
 ## Product architecture
 
 TrackDash is being evolved from a Mini 4WD-only application into one platform with independent collectible verticals:
@@ -537,3 +634,48 @@ Deployment discipline restored after QA:
 4. validate a sustainable SOLD source separately before treating third-party SOLD data as a Production dependency;
 5. attach market observations to the existing shared TrackDash Market Engine rather than creating a Hot Wheels-specific price engine;
 6. only after identity + market + Collection/Wishlist parity are proven, decide the next Production merge/public-opening checkpoint.
+
+
+### 2026-09-23 — Step 8: catalog hierarchy hardening
+
+Status: **implemented on branch; migration pending green CI before live Supabase application**.
+
+Architecture changes:
+
+- TrackDash Product is now formally defined as the exact Hot Wheels **casting**;
+- ProductRelease is the meaningful commercial collector variation;
+- minor manufacturing/package differences use a dedicated `hotwheels_release_subvariants` table instead of creating unnecessary Release rows.
+
+New standard Release detail fields:
+
+- `variation_code`
+- `country_of_manufacture`
+- `wheel_type`
+- `exclusivity`
+- `master_series`
+- `theme`
+
+New subvariant structure:
+
+- code/name;
+- country of manufacture;
+- wheel type;
+- packaging;
+- base/interior/window/deco differences;
+- verification status + source;
+- `market_distinct` future-value flag.
+
+Repository migration:
+
+`supabase/migrations/0149_hotwheels_casting_variant_model.sql`
+
+The existing five pilot Releases are not split or rewritten by this migration.
+
+Bilingual UI hardening in the same branch:
+
+- Hot Wheels pilot shell now includes the existing TrackDash language switch;
+- catalog hero/cards/details are implemented in Italian and English;
+- `/hotwheels/*` is included in the public-locale bootstrap paths;
+- new Hot Wheels Release fields are displayed only when verified/present.
+
+No Vercel Preview was intentionally requested for this ordinary follow-up block; automatic Hot Wheels previews remain disabled.
