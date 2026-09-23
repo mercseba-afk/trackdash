@@ -212,6 +212,27 @@ Current working branch for documenting the recall pilot:
 
 `feat/hotwheels-context-query-pilot`
 
+### HOT WHEELS EU MARKETPLACE COVERAGE EXPANSION — 2026-09-23
+
+HCJ81 context-query recall test:
+
+- 26 unique listings;
+- 5 accepted;
+- 6 review;
+- 15 rejected;
+- context query added 7 unique listings and 1 accepted listing;
+- review count did not increase.
+
+Current European price breadth remains insufficient:
+
+- accepted EU-delivered offers: **1**
+- lowest accepted EU-delivered total: **€99.50**
+- this is not treated as a reliable market minimum.
+
+Hot Wheels-only audit coverage is being expanded to eBay NL/BE/AT/IE/PL in addition to IT/DE/FR/ES/GB, always filtered to items shippable to Italy.
+
+The matcher, Mini 4WD pipeline, and Hot Wheels market-write state remain unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;

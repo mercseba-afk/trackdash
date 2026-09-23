@@ -1,4 +1,4 @@
-export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_FR" | "EBAY_ES" | "EBAY_GB" | "EBAY_US"
+export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_FR" | "EBAY_ES" | "EBAY_GB" | "EBAY_US" | "EBAY_NL" | "EBAY_BE" | "EBAY_AT" | "EBAY_IE" | "EBAY_PL"
 
 export interface EbayReleaseSearchInput {
   itemNumber: string
