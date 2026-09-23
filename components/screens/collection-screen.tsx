@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskCountLabel, observedMarketAskDirection, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -154,8 +154,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.count || summary.acquisitionCostCount < summary.count ? (
                 <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
                   {it
-                    ? "Il valore indicativo usa il Valore stimato quando disponibile e, in alternativa, una richiesta corrente osservata per la stessa Release. Le richieste dei venditori restano separate dalle vendite concluse. Il rendimento personale resta più conservativo e viene calcolato solo quando esiste un Valore stimato compatibile con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
-                    : "Indicative value uses Estimated value when available and otherwise a current observed seller ask for the same Release. Seller asks remain separate from completed sales. Personal performance stays more conservative and is calculated only when a compatible Estimated value exists. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day)."}
+                    ? "Il valore indicativo usa il Valore stimato quando disponibile e, in alternativa, il Prezzo minimo richiesto tra gli annunci osservati della stessa Release. Il rendimento personale resta più conservativo e viene calcolato solo quando esiste un Valore stimato compatibile con la condizione della copia. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
+                    : "Indicative value uses Estimated value when available and otherwise the Lowest asking price among observed listings for the same Release. Personal performance stays more conservative and is calculated only when a compatible Estimated value exists. USD, JPY and GBP purchases are normalized to EUR using the historical ECB reference rate for the purchase date (or latest available day)."}
                 </p>
               ) : null}
             </div>
@@ -286,7 +286,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
             <p className="mt-2 text-xs text-muted-foreground">
               {summary.marketReferenceCount}/{summary.count} {it ? "copie con un riferimento di mercato disponibile" : "copies with an available market reference"}
               {summary.marketReferenceCount > 0 ? (
-                <span> · {summary.marketValueCount} {it ? "Valore stimato" : "Estimated"} · {summary.observedPriceCount} {it ? "con richieste osservate" : "with observed asks"}</span>
+                <span> · {summary.marketValueCount} {it ? "con Valore stimato" : "with Estimated value"} · {summary.observedPriceCount} {it ? "con Prezzo minimo richiesto" : "with Lowest asking price"}</span>
               ) : null}
             </p>
             <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
@@ -343,7 +343,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
           {observedMarketAskLabel(signal, it)} <strong className="text-sm font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</strong>
         </p>
         <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">
-          {observedDirection ?? (it ? "Richieste venditori osservate sul mercato europeo" : "Seller asks observed in the European market")}
+          {observedDirection ?? observedMarketAskCountLabel(signal, it)}
         </p>
       </div>
     )
