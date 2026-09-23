@@ -157,6 +157,15 @@ for (const legacyToken of ["MarketSignalCard", "MarketDataEmptyCard", "product.m
   }
 }
 
+const scannerPage = fs.readFileSync("app/scanner/page.tsx", "utf8")
+const scannerScreen = fs.readFileSync("components/screens/scanner-screen.tsx", "utf8")
+if (!scannerPage.includes("fetchCatalogProducts") || !scannerPage.includes("products={catalogProducts}")) {
+  errors.push("Scanner page is not fed from the canonical catalog")
+}
+if (!scannerScreen.includes("productById.get(byCode.product.id)") || scannerScreen.includes("PRODUCTS.find")) {
+  errors.push("Scanner result display can drift back to the local catalog instead of hydrating canonical product/release data")
+}
+
 const collectionItemPage = fs.readFileSync("app/collection/[id]/page.tsx", "utf8")
 if (!collectionItemPage.includes("fetchCatalogProductById") || !collectionItemPage.includes("catalogProduct={catalogProduct}")) {
   errors.push("Collection item page is not loading the canonical catalog product")

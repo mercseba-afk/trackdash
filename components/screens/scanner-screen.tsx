@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Camera, CameraOff, PackageSearch, ScanBarcode, Search, Sparkles, X } from "lucide-react"
-import { PRODUCTS, findByCode, resolveRelease } from "@/lib/data/corrected-products"
+import { findByCode, resolveRelease } from "@/lib/data/corrected-products"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import type { Product, ProductRelease } from "@/lib/types"
@@ -26,7 +26,7 @@ type ScannerWindow = Window & typeof globalThis & {
   BarcodeDetector?: BarcodeDetectorConstructor
 }
 
-export function ScannerScreen() {
+export function ScannerScreen({ products }: { products: Product[] }) {
   const { locale } = useI18n()
   const it = locale === "it"
   const [manual, setManual] = React.useState("")
@@ -35,6 +35,7 @@ export function ScannerScreen() {
   const [cameraActive, setCameraActive] = React.useState(false)
   const [cameraStarting, setCameraStarting] = React.useState(false)
   const [cameraError, setCameraError] = React.useState<string | null>(null)
+  const productById = React.useMemo(() => new Map(products.map((product) => [product.id, product])), [products])
   const videoRef = React.useRef<HTMLVideoElement>(null)
   const streamRef = React.useRef<MediaStream | null>(null)
   const detectorRef = React.useRef<BarcodeDetectorInstance | null>(null)
@@ -57,14 +58,26 @@ export function ScannerScreen() {
   const resolveCode = React.useCallback((rawCode: string) => {
     const code = rawCode.trim()
     if (!code) return
+
+    // Keep the tested local matcher as an identity index only. Once it finds
+    // product/release IDs, hydrate every displayed field from the canonical DB
+    // catalog passed by the server page.
     const byCode = findByCode(code)
     if (byCode) {
-      setResult({ product: byCode.product, releaseId: byCode.release?.id })
-      setNotFoundCode(null)
-      return
+      const canonicalProduct = productById.get(byCode.product.id)
+      const matchedReleaseId = byCode.release?.id
+
+      if (
+        canonicalProduct &&
+        (!matchedReleaseId || canonicalProduct.releases.some((release) => release.id === matchedReleaseId))
+      ) {
+        setResult({ product: canonicalProduct, releaseId: matchedReleaseId })
+        setNotFoundCode(null)
+        return
+      }
     }
 
-    const byName = PRODUCTS.find((product) => product.name.toLowerCase().includes(code.toLowerCase()))
+    const byName = products.find((product) => product.name.toLowerCase().includes(code.toLowerCase()))
     if (byName) {
       setResult({ product: byName })
       setNotFoundCode(null)
@@ -73,7 +86,7 @@ export function ScannerScreen() {
 
     setResult(null)
     setNotFoundCode(code)
-  }, [])
+  }, [productById, products])
 
   const scanFrame = React.useCallback(async function scanFrameLoop() {
     const video = videoRef.current
