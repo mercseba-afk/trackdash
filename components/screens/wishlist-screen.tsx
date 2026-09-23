@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { enrichWishlist, type EnrichedWishlistItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
-import type { WishlistPriority } from "@/lib/types"
+import type { Product, WishlistPriority } from "@/lib/types"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent } from "@/components/ui/card"
@@ -30,11 +30,14 @@ function priorityLabel(priority: WishlistPriority, it: boolean) {
   return "Bassa"
 }
 
-export function WishlistScreen() {
+export function WishlistScreen({ catalogProducts }: { catalogProducts: Product[] }) {
   const { wishlist, removeFromWishlist, moveWishlistToCollection } = useStore()
   const { locale, t } = useI18n(); const it = locale === "it"
   const marketSignals = useMarketSignals()
-  const enriched = React.useMemo(() => enrichWishlist(wishlist, marketSignals), [wishlist, marketSignals])
+  const enriched = React.useMemo(
+    () => enrichWishlist(wishlist, marketSignals, catalogProducts),
+    [catalogProducts, marketSignals, wishlist],
+  )
   const sorted = React.useMemo(() => { const order: Record<WishlistPriority, number> = { High: 0, Medium: 1, Low: 2 }; return [...enriched].sort((a, b) => order[a.item.priority] - order[b.item.priority]) }, [enriched])
   const atTarget = enriched.filter((entry) => entry.belowTarget)
   const totalTarget = enriched.reduce((sum, entry) => sum + (entry.item.targetPrice ?? entry.currentPrice ?? 0), 0)
@@ -51,7 +54,7 @@ export function WishlistScreen() {
         <Card className="flex-1 py-0"><CardContent className="flex items-center justify-between px-4 py-3"><span className="text-sm text-muted-foreground">{t("wishlist.complete")}</span><span className="text-lg font-semibold tabular-nums">{formatMoney(totalTarget)}</span></CardContent></Card>
         <Card className="flex-1 py-0"><CardContent className="flex items-center justify-between px-4 py-3"><span className="text-sm text-muted-foreground">{t("wishlist.targetPrice")}</span><span className="text-lg font-semibold tabular-nums text-success">{atTarget.length}</span></CardContent></Card>
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">{it ? "Il confronto con il target usa il prezzo corrente acquistabile “Da” quando disponibile. Il Valore stimato resta separato e viene mostrato solo quando TrackDash dispone di dati di mercato affidabili per la Release." : "Target matching uses the current purchasable From price when available. Estimated value remains separate and is shown only when TrackDash has reliable market data for the Release."}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">{it ? "Il confronto con il target usa il Prezzo osservato corrente quando disponibile. Il Valore stimato resta separato e viene mostrato solo quando TrackDash dispone di dati di mercato affidabili per la Release." : "Target matching uses the current Observed price when available. Estimated value remains separate and is shown only when TrackDash has reliable market data for the Release."}</p>
       <div className="grid gap-3">
         {sorted.map((entry) => <WishlistRow key={entry.item.id} entry={entry} onRemove={async () => { try { await removeFromWishlist(entry.item.id); toast.success(it ? `${entry.product.name} rimosso dai desideri` : `Removed ${entry.product.name} from wishlist`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }} onAcquire={async () => { try { await moveWishlistToCollection(entry.item.id, { condition: "New / Opened", acquisitionDate: new Date().toISOString(), acquisitionPrice: entry.item.targetPrice ?? entry.currentPrice ?? 0, acquisitionCurrency: "EUR" }); toast.success(it ? "Spostato nella collezione" : "Moved to collection", { description: entry.product.name }) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile spostarlo nella collezione" : "Couldn't move this item to your collection") } }} />)}
       </div>
@@ -80,15 +83,15 @@ function WishlistRow({ entry, onRemove, onAcquire }: { entry: EnrichedWishlistIt
 
 function MarketReadout({ entry, it, marketLabel }: { entry: EnrichedWishlistItem; it: boolean; marketLabel: string }) {
   if (entry.marketValue != null) {
-    return <span className="inline-flex items-center gap-1">{marketLabel} <span className="font-medium text-foreground">{formatMoney(entry.marketValue)}</span>{entry.marketSignal?.trendPercent != null ? <TrendIndicator value={entry.marketSignal.trendPercent} className="text-xs" /> : null}{entry.currentPrice != null ? <span>· {it ? "Da" : "From"} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span> : null}</span>
+    return <span className="inline-flex items-center gap-1">{marketLabel} <span className="font-medium text-foreground">{formatMoney(entry.marketValue)}</span>{entry.marketSignal?.trendPercent != null ? <TrendIndicator value={entry.marketSignal.trendPercent} className="text-xs" /> : null}{entry.currentPrice != null ? <span>· {it ? "Prezzo osservato" : "Observed price"} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span> : null}</span>
   }
   if (entry.currentPrice != null) {
-    return <span className="inline-flex items-center gap-1">{it ? "Prezzo corrente" : "Current price"} <span className="font-medium text-foreground">{it ? "Da " : "From "}{formatMoney(entry.currentPrice)}</span></span>
+    return <span className="inline-flex items-center gap-1">{it ? "Prezzo osservato" : "Observed price"} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span>
   }
   if (entry.marketSignal) {
     return <span>{it ? "Mercato in osservazione" : "Market under observation"}</span>
   }
-  return <span>{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</span>
+  return <span>{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
 }
 
 function PageHeader() { const { t } = useI18n(); return <div className="flex flex-col gap-1"><h1 className="text-2xl font-semibold tracking-tight">{t("wishlist.title")}</h1><p className="text-sm text-muted-foreground">{t("wishlist.subtitle")}</p></div> }
