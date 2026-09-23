@@ -908,3 +908,189 @@ Proceed with:
 6. Collection/Wishlist parity after market signals exist;
 7. then decide the next merge/public-opening checkpoint.
 
+
+
+### 2026-09-23 — Step 11: Hot Wheels eBay ASK matching foundation
+
+Status: **IMPLEMENTED + GREEN ON PR #212 — real Production eBay audit not yet executed**.
+
+Scope is Hot Wheels-only. Existing Mini 4WD eBay matching/worker behavior is intentionally unchanged.
+
+#### Shared transport reused without changing Mini 4WD behavior
+
+The existing eBay Browse adapter now also exposes generic read-only transport required by Hot Wheels:
+
+- `searchEbayActiveListingsByQuery(query, marketplace, limit)`
+- `fetchEbayActiveItemDetails(itemId, marketplace)`
+
+The new item-detail read exposes, when returned by eBay:
+
+- MPN
+- GTIN
+- brand
+- localized item aspects
+
+No existing Mini 4WD classifier, query builder, worker, lifecycle rule or market write path was modified to call these new Hot Wheels flows.
+
+#### Dedicated Hot Wheels matcher
+
+New module:
+
+`lib/market/automation/hotwheels-ebay-matcher.ts`
+
+Pilot matching policy:
+
+1. exact Mattel identifier in title + compatible casting → **accepted**;
+2. compatible casting/line/chase context without identifier → **needs_review**;
+3. sibling Release identifier → **rejected**;
+4. wrong casting → **rejected**;
+5. regular Release with Chase/STH wording → **rejected**;
+6. Chase target without exact identifier stays review-only;
+7. loose/custom/wheel-swap/card-only/accessory listings → **rejected**;
+8. ordinary lots/bundles → **rejected**;
+9. legitimate Team Transport / 2-Pack package wording is allowed.
+
+Exact-title acceptance reason:
+
+`MATTEL_IDENTIFIER_EXACT`
+
+#### Second-pass eBay item-detail resolution
+
+Review-only listings may receive a bounded read-only `getItem` lookup.
+
+New resolver:
+
+`refineHotWheelsEbayListingWithItemDetails(...)`
+
+If the target Mattel code appears in MPN / GTIN / item aspects, including inside a longer identifier such as:
+
+`JBC35-N521`
+
+the listing may be promoted to:
+
+`MATTEL_IDENTIFIER_ITEM_DETAILS`
+
+If a sibling code is found instead, the listing is rejected as:
+
+`SIBLING_RELEASE_IDENTIFIER_ITEM_DETAILS`
+
+If no code is found or the detail lookup fails, the listing remains review-only.
+
+A rejected title can never be upgraded by the second pass.
+
+#### Read-only Hot Wheels ASK audit runner
+
+New module:
+
+`lib/market/automation/hotwheels-ebay-audit.ts`
+
+It automatically derives the current Hot Wheels Release profiles from canonical DB data rather than maintaining a separate hardcoded list.
+
+Current live audit population:
+
+**13 unique Hot Wheels Releases**
+
+because the original five pilot identities overlap with the nine-Release LB-ER34 family through `JBK59`.
+
+Europe-first marketplaces:
+
+- EBAY_IT
+- EBAY_DE
+- EBAY_FR
+- EBAY_ES
+- EBAY_GB
+
+The audit runner performs **no market writes**:
+
+- no `market_candidates`
+- no `market_offer_states`
+- no scan queue writes
+- no recompute
+- no Market Value publication
+
+It reports:
+
+- raw counts per marketplace
+- unique listings
+- accepted / needs-review / rejected counts
+- decision reason codes
+- bounded item-detail resolution status
+
+#### Production Admin audit panel
+
+New admin-only action/component:
+
+- `lib/actions/hotwheels-admin.ts`
+- `components/admin/hotwheels-market-audit.tsx`
+
+Access remains protected by the existing TrackDash:
+
+**Admin + MFA (AAL2)**
+
+UI is implemented in both Italiano and English.
+
+The panel:
+
+- loads only Hot Wheels Release profiles;
+- runs one Release at a time;
+- defaults to exact-code query only;
+- optionally enables the context query for recall measurement;
+- is explicitly labelled **Read only / Solo lettura**;
+- displays accepted / review / rejected results and second-pass status.
+
+#### Why Production is required for the first API audit
+
+A temporary Preview-only diagnostic was tested and then completely removed.
+
+Preview environment result:
+
+`EBAY_BROWSE_CREDENTIALS_NOT_CONFIGURED`
+
+Therefore TrackDash eBay Production credentials are not duplicated into Vercel Preview.
+
+This is intentional and remains unchanged.
+
+The temporary Preview audit route and proxy exception were removed, and automatic `feat/hotwheels-*` Preview deploys are disabled again.
+
+The first real eBay API audit must therefore run through the protected Production Admin panel after the next macro merge/deploy.
+
+#### Empirical title-pattern finding
+
+Public eBay checks confirmed that exact Mattel codes are often absent from listing titles even when present in item specifics / MPN.
+
+This validates the two-stage strategy:
+
+**title exact code → strong auto-match**
+
+**context match without code → review → bounded getItem MPN/GTIN check**
+
+rather than either:
+
+- rejecting all no-code listings; or
+- auto-accepting fuzzy casting matches.
+
+#### Validation
+
+Latest branch:
+
+- `typecheck`: **SUCCESS**
+- `verify`: **SUCCESS**
+- Hot Wheels matcher tests are part of `market:adapter:test`
+- new eBay item-detail transport is covered by mocked adapter tests
+- PR #212 remains mergeable
+- Mini 4WD tests remain green
+
+### Exact next Hot Wheels action
+
+This is now a meaningful macro-checkpoint.
+
+Next sequence:
+
+1. merge PR #212 once the checkpoint documentation is included;
+2. verify Production main / Vercel / `/api/version` alignment;
+3. from Admin + MFA, run the first read-only eBay ASK audit on `HCJ81`;
+4. inspect exact/review/reject quality before enabling the context query;
+5. continue one Release at a time across the 13 pilot Releases;
+6. do **not** persist eBay observations into the Market Engine until matching precision is accepted;
+7. SOLD provider/licensing validation remains a separate later gate.
+
