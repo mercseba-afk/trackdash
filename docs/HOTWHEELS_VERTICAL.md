@@ -1649,3 +1649,116 @@ TrackDash uses only the information it can verify and leaves postal-code context
 6. confirm realistic EU delivered minimum;
 7. only then enable the broader context query for HCJ81;
 8. keep market candidates/offers/signals at zero until this validation is explicitly accepted.
+
+
+### 2026-09-23 — Step 18: HCJ81 exact-query delivered-cost validation
+
+Status: **VALIDATED IN PRODUCTION — context-query pilot now authorized**.
+
+Production application SHA:
+
+`e420ab564294f7f86a9c37322c16cdb3f9944e33`
+
+HCJ81 was re-run in protected Admin with:
+
+- exact-code query only;
+- context query OFF;
+- delivery country Italy;
+- no market writes.
+
+Observed result:
+
+- raw marketplace counts: IT **7**, DE **2**, FR **0**, ES **8**, GB **10**
+- unique listings: **19**
+- accepted: **4**
+- review: **6**
+- rejected: **9**
+
+Comparison with the previous exact-query baseline:
+
+- accepted: **2 → 4**
+- review: **9 → 6**
+- rejected: **8 → 9**
+
+Reason-code distribution:
+
+- `RELEASE_CONTEXT_DISCRIMINATORS_EXACT`: **2**
+- `MATTEL_IDENTIFIER_ITEM_DETAILS`: **1**
+- `MATTEL_IDENTIFIER_EXACT`: **1**
+- `IDENTIFIER_NOT_IN_TITLE`: **6**
+- `CASTING_NOT_CONFIRMED`: **8**
+- `SIBLING_RELEASE_IDENTIFIER_ITEM_DETAILS`: **1**
+
+Structured-detail status:
+
+- matched: **2**
+- no match: **6**
+- not needed: **11**
+- no lookup-limit residual.
+
+Interpretation:
+
+The new Release-context discriminator path recovered **2 additional accepted listings** without increasing fuzzy acceptance.
+
+At least one recovered context-only title explicitly contains:
+
+`Mountain Drifters ... 4/5`
+
+which is the intended HCJ81 exact commercial tuple.
+
+The sibling guard remains active: a sibling Release identifier discovered in structured eBay details was rejected.
+
+#### Delivered-cost result
+
+Among the four accepted listings:
+
+- accepted EU-delivered offers: **1**
+- lowest accepted EU-delivered total: **€99.50**
+- other accepted examples include extra-EU offers whose item + visible shipping subtotal is materially lower, but their true European landed cost remains unknown.
+
+Example accepted extra-EU listing:
+
+- origin: US
+- title contains `Mountain Drifters ... 4/5`
+- item: **€29.84**
+- visible shipping: **€21.51**
+- visible subtotal: **€51.35**
+- cost basis: `extra_eu_import_unknown`
+
+This does **not** imply that €99.50 is HCJ81 Market Value or even the realistic European asking-price level.
+
+It only proves that the exact-code query still has insufficient European recall: with just one delivered EU accepted offer, the European minimum is too sparse and can be dominated by one aspirational seller.
+
+#### Decision
+
+The exact-query matcher is now sufficiently precise to proceed to the next controlled recall test:
+
+**HCJ81 with context query ON**
+
+The purpose is to discover additional listings that omit HCJ81 from title/search indexing while still requiring the same exact Release matcher after retrieval.
+
+The context query does **not** relax the acceptance rules.
+
+It only broadens discovery.
+
+Market writes remain disabled.
+
+### Exact next Hot Wheels action
+
+Run HCJ81 again with:
+
+- **Includi query contestuale = ON**
+- same read-only Admin audit
+- delivery country Italy
+- no market writes
+
+Then compare:
+
+1. unique listing gain;
+2. additional accepted listings;
+3. false-positive/review growth;
+4. additional EU-origin delivered offers;
+5. lowest credible EU delivered cost;
+6. whether extra-EU offers materially broaden price context.
+
+Only after this recall test should HCJ81 ASK persistence be designed.
