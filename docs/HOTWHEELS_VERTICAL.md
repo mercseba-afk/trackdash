@@ -1095,3 +1095,196 @@ Next sequence:
 6. do **not** persist eBay observations into the Market Engine until matching precision is accepted;
 7. SOLD provider/licensing validation remains a separate later gate.
 
+
+
+### 2026-09-23 — Step 12: ASK matcher safety reconciliation
+
+Status: **IMPLEMENTED + GREEN — read-only; no Hot Wheels market rows written**.
+
+This step reconciles the two experimental eBay item-detail paths into one canonical flow:
+
+**Browse search → title classifier → bounded getItem only for identity review → structured MPN/GTIN/aspect refinement**
+
+There is now only one item-detail transport:
+
+`fetchEbayActiveItemDetails(itemId, marketplace)`
+
+and one Hot Wheels structured refinement path:
+
+`refineHotWheelsEbayListingWithItemDetails(...)`
+
+#### Canonical Hot Wheels market condition
+
+For the current TrackDash Hot Wheels market pilot, the canonical object is:
+
+**NEW + unopened + original commercial packaging/card**
+
+This mirrors the Mini 4WD principle of valuing the complete original new item while remaining Hot Wheels-specific.
+
+Automatic ASK rejection includes explicit title evidence such as:
+
+- loose;
+- opened / unsealed;
+- open or opened blister;
+- damaged/cracked blister;
+- damaged card;
+- no card / without card;
+- custom / wheel swap;
+- card-only / blister-only / protector-only;
+- reproduction/accessory-only cases;
+- ordinary lots/bundles when the commercial product itself is not a multi-item release.
+
+Legitimate Team Transport and official 2-Pack releases remain valid commercial forms.
+
+#### Packaging / Subvariant guard
+
+The following explicit packaging wording remains **needs_review**, even when the exact Mattel code is present:
+
+- Factory Sealed Set / Factory Set;
+- short card;
+- international card;
+- long card;
+- regional card.
+
+Reason:
+
+`PACKAGE_SUBVARIANT_REVIEW`
+
+The exact Release identity can be correct while the package represents a meaningful Subvariant. These observations must not silently become the baseline new-carded ASK.
+
+#### Structured identifier refinement — constrained
+
+A second-pass eBay `getItem` call is allowed only when the first-pass review is caused by:
+
+`IDENTIFIER_NOT_IN_TITLE`
+
+The structured read may use:
+
+- MPN;
+- GTIN;
+- localized item specifics/aspects.
+
+An identifier embedded in a longer structured value is supported, for example:
+
+`JBC35-N521` → target Mattel code `JBC35`.
+
+Accepted second-pass reason:
+
+`MATTEL_IDENTIFIER_ITEM_DETAILS`
+
+Sibling-code evidence still rejects the listing:
+
+`SIBLING_RELEASE_IDENTIFIER_ITEM_DETAILS`
+
+Important fail-closed rule:
+
+Structured item details **cannot** override an independent review reason such as:
+
+- `PACKAGE_SUBVARIANT_REVIEW`;
+- `RELEASE_DISCRIMINATOR_MISSING`.
+
+The audit runner also skips unnecessary `getItem` calls for those non-identity review cases.
+
+#### Verification
+
+Latest branch checks after reconciliation:
+
+- `typecheck`: **SUCCESS**
+- `verify`: **SUCCESS**
+- Hot Wheels matcher tests include damaged/open package rejection;
+- packaging-subvariant review regression;
+- MPN/detail promotion;
+- longer MPN value such as `JBC35-N521`;
+- sibling-code rejection;
+- protection against promoting packaging review through item details.
+
+Live Hot Wheels market table check:
+
+- Hot Wheels Releases: **13**
+- `market_candidates`: **0**
+- `market_offer_states`: **0**
+- `market_release_signals`: **0**
+
+Therefore all Hot Wheels eBay work up to this checkpoint is still diagnostic/read-only.
+
+#### Preview credential finding
+
+The temporary Preview diagnostic correctly returned:
+
+`EBAY_BROWSE_CREDENTIALS_NOT_CONFIGURED`
+
+TrackDash Production eBay secrets are intentionally not copied to Preview.
+
+The Preview diagnostic/proxy exception was removed. The supported first real audit path is the protected Production Admin + MFA panel already implemented in Step 11.
+
+### Exact next Hot Wheels action
+
+This completes the Hot Wheels ASK-matching macro-block.
+
+Next sequence:
+
+1. merge PR #212;
+2. verify `main = Vercel Production = /api/version`;
+3. keep Hot Wheels public catalog gate closed;
+4. from protected Admin + MFA, run the first read-only ASK audit on `HCJ81` using exact-code query only;
+5. inspect accepted/review/rejected quality;
+6. only then test context-query recall;
+7. proceed one Release at a time across the 13 pilot Releases;
+8. do **not** write Hot Wheels market candidates/offers/signals until matching precision is explicitly accepted;
+9. SOLD source/licensing validation remains a separate later gate.
+
+
+### 2026-09-23 — Step 13: Production ASK audit checkpoint
+
+Status: **PR #212 MERGED + PRODUCTION VERIFIED — first real eBay audit ready in Admin**.
+
+Merged PR:
+
+**#212 — Prepare gated Hot Wheels pilot shell**
+
+Production application SHA:
+
+`19097c9c66e07a7b774e40bbb1284185521f421c`
+
+Vercel Production:
+
+`dpl_EMHbukor1R4hnzzXPaWbtwBeQHQG`
+
+Post-deploy QA:
+
+- GitHub `main` = **`19097c9c66e07a7b774e40bbb1284185521f421c`**
+- `https://trackdash.it/api/version` = **`19097c9c66e07a7b774e40bbb1284185521f421c`**
+- Vercel Production state = **READY**
+- public Mini 4WD `/catalog` = HTTP 200 and still reports **55 Mini 4WD models**
+- public `/hotwheels/catalog` = HTTP 404 by design
+- no error/fatal runtime log observed on the new Production deployment during immediate post-deploy QA
+- Hot Wheels market rows remain: candidates **0**, offers **0**, signals **0**
+
+Important environment result:
+
+- Production contains the existing eBay credentials required by the read-only Admin audit;
+- Preview credentials remain intentionally absent;
+- no Hot Wheels market write path has been enabled.
+
+### Exact next Hot Wheels action
+
+Run the first real API audit from the protected TrackDash Admin + MFA panel:
+
+**HCJ81 — 2022 Car Culture Mountain Drifters 4/5**
+
+Initial mode:
+
+- exact-code query only;
+- context query OFF;
+- read-only;
+- no candidate/offer/signal writes.
+
+Evaluate:
+
+- exact accepted listings;
+- review cases;
+- rejected false positives;
+- item-detail MPN recovery;
+- packaging/Subvariant reviews.
+
+Only after HCJ81 precision is judged clean should the context query be enabled to measure recall, and only then proceed through the remaining 12 pilot Releases.
