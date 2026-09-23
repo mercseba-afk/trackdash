@@ -52,6 +52,14 @@ for (const file of sourceFiles("app").concat(sourceFiles("components"), sourceFi
     errors.push(`${file}: imports the deleted legacy market engine`)
   }
 }
+for (const file of sourceFiles("app").concat(sourceFiles("components"), sourceFiles("lib"))) {
+  const source = fs.readFileSync(file, "utf8")
+  for (const ambiguousAskCopy of ["Prezzo osservato", "Observed price", "Trend prezzo osservato", "Observed price trend"]) {
+    if (source.includes(ambiguousAskCopy)) {
+      errors.push(`${file}: still exposes ambiguous seller-ask wording ${JSON.stringify(ambiguousAskCopy)}`)
+    }
+  }
+}
 
 for (const file of publicSurfaces) {
   const source = fs.readFileSync(file, "utf8")
@@ -86,13 +94,24 @@ if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
 if (!marketOverview.includes("Valore stimato")) {
   errors.push("Shared market overview does not expose the public estimated market value")
 }
-if (!marketOverview.includes("Prezzo osservato")) {
-  errors.push("Shared market overview does not expose the observed market price separately from Market Value")
+if (!marketOverview.includes("observedMarketAskLabel")) {
+  errors.push("Shared market overview does not use the centralized seller-ask label")
 }
-if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("Trend prezzo osservato")) {
-  errors.push("Shared market overview does not expose collector-facing market trend context")
+if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("observedMarketAskTrendLabel")) {
+  errors.push("Shared market overview does not distinguish Market Value trend from seller-ask trend")
 }
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
+for (const requiredSellerAskCopy of [
+  "Richiesta venditore osservata",
+  "Richiesta più bassa osservata",
+  "Observed seller ask",
+  "Lowest observed ask",
+  "Trend richieste osservate",
+]) {
+  if (!marketPresentation.includes(requiredSellerAskCopy)) {
+    errors.push(`Shared market presentation is missing seller-ask wording ${JSON.stringify(requiredSellerAskCopy)}`)
+  }
+}
 if (!marketPresentation.includes("askTrendWindowDays >= 7") || !marketPresentation.includes("currentOfferCount >= 3")) {
   errors.push("Observed-price trend is not guarded against thin or too-short ASK windows")
 }
@@ -231,4 +250,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Public R3 market surfaces: ${publicSurfaces.length}/${publicSurfaces.length} clean`)
-console.log("Collector UI exposes Estimated value or Observed price with Europe-first delivered-cost semantics and no misleading zero-sales claim.")
+console.log("Collector UI separates Estimated value from seller asks, with Europe-first delivered-cost semantics and no ambiguous observed-price wording.")
