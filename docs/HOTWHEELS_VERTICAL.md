@@ -1288,3 +1288,56 @@ Evaluate:
 - packaging/Subvariant reviews.
 
 Only after HCJ81 precision is judged clean should the context query be enabled to measure recall, and only then proceed through the remaining 12 pilot Releases.
+
+
+### 2026-09-23 — Step 14: read-only audit observability
+
+Status: **IMPLEMENTED ON BRANCH — no market writes introduced**.
+
+The first real HCJ81 Admin audit completed successfully in Production, but the read-only design intentionally left no persisted audit result and no server summary.
+
+To avoid requiring screenshots for every pilot Release, the protected Admin audit action now emits one structured Production log entry per completed run:
+
+`[hotwheels-ebay-audit]`
+
+The log contains only public/listing diagnostic data required for QA:
+
+- Release ID / Mattel identifier / casting;
+- exact vs context-query mode;
+- raw result counts by eBay marketplace;
+- unique / accepted / review / rejected totals;
+- reason-code histogram;
+- second-pass item-detail lookup histogram;
+- a bounded sample of accepted/review public listings with title, marketplace, price, shipping and reason codes.
+
+It does **not** log:
+
+- user/session/auth data;
+- eBay credentials/tokens;
+- Supabase secrets;
+- private account data.
+
+It does **not** write:
+
+- market candidates;
+- offer states;
+- market signals;
+- recompute jobs.
+
+Purpose:
+
+- allow the controlled 13-Release pilot to be evaluated directly from Vercel runtime logs;
+- keep the Market Engine untouched until exact-release precision is accepted;
+- reduce repeated manual screenshot exchange during audit QA.
+
+The existing Hot Wheels public gate remains closed and Mini 4WD matching/worker behavior remains untouched.
+
+### Exact next Hot Wheels action
+
+After this observability patch reaches Production:
+
+1. re-run **HCJ81** with exact-code query only;
+2. inspect the `[hotwheels-ebay-audit]` Production log;
+3. measure accepted/review/rejected quality and second-pass MPN recovery;
+4. only if precision is clean, enable context-query recall for HCJ81;
+5. then proceed through the remaining 12 pilot Releases one at a time.

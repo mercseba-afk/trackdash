@@ -94,6 +94,22 @@ Do not duplicate Production eBay secrets into Preview solely for this pilot.
 
 The first real API audit can now run through the existing protected Production Admin + MFA path. Production eBay credentials are available there; Preview remains intentionally uncredentialed.
 
+### HOT WHEELS AUDIT OBSERVABILITY — 2026-09-23
+
+The first real HCJ81 Admin audit reached Production successfully, but its read-only result was intentionally not persisted.
+
+A Hot Wheels-only observability patch is now in progress on branch:
+
+`feat/hotwheels-audit-observability`
+
+It adds one structured runtime summary per completed protected Admin audit:
+
+`[hotwheels-ebay-audit]`
+
+The log contains only public listing diagnostics and aggregate matching outcomes. It logs no auth/session data or secrets and introduces **no Market Engine writes**.
+
+Mini 4WD code/data behavior remains unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;

@@ -17,6 +17,50 @@ export type HotWheelsAuditProfileOption = {
   chaseType: string | null
 }
 
+function countBy(values: string[]): Record<string, number> {
+  const counts: Record<string, number> = {}
+  for (const value of values) counts[value] = (counts[value] ?? 0) + 1
+  return counts
+}
+
+function logHotWheelsAuditSummary(
+  result: HotWheelsAskAuditResult,
+  includeFallbackQuery: boolean,
+) {
+  const reasonCounts = countBy(result.listings.flatMap((row) => row.reasonCodes))
+  const detailLookupCounts = countBy(result.listings.map((row) => row.detailLookup))
+  const sample = result.listings
+    .filter((row) => row.decision !== "rejected")
+    .slice(0, 15)
+    .map((row) => ({
+      itemId: row.itemId,
+      marketplace: row.marketplace,
+      decision: row.decision,
+      title: row.title,
+      price: row.price,
+      currency: row.currency,
+      shipping: row.shipping,
+      reasonCodes: row.reasonCodes,
+      detailLookup: row.detailLookup,
+    }))
+
+  console.info("[hotwheels-ebay-audit]", JSON.stringify({
+    releaseId: result.releaseId,
+    identifier: result.primaryIdentifier,
+    casting: result.castingName,
+    includeFallbackQuery,
+    queries: result.queries,
+    rawByMarketplace: result.rawByMarketplace,
+    uniqueListings: result.uniqueListings,
+    accepted: result.accepted,
+    review: result.review,
+    rejected: result.rejected,
+    reasonCounts,
+    detailLookupCounts,
+    sample,
+  }))
+}
+
 export async function listHotWheelsAuditProfilesAction(): Promise<HotWheelsAuditProfileOption[]> {
   await requireAdmin()
 
@@ -48,9 +92,16 @@ export async function runHotWheelsAskAuditAction(input: {
   if (!releaseId) throw new Error("Release Hot Wheels mancante")
 
   // Read-only diagnostic: no market candidates, offers, queue or recompute writes.
-  return runHotWheelsEbayAskAuditForRelease(releaseId, {
+  const includeFallbackQuery = input.includeFallbackQuery === true
+  const result = await runHotWheelsEbayAskAuditForRelease(releaseId, {
     perQueryLimit: 10,
-    includeFallbackQuery: input.includeFallbackQuery === true,
+    includeFallbackQuery,
     maxDetailLookups: 5,
   })
+
+  // Production-only observability for the controlled Hot Wheels pilot.
+  // Public listing data only; no auth/session secrets and no database writes.
+  logHotWheelsAuditSummary(result, includeFallbackQuery)
+
+  return result
 }
