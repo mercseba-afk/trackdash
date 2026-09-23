@@ -1,10 +1,7 @@
 import { notFound, redirect } from "next/navigation"
-import { COLLECTIBLE_VERTICALS } from "@/lib/verticals"
+import { isVerticalRouteEnabled } from "@/lib/server/vertical-gates"
 
 export default function HotWheelsPage() {
-  const vertical = COLLECTIBLE_VERTICALS.hotwheels
-
-  if (!vertical.publicEnabled) notFound()
-
-  redirect(`${vertical.basePath}/catalog`)
+  if (!isVerticalRouteEnabled("hotwheels")) notFound()
+  redirect("/hotwheels/catalog")
 }
