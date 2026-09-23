@@ -14,7 +14,7 @@ Older sections remain as historical audit trail unless explicitly restated here.
 
 ### Final repository / Production baseline
 
-- GitHub `main`: **`203434b969f7a7f46fa26a636dcf9cdcf6a01234`**
+- final functional `main` baseline before this documentation checkpoint: **`203434b969f7a7f46fa26a636dcf9cdcf6a01234`**
 - merged PR **#209**: `Simplify market pricing labels and Release market UI`
 - previous semantic alignment PR **#208** is included in this baseline
 - Vercel Production: **`dpl_59uvTir1eT3J3vCZYTSbJQETL4zP`**
@@ -24,7 +24,7 @@ Older sections remain as historical audit trail unless explicitly restated here.
 - PR #209 `typecheck`: **SUCCESS**
 - PR #209 `verify`: **SUCCESS**
 
-This is the final code/runtime checkpoint for the market-presentation cleanup completed on 2026-09-23.
+This is the final functional code/runtime checkpoint for the market-presentation cleanup completed on 2026-09-23. The documentation-only commit/merge that records this checkpoint will naturally advance `main` and Vercel beyond the SHA above without changing executable behavior; future sessions must still verify the live current SHA.
 
 ### Canonical public market terminology — FINAL
 
