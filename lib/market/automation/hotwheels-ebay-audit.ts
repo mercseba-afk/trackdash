@@ -16,8 +16,97 @@ import {
   type HotWheelsEbayReleaseProfile,
 } from "./hotwheels-ebay-matcher"
 import { COLLECTIBLE_VERTICALS } from "@/lib/verticals"
+import { resolveMarketEurBasis, supportsEcbMarketCurrency } from "@/lib/fx/ecb"
 
 const EU_MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_FR", "EBAY_ES", "EBAY_GB"]
+const AUDIT_DELIVERY_COUNTRY = "IT"
+const EU_COUNTRIES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR",
+  "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO",
+  "SE", "SI", "SK",
+])
+
+function round2(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
+async function auditCostBasis(listing: EbayBrowseListing, observationDate: string): Promise<Pick<
+  HotWheelsAskAuditListing,
+  "itemPriceEUR" | "shippingEUR" | "shippingAdjustedSubtotalEUR" | "effectiveCostEUR" | "costBasis"
+>> {
+  const currency = listing.currency.toUpperCase()
+  if (!supportsEcbMarketCurrency(currency)) {
+    return {
+      itemPriceEUR: null,
+      shippingEUR: null,
+      shippingAdjustedSubtotalEUR: null,
+      effectiveCostEUR: null,
+      costBasis: "fx_unavailable",
+    }
+  }
+
+  const itemFx = await resolveMarketEurBasis(listing.price, currency, observationDate)
+  const shippingFx = listing.shipping == null
+    ? null
+    : listing.shipping === 0
+      ? { amountEUR: 0 }
+      : await resolveMarketEurBasis(listing.shipping, currency, observationDate)
+
+  const itemPriceEUR = itemFx.amountEUR
+  const shippingEUR = listing.shipping == null ? null : shippingFx?.amountEUR ?? null
+  const shippingAdjustedSubtotalEUR = itemPriceEUR != null && shippingEUR != null
+    ? round2(itemPriceEUR + shippingEUR)
+    : null
+
+  if (itemPriceEUR == null) {
+    return {
+      itemPriceEUR: null,
+      shippingEUR,
+      shippingAdjustedSubtotalEUR,
+      effectiveCostEUR: null,
+      costBasis: "fx_unavailable",
+    }
+  }
+
+  if (listing.shipping == null || shippingEUR == null) {
+    return {
+      itemPriceEUR,
+      shippingEUR,
+      shippingAdjustedSubtotalEUR,
+      effectiveCostEUR: null,
+      costBasis: "shipping_unknown",
+    }
+  }
+
+  const origin = listing.itemLocationCountry
+  if (!origin) {
+    return {
+      itemPriceEUR,
+      shippingEUR,
+      shippingAdjustedSubtotalEUR,
+      effectiveCostEUR: null,
+      costBasis: "origin_unknown",
+    }
+  }
+
+  if (!EU_COUNTRIES.has(origin)) {
+    return {
+      itemPriceEUR,
+      shippingEUR,
+      shippingAdjustedSubtotalEUR,
+      effectiveCostEUR: null,
+      costBasis: "extra_eu_import_unknown",
+    }
+  }
+
+  return {
+    itemPriceEUR,
+    shippingEUR,
+    shippingAdjustedSubtotalEUR,
+    effectiveCostEUR: shippingAdjustedSubtotalEUR,
+    costBasis: "delivered_eu",
+  }
+}
 
 type CatalogProductRow = {
   id: string
@@ -51,6 +140,11 @@ export type HotWheelsAskAuditListing = EbayBrowseListing & {
   decision: "accepted" | "needs_review" | "rejected"
   reasonCodes: string[]
   detailLookup: "not_needed" | "matched" | "no_match" | "failed" | "limit_reached"
+  itemPriceEUR: number | null
+  shippingEUR: number | null
+  shippingAdjustedSubtotalEUR: number | null
+  effectiveCostEUR: number | null
+  costBasis: "delivered_eu" | "extra_eu_import_unknown" | "shipping_unknown" | "origin_unknown" | "fx_unavailable"
 }
 
 export type HotWheelsAskAuditResult = {
@@ -200,7 +294,9 @@ export async function runHotWheelsEbayAskAuditForRelease(
   for (const marketplace of marketplaces) {
     let count = 0
     for (const [queryIndex, query] of queries.entries()) {
-      const found = await searchEbayActiveListingsByQuery(query, marketplace, perQueryLimit)
+      const found = await searchEbayActiveListingsByQuery(query, marketplace, perQueryLimit, {
+        deliveryCountry: AUDIT_DELIVERY_COUNTRY,
+      })
       count += found.length
       rows.push(...found.map((listing) => ({ ...listing, queryIndex })))
     }
@@ -215,6 +311,8 @@ export async function runHotWheelsEbayAskAuditForRelease(
   const unique = dedupeEbayListings(rows)
   const listings: HotWheelsAskAuditListing[] = []
   let detailLookups = 0
+
+  const observationDate = new Date().toISOString().slice(0, 10)
 
   for (const listing of unique) {
     const initial = classifyHotWheelsEbayListing(listing, profile)
@@ -249,12 +347,15 @@ export async function runHotWheelsEbayAskAuditForRelease(
       }
     }
 
+    const cost = await auditCostBasis(listing, observationDate)
+
     listings.push({
       ...listing,
       queryIndex: queryIndexByItem.get(listing.itemId) ?? 0,
       decision: classification.decision,
       reasonCodes: classification.reasonCodes,
       detailLookup,
+      ...cost,
     })
   }
 
