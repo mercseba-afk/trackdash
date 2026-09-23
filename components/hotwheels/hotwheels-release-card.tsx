@@ -1,14 +1,19 @@
+"use client"
+
 import Link from "next/link"
 import { ProductImage } from "@/components/catalog/product-image"
 import type { HotWheelsPilotEntry } from "@/lib/actions/hotwheels"
+import { useI18n } from "@/lib/i18n"
 
-function identifierLabel(scheme: string) {
+function identifierLabel(scheme: string, it: boolean) {
   if (scheme === "mattel_sku") return "Mattel SKU"
-  if (scheme === "mattel_toy_number") return "Mattel toy #"
+  if (scheme === "mattel_toy_number") return it ? "Codice Mattel" : "Mattel toy #"
   return scheme
 }
 
 export function HotWheelsReleaseCard({ entry }: { entry: HotWheelsPilotEntry }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
   const { product, release, details, primaryIdentifier } = entry
 
   return (
@@ -38,19 +43,22 @@ export function HotWheelsReleaseCard({ entry }: { entry: HotWheelsPilotEntry }) 
           <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-brand">
             {release.editionName}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">{release.releaseYear ?? "Year to verify"}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {release.releaseYear ?? (it ? "Anno da verificare" : "Year to verify")}
+          </p>
         </div>
 
         <div className="flex items-end justify-between gap-3 border-t border-border/60 pt-3">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-              {primaryIdentifier ? identifierLabel(primaryIdentifier.scheme) : "Identifier"}
+              {primaryIdentifier ? identifierLabel(primaryIdentifier.scheme, it) : (it ? "Identificatore" : "Identifier")}
             </p>
             <p className="mt-0.5 font-mono text-sm font-semibold text-foreground">
               {primaryIdentifier?.value ?? "—"}
             </p>
           </div>
           <div className="text-right text-[11px] text-muted-foreground">
+            {details.variationCode ? <p>{it ? "Var." : "Var."} {details.variationCode}</p> : null}
             {details.seriesPosition ? <p>{details.seriesPosition}</p> : null}
             {details.mixCode ? <p>Mix {details.mixCode}</p> : null}
           </div>
