@@ -8,7 +8,7 @@ import { formatDate, formatMoney, formatPercent } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { useStore } from "@/lib/store"
-import type { Condition, Currency } from "@/lib/types"
+import type { Condition, Currency, Product } from "@/lib/types"
 import { CONDITIONS, CURRENCIES } from "@/lib/types"
 import {
   getMyCollectionSharesAction,
@@ -48,15 +48,23 @@ function visibilityLabel(value: Visibility, it: boolean) {
   return it ? "Privato" : "Private"
 }
 
-export function CollectionItemDetailScreen({ collectionItemId }: { collectionItemId: string }) {
+export function CollectionItemDetailScreen({
+  collectionItemId,
+  catalogProduct,
+}: {
+  collectionItemId: string
+  catalogProduct: Product | null
+}) {
   const { collection, updateCollectionItem } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
   const item = collection.find((candidate) => candidate.id === collectionItemId)
   const entry = React.useMemo(
-    () => item ? enrichCollection([item], marketSignals)[0] ?? null : null,
-    [item, marketSignals],
+    () => item && catalogProduct
+      ? enrichCollection([item], marketSignals, [catalogProduct])[0] ?? null
+      : null,
+    [catalogProduct, item, marketSignals],
   )
   const [share, setShare] = React.useState<MyShare | null>(null)
   const [editing, setEditing] = React.useState(false)
