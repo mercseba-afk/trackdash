@@ -266,6 +266,36 @@ Detailed rules and source references are in:
 
 ---
 
+## HOT WHEELS LB-ER34 FAMILY CHECKPOINT — 2026-09-23
+
+The first complete Hot Wheels casting family is now live in Supabase:
+
+**LB-ER34 Super Silhouette Nissan Skyline**
+
+- Product/casting rows: **1**
+- canonical Releases: **9**
+- debut/canonical Release: `HCJ81` (2022 Mountain Drifters 4/5)
+- latest audited Release: `JKF36` (2026 Aérostyles 0/5 Chase)
+- migration: `0150_hotwheels_lb_er34_family.sql`
+- Mini 4WD products remain: **55**
+- Hot Wheels products/castings remain: **5**
+
+This validates the frozen hierarchy:
+
+**Product = casting → ProductRelease = meaningful commercial variation → Subvariant = minor physical/package difference**
+
+The reported 2023 HKF21 ZAMAC 10-piece item remains a pending/candidate Subvariant and is not promoted into canonical public data without independent corroboration.
+
+Detailed family rows, sources and next action:
+
+`docs/HOTWHEELS_VERTICAL.md`
+
+Next Hot Wheels phase:
+
+**controlled EU-first Market Intelligence matching (ASK first, SOLD provider validation separately).**
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat:
