@@ -1762,3 +1762,65 @@ Then compare:
 6. whether extra-EU offers materially broaden price context.
 
 Only after this recall test should HCJ81 ASK persistence be designed.
+
+
+### 2026-09-23 — Step 19: wider European marketplace coverage
+
+Status: **IMPLEMENTED ON BRANCH — read-only audit only; no Market Engine writes**.
+
+The HCJ81 context-query audit improved recall without degrading review pressure:
+
+- exact-query baseline: 19 unique / 4 accepted / 6 review / 9 rejected
+- context-query result: 26 unique / 5 accepted / 6 review / 15 rejected
+
+Interpretation:
+
+- +7 unique listings discovered;
+- +1 accepted listing;
+- review count unchanged;
+- most extra noise was rejected correctly;
+- context query is therefore useful for recall and does not relax acceptance rules.
+
+However, only **1 accepted EU-origin delivered offer** was found:
+
+- lowest accepted EU-delivered total: **€99.50**
+
+This is not treated as a reliable market minimum because one EU observation is too sparse and can be dominated by an aspirational seller.
+
+#### Marketplace expansion
+
+The Hot Wheels audit now queries:
+
+- EBAY_IT
+- EBAY_DE
+- EBAY_FR
+- EBAY_ES
+- EBAY_NL
+- EBAY_BE
+- EBAY_AT
+- EBAY_IE
+- EBAY_PL
+- EBAY_GB
+
+All searches remain constrained with:
+
+`deliveryCountry:IT`
+
+The purpose is to improve European offer discovery while preserving the same matcher and delivered-cost rules.
+
+No Mini 4WD search caller is changed.
+
+The shared eBay marketplace type is extended additively only so the Hot Wheels audit can address these additional Browse marketplaces.
+
+### Exact next Hot Wheels action
+
+1. run CI on the expanded marketplace coverage;
+2. deploy only if typecheck + verify are green;
+3. re-run HCJ81 with context query ON;
+4. compare:
+   - unique listings;
+   - accepted/review/rejected;
+   - number of accepted EU-delivered offers;
+   - lowest credible EU-delivered cost;
+5. if European breadth materially improves and matching stays clean, freeze HCJ81 ASK discovery policy;
+6. only then design first controlled persistence into the shared Market Engine.
