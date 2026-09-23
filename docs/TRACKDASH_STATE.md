@@ -162,6 +162,19 @@ TrackDash now keeps one dedicated operational state file per collectible vertica
 
 ---
 
+
+### Dormant Hot Wheels shell — active branch
+
+Current branch: `feat/hotwheels-pilot-shell`
+
+- `/hotwheels` and `/hotwheels/catalog` now exist behind `publicEnabled = false`;
+- they fail closed with 404 while the pilot is private;
+- no primary navigation/onboarding change has been made;
+- Mini 4WD remains the only public catalog experience;
+- next Hot Wheels material task: first five real pilot Releases.
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat:
