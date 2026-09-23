@@ -18,7 +18,10 @@ import {
 import { COLLECTIBLE_VERTICALS } from "@/lib/verticals"
 import { resolveMarketEurBasis, supportsEcbMarketCurrency } from "@/lib/fx/ecb"
 
-const EU_MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_FR", "EBAY_ES", "EBAY_GB"]
+const AUDIT_MARKETPLACES: EbayMarketplaceId[] = [
+  "EBAY_IT", "EBAY_DE", "EBAY_FR", "EBAY_ES", "EBAY_NL",
+  "EBAY_BE", "EBAY_AT", "EBAY_IE", "EBAY_PL", "EBAY_GB",
+]
 const AUDIT_DELIVERY_COUNTRY = "IT"
 const EU_COUNTRIES = new Set([
   "AT", "BE", "BG", "HR", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR",
@@ -282,7 +285,7 @@ export async function runHotWheelsEbayAskAuditForRelease(
   const profile = profiles.find((candidate) => candidate.releaseId === releaseId)
   if (!profile) throw new Error("HOTWHEELS_AUDIT_RELEASE_NOT_FOUND")
 
-  const marketplaces = options.marketplaces ?? EU_MARKETPLACES
+  const marketplaces = options.marketplaces ?? AUDIT_MARKETPLACES
   const perQueryLimit = Math.max(1, Math.min(options.perQueryLimit ?? 10, 25))
   const allQueries = buildHotWheelsEbayQueries(profile)
   const queries = options.includeFallbackQuery ? allQueries : allQueries.slice(0, 1)
