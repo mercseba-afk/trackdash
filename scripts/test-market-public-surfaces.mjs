@@ -92,6 +92,9 @@ if (!marketOverview.includes("Prezzo osservato")) {
 if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("Trend prezzo osservato")) {
   errors.push("Shared market overview does not expose collector-facing market trend context")
 }
+if (!marketOverview.includes("askTrendWindowDays >= 7") || !marketOverview.includes("currentOfferCount >= 3")) {
+  errors.push("Observed-price trend is not guarded against thin or too-short ASK windows")
+}
 if (!marketOverview.includes("costo effettivo")) {
   errors.push("Shared market overview does not explain the Europe-first delivered-cost basis")
 }
