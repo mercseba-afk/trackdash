@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n"
 export function HotWheelsCatalogScreen({ entries }: { entries: HotWheelsPilotEntry[] }) {
   const { locale } = useI18n()
   const it = locale === "it"
+  const castingCount = new Set(entries.map((entry) => entry.product.id)).size
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 md:px-6 lg:px-8">
@@ -28,7 +29,11 @@ export function HotWheelsCatalogScreen({ entries }: { entries: HotWheelsPilotEnt
               {it ? "Catalogo pilota" : "Pilot catalog"}
             </p>
             <p className="mt-0.5 text-3xl font-semibold tabular-nums text-foreground">{entries.length}</p>
-            <p className="text-xs text-muted-foreground">{it ? "Release verificate" : "verified Releases"}</p>
+            <p className="text-xs text-muted-foreground">
+              {it
+                ? `${entries.length} Release · ${castingCount} Casting`
+                : `${entries.length} Releases · ${castingCount} Castings`}
+            </p>
           </div>
         </div>
       </section>
