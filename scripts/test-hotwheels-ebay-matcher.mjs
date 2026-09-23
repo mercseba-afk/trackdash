@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import {
   buildHotWheelsEbayQueries,
   classifyHotWheelsEbayListing,
+  refineHotWheelsEbayListingWithItemDetails,
 } from "../lib/market/automation/hotwheels-ebay-matcher.ts"
 
 let passed = 0
@@ -216,6 +217,96 @@ ok("ended active listing is rejected", () => {
   )
   assert.equal(result.decision, "rejected")
   assert.equal(result.reasonCodes.includes("LISTING_ENDED"), true)
+})
+
+
+const detailFixture = (overrides = {}) => ({
+  itemId: "v1|fixture|0",
+  legacyItemId: "123456789012",
+  title: "Hot Wheels LB-ER34 Super Silhouette Nissan Skyline",
+  gtin: null,
+  brand: "Hot Wheels",
+  mpn: null,
+  localizedAspects: [],
+  ...overrides,
+})
+
+ok("item details MPN can promote a review-only listing", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Nissan Skyline red 4/5"),
+    mountain,
+  )
+  assert.equal(initial.decision, "needs_review")
+
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ mpn: "HCJ81" }),
+    mountain,
+  )
+  assert.equal(refined.decision, "accepted")
+  assert.deepEqual(refined.reasonCodes, ["MATTEL_IDENTIFIER_ITEM_DETAILS"])
+})
+
+ok("item details can match identifier embedded in a longer aspect value", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Nissan Skyline red"),
+    mountain,
+  )
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({
+      localizedAspects: [{ name: "MPN", value: "HCJ81-A1" }],
+    }),
+    mountain,
+  )
+  assert.equal(refined.decision, "accepted")
+})
+
+ok("item details sibling identifier rejects a review-only listing", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline"),
+    mountain,
+  )
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ mpn: "HCK01" }),
+    mountain,
+  )
+  assert.equal(refined.decision, "rejected")
+  assert.deepEqual(refined.reasonCodes, ["SIBLING_RELEASE_IDENTIFIER_ITEM_DETAILS"])
+})
+
+ok("item details without target or sibling identifier stay review-only", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline"),
+    mountain,
+  )
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({
+      mpn: "UNKNOWN",
+      gtin: "1234567890123",
+      localizedAspects: [{ name: "Series", value: "Mountain Drifters" }],
+    }),
+    mountain,
+  )
+  assert.equal(refined.decision, "needs_review")
+  assert.deepEqual(refined.reasonCodes, initial.reasonCodes)
+})
+
+ok("item details can never upgrade an already rejected listing", () => {
+  const initial = classifyHotWheelsEbayListing(
+    listing("Hot Wheels HCJ81 Porsche 911 Premium Car Culture"),
+    mountain,
+  )
+  assert.equal(initial.decision, "rejected")
+  const refined = refineHotWheelsEbayListingWithItemDetails(
+    initial,
+    detailFixture({ mpn: "HCJ81" }),
+    mountain,
+  )
+  assert.equal(refined.decision, "rejected")
+  assert.deepEqual(refined.reasonCodes, initial.reasonCodes)
 })
 
 console.log(`${passed} passed, 0 failed`)
