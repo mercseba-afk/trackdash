@@ -244,6 +244,28 @@ Detailed Hot Wheels state remains in `docs/HOTWHEELS_VERTICAL.md`.
 
 ---
 
+## HOT WHEELS CASTING / RELEASE / SUBVARIANT MODEL — 2026-09-23
+
+The Hot Wheels catalog hierarchy is now frozen on the active branch as:
+
+**Product = exact casting → ProductRelease = meaningful commercial variation → Subvariant = minor physical/package difference**
+
+This follows established collector-catalog patterns and prevents unnecessary Release explosion from small wheel/card/base differences.
+
+New branch work:
+
+- standard Hot Wheels Release metadata extended with variation code, manufacturing country, wheel type, exclusivity, master series and theme;
+- new `hotwheels_release_subvariants` structure for minor wheel/package/base/interior/window/deco differences;
+- bilingual Hot Wheels UI is now a permanent invariant: every user-facing change must ship in both Italiano and English in the same work unit;
+- existing five pilot Releases remain unchanged;
+- migration `0149_hotwheels_casting_variant_model.sql` is pending CI before live Supabase application.
+
+Detailed rules and source references are in:
+
+`docs/HOTWHEELS_VERTICAL.md`
+
+---
+
 ## SESSION BOOTSTRAP — READ FIRST
 
 For every TrackDash continuation/new chat:
