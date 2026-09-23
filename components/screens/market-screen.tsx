@@ -149,7 +149,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
           <div className="grid grid-cols-2 gap-3">
             <MiniStat label={it ? "Release con dati" : "Releases with data"} value={String(rows.length)} />
             <MiniStat label={it ? "Valori disponibili" : "Available values"} value={String(valued.length)} />
-            <MiniStat label={it ? "Offerte trovate" : "Offers found"} value={String(currentOffers)} />
+            <MiniStat label={it ? "Richieste venditori" : "Seller asks"} value={String(currentOffers)} />
             <MiniStat label={it ? "Trend disponibili" : "Available trends"} value={String(trends.length)} />
           </div>
         </div>
@@ -281,7 +281,7 @@ function ValueExample({ row }: { row: Row }) {
       <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-xs text-[#9fb6d5]">
         {row.signal.soldUnits > 0 ? <span>{row.signal.soldUnits} {it ? "vendite" : "sold units"}</span> : null}
         {row.signal.retailSourceCount > 0 ? <span>{row.signal.retailSourceCount} retail</span> : null}
-        {row.signal.currentOfferCount > 0 ? <span>{row.signal.currentOfferCount} {it ? "offerte" : "offers"}</span> : null}
+        {row.signal.currentOfferCount > 0 ? <span>{row.signal.currentOfferCount} {it ? "richieste venditori" : "seller asks"}</span> : null}
       </div>
     </div>
   )
