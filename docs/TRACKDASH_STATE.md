@@ -182,6 +182,36 @@ New pilot behavior:
 
 The eBay transport change is opt-in for Hot Wheels audit calls. Existing Mini 4WD eBay search behavior remains unchanged.
 
+### HCJ81 CONTEXT-QUERY PILOT AUTHORIZED — 2026-09-23
+
+Latest Production exact-query audit on HCJ81 under the new Hot Wheels-only matcher/shipping semantics:
+
+- 19 unique listings;
+- 4 accepted;
+- 6 review;
+- 9 rejected;
+- 2 new context-discriminator accepts;
+- 1 sibling Release rejected from structured item details;
+- 1 accepted EU-delivered offer;
+- lowest accepted EU-delivered total: **€99.50**;
+- extra-EU accepted listings remain contextual when import/landed cost is unknown.
+
+Important interpretation:
+
+€99.50 is **not** treated as HCJ81 Market Value or a reliable market minimum. The exact-code query has only one accepted EU-delivered observation and therefore insufficient European price breadth.
+
+Decision:
+
+- matcher precision is sufficient;
+- enable the existing **context query** for the next HCJ81 read-only audit;
+- context query broadens discovery only and does not loosen acceptance rules;
+- Hot Wheels market writes remain disabled;
+- Mini 4WD behavior remains unchanged.
+
+Current working branch for documenting the recall pilot:
+
+`feat/hotwheels-context-query-pilot`
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;
