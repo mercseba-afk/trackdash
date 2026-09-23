@@ -1,4 +1,4 @@
-import type { EbayBrowseListing, EbayListingDecision } from "./ebay-browse-adapter"
+import type { EbayBrowseItemDetails, EbayBrowseListing, EbayListingDecision } from "./ebay-browse-adapter"
 
 export type HotWheelsCommercialForm = "single" | "team_transport" | "two_pack" | "club_exclusive"
 
@@ -227,4 +227,51 @@ export function classifyHotWheelsEbayListing(
   }
 
   return { decision: "accepted", reasonCodes: ["MATTEL_IDENTIFIER_EXACT"] }
+}
+
+
+function itemIdentityValues(details: EbayBrowseItemDetails): string[] {
+  const values = [
+    details.mpn,
+    details.gtin,
+    ...details.localizedAspects.map((aspect) => aspect.value),
+  ]
+  return values.flatMap((value) => value?.trim() ? [value] : [])
+}
+
+function valuesContainIdentifier(values: string[], identifier: string): boolean {
+  const target = normalizeCompact(identifier)
+  if (!target) return false
+  return values.some((value) => normalizeCompact(value).includes(target))
+}
+
+export function refineHotWheelsEbayListingWithItemDetails(
+  initial: EbayListingDecision,
+  details: EbayBrowseItemDetails,
+  profile: HotWheelsEbayReleaseProfile,
+): EbayListingDecision {
+  if (initial.decision === "rejected" || initial.decision === "accepted") return initial
+
+  const values = itemIdentityValues(details)
+
+  for (const siblingIdentifier of profile.siblingIdentifiers ?? []) {
+    if (
+      siblingIdentifier !== profile.primaryIdentifier &&
+      valuesContainIdentifier(values, siblingIdentifier)
+    ) {
+      return {
+        decision: "rejected",
+        reasonCodes: ["SIBLING_RELEASE_IDENTIFIER_ITEM_DETAILS"],
+      }
+    }
+  }
+
+  if (valuesContainIdentifier(values, profile.primaryIdentifier)) {
+    return {
+      decision: "accepted",
+      reasonCodes: ["MATTEL_IDENTIFIER_ITEM_DETAILS"],
+    }
+  }
+
+  return initial
 }
