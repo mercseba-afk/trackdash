@@ -12,6 +12,11 @@ export async function listHotWheelsPilotProducts() {
       brand: true,
       category: true,
       images: true,
+      hotwheelsCastingDetails: {
+        with: {
+          sources: true,
+        },
+      },
       releases: {
         with: {
           images: true,
