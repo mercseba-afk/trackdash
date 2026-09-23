@@ -30,6 +30,7 @@ const chase = {
   ...mountain,
   releaseId: "mountain-chase",
   primaryIdentifier: "HCK01",
+  alternateIdentifiers: [],
   seriesPosition: "0/5",
   chaseType: "Chase",
   siblingIdentifiers: ["HCJ81"],
