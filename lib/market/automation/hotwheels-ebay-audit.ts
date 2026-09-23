@@ -9,6 +9,7 @@ import {
   type EbayMarketplaceId,
 } from "./ebay-browse-adapter"
 import {
+  buildHotWheelsEbayIdentifierQueries,
   buildHotWheelsEbayQueries,
   classifyHotWheelsEbayListing,
   refineHotWheelsEbayListingWithItemDetails,
@@ -124,8 +125,10 @@ type CatalogReleaseRow = {
 
 type IdentifierRow = {
   release_id: string
+  scheme: string
   value: string
   is_primary: boolean
+  verification_status: string
 }
 
 type DetailRow = {
@@ -214,7 +217,7 @@ async function loadHotWheelsAuditProfiles(): Promise<HotWheelsEbayReleaseProfile
   const [{ data: identifiers, error: identifiersError }, { data: details, error: detailsError }] = await Promise.all([
     client
       .from("release_identifiers")
-      .select("release_id,value,is_primary")
+      .select("release_id,scheme,value,is_primary,verification_status")
       .in("release_id", releaseIds),
     client
       .from("hotwheels_release_details")
@@ -226,6 +229,7 @@ async function loadHotWheelsAuditProfiles(): Promise<HotWheelsEbayReleaseProfile
 
   const identifiersByRelease = new Map<string, IdentifierRow[]>()
   for (const row of (identifiers ?? []) as IdentifierRow[]) {
+    if (row.verification_status !== "verified") continue
     const bucket = identifiersByRelease.get(row.release_id) ?? []
     bucket.push(row)
     identifiersByRelease.set(row.release_id, bucket)
@@ -235,14 +239,6 @@ async function loadHotWheelsAuditProfiles(): Promise<HotWheelsEbayReleaseProfile
     ((details ?? []) as DetailRow[]).map((row) => [row.release_id, row]),
   )
 
-  const identifiersByProduct = new Map<string, string[]>()
-  for (const release of typedReleases) {
-    const codes = identifiersByRelease.get(release.id) ?? []
-    const bucket = identifiersByProduct.get(release.product_id) ?? []
-    for (const code of codes) if (!bucket.includes(code.value)) bucket.push(code.value)
-    identifiersByProduct.set(release.product_id, bucket)
-  }
-
   return typedReleases.flatMap((release) => {
     const product = productById.get(release.product_id)
     const detail = detailsByRelease.get(release.id)
@@ -251,19 +247,28 @@ async function loadHotWheelsAuditProfiles(): Promise<HotWheelsEbayReleaseProfile
 
     if (!product || !detail || !primary?.value) return []
 
+    const alternateIdentifiers = codes
+      .filter((row) => row.value !== primary.value)
+      .map((row) => row.value)
+
+    const siblingIdentifiers = typedReleases
+      .filter((candidate) => candidate.product_id === release.product_id && candidate.id !== release.id)
+      .flatMap((candidate) => (identifiersByRelease.get(candidate.id) ?? []).map((row) => row.value))
+      .filter((value, index, all) => all.indexOf(value) === index)
+
     return [{
       releaseId: release.id,
       castingName: product.name,
       releaseYear: release.release_year,
       primaryIdentifier: primary.value,
+      alternateIdentifiers,
       lineName: detail.line_name,
       subseries: detail.subseries,
       collectorNumber: detail.collector_number,
       seriesPosition: detail.series_position,
       chaseType: detail.chase_type,
       commercialForm: commercialForm(detail),
-      siblingIdentifiers: (identifiersByProduct.get(release.product_id) ?? [])
-        .filter((value) => value !== primary.value),
+      siblingIdentifiers,
     }]
   })
 }
@@ -287,8 +292,9 @@ export async function runHotWheelsEbayAskAuditForRelease(
 
   const marketplaces = options.marketplaces ?? AUDIT_MARKETPLACES
   const perQueryLimit = Math.max(1, Math.min(options.perQueryLimit ?? 10, 25))
+  const identifierQueries = buildHotWheelsEbayIdentifierQueries(profile)
   const allQueries = buildHotWheelsEbayQueries(profile)
-  const queries = options.includeFallbackQuery ? allQueries : allQueries.slice(0, 1)
+  const queries = options.includeFallbackQuery ? allQueries : identifierQueries
   const maxDetailLookups = Math.max(0, Math.min(options.maxDetailLookups ?? 8, 20))
 
   const rows: Array<EbayBrowseListing & { queryIndex: number }> = []

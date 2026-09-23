@@ -7,6 +7,7 @@ export interface HotWheelsEbayReleaseProfile {
   castingName: string
   releaseYear: number | null
   primaryIdentifier: string
+  alternateIdentifiers?: string[]
   lineName: string
   subseries?: string | null
   collectorNumber?: string | null
@@ -110,6 +111,18 @@ function hasExactIdentifier(value: string, identifier: string): boolean {
   return normalizeCompact(value).includes(normalizeCompact(identifier))
 }
 
+function ownIdentifiers(profile: HotWheelsEbayReleaseProfile): string[] {
+  return [profile.primaryIdentifier, ...(profile.alternateIdentifiers ?? [])]
+    .filter((value, index, all) => Boolean(value?.trim()) && all.indexOf(value) === index)
+}
+
+function matchingOwnIdentifier(value: string, profile: HotWheelsEbayReleaseProfile): string | null {
+  for (const identifier of ownIdentifiers(profile)) {
+    if (hasExactIdentifier(value, identifier)) return identifier
+  }
+  return null
+}
+
 function hasAnyTerm(normalizedTitle: string, terms: string[]): boolean {
   return terms.some((term) => {
     const normalizedTerm = normalizeText(term)
@@ -182,13 +195,23 @@ function hasStrongReleaseContext(
   )
 }
 
-export function buildHotWheelsEbayQueries(profile: HotWheelsEbayReleaseProfile): string[] {
-  const casting = profile.castingName
+function normalizedCastingName(profile: HotWheelsEbayReleaseProfile): string {
+  return profile.castingName
     .replace(/[—–]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
+}
 
-  const exact = `Hot Wheels ${profile.primaryIdentifier} ${casting}`.replace(/\s+/g, " ").trim()
+export function buildHotWheelsEbayIdentifierQueries(profile: HotWheelsEbayReleaseProfile): string[] {
+  const casting = normalizedCastingName(profile)
+  return ownIdentifiers(profile)
+    .map((identifier) => `Hot Wheels ${identifier} ${casting}`.replace(/\s+/g, " ").trim())
+    .filter((query, index, all) => all.indexOf(query) === index)
+}
+
+export function buildHotWheelsEbayQueries(profile: HotWheelsEbayReleaseProfile): string[] {
+  const casting = normalizedCastingName(profile)
+  const identifierQueries = buildHotWheelsEbayIdentifierQueries(profile)
 
   const contextParts = [
     "Hot Wheels",
@@ -201,7 +224,9 @@ export function buildHotWheelsEbayQueries(profile: HotWheelsEbayReleaseProfile):
   ].filter(Boolean)
 
   const fallback = contextParts.join(" ").replace(/\s+/g, " ").trim()
-  return exact === fallback ? [exact] : [exact, fallback]
+  return identifierQueries.includes(fallback)
+    ? identifierQueries
+    : [...identifierQueries, fallback]
 }
 
 export function classifyHotWheelsEbayListing(
@@ -244,7 +269,8 @@ export function classifyHotWheelsEbayListing(
     return { decision: "rejected", reasonCodes: ["CASTING_NOT_CONFIRMED"] }
   }
 
-  const exactIdentifier = hasExactIdentifier(listing.title, profile.primaryIdentifier)
+  const matchedOwnIdentifier = matchingOwnIdentifier(listing.title, profile)
+  const exactIdentifier = Boolean(matchedOwnIdentifier)
   const titleHasChaseMarker = hasChaseMarker(normalized)
   const targetIsChase = isChaseRelease(profile)
 
@@ -284,7 +310,14 @@ export function classifyHotWheelsEbayListing(
     return { decision: "needs_review", reasonCodes: reasons }
   }
 
-  return { decision: "accepted", reasonCodes: ["MATTEL_IDENTIFIER_EXACT"] }
+  return {
+    decision: "accepted",
+    reasonCodes: [
+      matchedOwnIdentifier === profile.primaryIdentifier
+        ? "MATTEL_IDENTIFIER_EXACT"
+        : "MATTEL_SECONDARY_IDENTIFIER_EXACT",
+    ],
+  }
 }
 
 
@@ -330,10 +363,16 @@ export function refineHotWheelsEbayListingWithItemDetails(
     }
   }
 
-  if (valuesContainIdentifier(values, profile.primaryIdentifier)) {
-    return {
-      decision: "accepted",
-      reasonCodes: ["MATTEL_IDENTIFIER_ITEM_DETAILS"],
+  for (const identifier of ownIdentifiers(profile)) {
+    if (valuesContainIdentifier(values, identifier)) {
+      return {
+        decision: "accepted",
+        reasonCodes: [
+          identifier === profile.primaryIdentifier
+            ? "MATTEL_IDENTIFIER_ITEM_DETAILS"
+            : "MATTEL_SECONDARY_IDENTIFIER_ITEM_DETAILS",
+        ],
+      }
     }
   }
 
