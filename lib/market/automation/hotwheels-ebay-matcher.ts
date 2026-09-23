@@ -105,6 +105,12 @@ function significantCastingTokens(value: string): string[] {
     .filter((token) => token.length >= 3 && !stop.has(token))
 }
 
+function containsWordVariant(normalizedTitle: string, token: string): boolean {
+  return normalizedTitle.includes(` ${token} `) ||
+    normalizedTitle.includes(` ${token}s `) ||
+    (token.endsWith("s") && normalizedTitle.includes(` ${token.slice(0, -1)} `))
+}
+
 function matchesCasting(title: string, profile: HotWheelsEbayReleaseProfile): boolean {
   const normalizedTitle = normalizeText(title)
   const aliases = [profile.castingName, ...(profile.castingAliases ?? [])]
@@ -112,7 +118,7 @@ function matchesCasting(title: string, profile: HotWheelsEbayReleaseProfile): bo
     const tokens = significantCastingTokens(alias)
     if (!tokens.length) return false
     const required = tokens.length <= 2 ? tokens.length : Math.min(3, tokens.length)
-    return tokens.filter((token) => normalizedTitle.includes(` ${token} `)).length >= required
+    return tokens.filter((token) => containsWordVariant(normalizedTitle, token)).length >= required
   })
 }
 
