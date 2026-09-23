@@ -189,7 +189,7 @@ type ProductRow = {
   series: string | null
   chassis: string | null
   originalReleaseYear: number | null
-  rarity: string
+  rarity: string | null
   description: string | null
   canonicalReleaseId: string | null
   images?: { url: string }[]
@@ -221,7 +221,7 @@ export function mapProductRow(row: ProductRow): Product {
     // undefined when there is no canonical release -- the UI shows "—".
     chassis: (canonicalRelease?.chassis ?? (row.chassis as Chassis)) || undefined,
     originalReleaseYear: canonicalRelease?.releaseYear ?? row.originalReleaseYear ?? undefined,
-    rarity: row.rarity as Rarity,
+    rarity: (row.rarity as Rarity) ?? undefined,
     description: row.description ?? "",
     images: row.images ? row.images.map((i) => i.url) : [],
     releases,
