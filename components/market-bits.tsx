@@ -3,8 +3,8 @@
 import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react"
 import type { MarketEstimate, Rarity } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
-import { getMarketLiquidity, marketLiquidityLabel } from "@/lib/market/liquidity"
 import { useI18n } from "@/lib/i18n"
+import { hasReliableObservedPriceTrend, observedMarketPrice } from "@/lib/market/presentation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { RARITY_STYLE, formatMoney, formatPercent } from "@/lib/format"
@@ -119,14 +119,10 @@ export function MarketSignalCard({
   const { locale } = useI18n()
   const it = locale === "it"
   const resolvedTitle = normalizeMarketValueTitle(title, it)
-  const liquidity = getMarketLiquidity(signal)
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
-  const hasCleanActiveAsk =
-    !hasValue &&
-    signal.activeOfferCount > 0 &&
-    signal.retailSourceCount === 0 &&
-    signal.startingItemPriceEUR != null &&
-    signal.startingItemPriceEUR > 0
+  const observedPrice = observedMarketPrice(signal)
+  const hasObservedPrice = observedPrice != null && observedPrice > 0
+  const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
 
   return (
     <Card>
@@ -147,45 +143,20 @@ export function MarketSignalCard({
                 : `TrackDash estimate based on ${signal.soldUnits > 0 ? `${signal.soldUnits} observed sales` : "current store prices"}${signal.soldSellerCount != null ? ` · ${signal.soldSellerCount} observed sellers` : ""}. It does not represent a guaranteed sale price.`}
             </p>
           </div>
-        ) : hasCleanActiveAsk ? (
+        ) : hasObservedPrice ? (
           <div>
-            <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {it ? "In vendita da" : "Listed from"} <span className="font-semibold tabular-nums text-foreground">{formatMoney(signal.startingItemPriceEUR!)}</span>
-            </p>
+            <p className="text-sm font-medium text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <p className="text-2xl font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice!)}</p>
+              {observedTrend != null ? <TrendIndicator value={observedTrend} className="text-sm" /> : null}
+            </div>
           </div>
         ) : (
           <div>
-            <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in arrivo" : "Market data coming soon"}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{it ? "Non ci sono ancora abbastanza dati per una stima affidabile." : "There is not enough data for a reliable estimate yet."}</p>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              {it ? "La scheda si aggiornerà quando arriveranno nuovi dati di mercato." : "This page will update as new market data becomes available."}
-            </p>
+            <p className="text-xl font-semibold text-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{it ? "Non c'è ancora un riferimento di prezzo abbastanza chiaro da pubblicare." : "There is not yet a sufficiently clear price reference to publish."}</p>
           </div>
         )}
-
-        <div className="flex items-start justify-between gap-4 border-t pt-3">
-          <div>
-            <span className="text-sm text-muted-foreground">{it ? "Attività di mercato" : "Market activity"}</span>
-            <p className="mt-1 max-w-sm text-[10px] leading-relaxed text-muted-foreground">
-              {it
-                ? "Basata solo sulle vendite concluse osservate nella finestra recente, non sugli annunci attivi."
-                : "Based only on observed completed sales in the recent window, not on active listings."}
-            </p>
-          </div>
-          <div className="shrink-0 text-right">
-            <p className="text-sm font-semibold">
-              {liquidity ? marketLiquidityLabel(liquidity.level, it) : (it ? "Dati insufficienti" : "Insufficient data")}
-            </p>
-            {liquidity ? (
-              <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">
-                {it
-                  ? `${liquidity.observedSales3m} vendite / 3 mesi · ~${liquidity.averageSalesPerMonth.toLocaleString("it-IT", { maximumFractionDigits: 1 })}/mese`
-                  : `${liquidity.observedSales3m} sales / 3 months · ~${liquidity.averageSalesPerMonth.toLocaleString("en-US", { maximumFractionDigits: 1 })}/month`}
-              </p>
-            ) : null}
-          </div>
-        </div>
 
         {rarity !== undefined ? (
           <div className="flex items-center justify-between gap-3 border-t pt-3">
