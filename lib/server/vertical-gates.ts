@@ -7,6 +7,7 @@ export function isVerticalRouteEnabled(vertical: CollectibleVertical): boolean {
   if (COLLECTIBLE_VERTICALS[vertical].publicEnabled) return true
 
   if (vertical === "hotwheels") {
+    if (process.env.VERCEL_ENV === "preview") return true
     return process.env.HOTWHEELS_PILOT_ENABLED === "true"
   }
 
