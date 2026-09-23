@@ -4,6 +4,26 @@ import type { Product, ProductRelease, ReleaseSource } from "@/lib/types"
 import { listHotWheelsPilotProducts } from "@/lib/db/queries/hotwheels"
 import { mapProductRow } from "@/lib/actions/mappers"
 
+export type HotWheelsCastingSource = {
+  id: string
+  sourceType: string
+  sourceUrl?: string
+  verifiedFields: string[]
+  checkedAt?: string
+  notes?: string
+}
+
+export type HotWheelsCastingDetails = {
+  modelReference?: string
+  designer?: string
+  castingDebutYear?: number
+  debutSeries?: string
+  scale?: string
+  verificationStatus: string
+  metadata: Record<string, unknown>
+  sources: HotWheelsCastingSource[]
+}
+
 export type HotWheelsPilotIdentifier = {
   scheme: string
   value: string
@@ -45,6 +65,7 @@ export type HotWheelsPilotSubvariant = {
 
 export type HotWheelsPilotEntry = {
   product: Product
+  casting?: HotWheelsCastingDetails
   release: ProductRelease
   primaryIdentifier?: HotWheelsPilotIdentifier
   identifiers: HotWheelsPilotIdentifier[]
@@ -58,6 +79,26 @@ export async function fetchHotWheelsPilotCatalog(): Promise<HotWheelsPilotEntry[
 
   return rows.flatMap((row) => {
     const product = mapProductRow(row)
+    const castingRow = row.hotwheelsCastingDetails
+    const casting: HotWheelsCastingDetails | undefined = castingRow
+      ? {
+          modelReference: castingRow.modelReference ?? undefined,
+          designer: castingRow.designer ?? undefined,
+          castingDebutYear: castingRow.castingDebutYear ?? undefined,
+          debutSeries: castingRow.debutSeries ?? undefined,
+          scale: castingRow.scale ?? undefined,
+          verificationStatus: castingRow.verificationStatus,
+          metadata: (castingRow.metadata ?? {}) as Record<string, unknown>,
+          sources: castingRow.sources.map((source) => ({
+            id: source.id,
+            sourceType: source.sourceType,
+            sourceUrl: source.sourceUrl ?? undefined,
+            verifiedFields: source.verifiedFields ?? [],
+            checkedAt: source.checkedAt ?? undefined,
+            notes: source.notes ?? undefined,
+          })),
+        }
+      : undefined
 
     return row.releases.flatMap((releaseRow) => {
       const details = releaseRow.hotwheelsDetails
@@ -74,6 +115,7 @@ export async function fetchHotWheelsPilotCatalog(): Promise<HotWheelsPilotEntry[
 
       return [{
         product,
+        casting,
         release,
         primaryIdentifier: identifiers.find((identifier) => identifier.isPrimary) ?? identifiers[0],
         identifiers,
