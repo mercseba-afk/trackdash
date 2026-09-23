@@ -240,11 +240,32 @@ Important deployment state:
 
 ---
 
+### 2026-09-23 — Step 3: vertical-isolated catalog queries
+
+Status: **implemented on branch, not merged to main**.
+
+Changes:
+
+- added `listProductsForVertical(vertical, limit)` in the canonical catalog query layer;
+- the query filters by the canonical category ID from `lib/verticals.ts`;
+- added `fetchCatalogProductsForVertical(vertical)` in the server action layer;
+- the legacy `fetchCatalogProducts()` remains a compatibility wrapper explicitly pinned to `mini4wd`.
+
+Isolation invariant:
+
+- existing `/catalog` continues to receive only Mini 4WD products;
+- future Hot Wheels routes can request `hotwheels` explicitly;
+- Collection/Wishlist ID-based hydration remains cross-vertical and is intentionally not filtered, because a future user may own both verticals in one account.
+
+No public routing/UI change has been made in this step.
+
+---
+
 ## Exact next action
 
 Before adding any Hot Wheels Release:
 
-1. make catalog list queries explicitly vertical-aware while keeping the existing `/catalog` path pinned to `mini4wd`;
-2. verify Mini 4WD still returns the same canonical catalog and Hot Wheels returns an empty catalog;
-3. only then design the dormant Hot Wheels routing shell;
-4. do **not** import the first Hot Wheels Release until vertical isolation is proven.
+1. wait for GitHub `typecheck` + `verify` on the vertical-query changes;
+2. if green, create a dormant Hot Wheels routing/catalog shell that explicitly requests `hotwheels`;
+3. keep the shell out of the primary navigation/onboarding until pilot data exists;
+4. do **not** import the first Hot Wheels Release until the empty vertical shell is verified.
