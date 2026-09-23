@@ -19,6 +19,13 @@ export interface EbayBrowseListing {
   seller: string | null
   marketplace: EbayMarketplaceId
   itemEndDate: string | null
+  itemLocationCountry: string | null
+  shippingEstimateCountry: string | null
+}
+
+export interface EbayBrowseSearchOptions {
+  deliveryCountry?: string
+  deliveryPostalCode?: string
 }
 
 export interface EbayListingDecision {
@@ -138,7 +145,10 @@ interface EbayItemRow {
   title?: string
   itemWebUrl?: string
   price?: { value?: string; currency?: string }
-  shippingOptions?: Array<{ shippingCost?: { value?: string; currency?: string } }>
+  shippingOptions?: Array<{
+    shippingCost?: { value?: string; currency?: string }
+    shipToLocationUsedForEstimate?: { country?: string; postalCode?: string }
+  }>
   condition?: string
   conditionId?: string
   seller?: { username?: string }
@@ -148,6 +158,7 @@ interface EbayItemRow {
   brand?: string
   mpn?: string
   localizedAspects?: Array<{ name?: string; value?: string }>
+  itemLocation?: { country?: string }
 }
 
 interface EbaySearchResponse {
@@ -249,6 +260,8 @@ function toBrowseListing(row: EbayItemRow, marketplace: EbayMarketplaceId, itemI
     seller: row.seller?.username ?? null,
     marketplace,
     itemEndDate: row.itemEndDate ?? null,
+    itemLocationCountry: row.itemLocation?.country?.toUpperCase() ?? null,
+    shippingEstimateCountry: row.shippingOptions?.[0]?.shipToLocationUsedForEstimate?.country?.toUpperCase() ?? null,
   }
 }
 
@@ -323,20 +336,33 @@ export async function searchEbayActiveListingsByQuery(
   query: string,
   marketplace: EbayMarketplaceId,
   limit = 50,
+  options: EbayBrowseSearchOptions = {},
 ): Promise<EbayBrowseListing[]> {
   const environment = ebayEnvironment()
   const token = await getApplicationToken(environment)
+  const filters = ["conditionIds:{1000}"]
+  const deliveryCountry = options.deliveryCountry?.trim().toUpperCase()
+  const deliveryPostalCode = options.deliveryPostalCode?.trim()
+  if (deliveryCountry) filters.push(`deliveryCountry:${deliveryCountry}`)
+  if (deliveryCountry && deliveryPostalCode) filters.push(`deliveryPostalCode:${deliveryPostalCode}`)
+
   const params = new URLSearchParams({
     q: query.trim(),
     limit: String(Math.max(1, Math.min(limit, 100))),
-    filter: "conditionIds:{1000}",
+    filter: filters.join(","),
   })
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "X-EBAY-C-MARKETPLACE-ID": marketplace,
+    Accept: "application/json",
+  }
+  if (deliveryCountry && deliveryPostalCode) {
+    headers["X-EBAY-C-ENDUSERCTX"] = `contextualLocation=${encodeURIComponent(`country=${deliveryCountry},zip=${deliveryPostalCode}`)}`
+  }
+
   const response = await fetch(`${apiOrigin(environment)}/buy/browse/v1/item_summary/search?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "X-EBAY-C-MARKETPLACE-ID": marketplace,
-      Accept: "application/json",
-    },
+    headers,
     cache: "no-store",
     redirect: "error",
     signal: AbortSignal.timeout(15_000),

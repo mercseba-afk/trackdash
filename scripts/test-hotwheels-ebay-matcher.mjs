@@ -83,13 +83,13 @@ ok("exact Mattel identifier plus casting is accepted", () => {
   assert.deepEqual(result.reasonCodes, ["MATTEL_IDENTIFIER_EXACT"])
 })
 
-ok("same casting without exact identifier is review-only during pilot", () => {
+ok("same casting with exact subseries and series position is accepted without Mattel code", () => {
   const result = classifyHotWheelsEbayListing(
     listing("Hot Wheels Premium Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline red 4/5"),
     mountain,
   )
-  assert.equal(result.decision, "needs_review")
-  assert.equal(result.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE"), true)
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
 })
 
 ok("sibling Chase identifier is rejected from regular Mountain Drifters release", () => {
@@ -101,13 +101,13 @@ ok("sibling Chase identifier is rejected from regular Mountain Drifters release"
   assert.equal(result.reasonCodes.includes("SIBLING_RELEASE_IDENTIFIER"), true)
 })
 
-ok("chase wording without exact code remains review-only for Chase target", () => {
+ok("chase wording plus exact subseries and series position is accepted without Mattel code", () => {
   const result = classifyHotWheelsEbayListing(
     listing("Hot Wheels LB-ER34 Super Silhouette Nissan Skyline Mountain Drifters 0/5 Chase"),
     chase,
   )
-  assert.equal(result.decision, "needs_review")
-  assert.equal(result.reasonCodes.includes("CHASE_CONTEXT_MATCH"), true)
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
 })
 
 ok("regular target rejects Chase listing even if casting matches", () => {
@@ -231,9 +231,9 @@ const detailFixture = (overrides = {}) => ({
   ...overrides,
 })
 
-ok("item details MPN can promote a review-only listing", () => {
+ok("item details MPN can promote an otherwise ambiguous review-only listing", () => {
   const initial = classifyHotWheelsEbayListing(
-    listing("Hot Wheels Premium Mountain Drifters LB-ER34 Nissan Skyline red 4/5"),
+    listing("Hot Wheels Premium 2022 Mountain Drifters LB-ER34 Nissan Skyline red"),
     mountain,
   )
   assert.equal(initial.decision, "needs_review")
@@ -260,6 +260,53 @@ ok("item details can match identifier embedded in a longer aspect value", () => 
     mountain,
   )
   assert.equal(refined.decision, "accepted")
+})
+
+ok("series position plus subseries can identify a non-chase Release without Mattel code", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("1/64 Hot Wheels Premium Mountain Drifters LB-ER34 Super Nissan Skyline 4/5 Rosso"),
+    mountain,
+  )
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
+})
+
+ok("broad year/color context without exact series position remains review-only", () => {
+  const result = classifyHotWheelsEbayListing(
+    listing("Hot Wheels 2022 Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline Red"),
+    mountain,
+  )
+  assert.equal(result.decision, "needs_review")
+  assert.equal(result.reasonCodes.includes("IDENTIFIER_NOT_IN_TITLE"), true)
+})
+
+ok("chase context needs both strong release discriminators and a chase marker", () => {
+  const chase = {
+    releaseId: "mountain-chase",
+    castingName: "LB-ER34 Super Silhouette Nissan Skyline",
+    releaseYear: 2022,
+    primaryIdentifier: "HCK01",
+    lineName: "Car Culture",
+    subseries: "Mountain Drifters",
+    seriesPosition: "0/5",
+    chaseType: "Chase",
+    commercialForm: "single",
+    siblingIdentifiers: ["HCJ81"],
+  }
+
+  const accepted = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline Chase 0/5 Black"),
+    chase,
+  )
+  assert.equal(accepted.decision, "accepted")
+  assert.deepEqual(accepted.reasonCodes, ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"])
+
+  const review = classifyHotWheelsEbayListing(
+    listing("Hot Wheels Mountain Drifters LB-ER34 Nissan Skyline Black"),
+    chase,
+  )
+  assert.equal(review.decision, "needs_review")
+  assert.equal(review.reasonCodes.includes("CHASE_NOT_CONFIRMED"), true)
 })
 
 ok("item details MPN can match the Mattel code inside a longer value", () => {

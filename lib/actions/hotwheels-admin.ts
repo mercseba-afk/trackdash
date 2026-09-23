@@ -29,6 +29,11 @@ function logHotWheelsAuditSummary(
 ) {
   const reasonCounts = countBy(result.listings.flatMap((row) => row.reasonCodes))
   const detailLookupCounts = countBy(result.listings.map((row) => row.detailLookup))
+  const acceptedListings = result.listings.filter((row) => row.decision === "accepted")
+  const deliveredEuAccepted = acceptedListings
+    .filter((row) => row.costBasis === "delivered_eu" && row.effectiveCostEUR != null)
+    .sort((a, b) => (a.effectiveCostEUR ?? Infinity) - (b.effectiveCostEUR ?? Infinity))
+
   const sample = result.listings
     .filter((row) => row.decision !== "rejected")
     .slice(0, 15)
@@ -40,6 +45,13 @@ function logHotWheelsAuditSummary(
       price: row.price,
       currency: row.currency,
       shipping: row.shipping,
+      originCountry: row.itemLocationCountry,
+      shippingEstimateCountry: row.shippingEstimateCountry,
+      itemPriceEUR: row.itemPriceEUR,
+      shippingEUR: row.shippingEUR,
+      shippingAdjustedSubtotalEUR: row.shippingAdjustedSubtotalEUR,
+      effectiveCostEUR: row.effectiveCostEUR,
+      costBasis: row.costBasis,
       reasonCodes: row.reasonCodes,
       detailLookup: row.detailLookup,
     }))
@@ -55,6 +67,8 @@ function logHotWheelsAuditSummary(
     accepted: result.accepted,
     review: result.review,
     rejected: result.rejected,
+    lowestAcceptedDeliveredEUR: deliveredEuAccepted[0]?.effectiveCostEUR ?? null,
+    acceptedDeliveredCount: deliveredEuAccepted.length,
     reasonCounts,
     detailLookupCounts,
     sample,

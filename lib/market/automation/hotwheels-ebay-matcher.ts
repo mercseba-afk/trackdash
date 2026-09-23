@@ -157,6 +157,31 @@ function permitsMultiItemWording(profile: HotWheelsEbayReleaseProfile): boolean 
   return profile.commercialForm === "team_transport" || profile.commercialForm === "two_pack"
 }
 
+function titleContainsTerm(normalizedTitle: string, value?: string | null): boolean {
+  if (!value?.trim()) return false
+  return normalizedTitle.includes(normalizeText(value))
+}
+
+function hasStrongReleaseContext(
+  normalizedTitle: string,
+  profile: HotWheelsEbayReleaseProfile,
+): boolean {
+  const subseries = titleContainsTerm(normalizedTitle, profile.subseries)
+  const line = titleContainsTerm(normalizedTitle, profile.lineName)
+  const seriesPosition = titleContainsTerm(normalizedTitle, profile.seriesPosition)
+  const collectorNumber = titleContainsTerm(normalizedTitle, profile.collectorNumber)
+
+  // High-precision fallback for sellers that omit the Mattel code:
+  // a series/subseries plus its exact position/number must jointly identify
+  // the commercial Release. Broad attributes such as year/color alone are
+  // intentionally insufficient.
+  return (
+    (subseries && seriesPosition) ||
+    (subseries && collectorNumber) ||
+    (line && collectorNumber)
+  )
+}
+
 export function buildHotWheelsEbayQueries(profile: HotWheelsEbayReleaseProfile): string[] {
   const casting = profile.castingName
     .replace(/[—–]/g, " ")
@@ -244,10 +269,16 @@ export function classifyHotWheelsEbayListing(
     }
   }
 
-  // Pilot policy: exact Mattel identifier is required for automatic acceptance.
-  // Context-only matches are deliberately review-only until measured precision
-  // proves that a specific Hot Wheels rule can be safely promoted.
   if (!exactIdentifier) {
+    const strongContext = hasStrongReleaseContext(normalized, profile)
+
+    if (strongContext && (!targetIsChase || titleHasChaseMarker)) {
+      return {
+        decision: "accepted",
+        reasonCodes: ["RELEASE_CONTEXT_DISCRIMINATORS_EXACT"],
+      }
+    }
+
     const reasons = ["IDENTIFIER_NOT_IN_TITLE"]
     if (targetIsChase && titleHasChaseMarker) reasons.push("CHASE_CONTEXT_MATCH")
     return { decision: "needs_review", reasonCodes: reasons }

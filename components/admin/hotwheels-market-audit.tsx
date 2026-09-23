@@ -20,6 +20,18 @@ function decisionLabel(decision: string, it: boolean) {
   return it ? "Scartato" : "Rejected"
 }
 
+function costBasisLabel(costBasis: string, it: boolean) {
+  if (costBasis === "delivered_eu") return it ? "Totale UE" : "EU delivered"
+  if (costBasis === "extra_eu_import_unknown") return it ? "Extra-UE · import da verificare" : "Extra-EU · import unknown"
+  if (costBasis === "shipping_unknown") return it ? "Spedizione non disponibile" : "Shipping unavailable"
+  if (costBasis === "origin_unknown") return it ? "Origine non verificata" : "Origin unverified"
+  return it ? "Cambio non disponibile" : "FX unavailable"
+}
+
+function euro(value: number | null) {
+  return value == null ? "—" : new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value)
+}
+
 export function HotWheelsMarketAudit() {
   const { locale } = useI18n()
   const it = locale === "it"
@@ -120,8 +132,8 @@ export function HotWheelsMarketAudit() {
 
         <p className="text-[11px] leading-relaxed text-muted-foreground">
           {it
-            ? "Default: query con codice Mattel esatto. Gli annunci senza codice nel titolo possono essere verificati in secondo passaggio tramite MPN/GTIN/item specifics. La query contestuale serve solo a misurare il recall e resta disattivata di default."
-            : "Default: exact Mattel-code query. Listings without the code in the title may be checked in a second pass through MPN/GTIN/item specifics. The context query is only for recall measurement and stays disabled by default."}
+            ? "Default: query con codice Mattel esatto e soli annunci spedibili in Italia. Gli annunci senza codice nel titolo possono essere verificati tramite MPN/GTIN/item specifics o discriminatori commerciali forti. Il costo effettivo somma prezzo + spedizione quando l'origine è UE; extra-UE resta contesto finché import/dazi non sono verificabili."
+            : "Default: exact Mattel-code query limited to listings shippable to Italy. Listings without the code in the title may be verified through MPN/GTIN/item specifics or strong commercial discriminators. Effective cost uses item + shipping for EU-origin offers; extra-EU stays contextual until import costs are known."}
         </p>
 
         {result ? (
@@ -141,13 +153,15 @@ export function HotWheelsMarketAudit() {
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-border/70">
-              <table className="w-full min-w-[900px] text-left text-xs">
+              <table className="w-full min-w-[1180px] text-left text-xs">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 font-medium">{it ? "Esito" : "Decision"}</th>
                     <th className="px-3 py-2 font-medium">Marketplace</th>
                     <th className="px-3 py-2 font-medium">{it ? "Titolo" : "Title"}</th>
-                    <th className="px-3 py-2 font-medium">{it ? "Prezzo" : "Price"}</th>
+                    <th className="px-3 py-2 font-medium">{it ? "Prezzo / spedizione" : "Price / shipping"}</th>
+                    <th className="px-3 py-2 font-medium">{it ? "Costo effettivo" : "Effective cost"}</th>
+                    <th className="px-3 py-2 font-medium">{it ? "Origine" : "Origin"}</th>
                     <th className="px-3 py-2 font-medium">{it ? "Secondo passaggio" : "Detail lookup"}</th>
                     <th className="px-3 py-2 font-medium">Reason</th>
                   </tr>
@@ -169,8 +183,26 @@ export function HotWheelsMarketAudit() {
                         ) : row.title}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 tabular-nums">
-                        {row.price} {row.currency}
-                        {row.shipping != null ? ` + ${row.shipping}` : ""}
+                        <div>{row.price} {row.currency}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {row.shipping != null
+                            ? `+ ${row.shipping} ${row.currency} ${it ? "sped." : "shipping"}`
+                            : (it ? "spedizione non disponibile" : "shipping unavailable")}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2">
+                        <div className="font-semibold tabular-nums">
+                          {row.effectiveCostEUR != null
+                            ? euro(row.effectiveCostEUR)
+                            : row.shippingAdjustedSubtotalEUR != null
+                              ? euro(row.shippingAdjustedSubtotalEUR)
+                              : euro(row.itemPriceEUR)}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">{costBasisLabel(row.costBasis, it)}</div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 font-mono text-[10px]">
+                        {row.itemLocationCountry ?? "—"}
+                        {row.shippingEstimateCountry ? ` → ${row.shippingEstimateCountry}` : ""}
                       </td>
                       <td className="px-3 py-2 font-mono text-[10px]">{row.detailLookup}</td>
                       <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">

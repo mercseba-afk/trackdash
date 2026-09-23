@@ -132,6 +132,56 @@ Decision:
 
 Mini 4WD behavior remains unchanged.
 
+### HCJ81 SECOND AUDIT — STRUCTURED LOOKUPS EXHAUSTED
+
+Second exact-query read-only audit with detail depth 15:
+
+- 19 unique listings;
+- 2 accepted;
+- 9 review;
+- 8 rejected;
+- 1 target Release recovered via structured item details;
+- 2 sibling Release codes discovered and rejected;
+- 9 item-detail lookups returned no exact identifier;
+- 0 lookup-limit cases remain.
+
+Decision:
+
+- do not broaden query yet;
+- add a Hot Wheels-only high-precision fallback based on Release structure:
+  - subseries + exact series position;
+  - subseries + exact collector number;
+  - line + exact collector number;
+- do not use year/color alone for automatic acceptance;
+- Mini 4WD remains unchanged.
+
+### HOT WHEELS SHIPPING / CONTEXT MATCH CHECKPOINT — 2026-09-23
+
+The second HCJ81 exact-query audit completed with all structured lookups exhausted:
+
+- 19 unique;
+- 2 accepted;
+- 9 review;
+- 8 rejected;
+- 2 sibling Release codes detected/rejected through item details.
+
+Hot Wheels-only branch:
+
+`feat/hotwheels-context-discriminators`
+
+New pilot behavior:
+
+- strong commercial tuples such as `Mountain Drifters + 4/5` may identify a Release without Mattel SKU;
+- generic year/color remain insufficient;
+- eBay discovery is filtered to items shippable to Italy;
+- real item origin is retained separately from marketplace;
+- EU-origin + known shipping produces a delivered EUR audit cost;
+- extra-EU item + shipping remains context while import/landed cost is unknown;
+- high shipping does not invalidate an offer; it simply raises effective cost;
+- no Hot Wheels Market Engine writes are enabled.
+
+The eBay transport change is opt-in for Hot Wheels audit calls. Existing Mini 4WD eBay search behavior remains unchanged.
+
 ### Exact next action
 
 1. keep Hot Wheels public gate closed;
