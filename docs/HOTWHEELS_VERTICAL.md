@@ -1934,3 +1934,66 @@ participate in automatic Hot Wheels exact matching.
 5. re-run HCJ81 with context query ON;
 6. compare unique listings / accepted listings / EU delivered coverage against the current 26 / 5 / 1 baseline;
 7. if UPC adds no distinct inventory, freeze eBay discovery and move to the next independent ASK/SOLD source rather than adding more eBay query permutations.
+
+
+## 2026-09-23 — UI foundation: shared Messages + single family test
+
+Status: **IMPLEMENTED FOR VALIDATION — Hot Wheels remains private; no Market Engine writes**.
+
+### Messages architecture
+
+TrackDash keeps one global Messages inbox instead of splitting collector identity into separate Mini 4WD and Hot Wheels inboxes.
+
+Conversation universe is derived from the referenced Product category, so no duplicate messaging stack or redundant conversation-level vertical field is required.
+
+UI behavior:
+
+- one inbox;
+- filter: All / Mini 4WD / Hot Wheels;
+- every conversation shows its universe badge;
+- the Release link routes to the correct universe;
+- existing conversations remain Mini 4WD with no behavioral change;
+- Hot Wheels conversations can use the same structure once Hot Wheels Collection/sharing exists.
+
+### Sole Hot Wheels family test
+
+Do not create additional Hot Wheels families yet.
+
+The official test family is:
+
+**LB-ER34 Super Silhouette Nissan Skyline**
+
+Current verified family depth: **9 distinct Releases** spanning 2022–2026, including:
+
+- Mountain Drifters standard and Chase;
+- Team Transport;
+- Boulevard;
+- Car Culture 2-Pack;
+- Boulevard All Stars rerelease;
+- Silhouettes;
+- Aérostyles Chase.
+
+The Release detail UI now exposes:
+
+- casting/family identity;
+- complete sibling-Release navigation inside the same casting;
+- exact Release facts;
+- primary and secondary identifiers when available;
+- packaging/exclusivity;
+- known subvariants;
+- provenance sources;
+- Market Intelligence placeholder without inventing values.
+
+HCJ81 therefore shows both its primary Mattel code and verified UPC-A as identifiers of the **same Release**.
+
+### Guardrails
+
+- no new Hot Wheels family is added in this phase;
+- the four earlier one-off pilot castings remain untouched but are not expanded;
+- Mini 4WD data, Collection, Scanner and market behavior remain unchanged;
+- Hot Wheels Collection and Scanner remain disabled;
+- Hot Wheels market writes remain disabled.
+
+### Next validation after this UI block
+
+Use only the LB-ER34 family to validate Release identity, navigation, filtering and future market presentation. Any model/data-rule changes discovered here should be fixed before a second complete Hot Wheels family is built.
