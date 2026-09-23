@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 // derived from its series and chassis so the grid reads as a shelf of models
 // rather than a wall of empty placeholders.
 
-const SERIES_HUE: Record<Product["series"], number> = {
+const SERIES_HUE: Partial<Record<Product["series"], number>> = {
   "Racing Mini 4WD": 8,
   "Mini 4WD PRO": 285,
   "Fully Cowled": 210,
