@@ -147,7 +147,9 @@ Current implementation state:
 - central vertical registry added with `mini4wd` + `hotwheels`;
 - `ProductCategory` generalized to the central vertical type;
 - catalog mapper now resolves the canonical DB category instead of hardcoding `mini4wd`;
-- no Hot Wheels DB rows, Releases, routes or public UI have been added yet;
+- live Supabase now contains dormant canonical reference rows for Mattel + Hot Wheels, represented by `0145_hotwheels_vertical_foundation.sql`;
+- live category counts after the insertion: `mini4wd = 55 products`, `hotwheels = 0 products`;
+- no Hot Wheels Product/Release, route or public UI has been added yet;
 - no Collection, Wishlist, Scanner, Market Engine or Mini 4WD catalog behavior has intentionally changed;
 - Mini 4WD preservation is a hard invariant for the whole integration.
 
