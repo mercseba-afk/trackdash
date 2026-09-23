@@ -218,7 +218,7 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
           <span>{salesLabel}</span>
-          {row.signal.currentOfferCount > 0 ? <><span aria-hidden>·</span><span>{row.signal.currentOfferCount} {it ? "richieste correnti" : "current seller asks"}</span></> : null}
+          {row.signal.currentOfferCount > 0 ? <><span aria-hidden>·</span><span>{row.signal.currentOfferCount} {it ? "annunci osservati" : "observed listings"}</span></> : null}
         </div>
       </div>
       <div className="max-w-36 shrink-0 text-right">
