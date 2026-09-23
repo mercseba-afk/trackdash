@@ -151,6 +151,9 @@ Current implementation state:
 - live category counts after the insertion: `mini4wd = 55 products`, `hotwheels = 0 products`;
 - no Hot Wheels Product/Release, route or public UI has been added yet;
 - catalog query layer is now vertical-aware; the legacy `/catalog` fetch remains explicitly pinned to `mini4wd`;
+- live Supabase now also contains empty `release_identifiers` and `hotwheels_release_details` tables from migration `0146_hotwheels_release_identity_foundation.sql`;
+- post-migration counts remain `mini4wd = 55 products`, `hotwheels = 0 products`, with both new tables at 0 rows;
+- no Mini 4WD data was backfilled or rewritten by the multi-vertical foundation;
 - no Collection, Wishlist, Scanner, Market Engine or Mini 4WD catalog behavior has intentionally changed;
 - Mini 4WD preservation is a hard invariant for the whole integration.
 
