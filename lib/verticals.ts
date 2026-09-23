@@ -15,6 +15,8 @@ export const COLLECTIBLE_VERTICALS = {
     brandSlug: "tamiya",
     brandId: "382feca9-48e9-5144-a92d-41f77fb7e438",
     categoryId: "cd755fcb-2bc5-5975-8ec0-f45e7df891cc",
+    basePath: "",
+    publicEnabled: true,
   },
   hotwheels: {
     slug: "hotwheels",
@@ -22,6 +24,8 @@ export const COLLECTIBLE_VERTICALS = {
     brandSlug: "mattel",
     brandId: "6f100164-74bd-56bd-9dd1-221ea269ed8a",
     categoryId: "cdaaff01-f4f9-52ff-951a-ddbbba542d5c",
+    basePath: "/hotwheels",
+    publicEnabled: false,
   },
 } as const
 

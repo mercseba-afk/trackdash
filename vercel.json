@@ -8,7 +8,7 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "feat/hotwheels-multivertical-foundation": false
+      "feat/hotwheels-*": false
     }
   }
 }

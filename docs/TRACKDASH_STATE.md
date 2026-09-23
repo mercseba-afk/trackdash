@@ -7,7 +7,139 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS DEFINITIVE CATALOG MODEL CHECKPOINT
+
+**This checkpoint supersedes older Hot Wheels branch/catalog wording below while preserving all frozen Mini 4WD market semantics.**
+
+### Global runtime baseline
+
+Verified immediately before recording this checkpoint:
+
+- GitHub `main`: **`7622532749372909c6589b50be447114d9260db5`**
+- Vercel Production: **`dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`**
+- Production state: **READY**
+- `https://trackdash.it/api/version`: **`7622532749372909c6589b50be447114d9260db5`**
+- current Hot Wheels working branch: **`feat/hotwheels-pilot-shell`**
+- current Hot Wheels PR: **#212**
+- Hot Wheels public gate in Production: **closed**
+- Mini 4WD public Production behavior: unchanged
+
+The existing public market terminology and Market Engine rules documented in the previous checkpoint remain fully authoritative.
+
+### Hot Wheels identity hierarchy — FINAL FOR PILOT
+
+TrackDash Hot Wheels now uses one frozen hierarchy:
+
+**Product = exact Casting → ProductRelease = meaningful commercial Release → Hot Wheels Subvariant = minor physical/package difference**
+
+Do not create a separate family entity.
+
+Do not create a new Release merely for a regional card, minor wheel/base/interior/window/deco difference or similar manufacturing/package variance.
+
+Those belong under `hotwheels_release_subvariants` unless reliable evidence later proves that the item is a distinct commercial/market identity.
+
+### Live Hot Wheels data state
+
+Current live Supabase counts:
+
+- Mini 4WD Products: **55**
+- Hot Wheels Products/Castings: **5**
+- first complete Hot Wheels casting family: **LB-ER34 Super Silhouette Nissan Skyline**
+- LB-ER34 canonical Releases: **9**
+- LB-ER34 canonical/debut Release: **HCJ81 — 2022 Mountain Drifters 4/5**
+- LB-ER34 casting sources: **3**
+
+The five original pilot identities remain represented inside the wider pilot catalog:
+
+- `HWF11`
+- `HWR91`
+- `JBC35`
+- `JBL16`
+- `JBK59`
+
+### Definitive Hot Wheels schema layers
+
+Already live and retained:
+
+- `release_identifiers`
+- `hotwheels_release_details`
+- `hotwheels_release_subvariants`
+
+New casting layer from migration `0151_hotwheels_casting_details.sql`:
+
+- `hotwheels_casting_details`
+- `hotwheels_casting_sources`
+
+Casting facts may include, when verified:
+
+- model/real-car reference
+- designer
+- debut year
+- debut series
+- scale
+- verification state
+- casting-level metadata
+
+Release facts continue to include line/subseries/mix/collector/chase/variation/country/wheels/exclusivity/master-series/theme/packaging where verified.
+
+### LB-ER34 verified casting facts
+
+- designer: **Mark Jones**
+- casting debut: **2022**
+- debut series: **Car Culture: Mountain Drifters**
+- model reference: **Nissan Skyline R34 with Liberty Walk LB-ER34 Super Silhouette body kit**
+- Release count: **9**
+- casting provenance rows: **3**
+
+### UI invariant — Italiano / English
+
+Every Hot Wheels user-facing change must ship with both:
+
+- **Italiano**
+- **English**
+
+Current pilot catalog/detail already follows this rule.
+
+Catalog UI now distinguishes:
+
+- distinct Castings
+- exact Releases
+
+Release detail shows Casting/family facts separately from Release-specific facts.
+
+### Validation
+
+Latest code checkpoint before the casting migration:
+
+- PR #212 branch `typecheck`: **SUCCESS**
+- PR #212 branch `verify`: **SUCCESS**
+
+Live DB validation:
+
+- new casting tables created successfully
+- LB-ER34 casting row verified live
+- LB-ER34 remains exactly **9 Releases**
+- category counts remain **55 Mini 4WD / 5 Hot Wheels**
+- explicit public-read RLS policies exist on both new casting tables
+- existing unrelated Supabase advisor warnings were not changed by this work
+
+### Exact next Hot Wheels action
+
+The Hot Wheels catalog model is now **structurally frozen for the pilot**.
+
+Next work is Market Intelligence, not more catalog-schema redesign:
+
+1. define exact eBay EU ASK query/exclusion rules per pilot Release;
+2. run a controlled ASK audit over the five original pilot identities plus all LB-ER34 Releases;
+3. measure exact-release matching quality;
+4. validate SOLD source/API licensing separately;
+5. feed accepted observations into the existing shared TrackDash Market Engine;
+6. validate Collection/Wishlist behavior with real Hot Wheels signals;
+7. only then decide the next Production merge/public-opening checkpoint.
+
+---
+
+## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-23 — MARKET UI
 
 **This section supersedes older runtime/UI wording and version checkpoints below.**  
 Older sections remain as historical audit trail unless explicitly restated here.
@@ -122,51 +254,33 @@ Any future material TrackDash change must update this file in the same work unit
 
 ---
 
-## HOT WHEELS SECOND VERTICAL — WORK IN PROGRESS (NOT MERGED)
+## MULTI-VERTICAL FOUNDATION — PRODUCTION CHECKPOINT 2026-09-23
 
-A dedicated operational record now exists at:
+The first Hot Wheels / multi-vertical foundation macro-block is now **MERGED + PRODUCTION VERIFIED**.
 
-`docs/HOTWHEELS_VERTICAL.md`
+- merged PR: **#211**
+- current main / Production SHA: **`7622532749372909c6589b50be447114d9260db5`**
+- Vercel Production: **`dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`**
+- Vercel state: **READY**
+- `https://trackdash.it/api/version`: **`7622532749372909c6589b50be447114d9260db5`**
+- public Mini 4WD catalog QA: **55 products, HTTP 200**
+- immediate post-deploy runtime errors: **none observed**
+- live Hot Wheels products: **0**
+- live `release_identifiers`: **0 rows**
+- live `hotwheels_release_details`: **0 rows**
 
-That file is the detailed source of truth for Hot Wheels-specific architecture, roadmap, source strategy, implementation log and next actions.
+The shared foundation is now stable enough for Mini 4WD family/catalog work and Hot Wheels Release/data work to proceed in parallel, as long as both are not simultaneously refactoring the same shared engine.
 
-Current branch:
+Dedicated vertical records:
 
-`feat/hotwheels-multivertical-foundation`
+- `docs/MINI4WD_VERTICAL.md`
+- `docs/HOTWHEELS_VERTICAL.md`
 
-Current PR:
+Current Hot Wheels continuation branch:
 
-**#211 — Add multi-vertical foundation for Hot Wheels**
+`feat/hotwheels-pilot-shell`
 
-Branch base:
-
-`0e091747ad6a4944ba16aa0c5bfecda8c0f90168`
-
-Current implementation state:
-
-- central vertical registry added with `mini4wd` + `hotwheels`;
-- `ProductCategory` generalized to the central vertical type;
-- catalog mapper now resolves the canonical DB category instead of hardcoding `mini4wd`;
-- live Supabase now contains dormant canonical reference rows for Mattel + Hot Wheels, represented by `0145_hotwheels_vertical_foundation.sql`;
-- live category counts after the insertion: `mini4wd = 55 products`, `hotwheels = 0 products`;
-- no Hot Wheels Product/Release, route or public UI has been added yet;
-- catalog query layer is now vertical-aware; the legacy `/catalog` fetch remains explicitly pinned to `mini4wd`;
-- live Supabase now also contains empty `release_identifiers` and `hotwheels_release_details` tables from migration `0146_hotwheels_release_identity_foundation.sql`;
-- post-migration counts remain `mini4wd = 55 products`, `hotwheels = 0 products`, with both new tables at 0 rows;
-- no Mini 4WD data was backfilled or rewritten by the multi-vertical foundation;
-- no Collection, Wishlist, Scanner, Market Engine or Mini 4WD catalog behavior has intentionally changed;
-- Mini 4WD preservation is a hard invariant for the whole integration.
-
-Deployment discipline for this work:
-
-- develop multiple small steps on the same Hot Wheels branch;
-- rely on GitHub Actions `typecheck` + `verify` between steps;
-- automatic Vercel Git deployments are disabled for `feat/hotwheels-multivertical-foundation` in `vercel.json`;
-- merge only at meaningful macro-checkpoints;
-- use one Production deploy + QA per macro-checkpoint rather than one deploy per small implementation step.
-
-Do not infer Hot Wheels status from chat memory: read `docs/HOTWHEELS_VERTICAL.md` first, then this file.
-
+Do not reconstruct vertical state from chat memory when these files exist.
 ---
 
 ## VERTICAL STATE INDEX
@@ -177,6 +291,197 @@ TrackDash now keeps one dedicated operational state file per collectible vertica
 - `docs/HOTWHEELS_VERTICAL.md` — Hot Wheels vertical architecture, rollout, implementation log, data-source strategy and next actions.
 
 `docs/TRACKDASH_STATE.md` remains the global cross-project/runtime checkpoint.
+
+---
+
+
+### Dormant Hot Wheels shell — active branch
+
+Current branch: `feat/hotwheels-pilot-shell`
+
+- `/hotwheels` and `/hotwheels/catalog` now exist behind `publicEnabled = false`;
+- they fail closed with 404 while the pilot is private;
+- no primary navigation/onboarding change has been made;
+- Mini 4WD remains the only public catalog experience;
+- next Hot Wheels material task: first five real pilot Releases.
+
+---
+
+## HOT WHEELS PILOT DATA — 5 RELEASES
+
+Live Supabase now contains the first **5** Hot Wheels pilot Products/Releases while the public Hot Wheels gate remains disabled.
+
+Pilot identifiers:
+
+- `HWF11` — RLC '71 Lamborghini Miura P400 SV
+- `HWR91` — Elite 64 Aston Martin Valkyrie
+- `JBC35` — 2025 Super Treasure Hunt '87 Audi quattro
+- `JBL16` — Boulevard Alfa Romeo GTV6 3.0
+- `JBK59` — Car Culture Silhouettes LB-ER34 Super Silhouette Nissan Skyline
+
+Current live category counts:
+
+- `mini4wd = 55 products`
+- `hotwheels = 5 products`
+
+No canonical Hot Wheels images or market observations have been inserted yet.
+
+
+---
+
+## HOT WHEELS PRIVATE PREVIEW CHECKPOINT — 2026-09-23
+
+Current Hot Wheels branch:
+
+`feat/hotwheels-pilot-shell`
+
+Current PR:
+
+**#212 — Prepare gated Hot Wheels pilot shell**
+
+Private Vercel Preview:
+
+- deployment: `dpl_BPBRn4f68WvPNSvcX3RCUr5Ws8jX`
+- verified Preview commit: `4036fbee1227b5bf0e6cdcce3a74e6008f45189c`
+- branch hostname: `trackdash-git-feat-hotwheels-pilot-shell-mercseba-8773.vercel.app`
+- state: **READY**
+
+Preview QA:
+
+- Hot Wheels catalog HTTP 200;
+- five exact pilot Releases visible with identifiers `HWF11`, `HWR91`, `JBC35`, `JBL16`, `JBK59`;
+- RLC Miura exact detail HTTP 200;
+- market section intentionally remains in Initial Scan pending state;
+- Production Mini 4WD catalog remains **55 products**;
+- Hot Wheels remains unmerged/not exposed in the Production navigation.
+
+Live Supabase pilot state:
+
+- Mini 4WD products: **55**
+- Hot Wheels products: **5**
+- Hot Wheels exact Releases: **5**
+- Release identifiers: **5**
+- Hot Wheels detail rows: **5**
+- Hot Wheels provenance rows: **7**
+
+Known Preview-only environment note:
+
+- the Preview environment logs a non-fatal public R3 bootstrap warning because a Supabase server secret is unavailable there;
+- the pilot pages still render successfully;
+- do not treat this as a Hot Wheels catalog failure or change shared Production market behavior solely for the Preview warning.
+
+Automatic Vercel deploys are disabled again for `feat/hotwheels-*` after this QA checkpoint.
+
+Detailed Hot Wheels state remains in `docs/HOTWHEELS_VERTICAL.md`.
+
+---
+
+## HOT WHEELS CASTING / RELEASE / SUBVARIANT MODEL — 2026-09-23
+
+The Hot Wheels catalog hierarchy is now frozen on the active branch as:
+
+**Product = exact casting → ProductRelease = meaningful commercial variation → Subvariant = minor physical/package difference**
+
+This follows established collector-catalog patterns and prevents unnecessary Release explosion from small wheel/card/base differences.
+
+New branch work:
+
+- standard Hot Wheels Release metadata extended with variation code, manufacturing country, wheel type, exclusivity, master series and theme;
+- new `hotwheels_release_subvariants` structure for minor wheel/package/base/interior/window/deco differences;
+- bilingual Hot Wheels UI is now a permanent invariant: every user-facing change must ship in both Italiano and English in the same work unit;
+- existing five pilot Releases remain unchanged;
+- migration `0149_hotwheels_casting_variant_model.sql` is pending CI before live Supabase application.
+
+Detailed rules and source references are in:
+
+`docs/HOTWHEELS_VERTICAL.md`
+
+---
+
+## HOT WHEELS LB-ER34 FAMILY CHECKPOINT — 2026-09-23
+
+The first complete Hot Wheels casting family is now live in Supabase:
+
+**LB-ER34 Super Silhouette Nissan Skyline**
+
+- Product/casting rows: **1**
+- canonical Releases: **9**
+- debut/canonical Release: `HCJ81` (2022 Mountain Drifters 4/5)
+- latest audited Release: `JKF36` (2026 Aérostyles 0/5 Chase)
+- migration: `0150_hotwheels_lb_er34_family.sql`
+- Mini 4WD products remain: **55**
+- Hot Wheels products/castings remain: **5**
+
+This validates the frozen hierarchy:
+
+**Product = casting → ProductRelease = meaningful commercial variation → Subvariant = minor physical/package difference**
+
+The reported 2023 HKF21 ZAMAC 10-piece item remains a pending/candidate Subvariant and is not promoted into canonical public data without independent corroboration.
+
+Detailed family rows, sources and next action:
+
+`docs/HOTWHEELS_VERTICAL.md`
+
+Next Hot Wheels phase:
+
+**controlled EU-first Market Intelligence matching (ASK first, SOLD provider validation separately).**
+
+---
+
+## HOT WHEELS EBAY ASK AUDIT READY — PR #212
+
+Current Hot Wheels working branch:
+
+`feat/hotwheels-pilot-shell`
+
+Current PR:
+
+**#212 — Prepare gated Hot Wheels pilot shell**
+
+Current runtime remains unchanged until merge:
+
+- GitHub `main`: `7622532749372909c6589b50be447114d9260db5`
+- Vercel Production: `dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`
+- `/api/version`: `7622532749372909c6589b50be447114d9260db5`
+- Hot Wheels Production public gate: **closed**
+- Mini 4WD behavior/data: **unchanged**
+
+PR #212 now contains the first Hot Wheels Market Intelligence matching layer:
+
+- dedicated Hot Wheels eBay title matcher;
+- Europe-first ASK audit runner for IT/DE/FR/ES/GB;
+- exact Mattel-code auto-match;
+- context-only matches remain review-only;
+- sibling/chase/custom/loose/lot exclusions;
+- bounded second-pass eBay `getItem` lookup for MPN / GTIN / localized aspects;
+- read-only Admin + MFA audit panel;
+- zero market persistence during audit.
+
+Current live Hot Wheels audit population:
+
+**13 unique Releases**
+
+The original five pilot identities overlap with the nine-Release LB-ER34 family through `JBK59`.
+
+Preview eBay test was intentionally attempted once and returned:
+
+`EBAY_BROWSE_CREDENTIALS_NOT_CONFIGURED`
+
+No secrets were copied into Preview. The temporary diagnostic route was removed and Hot Wheels auto-preview suppression was restored.
+
+Latest branch validation:
+
+- `typecheck`: **SUCCESS**
+- `verify`: **SUCCESS**
+- PR #212: **mergeable**
+
+Exact next action after Production alignment:
+
+**Admin + MFA → Hot Wheels · Audit eBay ASK → HCJ81 → exact query only**
+
+The audit is read-only and must not write market observations until matching quality has been reviewed.
+
+Detailed rules and reasoning live in `docs/HOTWHEELS_VERTICAL.md`.
 
 ---
 

@@ -181,7 +181,7 @@ console.log(`${passed} passed, 0 failed`)
 console.log("EBAY BROWSE ADAPTER TEST PASSED")
 
 // Network is mocked: these are transport and isolation tests, never market data.
-const { searchEbayActiveListings, fetchEbayActiveListingByLegacyId, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
+const { searchEbayActiveListings, fetchEbayActiveListingByLegacyId, fetchEbayActiveItemDetails, ebayEnvironment, ebayMarketWritesAllowed, ebayScheduledMarketWritesAllowed } = await import('../lib/market/automation/ebay-browse-adapter.ts')
 const originalFetch = globalThis.fetch
 const savedEnv = Object.fromEntries(['EBAY_ENV', 'EBAY_CLIENT_ID', 'EBAY_CLIENT_SECRET', 'EBAY_MARKET_WRITES_ENABLED'].map(key => [key, process.env[key]]))
 const calls = []
@@ -213,6 +213,20 @@ try {
         shippingOptions: [{ shippingCost: { value: '120', currency: 'MYR' } }],
       })
     }
+    if (new URL(url).pathname.includes('/buy/browse/v1/item/')) {
+      return Response.json({
+        itemId: 'v1|325123456789|0',
+        legacyItemId: '325123456789',
+        title: "2025 Hot Wheels '87 Audi quattro STH Super Treasure Hunt",
+        mpn: 'JBC35-N521',
+        gtin: '0194735288888',
+        brand: 'Hot Wheels',
+        localizedAspects: [
+          { name: 'MPN', value: 'JBC35-N521' },
+          { name: 'Series', value: 'Factory Fresh' },
+        ],
+      })
+    }
     assert.equal(new URL(url).searchParams.get('filter'), 'conditionIds:{1000}')
     return Response.json({ itemSummaries: [
       { ...sample, shippingOptions: [{ shippingCost: { value: '0', currency: 'EUR' } }] },
@@ -239,6 +253,19 @@ try {
   assert.equal(legacy.shipping, 120)
   assert.equal(legacy.marketplace, 'EBAY_IT')
   assert.equal(calls.at(-1).url.pathname, '/buy/browse/v1/item/get_item_by_legacy_id')
+
+  const details = await fetchEbayActiveItemDetails('v1|325123456789|0', 'EBAY_IT')
+  assert.equal(details.itemId, 'v1|325123456789|0')
+  assert.equal(details.legacyItemId, '325123456789')
+  assert.equal(details.mpn, 'JBC35-N521')
+  assert.equal(details.gtin, '0194735288888')
+  assert.equal(details.brand, 'Hot Wheels')
+  assert.deepEqual(details.localizedAspects, [
+    { name: 'MPN', value: 'JBC35-N521' },
+    { name: 'Series', value: 'Factory Fresh' },
+  ])
+  assert.equal(calls.at(-1).url.pathname, '/buy/browse/v1/item/v1%7C325123456789%7C0')
+
   assert.equal(calls.filter(call => call.url.pathname.includes('/identity/')).length, 1)
   assert.equal(calls.every(call => call.url.host === 'api.sandbox.ebay.com'), true)
   console.log('ok: Sandbox routing, OAuth, four search marketplaces, direct legacy-ID refresh, token reuse, condition ID and shipping semantics')

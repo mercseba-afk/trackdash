@@ -72,7 +72,7 @@ export const products = pgTable(
     // point 1): NULL when there is no canonical release, never an invented
     // default. Every current product has one, so no existing data is NULL.
     originalReleaseYear: integer("original_release_year"), // first-ever release year of the model
-    rarity: text("rarity").notNull(), // fallback rarity when a release doesn't set its own
+    rarity: text("rarity"), // optional fallback rarity; NULL when a vertical has no verified rarity methodology
     description: text("description"),
     descriptionIt: text("description_it"),
     // The release considered authoritative for this model's identity —

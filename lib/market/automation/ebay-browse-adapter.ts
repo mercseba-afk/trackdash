@@ -1,4 +1,4 @@
-export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_GB" | "EBAY_US"
+export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_FR" | "EBAY_ES" | "EBAY_GB" | "EBAY_US"
 
 export interface EbayReleaseSearchInput {
   itemNumber: string
@@ -24,6 +24,21 @@ export interface EbayBrowseListing {
 export interface EbayListingDecision {
   decision: "accepted" | "needs_review" | "rejected"
   reasonCodes: string[]
+}
+
+export interface EbayLocalizedAspect {
+  name: string
+  value: string
+}
+
+export interface EbayBrowseItemDetails {
+  itemId: string
+  legacyItemId: string | null
+  title: string
+  gtin: string | null
+  brand: string | null
+  mpn: string | null
+  localizedAspects: EbayLocalizedAspect[]
 }
 
 const PART_ONLY_TERMS = [
@@ -119,6 +134,7 @@ interface EbayTokenResponse {
 
 interface EbayItemRow {
   itemId?: string
+  legacyItemId?: string
   title?: string
   itemWebUrl?: string
   price?: { value?: string; currency?: string }
@@ -128,6 +144,10 @@ interface EbayItemRow {
   seller?: { username?: string }
   itemEndDate?: string
   listingMarketplaceId?: string
+  gtin?: string
+  brand?: string
+  mpn?: string
+  localizedAspects?: Array<{ name?: string; value?: string }>
 }
 
 interface EbaySearchResponse {
@@ -232,6 +252,7 @@ function toBrowseListing(row: EbayItemRow, marketplace: EbayMarketplaceId, itemI
   }
 }
 
+
 export async function fetchEbayActiveListingByLegacyId(
   legacyItemId: string,
   marketplace: EbayMarketplaceId = "EBAY_IT",
@@ -257,15 +278,56 @@ export async function fetchEbayActiveListingByLegacyId(
   return toBrowseListing(row, marketplace, legacyItemId)
 }
 
-export async function searchEbayActiveListings(
-  input: EbayReleaseSearchInput,
+
+export async function fetchEbayActiveItemDetails(
+  itemId: string,
+  marketplace: EbayMarketplaceId,
+): Promise<EbayBrowseItemDetails | null> {
+  if (!itemId.trim()) throw new Error("EBAY_ITEM_ID_INVALID")
+  const environment = ebayEnvironment()
+  const token = await getApplicationToken(environment)
+  const encodedItemId = encodeURIComponent(itemId)
+  const response = await fetch(`${apiOrigin(environment)}/buy/browse/v1/item/${encodedItemId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-EBAY-C-MARKETPLACE-ID": marketplace,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  }).catch(() => { throw new Error("EBAY_BROWSE_ITEM_NETWORK_ERROR") })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`EBAY_BROWSE_ITEM_HTTP_${response.status}`)
+  const row = await response.json().catch(() => { throw new Error("EBAY_BROWSE_ITEM_INVALID_RESPONSE") }) as EbayItemRow
+  if (!row.itemId || !row.title) throw new Error("EBAY_BROWSE_ITEM_INVALID_RESPONSE")
+
+  const localizedAspects = (row.localizedAspects ?? []).flatMap((aspect) => {
+    const name = aspect.name?.trim()
+    const value = aspect.value?.trim()
+    return name && value ? [{ name, value }] : []
+  })
+
+  return {
+    itemId: row.itemId,
+    legacyItemId: row.legacyItemId ?? null,
+    title: row.title,
+    gtin: row.gtin?.trim() || null,
+    brand: row.brand?.trim() || null,
+    mpn: row.mpn?.trim() || null,
+    localizedAspects,
+  }
+}
+
+export async function searchEbayActiveListingsByQuery(
+  query: string,
   marketplace: EbayMarketplaceId,
   limit = 50,
 ): Promise<EbayBrowseListing[]> {
   const environment = ebayEnvironment()
   const token = await getApplicationToken(environment)
   const params = new URLSearchParams({
-    q: buildEbayBrowseQuery(input),
+    q: query.trim(),
     limit: String(Math.max(1, Math.min(limit, 100))),
     filter: "conditionIds:{1000}",
   })
@@ -288,6 +350,14 @@ export async function searchEbayActiveListings(
     if (listing) results.push(listing)
   }
   return results
+}
+
+export async function searchEbayActiveListings(
+  input: EbayReleaseSearchInput,
+  marketplace: EbayMarketplaceId,
+  limit = 50,
+): Promise<EbayBrowseListing[]> {
+  return searchEbayActiveListingsByQuery(buildEbayBrowseQuery(input), marketplace, limit)
 }
 
 function dedupeIdentity(itemId: string): string {

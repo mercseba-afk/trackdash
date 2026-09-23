@@ -313,3 +313,24 @@ Until a new Mini 4WD task is explicitly started:
 - do not reopen completed families without evidence;
 - keep `TRACKDASH_METHOD_MASTER.md` and `FAMILY_COMPLETION_MASTER.md` authoritative;
 - any shared multi-vertical refactor must prove Mini 4WD parity before merge/Production.
+
+
+---
+
+## Multi-vertical production parity checkpoint — 2026-09-23
+
+The first shared Hot Wheels/multi-vertical foundation is now merged and verified in Production at:
+
+`7622532749372909c6589b50be447114d9260db5`
+
+Mini 4WD parity checks after deployment:
+
+- public Catalog still returns **55 Mini 4WD products**;
+- no Hot Wheels Product/Release is mixed into the Mini 4WD catalog;
+- Collection and Scanner protected routes still resolve through the existing Auth flow;
+- no immediate Vercel runtime error was observed;
+- no Mini 4WD Release/catalog/market row was migrated into the new Hot Wheels tables.
+
+**Mini 4WD family work may resume in parallel from this checkpoint.**
+
+Parallel work is safe when it stays vertical-specific. Coordinate before modifying shared Collection, Wishlist, Scanner, Market Engine, navigation/onboarding or shared schema.

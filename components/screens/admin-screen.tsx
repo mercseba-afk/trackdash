@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+import { HotWheelsMarketAudit } from "@/components/admin/hotwheels-market-audit"
 
 function fmtDate(value: string | null) {
   if (!value) return "—"
@@ -379,6 +380,8 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
           </Button>
         </CardHeader>
       </Card>
+
+      <HotWheelsMarketAudit />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <AdminMetric label="Account" value={data.stats.totalAccounts} note={data.stats.new30d + " nuovi / 30 gg"} icon={Users} />

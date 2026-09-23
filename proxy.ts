@@ -6,7 +6,7 @@ import { updateSession } from "@/lib/supabase/proxy"
 // Collection, Wishlist, Scanner, Messages and account tools remain protected.
 const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/", "/privacy", "/terms"]
-const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market"]
+const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/hotwheels"]
 
 // Server-to-server, bootstrap, diagnostics and crawler discovery routes authenticate/guard
 // themselves where required and must not depend on a browser Supabase session.
