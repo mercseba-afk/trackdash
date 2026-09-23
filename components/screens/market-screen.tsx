@@ -19,6 +19,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
+import { collectorMarketTrend, observedMarketPrice } from "@/lib/market/presentation"
 import type { Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -53,8 +54,9 @@ export function MarketScreen({ products }: { products: Product[] }) {
     .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)), [rows])
   const forming = React.useMemo(() => rows.filter((row) => row.signal.valueEUR == null), [rows])
   const trends = React.useMemo(() => rows
-    .filter((row) => row.signal.trendPercent != null)
-    .sort((a, b) => (b.signal.trendPercent ?? 0) - (a.signal.trendPercent ?? 0)), [rows])
+    .map((row) => ({ row, trend: collectorMarketTrend(row.signal) }))
+    .filter((entry): entry is { row: Row; trend: number } => entry.trend != null)
+    .sort((a, b) => b.trend - a.trend), [rows])
   const currentOffers = rows.reduce((sum, row) => sum + row.signal.currentOfferCount, 0)
   const example = valued[0]
 
@@ -227,7 +229,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
                 {trends.length === 0 ? (
                   <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend disponibile per ora" : "No trend available yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "I trend compariranno quando avremo abbastanza vendite nel tempo per quella specifica Release." : "Trends will appear once there is enough completed-sale history for that specific Release."}</p></CardContent></Card>
                 ) : (
-                  <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((row) => (row.signal.trendPercent ?? 0) >= 0)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((row) => (row.signal.trendPercent ?? 0) < 0)} icon={ArrowDownRight} /></div>
+                  <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((entry) => entry.trend >= 0).map((entry) => entry.row)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((entry) => entry.trend < 0).map((entry) => entry.row)} icon={ArrowDownRight} /></div>
                 )}
               </TabsContent>
             </Tabs>
@@ -304,14 +306,20 @@ function MarketListCard({ title, rows, forming = false }: { title: string; rows:
 function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
   const { locale } = useI18n(); const it = locale === "it"
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
+  const observedPrice = observedMarketPrice(row.signal)
+  const trend = collectorMarketTrend(row.signal)
   return (
     <Link href={href} className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-[#f4f8fd]">
       <ProductImage product={row.product} release={row.release} size="sm" className="h-12 w-16 shrink-0 rounded-lg border border-border bg-white" />
       <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-navy group-hover:text-brand">{row.release.editionName}</p><div className="mt-0.5 flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted-foreground">#{row.release.itemNumber ?? "—"}</span>{row.release.rarity ? <RarityBadge rarity={row.release.rarity} /> : null}</div></div>
       <div className="max-w-40 text-right">
-        {forming ? <p className="text-xs font-medium text-[#6f7f91]">{it ? "Dati in arrivo" : "Data coming soon"}</p> : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
-        {row.signal.trendPercent != null ? <TrendIndicator value={row.signal.trendPercent} className="justify-end text-xs" /> : null}
-        {row.signal.startingItemPriceEUR != null ? <p className="text-[11px] text-muted-foreground">{it ? "Ultimo osservato" : "Last observed"} {formatMoney(row.signal.startingItemPriceEUR)}</p> : null}
+        {forming
+          ? observedPrice != null
+            ? <><p className="text-[10px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"}</p><p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(observedPrice)}</p></>
+            : <p className="text-xs font-medium text-[#6f7f91]">{it ? "Dati in verifica" : "Data under review"}</p>
+          : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
+        {trend != null ? <TrendIndicator value={trend} className="justify-end text-xs" /> : null}
+        {!forming && observedPrice != null ? <p className="text-[11px] text-muted-foreground">{it ? "Prezzo osservato" : "Observed price"} {formatMoney(observedPrice)}</p> : null}
       </div>
     </Link>
   )
