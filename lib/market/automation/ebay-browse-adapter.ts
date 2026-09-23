@@ -21,6 +21,17 @@ export interface EbayBrowseListing {
   itemEndDate: string | null
 }
 
+export interface EbayBrowseAspect {
+  name: string
+  value: string
+}
+
+export interface EbayBrowseListingDetails extends EbayBrowseListing {
+  mpn: string | null
+  gtin: string | null
+  localizedAspects: EbayBrowseAspect[]
+}
+
 export interface EbayListingDecision {
   decision: "accepted" | "needs_review" | "rejected"
   reasonCodes: string[]
@@ -250,6 +261,53 @@ function toBrowseListing(row: EbayItemRow, marketplace: EbayMarketplaceId, itemI
     marketplace,
     itemEndDate: row.itemEndDate ?? null,
   }
+}
+
+
+function toBrowseListingDetails(
+  row: EbayItemRow,
+  marketplace: EbayMarketplaceId,
+  itemIdOverride?: string,
+): EbayBrowseListingDetails | null {
+  const listing = toBrowseListing(row, marketplace, itemIdOverride)
+  if (!listing) return null
+
+  const localizedAspects = (row.localizedAspects ?? []).flatMap((aspect) => {
+    const name = aspect.name?.trim()
+    const value = aspect.value?.trim()
+    return name && value ? [{ name, value }] : []
+  })
+
+  return {
+    ...listing,
+    mpn: row.mpn?.trim() || null,
+    gtin: row.gtin?.trim() || null,
+    localizedAspects,
+  }
+}
+
+export async function fetchEbayActiveListingDetails(
+  itemId: string,
+  marketplace: EbayMarketplaceId,
+): Promise<EbayBrowseListingDetails | null> {
+  if (!itemId.trim()) throw new Error("EBAY_ITEM_ID_INVALID")
+  const environment = ebayEnvironment()
+  const token = await getApplicationToken(environment)
+  const encodedItemId = encodeURIComponent(itemId.trim())
+  const response = await fetch(`${apiOrigin(environment)}/buy/browse/v1/item/${encodedItemId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-EBAY-C-MARKETPLACE-ID": marketplace,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  }).catch(() => { throw new Error("EBAY_BROWSE_ITEM_NETWORK_ERROR") })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`EBAY_BROWSE_ITEM_HTTP_${response.status}`)
+  const row = await response.json().catch(() => { throw new Error("EBAY_BROWSE_ITEM_INVALID_RESPONSE") }) as EbayItemRow
+  return toBrowseListingDetails(row, marketplace, itemId)
 }
 
 export async function fetchEbayActiveListingByLegacyId(
