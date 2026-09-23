@@ -122,51 +122,33 @@ Any future material TrackDash change must update this file in the same work unit
 
 ---
 
-## HOT WHEELS SECOND VERTICAL — WORK IN PROGRESS (NOT MERGED)
+## MULTI-VERTICAL FOUNDATION — PRODUCTION CHECKPOINT 2026-09-23
 
-A dedicated operational record now exists at:
+The first Hot Wheels / multi-vertical foundation macro-block is now **MERGED + PRODUCTION VERIFIED**.
 
-`docs/HOTWHEELS_VERTICAL.md`
+- merged PR: **#211**
+- current main / Production SHA: **`7622532749372909c6589b50be447114d9260db5`**
+- Vercel Production: **`dpl_3kAHSnjXnEiCSAkSc66nZUg1q2SG`**
+- Vercel state: **READY**
+- `https://trackdash.it/api/version`: **`7622532749372909c6589b50be447114d9260db5`**
+- public Mini 4WD catalog QA: **55 products, HTTP 200**
+- immediate post-deploy runtime errors: **none observed**
+- live Hot Wheels products: **0**
+- live `release_identifiers`: **0 rows**
+- live `hotwheels_release_details`: **0 rows**
 
-That file is the detailed source of truth for Hot Wheels-specific architecture, roadmap, source strategy, implementation log and next actions.
+The shared foundation is now stable enough for Mini 4WD family/catalog work and Hot Wheels Release/data work to proceed in parallel, as long as both are not simultaneously refactoring the same shared engine.
 
-Current branch:
+Dedicated vertical records:
 
-`feat/hotwheels-multivertical-foundation`
+- `docs/MINI4WD_VERTICAL.md`
+- `docs/HOTWHEELS_VERTICAL.md`
 
-Current PR:
+Current Hot Wheels continuation branch:
 
-**#211 — Add multi-vertical foundation for Hot Wheels**
+`feat/hotwheels-pilot-shell`
 
-Branch base:
-
-`0e091747ad6a4944ba16aa0c5bfecda8c0f90168`
-
-Current implementation state:
-
-- central vertical registry added with `mini4wd` + `hotwheels`;
-- `ProductCategory` generalized to the central vertical type;
-- catalog mapper now resolves the canonical DB category instead of hardcoding `mini4wd`;
-- live Supabase now contains dormant canonical reference rows for Mattel + Hot Wheels, represented by `0145_hotwheels_vertical_foundation.sql`;
-- live category counts after the insertion: `mini4wd = 55 products`, `hotwheels = 0 products`;
-- no Hot Wheels Product/Release, route or public UI has been added yet;
-- catalog query layer is now vertical-aware; the legacy `/catalog` fetch remains explicitly pinned to `mini4wd`;
-- live Supabase now also contains empty `release_identifiers` and `hotwheels_release_details` tables from migration `0146_hotwheels_release_identity_foundation.sql`;
-- post-migration counts remain `mini4wd = 55 products`, `hotwheels = 0 products`, with both new tables at 0 rows;
-- no Mini 4WD data was backfilled or rewritten by the multi-vertical foundation;
-- no Collection, Wishlist, Scanner, Market Engine or Mini 4WD catalog behavior has intentionally changed;
-- Mini 4WD preservation is a hard invariant for the whole integration.
-
-Deployment discipline for this work:
-
-- develop multiple small steps on the same Hot Wheels branch;
-- rely on GitHub Actions `typecheck` + `verify` between steps;
-- automatic Vercel Git deployments are disabled for `feat/hotwheels-multivertical-foundation` in `vercel.json`;
-- merge only at meaningful macro-checkpoints;
-- use one Production deploy + QA per macro-checkpoint rather than one deploy per small implementation step.
-
-Do not infer Hot Wheels status from chat memory: read `docs/HOTWHEELS_VERTICAL.md` first, then this file.
-
+Do not reconstruct vertical state from chat memory when these files exist.
 ---
 
 ## VERTICAL STATE INDEX
