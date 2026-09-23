@@ -1,4 +1,4 @@
-export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_GB" | "EBAY_US"
+export type EbayMarketplaceId = "EBAY_IT" | "EBAY_DE" | "EBAY_FR" | "EBAY_ES" | "EBAY_GB" | "EBAY_US"
 
 export interface EbayReleaseSearchInput {
   itemNumber: string
@@ -257,15 +257,15 @@ export async function fetchEbayActiveListingByLegacyId(
   return toBrowseListing(row, marketplace, legacyItemId)
 }
 
-export async function searchEbayActiveListings(
-  input: EbayReleaseSearchInput,
+export async function searchEbayActiveListingsByQuery(
+  query: string,
   marketplace: EbayMarketplaceId,
   limit = 50,
 ): Promise<EbayBrowseListing[]> {
   const environment = ebayEnvironment()
   const token = await getApplicationToken(environment)
   const params = new URLSearchParams({
-    q: buildEbayBrowseQuery(input),
+    q: query.trim(),
     limit: String(Math.max(1, Math.min(limit, 100))),
     filter: "conditionIds:{1000}",
   })
@@ -288,6 +288,14 @@ export async function searchEbayActiveListings(
     if (listing) results.push(listing)
   }
   return results
+}
+
+export async function searchEbayActiveListings(
+  input: EbayReleaseSearchInput,
+  marketplace: EbayMarketplaceId,
+  limit = 50,
+): Promise<EbayBrowseListing[]> {
+  return searchEbayActiveListingsByQuery(buildEbayBrowseQuery(input), marketplace, limit)
 }
 
 function dedupeIdentity(itemId: string): string {
