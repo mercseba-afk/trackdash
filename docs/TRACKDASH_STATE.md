@@ -1,13 +1,131 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-23  
+> **Last updated:** 2026-09-24  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS EBAY ASK PRODUCTION AUDIT CHECKPOINT
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II FAMILY AUDIT / MARKET REFRESH PENDING
+
+**This checkpoint supersedes older Avante Mk.II family assumptions. The catalog/identity audit is complete; the final Market Engine Completion Gate is NOT yet complete. Do not mark this family COMPLETE until the queued v4 recompute has run successfully.**
+
+### Runtime / deployment state
+
+- GitHub family implementation merged through PRs **#232, #233, #234 and #235**.
+- Production currently verified at commit **`3e6c0eaab4db6743ab22033f882730ee928eb08e`**, READY.
+- `/api/version` currently returns **`3e6c0eaab4db6743ab22033f882730ee928eb08e`**.
+- The subsequent `main` commit that moved the temporary one-shot route under `/api/cron/*` could not deploy because Vercel returned **build-rate-limit**.
+- The temporary one-shot route is being removed from repository state before any future deployment. Production never exposed the `/api/cron/*` one-shot route.
+- Production still contains the earlier `/api/ops/*` one-shot route from PR #234, but TrackDash auth middleware redirects it to login and it has a hard expiry at **2026-09-24T11:00:00Z**; it never executed a worker.
+- Standard protected market cron schedule is restored to **03:17 UTC**.
+
+### Canonical Avante Mk.II family — 8 commercial Releases
+
+1. **18614 — Avante Mk.II — 2006 — Original — MS**
+2. **94592 — Avante Mk.II (Finished Model) — 2007 — MS**
+   - commercial identity remains Finished Model
+   - technical controlled `release_type` normalized to **Other**
+3. **94626 — Avante Mk.II Black Special — 2007 — MS**
+   - verified JAN: **4950344946266**
+4. **94716 — Avante Mk.II V Special — 2009 — MS**
+5. **95061 — Avante Mk.II Pink Special (Clear Body) — 2015 — MS**
+6. **95525 — Avante Mk.II Asia Challenge 2020 Special (Taiwan Final) — 2020 — MS**
+7. **18614 — Avante Mk.II Gamba Osaka Special Edition (J.League 30th Anniversary) — 2023 — MS**
+8. **18614 — Avante Mk.II Cerezo Osaka Special Edition (J.League 30th Anniversary) — 2023 — MS**
+
+Excluded from Product Releases:
+
+- **94585** is a Blue Color Plated Body Set / parts product, not a complete commercial Mini 4WD Release.
+
+Shared Item Number invariant:
+
+- ITEM **18614** is shared by the base 2006 Release and the two 2023 J.League collector editions.
+- Scanner identity MUST fail closed on ITEM 18614 alone and return the Avante Mk.II model without selecting an arbitrary Release.
+- Scanner now resolves against the canonical server catalog rather than relying only on the historical local seed index.
+
+### Image audit
+
+Verified exact-item Tamiya image assets are assigned to:
+
+- 18614 base
+- 94592
+- 94626
+- 94716
+- 95061
+
+Intentional placeholder remains for:
+
+- 95525
+- Gamba Osaka 2023
+- Cerezo Osaka 2023
+
+Do not substitute sibling/base images for these unresolved exact Release images.
+
+### Market evidence already persisted
+
+- Cerezo Osaka exact Yahoo Auctions SOLD:
+  - sale date: **2026-06-16**
+  - price: **JPY 3,234**
+  - ECB basis: **EUR 1 = JPY 185.94**
+  - canonical granular market price: **EUR 17.39**
+  - evidence grade: **indicative**
+  - valuation eligible: **yes**
+  - one sale alone is intentionally insufficient to consolidate Market Value.
+- 94592 / 94626 / 94716 Empty Market Challenge evidence is persisted without inventing a public current price.
+- Mercari Japan exact search observations for thin variants remain contextual only when condition or Italy landed cost is unresolved.
+- RCJAZ historical/current evidence is retained with current-vs-out-of-stock semantics separated.
+- Gamba Osaka marketplace evidence is attributed to the correct 2023 collector Release rather than the base 18614.
+
+### Current Market Engine gate — NOT COMPLETE
+
+Live DB after the family audit:
+
+- canonical family Releases: **8**
+- queued market recomputes: **8**
+- active recompute locks: **0**
+- the v4 recompute has NOT yet processed the family after the latest audit.
+
+Pre-refresh signals must be treated as stale/incomplete family state, not final values:
+
+- 18614 base currently has an older v4 signal with MV / ASK context.
+- 95061 currently has an older v4 signal with MV / ASK context.
+- 95525 currently has an older v4 signal with no consolidated MV.
+- 94592, 94626, 94716, Gamba Osaka and Cerezo Osaka do not yet have the required post-audit v4 signal.
+
+Do not manually write a fake Market Signal to bypass this gate.
+
+### Canonical way to finish the gate
+
+Production already exposes the authenticated Admin action:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+It calls the same three canonical lanes as the protected cron:
+
+- `runExactPageMarketScanBatch(4)`
+- `runEbayActiveMarketScanBatch(4)`
+- `runMarketRecomputeBatch(8)`
+
+After execution, verify:
+
+1. family recompute queue = **0**;
+2. recompute locks = **0**;
+3. every one of the 8 Releases has a fresh v4 post-audit signal or an intentional no-value/fallback state;
+4. no MV is created from insufficient/single-seller evidence;
+5. Cerezo single SOLD remains evidence without forcing MV;
+6. `starting_effective_cost` remains canonical for public current-price fallback;
+7. Scanner 18614 remains ambiguous-by-design;
+8. Collection resolves exact Release/image/signal from canonical catalog;
+9. no Hot Wheels rows/code are changed;
+10. after Vercel quota clears, deploy latest `main` and re-verify **main = Production = /api/version**.
+
+Only after all ten checks pass may Avante Mk.II be marked **COMPLETE — MARKET THIN** (or stronger only if the resulting evidence genuinely supports it).
+
+---
+
+## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-23 — HOT WHEELS EBAY ASK PRODUCTION AUDIT CHECKPOINT
 
 **This checkpoint supersedes older Hot Wheels continuation instructions while preserving every frozen Mini 4WD market rule below.**
 
