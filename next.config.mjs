@@ -125,6 +125,26 @@ const nextConfig = {
         hostname: "static.www.sanfrecce.co.jp",
         pathname: "/images/news/2023/07/0703_02_02.jpg",
       },
+      {
+        protocol: "https",
+        hostname: "www.rcjaz.ca",
+        pathname: "/images/tamiya/**",
+      },
+      {
+        protocol: "https",
+        hostname: "static.mercdn.net",
+        pathname: "/item/detail/orig/photos/**",
+      },
+      {
+        protocol: "https",
+        hostname: "assets.mercari-shops-static.com",
+        pathname: "/-/large/plain/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.suruga-ya.jp",
+        pathname: "/database/pics_webp/game/**",
+      },
     ],
   },
 }
