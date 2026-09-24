@@ -145,6 +145,11 @@ const nextConfig = {
         hostname: "cdn.suruga-ya.jp",
         pathname: "/database/pics_webp/game/**",
       },
+      {
+        protocol: "https",
+        hostname: "tokyoanimecenter.jp",
+        pathname: "/uploads/letsgo_30exh/tenmen.jpg",
+      },
     ],
   },
 }

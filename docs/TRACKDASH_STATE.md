@@ -7,6 +7,124 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — MAGNUM SABER MASTER AUDIT IN PROGRESS
+
+**The Magnum Saber family is under active canonical rebuild. Do not mark COMPLETE until migrations 0161/0162 are merged/applied, all nine Releases receive fresh v4 signals, eBay/market refresh is completed and final QA passes.**
+
+### Canonical inventory under audit — 9 collector Releases
+
+1. **19401 — Magnum Saber — 1994 — Original — Super 1**
+   - verified original JAN: **4950344194018**
+2. **94618 — Magnum Saber Special Kit — 2007 — Super 1**
+   - JAN **4950344946181**
+3. **19431 — Magnum Saber Premium — 2010 — Super II**
+   - legacy TrackDash year **2012 is wrong** and is corrected to **2010**
+   - JAN **4950344194315**
+4. **92318 — Magnum Saber First Impact (Blue) — 2015 — Super 1**
+5. **92319 — Magnum Saber First Impact (Red) — 2015 — Super 1**
+6. **92320 — Magnum Saber First Impact (White) — 2015 — Super 1**
+7. **92321 — Magnum Saber First Impact (Gray) — 2015 — Super 1**
+8. **19401 — Magnum Saber (2015 Reissue) — 2015 — Super 1**
+   - verified reissue JAN: **4950344061310**
+9. **Magnum Saber Tokyo Anime Center Model — 2026 — Super II**
+   - official 30th-anniversary collaboration based on Magnum Saber Premium
+   - no autonomous Tamiya Item Number/JAN is invented.
+
+### Critical identity invariant: ITEM 19401
+
+Original 1994 and Reissue 2015 are separate collector Releases.
+
+They share ITEM **19401** but have different verified JANs:
+
+- Original 1994 → **4950344194018**
+- Reissue 2015 → **4950344061310**
+
+Scanner behavior must therefore be fail-closed on ITEM 19401 alone. The item number may resolve the Magnum Saber model, but must not select either Release automatically. Each verified JAN must resolve its exact Release.
+
+A branch scanner test has been added for this invariant.
+
+### Images
+
+Target state for the family is **9/9 Release images**.
+
+Already existing exact official assets:
+- 19401 Original
+- 19431 Premium
+
+Audit-selected assets:
+- 94618 Special Kit → EXACT VERIFIED official Tamiya asset
+- 92318 First Impact Blue → HIGH-CONFIDENCE MATCHED Suruga family asset
+- 92319 First Impact Red → HIGH-CONFIDENCE MATCHED Suruga family asset
+- 92320 First Impact White → EXACT VERIFIED Suruga asset
+- 92321 First Impact Gray → EXACT VERIFIED Suruga asset
+- 19401 2015 Reissue → EXACT VERIFIED Suruga asset
+- Tokyo Anime Center Model 2026 → EXACT VERIFIED official Tokyo Anime Center product image
+
+The temporary image-audit workflow has been removed from the branch before merge.
+
+### Initial market findings
+
+The family already shows strong separation between collector generations.
+
+**19401 Original 1994**
+- explicit original-era / 当時物 SOLD retained:
+  - JPY 9,000 — 2025-12-31 → ~EUR 48.89
+  - JPY 10,000 — 2026-01-19 → ~EUR 54.44
+- generic ITEM 19401 sales that cannot distinguish 1994 vs 2015 are intentionally excluded from valuation.
+
+**19431 Premium**
+- exact recent SOLD:
+  - JPY 990 — 2026-03-05 → ~EUR 5.41
+  - JPY 559 — 2026-04-23 → ~EUR 3.00
+  - JPY 880 — 2026-05-12 → ~EUR 4.76
+- this confirms that the modern Premium market must never be merged with vintage 19401.
+
+**94618 Special Kit**
+- exact recent SOLD:
+  - JPY 7,150 — 2026-03-28 → ~EUR 38.82
+  - JPY 9,100 — 2026-06-21 → ~EUR 49.22
+
+**First Impact / Tokyo Anime Center**
+- exact Mercari sold-out evidence is present for Blue, Red, White and Tokyo Anime Center Model.
+- where Mercari exposes only relative age rather than an absolute sale date, TrackDash stores the sale as accepted context only and does not create a valuation-eligible price point.
+- the Blue example is a two-unit lot and remains lot context; TrackDash does not divide it into invented granular transactions.
+
+No granular sale has yet been accepted for Gray First Impact or the 2015 19401 Reissue; absence of clean evidence is preserved honestly.
+
+### Migrations / branch state
+
+Prepared on branch `magnum-saber-master-audit-20260924` / PR **#244**:
+
+- **0161_magnum_saber_family_master_audit.sql**
+  - rebuilds the canonical nine-Release family
+  - fixes Premium year
+  - separates 19401 Original / Reissue via JAN
+  - writes provenance + images
+  - enrolls all Releases into adaptive market scans
+  - enqueues canonical recompute
+
+- **0162_magnum_saber_granular_sold.sql**
+  - persists date-certain granular Yahoo SOLD for Original, Premium and Special Kit
+  - uses exact/previous-business-day ECB/Banca d'Italia JPY rates
+  - stores date-uncertain Mercari First Impact / Tokyo sales as non-valuation context only
+  - does not fabricate SOLD dates or split lots.
+
+**0161 + 0162 have passed a combined live Supabase dry-run with full ROLLBACK. No Magnum Saber production mutation has been applied yet.**
+
+### Exact next steps
+
+1. run final branch CI after scanner test + temporary workflow removal;
+2. update PR #244 from draft to ready;
+3. merge only if verify/typecheck are green;
+4. ensure Vercel Production accepts the image-host config;
+5. apply migrations 0161 and 0162 live;
+6. run authenticated Admin market refresh enough times to process all nine eBay targets;
+7. verify fresh v4 signals, ASK/SOLD separation, queue/locks and image rendering;
+8. complete Empty Market Challenge for thin Releases;
+9. update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE** as supported by the evidence.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — NEO-TRIDAGGER ZMC COMPLETE — MARKET THIN
 
 **The Neo-Tridagger ZMC Completion Gate is closed successfully. Catalog identity, release normalization, eBay initial scan, manual market challenge, granular SOLD evidence and canonical v4 recompute are all complete.**
@@ -33,18 +151,17 @@ Legacy corrections:
 
 ### Images
 
-Exact official Release images:
-- 19409
-- 95508
+Final image state after migration **0160**: **7/7 Releases have a canonical image**.
 
-Intentional placeholders:
-- 94647
-- 92277
-- 92278
-- 92279
-- 92280
+- 19409 — exact official Tamiya
+- 94647 — exact verified RCJaz
+- 92277 Navy — high-confidence matched Mercari Shops
+- 92278 Clear Red — high-confidence matched Mercari
+- 92279 White — exact verified Suruga
+- 92280 Smoke — high-confidence matched Mercari
+- 95508 — exact official Tamiya
 
-Sibling/base images must not be substituted for unresolved exact Release assets.
+All five post-audit replacement assets were HTTP-probed and then verified through the TrackDash Next/Image optimizer in Production.
 
 ### Final Market Engine v4 state
 
@@ -141,11 +258,9 @@ The empty-price Releases were additionally challenged through exact identity sea
 
 ### Repository / Production state
 
-- migrations **0157**, **0158** and **0159** are applied live.
-- GitHub `main` before this documentation-only checkpoint merge: **f2a881a5b7d4748961dc15c91a5be4124c937b79**.
-- Vercel Production `/api/version` remains **cbbf1a4744fe91d45f2aeba0607bed1e178fef67** because later merges encountered the account build-rate-limit.
-- This Production SHA already contains the functional Neo-Tridagger catalog normalization from migration 0157; later 0158/0159 changes are database/data migrations already applied live.
-- Deployment alignment is operational housekeeping only and does **not** reopen the Neo-Tridagger Completion Gate.
+- migrations **0157**, **0158**, **0159** and **0160** are applied live.
+- Neo-Tridagger image fill PR #243 was merged and deployed successfully.
+- verified Production `/api/version` after the image deployment: **d07275a2f5e9476dc32001014b92d4169cebcad0**.
 
 ### Final family status
 
