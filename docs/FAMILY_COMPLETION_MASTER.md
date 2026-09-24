@@ -48,7 +48,35 @@ A legacy audit is complete only when the current family satisfies the same Compl
 
 ## Images
 
-Exact Release image first. If no exact attributable asset is found after a real audit, store no sibling image and document the intentional placeholder.
+Image policy is Release-specific and applies globally to **all families and all future Releases**.
+
+Priority:
+
+1. official Tamiya / archive;
+2. reliable exact-product retailer;
+3. trustworthy contemporary source;
+4. high-confidence marketplace/listing match;
+5. placeholder only after a genuine second-pass search.
+
+A marketplace/retailer image is acceptable even when it is not official if the Release match is strong and there is no concrete mismatch. Use Item Number, JAN, edition name, color, chassis/configuration and packaging as discriminants.
+
+Image confidence classes:
+
+- **EXACT VERIFIED** — official or reliably attributable exact-product asset;
+- **HIGH-CONFIDENCE MATCHED** — marketplace/retailer/listing image strongly attributable to the exact Release;
+- **PLACEHOLDER** — identity remains materially uncertain after audit.
+
+Never silently inherit a Product image, sibling Release image or base/reissue image for a specific variant.
+
+Before accepting a placeholder, run a targeted second pass across relevant exact-product retailers and marketplaces such as eBay, Mercari, Yahoo Auctions, Suruga and Mandarake.
+
+Permanent decision rule:
+
+**high-confidence correct image > placeholder > probably wrong image.**
+
+A missing official asset alone is NOT sufficient reason to leave a placeholder if a defensible high-confidence exact-Release image exists elsewhere.
+
+Collection, Release pages, Catalog and PWA/app must all project the same selected Release image from the canonical catalog.
 
 ## Market
 
