@@ -175,20 +175,55 @@ Separare due Release soltanto quando esiste un discriminante reale e utilizzabil
 
 Ogni Release deve ricevere subito un audit immagini.
 Non rimandare le foto a una fase futura.
-Priorità:
+
+## Obiettivo permanente
+
+Ridurre i placeholder il più possibile **senza sacrificare l'identità della Release**.
+
+La gerarchia di ricerca è:
 
 1. Tamiya ufficiale;
 2. Tamiya archive/catalog;
 3. fonte contemporanea affidabile;
-4. retailer exact-product affidabile.
+4. retailer exact-product affidabile;
+5. marketplace / annunci con match Release ad alta confidenza;
+6. placeholder solo quando il match resta realmente dubbio.
 
-Verificare sempre:
+Fonti marketplace ammesse come supporto immagini includono, quando utili:
 
-- exact Release;
-- URL raggiungibile;
-- HTTP valido;
-- host/path compatibile con Next Image;
-- rendering Production.
+- eBay;
+- Mercari;
+- Yahoo Auctions / Yahoo Flea;
+- Suruga;
+- Mandarake;
+- altri marketplace o retailer con pagina associata alla Release.
+
+## Livelli di confidenza immagine
+
+### EXACT VERIFIED
+
+Usare quando l'immagine è attribuibile direttamente alla Release tramite fonte ufficiale o exact-product page affidabile, con identità coerente.
+
+### HIGH-CONFIDENCE MATCHED
+
+È ammessa anche un'immagine proveniente da marketplace/listing/retailer non ufficiale quando il match con la Release è forte e non esistono segnali concreti di mismatch.
+
+Il match deve essere sostenuto dal maggior numero possibile di discriminanti:
+
+- Item Number esatto;
+- JAN, se visibile;
+- nome edizione;
+- colore/variante;
+- chassis/configurazione;
+- packaging coerente;
+- anno/serie;
+- eventuale testo o foto della scatola che conferma la Release.
+
+Non è necessario che la fonte sia ufficiale se l'immagine è chiaramente associata alla Release corretta.
+
+### PLACEHOLDER
+
+Usare solo quando, dopo una ricerca reale e sufficientemente ampia, rimane un dubbio materiale sull'identità dell'immagine.
 
 ## Regola fondamentale
 
@@ -198,10 +233,65 @@ Una Release specifica **NON deve ereditare silenziosamente**:
 - immagine Release sorella;
 - immagine di un'altra variante.
 
-Se non trovi l'immagine esatta dopo audit reale:
-**EXACT IMAGE NOT FOUND AFTER AUDIT**
-e mostra placeholder.
-Meglio placeholder corretto che foto sbagliata.
+Ma il principio permanente NON è:
+**“solo foto ufficiali o placeholder”.**
+
+Il principio corretto è:
+**“migliore immagine disponibile con identità della Release sufficientemente affidabile”.**
+
+Quindi, se una foto è associata a un annuncio/pagina della Release e:
+
+- Item Number / nome / variante coincidono;
+- l'aspetto visivo è coerente;
+- non ci sono elementi che facciano pensare a una Release diversa;
+
+la foto può essere usata anche se non proviene da Tamiya.
+
+## Quando NON usare una foto
+
+Scartarla se:
+
+- titolo e immagine sono incoerenti;
+- Item Number o variante non corrispondono;
+- la foto è chiaramente generica o di repertorio per un'altra Release;
+- il colore o packaging contraddice la Release;
+- il listing raggruppa più Release senza poter attribuire la foto;
+- la fonte mostra una release sorella/base al posto della variante;
+- il match rimane solo “sembra simile”.
+
+## Requisiti tecnici
+
+Verificare sempre:
+
+- URL raggiungibile;
+- HTTP valido;
+- asset immagine diretto o comunque utilizzabile stabilmente;
+- host/path compatibile con Next Image;
+- rendering Production.
+
+Registrare, quando possibile, la fonte dell'immagine e il livello di confidenza nel source/audit note della Release.
+
+## Completion Gate immagini
+
+Una famiglia NON deve fermarsi al primo “immagine non trovata”.
+
+Prima di lasciare un placeholder bisogna fare almeno un secondo passaggio mirato su:
+
+- retailer exact-product;
+- eBay;
+- Mercari;
+- Yahoo Auctions;
+- Suruga / Mandarake;
+- altre fonti plausibili per quella Release.
+
+Se dopo questo secondo passaggio il match rimane dubbio:
+**IMAGE NOT FOUND WITH SUFFICIENT CONFIDENCE**
+e si mantiene il placeholder.
+
+In sintesi:
+**foto high-confidence corretta > placeholder**
+ma
+**placeholder > foto probabilmente sbagliata**.
 
 ---
 
