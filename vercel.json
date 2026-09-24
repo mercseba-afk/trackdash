@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/market-scan",
-      "schedule": "27 10 * * *"
+      "schedule": "35 10 * * *"
     }
   ],
   "git": {
