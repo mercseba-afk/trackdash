@@ -30,6 +30,15 @@ type PreviewEvidenceRow = {
   note: string
 }
 
+export type HotWheelsAskSnapshotHistoryRow = {
+  snapshotDate: string
+  typicalEUR: number | null
+  lowEUR: number | null
+  highEUR: number | null
+  offerCount: number
+  computedAt: string
+}
+
 export type HotWheelsMarketSignalPreview = {
   releaseId: string
   identifier: string
@@ -44,6 +53,7 @@ export type HotWheelsMarketSignalPreview = {
     deliveredAskCount: number
   }
   evidence: PreviewEvidenceRow[]
+  askHistory: HotWheelsAskSnapshotHistoryRow[]
   readiness: {
     sufficientForPreview: boolean
     sufficientForPublishedMv: boolean
@@ -268,6 +278,7 @@ export async function buildHcj81MarketSignalPreview(
       deliveredAskCount,
     },
     evidence,
+    askHistory: [],
     readiness: {
       sufficientForPreview: acceptedAskCount >= 3 && (distinctAskFamilies >= 1 || usefulContext >= 2),
       sufficientForPublishedMv: signal.marketValueEUR != null,

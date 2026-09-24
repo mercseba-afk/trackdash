@@ -79,7 +79,7 @@ export function HotWheelsMarketAudit() {
       try {
         const next = await runHcj81MarketSignalPreviewAction()
         setPreview(next)
-        toast.success(it ? "Market Signal Preview HCJ81 aggiornato" : "HCJ81 Market Signal Preview updated")
+        toast.success(it ? "Preview HCJ81 aggiornato · snapshot ASK salvato" : "HCJ81 preview updated · ASK snapshot saved")
       } catch (error) {
         toast.error(error instanceof Error ? error.message : (it ? "Preview mercato non riuscito" : "Market preview failed"))
       }
@@ -155,8 +155,8 @@ export function HotWheelsMarketAudit() {
             </p>
             <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
               {it
-                ? "Combina l'audit eBay live con le evidenze Mercari/retail già verificate. È solo diagnostica: non scrive Market Value, ASK o Price Points nel database."
-                : "Combines the live eBay audit with already verified Mercari/retail evidence. Diagnostic only: it writes no Market Value, ASK or Price Points to the database."}
+                ? "Combina l'audit eBay live con le evidenze Mercari/retail già verificate. Non scrive Market Value o Price Points: salva solo uno snapshot ASK giornaliero diagnostico."
+                : "Combines the live eBay audit with already verified Mercari/retail evidence. It writes no Market Value or Price Points: only one diagnostic daily ASK snapshot is stored."}
             </p>
           </div>
           <Button variant="outline" onClick={runPreview} disabled={runningPreview || running} className="shrink-0">
@@ -200,6 +200,42 @@ export function HotWheelsMarketAudit() {
               <PreviewMetric label={it ? "Market Value" : "Market Value"} value={euro(preview.signal.marketValueEUR)} />
               <PreviewMetric label={it ? "ASK eBay accettati" : "Accepted eBay ASK"} value={String(preview.liveEbay.acceptedAskCount)} />
             </div>
+
+            {preview.askHistory.length > 0 ? (
+              <div className="rounded-xl border border-border/70 bg-background p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-semibold">{it ? "Storico ASK HCJ81" : "HCJ81 ASK history"}</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      {it ? "Snapshot giornalieri diagnostici · massimo 14 mostrati" : "Diagnostic daily snapshots · up to 14 shown"}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{preview.askHistory.length} snapshot</Badge>
+                </div>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[620px] text-left text-[11px]">
+                    <thead className="text-muted-foreground">
+                      <tr>
+                        <th className="pb-2 font-medium">{it ? "Data" : "Date"}</th>
+                        <th className="pb-2 font-medium">{it ? "ASK centrale" : "ASK center"}</th>
+                        <th className="pb-2 font-medium">{it ? "Range" : "Range"}</th>
+                        <th className="pb-2 font-medium">{it ? "Offerte" : "Offers"}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {preview.askHistory.map((row) => (
+                        <tr key={row.snapshotDate} className="border-t border-border/50">
+                          <td className="py-2">{new Intl.DateTimeFormat(it ? "it-IT" : "en-GB").format(new Date(row.snapshotDate + "T12:00:00Z"))}</td>
+                          <td className="py-2 font-semibold tabular-nums">{euro(row.typicalEUR)}</td>
+                          <td className="py-2 tabular-nums">{euro(row.lowEUR)} – {euro(row.highEUR)}</td>
+                          <td className="py-2 tabular-nums">{row.offerCount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-xl border border-border/70 bg-background p-3 text-xs">
