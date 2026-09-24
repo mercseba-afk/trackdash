@@ -130,3 +130,38 @@ jobs:
               print("TOKYO_NEAR_IMAGES",[urljoin(url,u) for u in imgs])
               print("TOKYO_SNIP",re.sub(r"\s+"," ",sn)[:7000])
           PY
+      - name: Validate final Magnum Saber image candidates
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, pathlib, subprocess, os
+          urls={
+            "94618":"https://www.tamiya.com/japan_contents/img/usr/item/9/94618/94618_1.jpg",
+            "92318or19_a":"https://cdn.suruga-ya.jp/database/pics_webp/game/603059995.jpg.webp",
+            "92318or19_b":"https://cdn.suruga-ya.jp/database/pics_webp/game/603059996.jpg.webp",
+            "92320":"https://cdn.suruga-ya.jp/database/pics_webp/game/603059997.jpg.webp",
+            "92321":"https://cdn.suruga-ya.jp/database/pics_webp/game/603059998.jpg.webp",
+            "19401_reissue":"https://cdn.suruga-ya.jp/database/pics_webp/game/603060158.jpg.webp",
+            "tokyo2026":"https://www.atpress.ne.jp/attachments/4GnH2l2rjVwY8JpHqAob.png",
+          }
+          ua="Mozilla/5.0 (compatible; TrackDash image audit/1.0)"
+          for key,url in urls.items():
+            try:
+              req=urllib.request.Request(url,headers={"User-Agent":ua})
+              with urllib.request.urlopen(req,timeout=25) as r:
+                data=r.read()
+                ext=".webp" if "webp" in (r.headers.get("content-type") or "") else (".png" if "png" in (r.headers.get("content-type") or "") else ".jpg")
+                p=f"/tmp/{key}{ext}"
+                pathlib.Path(p).write_bytes(data)
+                print("FINAL_IMAGE",key,"HTTP",r.status,"CT",r.headers.get("content-type"),"LEN",len(data),"FILE",p)
+            except Exception as e:
+              print("FINAL_IMAGE_ERROR",key,repr(e))
+          PY
+          for f in /tmp/94618* /tmp/92318or19_* /tmp/92320* /tmp/92321* /tmp/19401_reissue* /tmp/tokyo2026*; do
+            [ -e "$f" ] || continue
+            file "$f"
+            if command -v convert >/dev/null 2>&1; then
+              echo -n "AVG $f "
+              convert "$f" -resize 1x1\! txt:- 2>/dev/null | tail -n 1 || true
+            fi
+          done
