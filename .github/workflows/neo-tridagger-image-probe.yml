@@ -165,7 +165,7 @@ jobs:
           import urllib.request, pathlib
           urls = {
             "94647": "https://www.rcjaz.ca/images/tamiya/mini_4wd_series/mini_4wd_car_kit/super_i_chassis/b_94647.jpg",
-            "92277": "https://tamiyablog.com/wp-content/uploads/2014/09/tamiya-92277.jpg",
+            "92277": "https://assets.mercari-shops-static.com/-/large/plain/mGxDWoVdkitKnGjniPvqbk.webp@jpg",
             "92278": "https://static.mercdn.net/item/detail/orig/photos/m15829754498_1.jpg?1701782544",
             "92279": "https://cdn.suruga-ya.jp/database/pics_webp/game/603052146.jpg.webp",
             "92280": "https://static.mercdn.net/item/detail/orig/photos/m62676061261_1.jpg?1716629301",
