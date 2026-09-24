@@ -123,6 +123,8 @@ This prevents Original 1994 and Special Kit from appearing as if no market evide
 
 ### Vercel / Production blocker
 
+**Redeploy retry 2026-09-24 #2:** second fresh Git→Vercel Production trigger requested to test whether the account build-rate-limit has cleared. Operational note only; no catalog, market, schema or runtime behavior change.
+
 **Redeploy retry 2026-09-24:** a fresh Git→Vercel Production trigger was requested after PR #248 specifically to test whether the account build-rate-limit had cleared. This line is operational only; it does not change catalog or market semantics.
 
 GitHub `main` is ahead of Vercel Production. The Vercel status on the recent merged commits is failing because of the account **build-rate-limit**, not because TrackDash verification/typecheck failed.
