@@ -122,3 +122,27 @@ jobs:
                       except Exception as e:
                           print("ITEM_FETCH_ERROR",item_id,repr(e))
           PY
+      - name: Render Mercari search for 92279
+        shell: bash
+        run: |
+          URL='https://jp.mercari.com/search?keyword=92279%20%E3%83%8D%E3%82%AA%E3%83%88%E3%83%A9%E3%82%A4%E3%83%80%E3%82%AC%E3%83%BCZMC%E3%83%8D%E3%82%AF%E3%82%B9%E3%83%88'
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          echo "CHROME=$CHROME"
+          if [ -z "$CHROME" ]; then exit 0; fi
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=15000 --dump-dom "$URL" > /tmp/mercari-92279.html 2>/tmp/chrome.err || true
+          python3 - <<'PY'
+          import re, html
+          raw=open('/tmp/mercari-92279.html','r',encoding='utf-8',errors='ignore').read()
+          print('RENDER_LEN',len(raw))
+          target='92279'
+          for m in re.finditer(target,raw):
+              s=raw[max(0,m.start()-6000):m.start()+12000]
+              hrefs=re.findall(r'href=["\\']([^"\\']+)["\\']',s,re.I)
+              imgs=re.findall(r'(?:src|data-src)=["\\']([^"\\']+)["\\']',s,re.I)
+              if any('ホワイト' in x or 'White' in x for x in [html.unescape(s)]):
+                  print('WHITE_RENDER_POS',m.start())
+                  print('WHITE_RENDER_HREFS',hrefs[:50])
+                  print('WHITE_RENDER_IMGS',imgs[:50])
+                  print('WHITE_RENDER_SNIP',re.sub(r'\\s+',' ',html.unescape(s))[:12000])
+                  break
+          PY
