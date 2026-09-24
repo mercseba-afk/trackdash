@@ -2088,3 +2088,36 @@ HCJ81 retail context retained for audit, not persisted as market writes:
 - Japanese dealer buyback reference: JPY 1,399, useful as a dealer floor/context signal rather than consumer Market Value.
 
 These references are deliberately not converted into a canonical current EUR value until transport/import treatment is known.
+
+
+### 2026-09-24 — Bounded Hot Wheels evidence pool
+
+For the current pilot, stop discovering new market-source families.
+
+Use only:
+
+1. eBay — primary automated ASK source and marketplace context;
+2. Mercari — independent marketplace SOLD / ASK source when the exact Release and sale state are observable;
+3. verified specialist/retail stores — current fixed-price ASK plus historical/sell-through evidence.
+
+Retail is intentionally retained as market evidence rather than treated as mere launch-price trivia.
+
+Evidence classes for the pilot:
+
+- explicit fixed-price completed marketplace transaction: strongest SOLD evidence;
+- verified retail sell-through: contributes to Market Value with lower weight than an explicit transaction because the sold-out page does not prove unit count or exact transaction timestamp;
+- completed auction: contributes, but with lower weight and outlier controls;
+- current fixed-price retail/marketplace offer: ASK evidence;
+- sold-out/unavailable page not previously observed in stock at that exact price: context only.
+
+Provisional pilot weights:
+
+- fixed-price transaction: 1.00;
+- verified retail sell-through: 0.75;
+- completed auction: 0.60.
+
+These are internal pilot weights, not published confidence percentages and not final constants. They exist to preserve a broad data pool without pretending all observations have equal evidentiary strength.
+
+Retail sell-through requires the exact Release to have been previously observed in stock at the same fixed price before becoming unavailable/sold out. A historical sold-out page discovered after the fact remains contextual unless that prior in-stock state is independently verifiable.
+
+The goal is a robust multi-source market estimate, not a single-source price guide.
