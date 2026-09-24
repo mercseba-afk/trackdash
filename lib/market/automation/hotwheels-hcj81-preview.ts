@@ -108,6 +108,31 @@ const SECONDARY_SNAPSHOT: Array<{
   {
     sourceFamily: "retail",
     observation: {
+      source: "Premium Auto Modell",
+      sourceRecordKey: "premiumautomodell-hcj81-9990",
+      title: "Hot Wheels LB-ER34 Super Silhouette Nissan Skyline HCJ81",
+      description: "Új, bontatlan prémium minőségű 1:64 kisautó. Készlet: 1 db raktáron.",
+      status: "active",
+      sourceKind: "retailer",
+      saleMechanism: "fixed_price",
+      retailWasObservedInStockAtThisPrice: true,
+      structuredCondition: "new",
+      exactReleaseMatch: true,
+      isLot: false,
+      quantity: 1,
+      price: 9990,
+      currency: "HUF",
+      shipping: null,
+      originCountry: "HU",
+      deliveryCountry: "IT",
+      soldOn: null,
+    },
+    url: "https://www.premiumautomodell.hu/termek/hot-wheels-hcj81-lb-er34-super-silhouette-nissan-skyline",
+    note: "Retail europeo live: 1 pezzo osservato in stock a 9.990 Ft. ASK valido; spedizione Italia non verificata, quindi non guida il minimo consegnato.",
+  },
+  {
+    sourceFamily: "retail",
+    observation: {
       source: "Toys-shop.gr",
       sourceRecordKey: "toys-shop-hcj81-079-859",
       title: "Mattel Hot Wheels Car Culture Mountain Drifters Super Silhouette Nissan Skyline FPY86 / HCJ81",
@@ -248,7 +273,9 @@ export async function buildHcj81MarketSignalPreview(
       sufficientForPublishedMv: signal.marketValueEUR != null,
       note: signal.marketValueEUR != null
         ? "Il segnale soddisfa la soglia pilota per un Market Value."
-        : "ASK sufficienti per leggere il mercato; SOLD mint/carded multi-fonte ancora insufficienti per pubblicare un Market Value.",
+        : deliveredAskCount < 2
+          ? "ASK sufficienti per leggere il mercato; copertura dei costi consegnati ancora bassa e SOLD mint/carded multi-fonte insufficienti per pubblicare un Market Value."
+          : "ASK sufficienti per leggere il mercato; SOLD mint/carded multi-fonte ancora insufficienti per pubblicare un Market Value.",
     },
   }
 }

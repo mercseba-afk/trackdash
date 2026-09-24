@@ -196,7 +196,7 @@ export function HotWheelsMarketAudit() {
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <PreviewMetric label={it ? "ASK centrale" : "ASK center"} value={euro(preview.signal.askAnchorEUR)} />
-              <PreviewMetric label={it ? "Disponibile da" : "Available from"} value={euro(preview.signal.startingEffectiveCostEUR)} />
+              <PreviewMetric label={it ? "Min. consegnato UE verificato" : "Verified EU delivered min"} value={euro(preview.signal.startingEffectiveCostEUR)} />
               <PreviewMetric label={it ? "Market Value" : "Market Value"} value={euro(preview.signal.marketValueEUR)} />
               <PreviewMetric label={it ? "ASK eBay accettati" : "Accepted eBay ASK"} value={String(preview.liveEbay.acceptedAskCount)} />
             </div>
@@ -208,7 +208,7 @@ export function HotWheelsMarketAudit() {
                   {preview.liveEbay.uniqueListings} {it ? "annunci unici" : "unique listings"} · {preview.liveEbay.accepted} {it ? "accettati" : "accepted"} · {preview.liveEbay.review} {it ? "da verificare" : "review"} · {preview.liveEbay.rejected} {it ? "scartati" : "rejected"}.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  {preview.liveEbay.deliveredAskCount} {it ? "ASK hanno un costo consegnato UE utilizzabile per “Disponibile da”." : "ASK have an EU delivered cost usable for “Available from”."}
+                  {preview.liveEbay.deliveredAskCount} {it ? "ASK eBay hanno un costo consegnato UE verificato. Questo dato non viene ancora mostrato come “Disponibile da” finché la copertura resta bassa." : "eBay ASK have a verified EU delivered cost. This is not yet shown as “Available from” while delivery coverage remains thin."}
                 </p>
               </div>
               <div className="rounded-xl border border-border/70 bg-background p-3 text-xs">
