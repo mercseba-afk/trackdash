@@ -236,6 +236,41 @@ ok("one European delivered offer outranks a cheaper Japan-local offer for public
   assert.equal(signal.startingOffer?.effectiveCostEUR, 58.56)
 })
 
+ok("starting offer is the lowest valid delivered acquisition cost, not the newest listing", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [
+      {
+        stableId: "older-cheaper",
+        sourceId: "ebay",
+        channel: "marketplace",
+        sellerFingerprint: "seller-cheap",
+        marketRegion: "europe",
+        availability: "in_stock",
+        itemPriceEUR: 17.5,
+        shippingEUR: 7.9,
+        observedAt: "2026-09-24T17:01:00Z",
+      },
+      {
+        stableId: "newer-expensive",
+        sourceId: "ebay",
+        channel: "marketplace",
+        sellerFingerprint: "seller-expensive",
+        marketRegion: "europe",
+        availability: "in_stock",
+        itemPriceEUR: 15.12,
+        shippingEUR: 11.44,
+        observedAt: "2026-09-24T17:02:00Z",
+      },
+    ],
+    soldEvidence: [],
+    asOfDate: "2026-09-24",
+  })
+
+  assert.equal(signal.startingOffer?.stableId, "older-cheaper")
+  assert.equal(signal.startingOffer?.costBasis, "delivered")
+  assert.equal(signal.startingOffer?.effectiveCostEUR, 25.4)
+})
+
 ok("monthly sold trend uses complete recent consecutive months and 3-month smoothing", () => {
   const monthly = [
     ["2026-01-01", "2026-01-31", 25, 5],
