@@ -1,6 +1,7 @@
 "use server"
 
 import { requireAdmin } from "@/lib/admin/access"
+import { createAdminClient } from "@/lib/supabase/admin"
 import {
   listHotWheelsEbayAuditProfiles,
   runHotWheelsEbayAskAuditForRelease,
@@ -25,6 +26,56 @@ function countBy(values: string[]): Record<string, number> {
   const counts: Record<string, number> = {}
   for (const value of values) counts[value] = (counts[value] ?? 0) + 1
   return counts
+}
+
+function numericOrNull(value: unknown): number | null {
+  if (value == null) return null
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : null
+}
+
+async function persistHcj81AskSnapshot(preview: HotWheelsMarketSignalPreview) {
+  const admin = createAdminClient()
+  const snapshotDate = preview.generatedAt.slice(0, 10)
+  const offerCount = preview.evidence.filter(
+    (row) => row.marketUse === "ask" && row.itemPriceEUR != null,
+  ).length
+
+  const { error: upsertError } = await admin
+    .from("market_release_ask_snapshots")
+    .upsert({
+      release_id: preview.releaseId,
+      condition: "new_carded",
+      snapshot_date: snapshotDate,
+      typical_eur: preview.signal.askAnchorEUR,
+      low_eur: preview.signal.askMinEUR,
+      high_eur: preview.signal.askMaxEUR,
+      offer_count: offerCount,
+      computed_at: preview.generatedAt,
+    }, {
+      onConflict: "release_id,condition,snapshot_date",
+    })
+
+  if (upsertError) throw upsertError
+
+  const { data, error } = await admin
+    .from("market_release_ask_snapshots")
+    .select("snapshot_date,typical_eur,low_eur,high_eur,offer_count,computed_at")
+    .eq("release_id", preview.releaseId)
+    .eq("condition", "new_carded")
+    .order("snapshot_date", { ascending: false })
+    .limit(14)
+
+  if (error) throw error
+
+  preview.askHistory = (data ?? []).map((row) => ({
+    snapshotDate: String(row.snapshot_date),
+    typicalEUR: numericOrNull(row.typical_eur),
+    lowEUR: numericOrNull(row.low_eur),
+    highEUR: numericOrNull(row.high_eur),
+    offerCount: Number(row.offer_count ?? 0),
+    computedAt: String(row.computed_at),
+  }))
 }
 
 function logHotWheelsAuditSummary(
@@ -138,6 +189,8 @@ export async function runHcj81MarketSignalPreviewAction(): Promise<HotWheelsMark
   logHotWheelsAuditSummary(audit, false)
 
   const preview = await buildHcj81MarketSignalPreview(audit)
+  await persistHcj81AskSnapshot(preview)
+
   console.info("[hotwheels-market-signal-preview]", JSON.stringify({
     releaseId: preview.releaseId,
     identifier: preview.identifier,
@@ -148,6 +201,7 @@ export async function runHcj81MarketSignalPreviewAction(): Promise<HotWheelsMark
     sufficientForPreview: preview.readiness.sufficientForPreview,
     sufficientForPublishedMv: preview.readiness.sufficientForPublishedMv,
     evidenceCount: preview.evidence.length,
+    askSnapshotCount: preview.askHistory.length,
   }))
 
   return preview
