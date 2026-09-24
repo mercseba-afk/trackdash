@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
-import { hasReliableObservedPriceTrend, observedMarketAskCountLabel, observedMarketAskLabel, observedMarketAskTrendLabel, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskCountLabel, observedMarketDisplayLabel, observedMarketDisplayPrice, observedMarketAskTrendLabel } from "@/lib/market/presentation"
 
 function valueTrendWindow(months: ReleaseMarketSignalView["trendWindowMonths"], it: boolean) {
   if (months === 12) return it ? "ultimo anno" : "last year"
@@ -30,7 +30,7 @@ export function ReleaseMarketOverview({
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
-  const observed = observedMarketPrice(signal)
+  const observed = observedMarketDisplayPrice(signal)
   const hasValue = signal?.valueEUR != null && signal.valueEUR > 0
   const hasObserved = observed != null && observed > 0
 
@@ -55,7 +55,7 @@ export function ReleaseMarketOverview({
     const askCountLabel = observedMarketAskCountLabel(signal, it)
     if (askCountLabel) evidence.push(askCountLabel)
   }
-  if ((signal?.soldUnits ?? 0) >= 3) {
+  if ((signal?.soldUnits ?? 0) > 0) {
     evidence.push(
       it
         ? `${signal!.soldUnits} vendite osservate`
@@ -90,14 +90,14 @@ export function ReleaseMarketOverview({
             </div>
             {hasObserved ? (
               <p className="mt-2 text-sm text-muted-foreground">
-                {observedMarketAskLabel(signal, it)}{" "}
+                {observedMarketDisplayLabel(signal, it)}{" "}
                 <strong className="font-semibold tabular-nums text-foreground">≈ {formatMoney(observed!)}</strong>
               </p>
             ) : null}
           </div>
         ) : hasObserved ? (
           <div className="mt-3">
-            <p className="text-sm font-medium text-muted-foreground">{observedMarketAskLabel(signal, it)}</p>
+            <p className="text-sm font-medium text-muted-foreground">{observedMarketDisplayLabel(signal, it)}</p>
             <div className="mt-1 flex flex-wrap items-end gap-x-3 gap-y-1">
               <p className={compact ? "text-2xl font-semibold tabular-nums" : "text-4xl font-semibold tracking-[-0.04em] tabular-nums"}>
                 ≈ {formatMoney(observed!)}
