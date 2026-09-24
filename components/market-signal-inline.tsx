@@ -4,7 +4,7 @@ import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import { TrendIndicator } from "@/components/market-bits"
-import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
   signal,
@@ -21,7 +21,7 @@ export function MarketSignalInline({
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
-  const observedPrice = observedMarketPrice(signal)
+  const observedPrice = observedMarketDisplayPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
   const observedDirection = observedMarketAskDirection(observedTrend, it)
@@ -35,7 +35,7 @@ export function MarketSignalInline({
         </div>
       ) : hasObservedPrice ? (
         <>
-          <span className="text-xs font-medium text-muted-foreground">{observedMarketAskLabel(signal, it)}</span>
+          <span className="text-xs font-medium text-muted-foreground">{observedMarketDisplayLabel(signal, it)}</span>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-lg font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</span>
             {observedTrend != null ? <TrendIndicator value={observedTrend} className="text-xs" /> : null}
@@ -46,7 +46,7 @@ export function MarketSignalInline({
       )}
       {hasValue && showStartingPrice && hasObservedPrice ? (
         <span className="text-xs text-muted-foreground">
-          {observedMarketAskLabel(signal, it)} <span className="font-medium text-foreground">{formatMoney(observedPrice)}</span>
+          {observedMarketDisplayLabel(signal, it)} <span className="font-medium text-foreground">{formatMoney(observedPrice)}</span>
           {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
         </span>
       ) : null}
