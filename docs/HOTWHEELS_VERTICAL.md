@@ -2065,3 +2065,26 @@ Automated test:
 The test suite includes the two real HCJ81 Mercari damage cases and an Unavailable Whatnot case.
 
 No Mini 4WD matcher, market pipeline, valuation model, Collection, Scanner or database row is changed.
+
+
+### 2026-09-24 — Delivered-cost guard for secondary Hot Wheels sources
+
+The secondary-source policy now separates a visible item/ shipping subtotal from a trustworthy Italy-delivered acquisition cost.
+
+Rules for the Hot Wheels pilot:
+
+- an active exact-Release offer can be valid ASK evidence even when delivery is incomplete;
+- it cannot drive `Disponibile da` when shipping to Italy is unknown;
+- an EU-origin offer can expose a delivered cost only when item price and the Italy shipping quote are both known;
+- extra-EU item + visible shipping remains contextual while VAT/import costs are unknown;
+- missing origin or missing destination also blocks delivered-cost eligibility.
+
+HCJ81 retail context retained for audit, not persisted as market writes:
+
+- Mattel Japan 2022 catalog: official launch reference JPY 750;
+- HobbySearch: historical retail JPY 787, now sold out;
+- Greek retailer toys-shop.gr: historical/sold-out listing EUR 7.99;
+- Premium Auto Modell (Hungary): current exact HCJ81, new/unopened, one unit observed at HUF 9,990; Italy shipping not verified, therefore ASK context only and not a `Disponibile da` candidate;
+- Japanese dealer buyback reference: JPY 1,399, useful as a dealer floor/context signal rather than consumer Market Value.
+
+These references are deliberately not converted into a canonical current EUR value until transport/import treatment is known.
