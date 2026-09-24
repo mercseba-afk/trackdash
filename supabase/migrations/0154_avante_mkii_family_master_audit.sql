@@ -205,7 +205,7 @@ where not exists (
 
 -- Exact-item image audit. The item-scoped Tamiya archive URLs below are
 -- independently HTTP-probed by the branch image-audit workflow before merge.
--- Club editions intentionally remain without a canonical image until a stable
+-- 95525 and the two club editions intentionally remain without a canonical image until a stable
 -- exact single-product asset can be established; sibling/base images are not substituted.
 delete from public.release_images
 where release_id in (
@@ -220,8 +220,7 @@ insert into public.release_images(id,release_id,url,position) values
 (gen_random_uuid(),'6d4a4979-c006-5d28-a26c-448fa19d1dcf','https://www.tamiya.com/japan_contents/img/usr/item/9/94592/94592_1.jpg',0),
 (gen_random_uuid(),'e7f6a362-9bac-53aa-8673-2fa308c50a17','https://www.tamiya.com/japan_contents/img/usr/item/9/94626/94626_1.jpg',0),
 (gen_random_uuid(),'6c1d4fcf-7265-5a61-9be9-795e27eec353','https://www.tamiya.com/japan_contents/img/usr/item/9/94716/94716_1.jpg',0),
-(gen_random_uuid(),'c819da54-1ebc-5a8b-a24f-77166cf70e8d','https://www.tamiya.com/japan_contents/img/usr/item/9/95061/95061_1.jpg',0),
-(gen_random_uuid(),'5489c586-0f2a-5393-9447-dcf36bed8f1a','https://www.tamiya.com/japan_contents/img/usr/item/9/95525/95525_1.jpg',0);
+(gen_random_uuid(),'c819da54-1ebc-5a8b-a24f-77166cf70e8d','https://www.tamiya.com/japan_contents/img/usr/item/9/95061/95061_1.jpg',0);
 
 update public.product_releases
 set notes=case
@@ -231,6 +230,7 @@ set notes=case
     end,
     updated_at=now()
 where id in (
+  '5489c586-0f2a-5393-9447-dcf36bed8f1a'::uuid,
   'e0081f9e-e423-5f90-a30f-968978b36ed0'::uuid,
   '1bd70c72-417e-5e20-a7e1-0247e38dc608'::uuid
 );
