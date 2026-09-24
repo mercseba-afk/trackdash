@@ -7,7 +7,85 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II COMPLETE — MARKET THIN
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — NEO-TRIDAGGER ZMC FAMILY MASTER AUDIT IN PROGRESS
+
+**Current family: Neo-Tridagger ZMC. Do not declare COMPLETE until migration 0157 is live, all seven canonical Releases receive their initial canonical scans/recompute and the Completion Gate passes.**
+
+### Canonical genealogy established by the audit
+
+TrackDash should contain **7 collector Releases**:
+
+1. **19409 — Neo-Tridagger ZMC — 1996 — Original — Super 1**
+2. **94647 — Neo-Tridagger ZMC Special Kit — 2008 — Super 1**
+3. **92277 — Neo-Tridagger ZMC Next (Navy) — 2014 — Super 1**
+4. **92278 — Neo-Tridagger ZMC Next (Clear Red) — 2014 — Super 1**
+5. **92279 — Neo-Tridagger ZMC Next (White) — 2014 — Super 1**
+6. **92280 — Neo-Tridagger ZMC Next (Smoke) — 2014 — Super 1**
+7. **95508 — Neo-Tridagger ZMC Carbon Special — 2019 — Super II**
+   - JAN **4950344955084**
+   - official later on-sale/production wave **2023-08-12**
+   - same Item/JAN/spec and no verified physical discriminator → **one collector Release**, not a separate 2023 Release.
+
+Parts-only body products such as **15172 / 15480** are excluded from Product Releases.
+
+### Legacy corrections
+
+- Product series is corrected from legacy **Super Mini 4WD** to official **Fully Cowled Mini 4WD**.
+- Existing UUIDs for correct 19409 and 95508 identities are preserved.
+- Legacy duplicate 2023 95508 Release is collapsed into the canonical 2019 95508 only after a safety check verifies it has no user/market references.
+- The 2023 official source remains as production-wave provenance.
+- Product slug is intentionally not changed in this audit to avoid breaking bookmarked routes; canonical item identity remains 19409.
+
+### Release-specific status / rarity
+
+- 19409: current official Tamiya Japan catalog/handling evidence → **active / Common**.
+- 94647: historical limited Special Kit → **discontinued / Rare**.
+- 92277–92280: SK Japan amusement-prize variants → **discontinued / Rare**.
+- 95508: Tamiya USA marks discontinued; broad reissue/current secondary market → **discontinued / Uncommon**.
+
+### Images
+
+Exact existing official images remain for:
+- 19409
+- 95508
+
+For 94647 and 92277–92280 the identity pages were found, but no stable direct exact-release image URL suitable for TrackDash/Next Image was established during the audit. These five Releases intentionally use placeholders rather than sibling/base images.
+
+### Initial market evidence prepared
+
+- 19409: exact current new eBay observation; extra-EU Italy landed cost unresolved → context only.
+- 94647: exact historical RCJAZ out-of-stock reference plus current Mercari search context; no Europe-effective public ASK yet.
+- 92278 / 92280: exact current Mercari Japan unassembled prize listings; sealed state and Italy landed cost unresolved → context only.
+- 92277 / 92279: Empty Market Challenge found only sold-out/opened/used context, not a valid current canonical new Europe-effective offer.
+- 95508: exact RCJAZ historical retail plus current eBay market activity; Italy-effective current cost still requires canonical worker verification.
+- No fake Market Value or Europe-first ASK is created by this migration.
+
+### Repository / migration state
+
+Working branch:
+`neo-tridagger-zmc-master-audit-20260924`
+
+Migration:
+`0157_neo_tridagger_zmc_family_master_audit.sql`
+
+Migration dry-run against live Supabase:
+**PASS with ROLLBACK**.
+
+The migration enrolls all seven Releases into adaptive market scans, enrolls exact RCJAZ endpoints for 94647 and 95508, enqueues all seven v4 recomputes, and raises this family to the front of the next canonical scan batches without fabricating success timestamps.
+
+### Exact next actions
+
+1. PR + `pnpm verify` + typecheck.
+2. Merge and apply migration 0157 live.
+3. Run enough authenticated **Admin → Aggiornamento mercato → Esegui ora** batches to process the seven high-priority family scan targets and recomputes.
+4. Verify all seven fresh `v4` Market Signals, queue/locks/errors, hidden-current-offer invariant, Scanner and Collection projection.
+5. Run the Empty Market Challenge again on every remaining empty public signal after worker results.
+6. Update this checkpoint to final status only after the Completion Gate passes.
+
+---
+
+## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II COMPLETE — MARKET THIN
+
 
 **The Avante Mk.II family Completion Gate is closed successfully. Catalog identity, images, Scanner ambiguity handling, canonical v4 Market Signals and Collection propagation have been verified.**
 
