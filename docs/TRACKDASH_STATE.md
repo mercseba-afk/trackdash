@@ -58,7 +58,7 @@ Audit-selected assets:
 - 92320 First Impact White → EXACT VERIFIED Suruga asset
 - 92321 First Impact Gray → EXACT VERIFIED Suruga asset
 - 19401 2015 Reissue → EXACT VERIFIED Suruga asset
-- Tokyo Anime Center Model 2026 → EXACT VERIFIED official Tokyo Anime Center product image
+- Tokyo Anime Center Model 2026 → HIGH-CONFIDENCE MATCHED exact Mercari listing image; Tokyo Anime Center remains the official identity source
 
 The temporary image-audit workflow has been removed from the branch before merge.
 
@@ -109,16 +109,17 @@ Merged from branch `magnum-saber-master-audit-20260924` / PR **#244** into `main
   - stores date-uncertain Mercari First Impact / Tokyo sales as non-valuation context only
   - does not fabricate SOLD dates or split lots.
 
-**0161 + 0162 have passed a combined live Supabase dry-run with full ROLLBACK. PR #244 is merged. No Magnum Saber production mutation has been applied yet because the first automatic Vercel Production build for the merge was blocked by the account build-rate-limit; branch previews are READY.**
+**0161 + 0162 passed a combined live Supabase dry-run with full ROLLBACK. PR #244 is merged. The first automatic Vercel Production build was rate-limited, so the Tokyo image was switched to an exact Mercari asset on static.mercdn.net, an image host already supported by the current Production deployment. This removes the Magnum data rollout dependency on a new Vercel deploy. No Magnum Saber production mutation has been applied yet.**
 
 ### Exact next steps
 
-1. retry/verify Vercel Production deployment of merged `main`;
-2. once Production is READY with the Tokyo image-host config, apply migrations 0161 and 0162 live;
+1. merge the image-host compatibility patch;
+2. apply migrations 0161 and 0162 live; all selected image hosts are already supported by current Production;
 3. run authenticated Admin market refresh enough times to process all nine eBay targets;
 4. verify fresh v4 signals, ASK/SOLD separation, queue/locks and image rendering;
 5. complete Empty Market Challenge for thin Releases;
-6. update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE** as supported by the evidence.
+6. align Vercel to latest main when quota permits; this is operational housekeeping unless runtime code changes become necessary;
+7. update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE** as supported by the evidence.
 
 ---
 
