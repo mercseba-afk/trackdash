@@ -3,7 +3,7 @@ import { register } from "node:module"
 
 register("./ts-extension-loader.mjs", import.meta.url)
 
-const { findByCode, tamiyaItemNumberFromJan } = await import("../lib/data/corrected-products.ts")
+const { PRODUCTS, findByCode, findByCodeInProducts, tamiyaItemNumberFromJan } = await import("../lib/data/corrected-products.ts")
 
 let pass = 0
 let fail = 0
@@ -29,6 +29,43 @@ t("direct item number resolves exact release", direct?.release?.itemNumber === "
 
 const jan = findByCode("4950344954674")
 t("Tamiya JAN resolves the same exact release", jan?.release?.itemNumber === "95467")
+
+
+const avanteMkII = PRODUCTS.find((product) => product.name === "Avante Mk.II")
+const avanteBase18614 = avanteMkII?.releases.find((release) => release.itemNumber === "18614")
+if (avanteMkII && avanteBase18614) {
+  const canonicalWithShared18614 = PRODUCTS.map((product) =>
+    product.id === avanteMkII.id
+      ? {
+          ...product,
+          releases: [
+            ...product.releases,
+            {
+              ...avanteBase18614,
+              id: "scanner-test-avante-mkii-gamba-2023",
+              editionName: "Avante Mk.II Gamba Osaka Special Edition",
+              releaseYear: 2023,
+              barcodeJAN: undefined,
+            },
+            {
+              ...avanteBase18614,
+              id: "scanner-test-avante-mkii-cerezo-2023",
+              editionName: "Avante Mk.II Cerezo Osaka Special Edition",
+              releaseYear: 2023,
+              barcodeJAN: undefined,
+            },
+          ],
+        }
+      : product,
+  )
+  const shared18614 = findByCodeInProducts(canonicalWithShared18614, "18614")
+  t(
+    "canonical reused item 18614 resolves Avante Mk.II model but never an arbitrary Release",
+    shared18614?.product?.name === "Avante Mk.II" && shared18614.release === undefined,
+  )
+} else {
+  t("canonical reused item 18614 test fixture exists", false)
+}
 
 const reused18038 = findByCode("18038")
 t("reused item 18038 resolves the model but not an arbitrary release", reused18038?.product?.name === "Proto Emperor ZX" && reused18038.release === undefined)
