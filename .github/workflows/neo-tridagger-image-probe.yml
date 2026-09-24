@@ -137,8 +137,8 @@ jobs:
           target='92279'
           for m in re.finditer(target,raw):
               s=raw[max(0,m.start()-6000):m.start()+12000]
-              hrefs=re.findall(r'href=["\\']([^"\\']+)["\\']',s,re.I)
-              imgs=re.findall(r'(?:src|data-src)=["\\']([^"\\']+)["\\']',s,re.I)
+              hrefs=re.findall(r"href=[\\\"']([^\\\"']+)[\\\"']",s,re.I)
+              imgs=re.findall(r"(?:src|data-src)=[\\\"']([^\\\"']+)[\\\"']",s,re.I)
               if any('ホワイト' in x or 'White' in x for x in [html.unescape(s)]):
                   print('WHITE_RENDER_POS',m.start())
                   print('WHITE_RENDER_HREFS',hrefs[:50])
