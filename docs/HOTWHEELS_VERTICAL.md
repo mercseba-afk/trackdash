@@ -1997,3 +1997,71 @@ HCJ81 therefore shows both its primary Mattel code and verified UPC-A as identif
 ### Next validation after this UI block
 
 Use only the LB-ER34 family to validate Release identity, navigation, filtering and future market presentation. Any model/data-rule changes discovered here should be fixed before a second complete Hot Wheels family is built.
+
+
+## 2026-09-24 — Secondary source policy pilot (HCJ81 only)
+
+Status: **POLICY IMPLEMENTED — read-only / no Market Engine writes**.
+
+The sole market-validation target remains:
+
+- LB-ER34 Super Silhouette Nissan Skyline
+- 2022 Car Culture: Mountain Drifters 4/5
+- Mattel toy number HCJ81
+- verified UPC-A 194735011636
+
+### Independent secondary-source findings
+
+Mercari produces useful completed-sale evidence independent from the eBay Browse ASK audit.
+
+Two exact Mountain Drifters standard-release sales were located:
+
+1. Mercari item m24698711774
+   - marked Item sold / Sold out
+   - condition: New
+   - item price: USD 17.00
+   - visible shipping: USD 5.29
+   - description explicitly says the package has soft corners and small bends
+   - policy result: CONTEXT ONLY, not canonical mint/carded MV evidence
+
+2. Mercari item m35763573132
+   - marked Item sold / Sold out
+   - condition: New
+   - item price: USD 13.50
+   - visible shipping: USD 4.99
+   - description explicitly says Cracked Blister
+   - policy result: CONTEXT ONLY, not canonical mint/carded MV evidence
+
+The pages do not expose a sufficiently reliable completed-sale date for the current pipeline, so they are not persisted as SOLD Price Points.
+
+Whatnot also exposes the exact 2022 Mountain Drifters red LB-ER34 at USD 25 with condition Mint, but the page state is Unavailable rather than explicit Sold. Therefore it is context/ASK-like evidence only and must never be promoted to SOLD without transaction proof.
+
+### Source policy
+
+New Hot Wheels-only policy:
+
+- explicit Sold + exact Release + acceptable packaging + known sold date -> MV candidate;
+- explicit Sold + damaged packaging -> context/floor only;
+- explicit Sold without reliable sold date -> context only;
+- Unavailable / Sold out without explicit transaction proof -> context only;
+- active listing -> ASK;
+- lots / multi-item bundles -> rejected from single-Release valuation;
+- unconfirmed Release identity -> rejected.
+
+Marketplace structured condition New can support acceptable packaging only when no contradictory damage wording is present. Explicit damage wording always wins.
+
+This follows the same buyer-intent principle used by established collectible price guides while remaining deliberately conservative about transaction proof.
+
+### Implementation
+
+Hot Wheels-only module:
+
+- lib/market/automation/hotwheels-secondary-source-policy.ts
+
+Automated test:
+
+- scripts/test-hotwheels-secondary-source-policy.mjs
+
+The test suite includes the two real HCJ81 Mercari damage cases and an Unavailable Whatnot case.
+
+No Mini 4WD matcher, market pipeline, valuation model, Collection, Scanner or database row is changed.
