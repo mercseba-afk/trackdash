@@ -8,6 +8,16 @@
 
 begin;
 
+-- Normalize the J.League collector rows to the application's controlled
+-- ReleaseType vocabulary. Their collaboration identity remains explicit in
+-- edition_name / notes / sources.
+update public.product_releases
+set release_type='Special Edition', updated_at=now()
+where id in (
+  'e0081f9e-e423-5f90-a30f-968978b36ed0'::uuid,
+  '1bd70c72-417e-5e20-a7e1-0247e38dc608'::uuid
+);
+
 insert into public.price_points (
   id,candidate_id,release_id,source_id,observation_type,condition,
   price,currency,shipping_cost,shipping_basis,valuation_price,normalized_price_eur,
