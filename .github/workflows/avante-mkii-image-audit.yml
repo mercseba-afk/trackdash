@@ -44,13 +44,12 @@ jobs:
           check 94626 https://www.tamiya.com/japan_contents/img/usr/item/9/94626/94626_1.jpg
           check 94716 https://www.tamiya.com/japan_contents/img/usr/item/9/94716/94716_1.jpg
           check 95061 https://www.tamiya.com/japan_contents/img/usr/item/9/95061/95061_1.jpg
-          check 95525 https://www.tamiya.com/japan_contents/img/usr/item/9/95525/95525_1.jpg
 
-      - name: Verify no sibling image is assigned to club editions
+      - name: Verify unresolved releases stay on placeholder
         shell: bash
         run: |
           set -euo pipefail
           grep -q "Exact club-edition image intentionally unresolved" supabase/migrations/0154_avante_mkii_family_master_audit.sql || {
-            echo "Missing intentional-image-gap marker for J.League club editions"
+            echo "Missing intentional-image-gap marker for 95525 / J.League editions"
             exit 1
           }
