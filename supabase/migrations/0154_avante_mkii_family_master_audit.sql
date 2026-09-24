@@ -357,6 +357,88 @@ on conflict (source_id,source_record_key) do update set
   reason_codes=excluded.reason_codes,review_notes=excluded.review_notes,needs_revalidation=false,
   raw_payload=excluded.raw_payload,last_observed_at=excluded.last_observed_at,updated_at=now();
 
+
+-- Empty Market Challenge context for Releases without a publishable European
+-- current effective cost. Mercari search-result observations are retained only
+-- as current Japan/global context because listing-level condition and Italy
+-- landed cost are not sufficiently verified.
+insert into public.market_candidates(
+  id,source_id,source_record_key,original_source,original_record_id,listing_url,title_raw,item_number_observed,
+  possible_release_ids,resolved_release_id,price,currency,shipping_cost,shipping_basis,observation_type,
+  condition_raw,condition,inner_bags_sealed,box_condition,is_complete,is_lot,quantity,match_confidence,
+  match_evidence,evidence_group_key,observed_at,decision,reason_codes,review_notes,needs_revalidation,
+  raw_payload,first_observed_at,last_observed_at
+) values
+(
+  gen_random_uuid(),'38859ae9-7071-4b18-95b2-035fed8e4eed'::uuid,
+  'mercari-search:94626:20260924','MERCARI_JP',null,
+  'https://jp.mercari.com/search?keyword=%E3%83%9F%E3%83%8B%E5%9B%9B%E9%A7%86%20%E3%82%A2%E3%83%90%E3%83%B3%E3%83%86mk2',
+  'タミヤ ミニ四駆PRO アバンテMk.II ブラックスペシャル','94626',
+  array['e7f6a362-9bac-53aa-8673-2fa308c50a17'::uuid],'e7f6a362-9bac-53aa-8673-2fa308c50a17'::uuid,
+  6000,'JPY',null,'unknown','active_listing','Search result condition not exposed','unknown','unknown','unknown',
+  true,false,1,'exact',array['edition_name_exact','item_number_exact','manual_override'],
+  'mercari-search:94626:20260924',now(),'needs_review',
+  array['CONDITION_UNRESOLVED','EXTRA_EU_LANDED_COST_UNKNOWN','SEARCH_RESULT_ONLY'],
+  'Empty Market Challenge 2026-09-24: current Mercari Japan search result at JPY 6,000 is exact by edition/title, but listing-level condition and Italy landed cost are unresolved. Keep as current market context only; do not publish as Europe-first minimum.',
+  false,jsonb_build_object('adapter','manual-empty-market-challenge-v1','market_region','japan','landed_cost_italy','unknown','search_result_only',true),now(),now()
+),
+(
+  gen_random_uuid(),'38859ae9-7071-4b18-95b2-035fed8e4eed'::uuid,
+  'mercari-search:94716:20260924','MERCARI_JP',null,
+  'https://jp.mercari.com/search?keyword=%E3%83%9F%E3%83%8B%E5%9B%9B%E9%A7%86%20%E3%82%A2%E3%83%90%E3%83%B3%E3%83%86mk2',
+  'タミヤ ミニ四駆PRO アバンテMk.II Vスペシャル','94716',
+  array['6c1d4fcf-7265-5a61-9be9-795e27eec353'::uuid],'6c1d4fcf-7265-5a61-9be9-795e27eec353'::uuid,
+  5800,'JPY',null,'unknown','active_listing','Search result condition not exposed','unknown','unknown','unknown',
+  true,false,1,'exact',array['edition_name_exact','item_number_exact','manual_override'],
+  'mercari-search:94716:20260924',now(),'needs_review',
+  array['CONDITION_UNRESOLVED','EXTRA_EU_LANDED_COST_UNKNOWN','SEARCH_RESULT_ONLY'],
+  'Empty Market Challenge 2026-09-24: current Mercari Japan search result at JPY 5,800 is exact by edition/title, but listing-level condition and Italy landed cost are unresolved. Keep as current market context only; do not publish as Europe-first minimum.',
+  false,jsonb_build_object('adapter','manual-empty-market-challenge-v1','market_region','japan','landed_cost_italy','unknown','search_result_only',true),now(),now()
+),
+(
+  gen_random_uuid(),'38859ae9-7071-4b18-95b2-035fed8e4eed'::uuid,
+  'mercari-search:cerezo-avante-mkii:20260924','MERCARI_JP',null,
+  'https://jp.mercari.com/search?keyword=%E3%83%9F%E3%83%8B%E5%9B%9B%E9%A7%86J%E3%83%AA%E3%83%BC%E3%82%B0',
+  'タミヤ ミニ四駆PRO Jリーグ30th Anniv. アバンテ Mk.II セレッソ大阪スペシャルエディション','18614',
+  array['1bd70c72-417e-5e20-a7e1-0247e38dc608'::uuid],'1bd70c72-417e-5e20-a7e1-0247e38dc608'::uuid,
+  5720,'JPY',null,'unknown','active_listing','Search result condition not exposed','unknown','unknown','unknown',
+  true,false,1,'exact',array['edition_name_exact','manual_override'],
+  'mercari-search:cerezo-avante-mkii:20260924',now(),'needs_review',
+  array['CONDITION_UNRESOLVED','EXTRA_EU_LANDED_COST_UNKNOWN','SEARCH_RESULT_ONLY'],
+  'Empty Market Challenge 2026-09-24: current Mercari Japan search result at JPY 5,720 confirms observable current market activity for the Cerezo edition, but listing-level condition and Italy landed cost are unresolved. Keep as context only.',
+  false,jsonb_build_object('adapter','manual-empty-market-challenge-v1','market_region','japan','landed_cost_italy','unknown','search_result_only',true),now(),now()
+)
+on conflict (source_id,source_record_key) do update set
+  listing_url=excluded.listing_url,title_raw=excluded.title_raw,item_number_observed=excluded.item_number_observed,
+  possible_release_ids=excluded.possible_release_ids,resolved_release_id=excluded.resolved_release_id,
+  price=excluded.price,currency=excluded.currency,shipping_cost=excluded.shipping_cost,
+  shipping_basis=excluded.shipping_basis,observation_type=excluded.observation_type,
+  condition_raw=excluded.condition_raw,condition=excluded.condition,is_complete=excluded.is_complete,
+  is_lot=excluded.is_lot,quantity=excluded.quantity,match_confidence=excluded.match_confidence,
+  match_evidence=excluded.match_evidence,evidence_group_key=excluded.evidence_group_key,
+  observed_at=excluded.observed_at,decision=excluded.decision,reason_codes=excluded.reason_codes,
+  review_notes=excluded.review_notes,needs_revalidation=false,raw_payload=excluded.raw_payload,
+  last_observed_at=excluded.last_observed_at,updated_at=now();
+
+-- Persist the challenge outcome in identity notes without fabricating a price.
+update public.product_releases
+set notes=case
+  when coalesce(notes,'') like '%Empty Market Challenge 2026-09-24%' then notes
+  else concat_ws(' ',nullif(notes,''),
+    case item_number
+      when '94592' then 'Empty Market Challenge 2026-09-24: exact RCJAZ history exists, but no reliable current exact offer with Italy-effective delivery was established across the audited current sources. Historical-only market context is retained; no current public price is invented.'
+      when '94626' then 'Empty Market Challenge 2026-09-24: current exact Mercari Japan ASK observed, but condition and Italy landed cost are unresolved; retain as context only until a publishable effective-cost offer or sufficient SOLD evidence appears.'
+      when '94716' then 'Empty Market Challenge 2026-09-24: current exact Mercari Japan ASK observed, but condition and Italy landed cost are unresolved; retain as context only until a publishable effective-cost offer or sufficient SOLD evidence appears.'
+      else null
+    end)
+end,
+updated_at=now()
+where id in (
+  '6d4a4979-c006-5d28-a26c-448fa19d1dcf'::uuid,
+  'e7f6a362-9bac-53aa-8673-2fa308c50a17'::uuid,
+  '6c1d4fcf-7265-5a61-9be9-795e27eec353'::uuid
+);
+
 -- Enroll all three newly materialized Releases into the current adaptive
 -- Mini 4WD scan architecture. Finished Models use the same canonical
 -- new_complete_unbuilt market condition already used by audited 94593/94673/94674.
