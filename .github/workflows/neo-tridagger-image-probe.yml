@@ -30,6 +30,7 @@ jobs:
               "92278_mercari": "https://jp.mercari.com/item/m15829754498",
               "92280_mercari": "https://jp.mercari.com/item/m62676061261",
               "92279_mercari_search": "https://jp.mercari.com/search?keyword=92279%20%E3%83%8D%E3%82%AA%E3%83%88%E3%83%A9%E3%82%A4%E3%83%80%E3%82%AC%E3%83%BCZMC%E3%83%8D%E3%82%AF%E3%82%B9%E3%83%88",
+              "92279_mandarake_shop_neighbor": "https://jp.mercari.com/shops/product/VqvP8pdk3N8vMtfLvJyyQa",
           }
           ua = "Mozilla/5.0 (compatible; TrackDash image audit/1.0)"
           for key, url in pages.items():
@@ -58,6 +59,17 @@ jobs:
                       u=urljoin(url,u)
                       if u not in found:
                           found.append(u)
+              if key == "92279_mandarake_shop_neighbor":
+                  decoded2=html.unescape(raw).replace("\\/","/")
+                  for m2 in re.finditer("92279",decoded2):
+                      sn=decoded2[max(0,m2.start()-7000):m2.start()+12000]
+                      hrefs2=re.findall(r'href="([^"]+)"',sn,re.I)
+                      srcs2=re.findall(r'(?:src|data-src)="([^"]+)"',sn,re.I)
+                      print("NEIGHBOR_92279_POS",m2.start())
+                      print("NEIGHBOR_92279_HREFS",hrefs2[:80])
+                      print("NEIGHBOR_92279_SRCS",srcs2[:80])
+                      print("NEIGHBOR_92279_SNIP",re.sub(r"\\s+"," ",sn)[:15000])
+                      break
               for i,u in enumerate(found[:120],1):
                   marker=""
                   low=u.lower()
