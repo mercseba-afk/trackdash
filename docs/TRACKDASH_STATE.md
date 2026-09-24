@@ -7,7 +7,152 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II FAMILY AUDIT / MARKET REFRESH PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II COMPLETE — MARKET THIN
+
+**The Avante Mk.II family Completion Gate is closed successfully. Catalog identity, images, Scanner ambiguity handling, canonical v4 Market Signals and Collection propagation have been verified.**
+
+### Final canonical family
+
+TrackDash recognizes **8 commercial Avante Mk.II Releases**:
+
+1. **18614 — Avante Mk.II — 2006 — Original — MS**
+2. **94592 — Avante Mk.II (Finished Model) — 2007 — MS**
+   - commercial identity remains Finished Model
+   - controlled technical `release_type`: **Other**
+3. **94626 — Avante Mk.II Black Special — 2007 — MS**
+   - verified JAN: **4950344946266**
+4. **94716 — Avante Mk.II V Special — 2009 — MS**
+5. **95061 — Avante Mk.II Pink Special (Clear Body) — 2015 — MS**
+6. **95525 — Avante Mk.II Asia Challenge 2020 Special (Taiwan Final) — 2020 — MS**
+7. **18614 — Avante Mk.II Gamba Osaka Special Edition (J.League 30th Anniversary) — 2023 — MS**
+8. **18614 — Avante Mk.II Cerezo Osaka Special Edition (J.League 30th Anniversary) — 2023 — MS**
+
+**94585 Blue Color Plated Body Set remains excluded** because it is a parts/body product, not a complete commercial Mini 4WD Release.
+
+Exact identity duplicate count: **0**.
+
+### Scanner / shared Item Number invariant
+
+ITEM **18614** is intentionally shared by:
+
+- Avante Mk.II 2006;
+- Gamba Osaka Special Edition 2023;
+- Cerezo Osaka Special Edition 2023.
+
+Scanner resolution now uses the canonical catalog. Scanning/searching ITEM 18614 alone resolves the model but **does not select an arbitrary Release**; edition selection remains explicit.
+
+### Image state
+
+Exact verified Release images: **5**
+
+- 18614 base
+- 94592
+- 94626
+- 94716
+- 95061
+
+Intentional placeholders: **3**
+
+- 95525
+- Gamba Osaka 2023
+- Cerezo Osaka 2023
+
+Do not replace these placeholders with sibling/base images unless an exact Release image is verified.
+
+### Final Market Engine v4 results
+
+Admin → **Aggiornamento mercato → Esegui ora** was executed in Production on 2026-09-24.
+
+Final family QA:
+
+- Releases: **8**
+- fresh post-audit v4 signals: **8**
+- recompute queue: **0**
+- recompute locks: **0**
+- family scan locks: **0**
+- family enabled scan failures: **0**
+- family scan last errors: **0**
+- accepted candidates needing revalidation: **0**
+
+Signals:
+
+- **18614 Avante Mk.II**
+  - Market Value: **€14.71**
+  - SOLD units observed: **10**
+  - confidence: **medium**
+  - current offers: **14**
+  - canonical lowest asking price: **€23.79 delivered** (€12.64 item + €11.15 shipping)
+- **94592 Finished Model**
+  - no consolidated Market Value
+  - no publishable current ASK
+  - regime: **insufficient**
+- **94626 Black Special**
+  - no consolidated Market Value
+  - no publishable current ASK
+  - regime: **insufficient**
+- **94716 V Special**
+  - no consolidated Market Value
+  - no publishable current ASK
+  - regime: **insufficient**
+- **95061 Pink Special (Clear Body)**
+  - Market Value: **€31.82**
+  - SOLD units observed: **7**
+  - confidence: **medium**
+  - current offers: **2**
+  - canonical lowest asking price: **€31.92 delivered**
+- **95525 Asia Challenge 2020 Taiwan Final**
+  - no consolidated Market Value
+  - SOLD anchor: **€48.79**
+  - SOLD units observed: **3**
+  - confidence: **low**
+  - current offers: **2**
+  - canonical lowest asking price: **€74.33 delivered** (€63.72 item + €10.61 shipping)
+- **Cerezo Osaka 2023**
+  - exact Yahoo Auctions SOLD: **JPY 3,234 → €17.39**
+  - SOLD units observed: **1**
+  - no consolidated Market Value
+  - no publishable current ASK
+- **Gamba Osaka 2023**
+  - no consolidated Market Value
+  - no publishable current ASK
+
+The Price Engine correctly keeps thin-market variants on the honest fallback instead of inventing values.
+
+### Current ASK integrity
+
+The three Releases with a publishable current price point to accepted, exact-match, non-revalidation eBay candidates:
+
+- 18614 → **€23.79 delivered**
+- 95061 → **€31.92 delivered**
+- 95525 → **€74.33 delivered**
+
+The zero rows currently present in `market_offer_states` for this family do **not** hide publishable offers: the canonical v4 signals reference accepted `market_candidates` directly and expose the expected `starting_effective_cost`.
+
+### Refresh ordering QA
+
+The Admin refresh runs exact-page, eBay Active and recompute lanes concurrently.
+
+The four eBay Active targets processed during this refresh were **not Avante Mk.II**; they were Avante Jr./Dash-1 Emperor targets. Therefore no Avante Mk.II market mutation arrived after the family recompute.
+
+### Runtime / repository state
+
+- Production refresh completed with no Market Engine runtime error.
+- A pre-existing Supabase Auth warning about use of `getSession()` is visible in Admin runtime logs; it is unrelated to this family/Price Engine completion.
+- Standard protected market cron schedule remains **03:17 UTC**.
+- Temporary one-shot cron route has been removed from repository state.
+- GitHub `main` at the time of this checkpoint: **ca911472dc2a7b63acdd272edec2ced0bc949ab9** before this documentation merge.
+- Vercel Production remains temporarily behind latest `main` because new deployments are blocked by the account build-rate-limit. Latest verified Production SHA remains **3e6c0eaab4db6743ab22033f882730ee928eb08e**.
+- Once the Vercel build quota clears, deploy latest `main` and re-check `/api/version`. This deployment alignment is operational housekeeping and does not reopen the Avante Mk.II Market Completion Gate.
+
+### Final family status
+
+**AVANTE MK.II = COMPLETE — MARKET THIN**
+
+Future work on this family is ordinary maintenance only: new market observations, stronger exact images for the three placeholders, or newly discovered commercial variants supported by evidence.
+
+---
+
+## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II FAMILY AUDIT / MARKET REFRESH PENDING
 
 **This checkpoint supersedes older Avante Mk.II family assumptions. The catalog/identity audit is complete; the final Market Engine Completion Gate is NOT yet complete. Do not mark this family COMPLETE until the queued v4 recompute has run successfully.**
 
