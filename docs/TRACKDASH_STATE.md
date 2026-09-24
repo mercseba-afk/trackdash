@@ -7,6 +7,205 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE JR. COMPLETE — MARKET THIN / ACTIVE
+
+**Avante Jr. has been fully re-audited under the current TrackDash family-completion and Market Method v4 rules. The old catalog was not reused blindly: identity, release granularity, production waves, images, shared Item Numbers, ASK/SOLD semantics and public Production rendering were all rechecked. COMPLETE does not imply that every Release has a consolidated Market Value or a canonical image; unresolved evidence remains fail-closed.**
+
+### Canonical family — 13 collector Releases
+
+1. **93001 — Avante Jr. Champion's Gold — year unresolved — Type 2**
+   - exact Release identity verified
+   - historical date intentionally left NULL because evidence conflicts between a 1991 Modelers Gallery occurrence and later 1993 catalog dating
+2. **18014 — Avante Jr. — 1988 — Original — Type 2**
+3. **18506 — Avante Jr. Black Special — 1989 Original — Type 2**
+4. **18507 — Avante Jr. Special Version — 1990 — Type 2**
+   - JAN **4950344185078**
+5. **18058 — Avante RS — 2004 — VS**
+6. **92210 — Avante RS Purple Special — 2009 — VS**
+   - release date **2009-12-17**
+   - JAN **4950344922109**
+7. **18014 — Avante Jr. — 2012 Reissue — Type 2**
+8. **18506 — Avante Jr. Black Special — 2012 Reissue — Type 2**
+   - release date **2012-06-16**
+   - JAN **4950344185061**
+9. **95060 — Avante Jr. Yellow Special (Clear Body) — 2015 — VS**
+   - JAN **4950344950607**
+10. **95474 — Avante Jr. 30th Anniversary Special — 2018 — Type 2**
+11. **95501 — Avante Jr. Black Special — 2019 Event Reissue — Type 2**
+   - release date **2019-07-25**
+   - JAN **4950344955015**
+12. **95501 — Avante Jr. Black Special — 2021 Modern Reissue — Type 2**
+   - JAN **4950344080885**
+   - the 2024 retail restart is a **production wave of this Release**, not a second collector Release
+13. **18014 — Avante Jr. — 2024 Reissue — Type 2**
+   - release date **2024-09-07**
+   - JAN **4950344080878**
+
+Legacy correction: the product slug was fixed from the unrelated legacy `avante-jr-18709` to **`avante-jr-18014`**.
+
+### Release-granularity corrections
+
+The legacy audit was incomplete and over-split one modern wave.
+
+Added as genuine missing collector Releases:
+- **18507 Special Version**
+- **93001 Champion's Gold**
+- **92210 RS Purple Special**
+
+Normalized:
+- legacy **95501 2024** Release removed safely
+- its provenance and historical context were migrated to the canonical **95501 2021** Release as a production wave
+- no collection item, wishlist item, accepted candidate, price point or offer state was lost during the merge
+
+### Shared Item Number invariants
+
+**18014**
+- original/reissue generations share the Item Number
+- 2024 is independently identifiable by JAN **4950344080878**
+- generic ITEM-only evidence remains fail-closed
+
+**18506**
+- Original 1989 and 2012 Reissue share the Item Number
+- 2012 Reissue is independently identifiable by JAN **4950344185061**
+- the two historical SOLD observations retained for the Original are release-specific because the closed-sale titles explicitly discriminate the original 1989 / earliest production lot
+
+**95501**
+- 2019 Event Reissue → **4950344955015**
+- 2021 modern line → **4950344080885**
+- unattended eBay scanning remains disabled on ITEM 95501 alone
+- current exact UPC/EAN-discriminated listings are retained as context only when Italy-delivered cost is not verified; they do not create public “Disponibile da” values
+
+### Images
+
+Current canonical image coverage: **11/13**.
+
+Exact/high-confidence Release images are present for all Releases except:
+- **18507 Special Version**
+- **93001 Champion's Gold**
+
+Those two intentionally use the public placeholder. The current image-confidence policy remains:
+
+**high-confidence correct image > placeholder > probably wrong image**
+
+**92210 Purple Special** was added with an exact RCJaz ITEM image and verified through the TrackDash image pipeline.
+
+The 18507 current NOS eBay listing exposes multiple exact photos, but the image asset could not be established as a stable canonical CDN URL through the current connector. TrackDash therefore retains the placeholder instead of importing an unstable or guessed asset.
+
+### Market Method v4 final state
+
+All 13 Releases remain **market_regime = insufficient** and **Market Value = null**. Thin data is preserved instead of being promoted into a false consolidated value.
+
+Key public references:
+
+**18506 Original 1989**
+- SOLD anchor: **EUR 5.33**
+- 2 observed SOLD
+- seller count: 1
+- evidence is release-specific but still too thin for MV
+- public display: **Observed sale price ≈ EUR 5.33**
+
+**18507 Special Version 1990**
+- current eBay active scan found exact NOS ITEM 18507
+- one accepted current offer
+- canonical current acquisition / starting effective cost: **EUR 237.51**
+  - item **EUR 187.58**
+  - shipping **EUR 49.93**
+- public display: **Lowest asking price ≈ EUR 237.51**
+- no SOLD anchor / no MV
+
+**18058 Avante RS 2004**
+- canonical current acquisition: **EUR 62.10**
+- one current offer
+- no MV
+
+**92210 Purple Special**
+- initial automatic scan found no publishable current exact offer
+- noisy Avante/RC results were correctly rejected
+- no MV
+
+**93001 Champion's Gold**
+- automatic scan found no publishable current exact offer
+- exact historical Yahoo auction context retained:
+  - **JPY 165,000**
+  - ended **2024-03-24**
+  - exact ITEM 93001 / Champion's Gold
+- remains historical/context-only because it is outside the active SOLD window and complete/unbuilt condition cannot be fully established
+- no public price / no MV
+
+**95060 Yellow Special**
+- pre-recompute starting effective cost: **EUR 33.52**
+- post-current-runtime recompute canonical minimum: **EUR 31.06**
+- 8 current offers
+- SOLD anchor: **EUR 8.03**
+- public display: **Lowest asking price ≈ EUR 31.06**
+
+**95474 30th Anniversary**
+- current canonical acquisition: **EUR 47.06**
+- 5 canonical current offers / 7 public fresh listing observations
+- SOLD anchor: **EUR 5.95**
+- no MV
+
+**95501 2019 / 2021 and 18014 2024 / 18506 2012**
+- exact UPC/EAN-discriminated active marketplace context has been recorded
+- no Italy-delivered cost was considered sufficiently verified
+- therefore no public “Disponibile da” was invented
+
+### Final eBay scan
+
+The final targeted Admin run covered exactly the three newly added unique-item Releases:
+
+- **3 targets attempted / 3 succeeded**
+- **88 candidates found**
+- **1 accepted**
+- **87 rejected**
+- **0 worker errors**
+
+Accepted:
+- **18507 Special Version** exact NOS listing
+
+No accepted current offer:
+- **92210 Purple Special**
+- **93001 Champion's Gold**
+
+The high rejection count is expected and desirable: unrelated Avante RC parts/models were rejected by the exact Item Number classifier.
+
+### Queue / recompute state
+
+After the final Admin run:
+- recompute queue: **0**
+- due rows: **0**
+- active locks: **0**
+- recompute errors: **0**
+
+The targeted 95060 recompute completed under the corrected minimum-current-offer runtime and moved the public acquisition reference from **EUR 33.52** to **EUR 31.06**.
+
+### Production and public QA
+
+Current Production / GitHub main alignment:
+
+**f0135c6c242fce00a2bb863564e97436597c8949**
+
+Verification:
+- `https://trackdash.it/api/version` → HTTP 200 / **f0135c6c242fce00a2bb863564e97436597c8949**
+- family page renders the canonical 13-Release family
+- all **13/13 Release pages** return HTTP 200 on the Production deployment
+- all 13 identity labels render correctly
+- 11/13 canonical images render; 18507 and 93001 deliberately use placeholders
+- 18507 → **Lowest asking price ≈ EUR 237.51**
+- 18506 Original → **Observed sale price ≈ EUR 5.33**
+- 18058 → **Lowest asking price ≈ EUR 62.10**
+- 95060 → **Lowest asking price ≈ EUR 31.06**
+- 95474 → **Lowest asking price ≈ EUR 47.06**
+- thin Releases correctly show **Market data under review**
+
+### Completion status
+
+**AVANTE JR. COMPLETE — MARKET THIN / ACTIVE**
+
+The family is closed for the current catalog/market pass. Future work is normal background enrichment only: stronger historical dating for 93001, stable exact images for 18507/93001, additional trustworthy SOLD events and ordinary active-market refreshes. The canonical family should be reopened only if new identity evidence proves a Release split/merge or a factual catalog correction.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE
 
 **The Magnum Saber Completion Gate is closed successfully. Catalog identity, Release-level images, granular SOLD evidence, eBay active scan behavior, Market Method v4 recompute and public Production QA are all complete. Thin/ambiguous market evidence remains fail-closed; COMPLETE does not imply that every Release has a consolidated Market Value.**
