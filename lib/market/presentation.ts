@@ -10,6 +10,49 @@ export function observedMarketPrice(
     ?? null
 }
 
+export type ObservedMarketDisplayKind = "ask" | "sold"
+
+export function observedMarketDisplayKind(
+  signal?: ReleaseMarketSignalView | null,
+): ObservedMarketDisplayKind | null {
+  const askPrice = observedMarketPrice(signal)
+  if (askPrice != null && askPrice > 0) return "ask"
+  if (signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0) return "sold"
+  return null
+}
+
+export function observedMarketDisplayPrice(
+  signal?: ReleaseMarketSignalView | null,
+): number | null {
+  const askPrice = observedMarketPrice(signal)
+  if (askPrice != null && askPrice > 0) return askPrice
+  return signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0
+    ? signal.soldAnchorEUR
+    : null
+}
+
+export function observedMarketDisplayLabel(
+  signal: ReleaseMarketSignalView | null | undefined,
+  it: boolean,
+): string {
+  return observedMarketDisplayKind(signal) === "sold"
+    ? (it ? "Prezzo di vendita osservato" : "Observed sale price")
+    : observedMarketAskLabel(signal, it)
+}
+
+export function observedMarketDisplayEvidenceLabel(
+  signal: ReleaseMarketSignalView | null | undefined,
+  it: boolean,
+): string | null {
+  if (observedMarketDisplayKind(signal) === "sold") {
+    const count = signal?.soldUnits ?? 0
+    if (count <= 0) return null
+    if (it) return `${count} ${count === 1 ? "vendita osservata" : "vendite osservate"}`
+    return `${count} ${count === 1 ? "observed sale" : "observed sales"}`
+  }
+  return observedMarketAskCountLabel(signal, it)
+}
+
 export function hasReliableObservedPriceTrend(
   signal?: ReleaseMarketSignalView | null,
 ): boolean {
