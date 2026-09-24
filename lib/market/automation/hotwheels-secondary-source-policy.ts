@@ -1,6 +1,15 @@
 export type HotWheelsSecondarySourceStatus = "active" | "sold" | "unavailable" | "unknown"
 export type HotWheelsSecondaryPackaging = "acceptable" | "damaged" | "unknown"
 export type HotWheelsSecondaryMarketUse = "ask" | "mv_candidate" | "context_only" | "rejected"
+export type HotWheelsSecondarySourceKind = "marketplace" | "retailer" | "other"
+export type HotWheelsSaleMechanism = "fixed_price" | "auction" | "unknown"
+export type HotWheelsEvidenceClass =
+  | "fixed_price_transaction"
+  | "retail_sellthrough"
+  | "auction_transaction"
+  | "current_fixed_ask"
+  | "context"
+  | "rejected"
 
 export interface HotWheelsSecondaryObservation {
   source: string
@@ -8,6 +17,9 @@ export interface HotWheelsSecondaryObservation {
   title: string
   description?: string | null
   status: HotWheelsSecondarySourceStatus
+  sourceKind?: HotWheelsSecondarySourceKind
+  saleMechanism?: HotWheelsSaleMechanism
+  retailWasObservedInStockAtThisPrice?: boolean
   structuredCondition?: "new" | "used" | "unknown"
   exactReleaseMatch: boolean
   isLot?: boolean
@@ -29,6 +41,8 @@ export interface HotWheelsSecondaryAssessment {
   visibleAcquisitionSubtotal: number | null
   deliveredCost: number | null
   costBasis: "delivered_eu" | "extra_eu_import_unknown" | "shipping_unknown" | "origin_unknown" | "destination_unknown"
+  evidenceClass: HotWheelsEvidenceClass
+  valuationWeight: number
 }
 
 const DAMAGE_TERMS = [
@@ -140,6 +154,8 @@ export function assessHotWheelsSecondaryObservation(
   const packaging = inferHotWheelsSecondaryPackaging(observation)
   const quantity = observation.quantity ?? 1
   const cost = acquisitionCost(observation)
+  const sourceKind = observation.sourceKind ?? "other"
+  const saleMechanism = observation.saleMechanism ?? "unknown"
 
   if (!observation.exactReleaseMatch) {
     return {
@@ -147,6 +163,8 @@ export function assessHotWheelsSecondaryObservation(
       sourceRecordKey: observation.sourceRecordKey,
       marketUse: "rejected",
       packaging,
+      evidenceClass: "rejected",
+      valuationWeight: 0,
       reasonCodes: ["RELEASE_NOT_CONFIRMED"],
       ...cost,
     }
@@ -158,6 +176,8 @@ export function assessHotWheelsSecondaryObservation(
       sourceRecordKey: observation.sourceRecordKey,
       marketUse: "rejected",
       packaging,
+      evidenceClass: "rejected",
+      valuationWeight: 0,
       reasonCodes: ["MULTI_ITEM_NOT_COMPARABLE"],
       ...cost,
     }
@@ -169,6 +189,8 @@ export function assessHotWheelsSecondaryObservation(
       sourceRecordKey: observation.sourceRecordKey,
       marketUse: "context_only",
       packaging,
+      evidenceClass: "context",
+      valuationWeight: 0,
       reasonCodes: ["USED_NOT_CANONICAL_NEW_CARDED"],
       ...cost,
     }
@@ -180,18 +202,31 @@ export function assessHotWheelsSecondaryObservation(
       sourceRecordKey: observation.sourceRecordKey,
       marketUse: "ask",
       packaging,
+      evidenceClass: saleMechanism === "fixed_price" ? "current_fixed_ask" : "context",
+      valuationWeight: 0,
       reasonCodes: packaging === "damaged" ? ["ACTIVE_PACKAGING_DAMAGED"] : [],
       ...cost,
     }
   }
 
   if (observation.status === "unavailable" || observation.status === "unknown") {
+    const retailSellthrough =
+      observation.status === "unavailable" &&
+      sourceKind === "retailer" &&
+      saleMechanism === "fixed_price" &&
+      observation.retailWasObservedInStockAtThisPrice === true &&
+      packaging === "acceptable"
+
     return {
       source: observation.source,
       sourceRecordKey: observation.sourceRecordKey,
-      marketUse: "context_only",
+      marketUse: retailSellthrough ? "mv_candidate" : "context_only",
       packaging,
-      reasonCodes: [observation.status === "unavailable" ? "UNAVAILABLE_NOT_PROVEN_SOLD" : "SALE_STATUS_UNKNOWN"],
+      evidenceClass: retailSellthrough ? "retail_sellthrough" : "context",
+      valuationWeight: retailSellthrough ? 0.75 : 0,
+      reasonCodes: retailSellthrough
+        ? ["RETAIL_SELLTHROUGH_INFERRED"]
+        : [observation.status === "unavailable" ? "UNAVAILABLE_NOT_PROVEN_SOLD" : "SALE_STATUS_UNKNOWN"],
       ...cost,
     }
   }
@@ -201,11 +236,22 @@ export function assessHotWheelsSecondaryObservation(
     if (packaging === "unknown") reasonCodes.push("PACKAGING_UNVERIFIED")
     if (!observation.soldOn) reasonCodes.push("SOLD_DATE_MISSING")
 
+    const clean = reasonCodes.length === 0
+    const auction = saleMechanism === "auction"
+    const evidenceClass: HotWheelsEvidenceClass = clean
+      ? auction ? "auction_transaction" : "fixed_price_transaction"
+      : "context"
+    const valuationWeight = clean ? (auction ? 0.6 : 1) : 0
+
+    if (clean && auction) reasonCodes.push("AUCTION_LOWER_WEIGHT")
+
     return {
       source: observation.source,
       sourceRecordKey: observation.sourceRecordKey,
-      marketUse: reasonCodes.length === 0 ? "mv_candidate" : "context_only",
+      marketUse: clean ? "mv_candidate" : "context_only",
       packaging,
+      evidenceClass,
+      valuationWeight,
       reasonCodes,
       ...cost,
     }
@@ -216,6 +262,8 @@ export function assessHotWheelsSecondaryObservation(
     sourceRecordKey: observation.sourceRecordKey,
     marketUse: "context_only",
     packaging,
+    evidenceClass: "context",
+    valuationWeight: 0,
     reasonCodes: ["SALE_STATUS_UNKNOWN"],
     ...cost,
   }
