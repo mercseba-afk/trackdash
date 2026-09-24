@@ -1,9 +1,9 @@
 name: Neo-Tridagger image probe
 
 on:
-  push:
+  pull_request:
     branches:
-      - neo-tridagger-image-fill-20260924
+      - main
 
 jobs:
   probe:
