@@ -23,6 +23,8 @@ const base = {
   price: 20,
   currency: "USD",
   shipping: 5,
+  originCountry: "US",
+  deliveryCountry: "IT",
   soldOn: "2026-09-01",
 }
 
@@ -102,6 +104,62 @@ ok("active exact-release listing is ASK, not SOLD", () => {
   })
 
   assert.equal(result.marketUse, "ask")
+})
+
+ok("EU retail ASK with unknown Italy shipping cannot become Disponibile da", () => {
+  const result = assessHotWheelsSecondaryObservation({
+    ...base,
+    source: "eu-retailer",
+    sourceRecordKey: "eu-retail-shipping-unknown",
+    status: "active",
+    price: 9990,
+    currency: "HUF",
+    shipping: null,
+    originCountry: "HU",
+    deliveryCountry: "IT",
+    soldOn: null,
+  })
+
+  assert.equal(result.marketUse, "ask")
+  assert.equal(result.deliveredCost, null)
+  assert.equal(result.costBasis, "shipping_unknown")
+})
+
+ok("EU retail ASK with quoted Italy shipping gets a delivered cost", () => {
+  const result = assessHotWheelsSecondaryObservation({
+    ...base,
+    source: "eu-retailer",
+    sourceRecordKey: "eu-retail-delivered",
+    status: "active",
+    price: 25,
+    currency: "EUR",
+    shipping: 8,
+    originCountry: "HU",
+    deliveryCountry: "IT",
+    soldOn: null,
+  })
+
+  assert.equal(result.marketUse, "ask")
+  assert.equal(result.deliveredCost, 33)
+  assert.equal(result.costBasis, "delivered_eu")
+})
+
+ok("extra-EU item plus visible shipping stays non-delivered while import is unknown", () => {
+  const result = assessHotWheelsSecondaryObservation({
+    ...base,
+    sourceRecordKey: "us-ask",
+    status: "active",
+    price: 20,
+    shipping: 6,
+    originCountry: "US",
+    deliveryCountry: "IT",
+    soldOn: null,
+  })
+
+  assert.equal(result.marketUse, "ask")
+  assert.equal(result.visibleAcquisitionSubtotal, 26)
+  assert.equal(result.deliveredCost, null)
+  assert.equal(result.costBasis, "extra_eu_import_unknown")
 })
 
 ok("lot observations are rejected from single-release valuation", () => {

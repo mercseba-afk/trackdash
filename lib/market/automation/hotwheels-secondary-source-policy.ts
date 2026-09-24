@@ -15,6 +15,8 @@ export interface HotWheelsSecondaryObservation {
   price?: number | null
   currency?: string | null
   shipping?: number | null
+  originCountry?: string | null
+  deliveryCountry?: string | null
   soldOn?: string | null
 }
 
@@ -25,6 +27,8 @@ export interface HotWheelsSecondaryAssessment {
   packaging: HotWheelsSecondaryPackaging
   reasonCodes: string[]
   visibleAcquisitionSubtotal: number | null
+  deliveredCost: number | null
+  costBasis: "delivered_eu" | "extra_eu_import_unknown" | "shipping_unknown" | "origin_unknown" | "destination_unknown"
 }
 
 const DAMAGE_TERMS = [
@@ -60,6 +64,12 @@ const ACCEPTABLE_PACKAGING_TERMS = [
   "new in packaging",
   "unopened",
 ]
+
+const EU_COUNTRIES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR",
+  "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO",
+  "SE", "SI", "SK",
+])
 
 function normalize(value: string): string {
   return value
@@ -99,12 +109,37 @@ function visibleSubtotal(observation: HotWheelsSecondaryObservation): number | n
   return Math.round((observation.price + observation.shipping + Number.EPSILON) * 100) / 100
 }
 
+function acquisitionCost(observation: HotWheelsSecondaryObservation): Pick<
+  HotWheelsSecondaryAssessment,
+  "visibleAcquisitionSubtotal" | "deliveredCost" | "costBasis"
+> {
+  const visibleAcquisitionSubtotal = visibleSubtotal(observation)
+  const origin = observation.originCountry?.trim().toUpperCase() || null
+  const destination = observation.deliveryCountry?.trim().toUpperCase() || null
+
+  if (observation.shipping == null || !Number.isFinite(observation.shipping) || observation.shipping < 0) {
+    return { visibleAcquisitionSubtotal, deliveredCost: null, costBasis: "shipping_unknown" }
+  }
+  if (!origin) {
+    return { visibleAcquisitionSubtotal, deliveredCost: null, costBasis: "origin_unknown" }
+  }
+  if (!destination) {
+    return { visibleAcquisitionSubtotal, deliveredCost: null, costBasis: "destination_unknown" }
+  }
+  if (!EU_COUNTRIES.has(origin) || !EU_COUNTRIES.has(destination)) {
+    return { visibleAcquisitionSubtotal, deliveredCost: null, costBasis: "extra_eu_import_unknown" }
+  }
+
+  return { visibleAcquisitionSubtotal, deliveredCost: visibleAcquisitionSubtotal, costBasis: "delivered_eu" }
+}
+
 export function assessHotWheelsSecondaryObservation(
   observation: HotWheelsSecondaryObservation,
 ): HotWheelsSecondaryAssessment {
   const reasonCodes: string[] = []
   const packaging = inferHotWheelsSecondaryPackaging(observation)
   const quantity = observation.quantity ?? 1
+  const cost = acquisitionCost(observation)
 
   if (!observation.exactReleaseMatch) {
     return {
@@ -113,7 +148,7 @@ export function assessHotWheelsSecondaryObservation(
       marketUse: "rejected",
       packaging,
       reasonCodes: ["RELEASE_NOT_CONFIRMED"],
-      visibleAcquisitionSubtotal: visibleSubtotal(observation),
+      ...cost,
     }
   }
 
@@ -124,7 +159,7 @@ export function assessHotWheelsSecondaryObservation(
       marketUse: "rejected",
       packaging,
       reasonCodes: ["MULTI_ITEM_NOT_COMPARABLE"],
-      visibleAcquisitionSubtotal: visibleSubtotal(observation),
+      ...cost,
     }
   }
 
@@ -135,7 +170,7 @@ export function assessHotWheelsSecondaryObservation(
       marketUse: "context_only",
       packaging,
       reasonCodes: ["USED_NOT_CANONICAL_NEW_CARDED"],
-      visibleAcquisitionSubtotal: visibleSubtotal(observation),
+      ...cost,
     }
   }
 
@@ -146,7 +181,7 @@ export function assessHotWheelsSecondaryObservation(
       marketUse: "ask",
       packaging,
       reasonCodes: packaging === "damaged" ? ["ACTIVE_PACKAGING_DAMAGED"] : [],
-      visibleAcquisitionSubtotal: visibleSubtotal(observation),
+      ...cost,
     }
   }
 
@@ -157,7 +192,7 @@ export function assessHotWheelsSecondaryObservation(
       marketUse: "context_only",
       packaging,
       reasonCodes: [observation.status === "unavailable" ? "UNAVAILABLE_NOT_PROVEN_SOLD" : "SALE_STATUS_UNKNOWN"],
-      visibleAcquisitionSubtotal: visibleSubtotal(observation),
+      ...cost,
     }
   }
 
@@ -172,7 +207,7 @@ export function assessHotWheelsSecondaryObservation(
       marketUse: reasonCodes.length === 0 ? "mv_candidate" : "context_only",
       packaging,
       reasonCodes,
-      visibleAcquisitionSubtotal: visibleSubtotal(observation),
+      ...cost,
     }
   }
 
@@ -182,6 +217,6 @@ export function assessHotWheelsSecondaryObservation(
     marketUse: "context_only",
     packaging,
     reasonCodes: ["SALE_STATUS_UNKNOWN"],
-    visibleAcquisitionSubtotal: visibleSubtotal(observation),
+    ...cost,
   }
 }
