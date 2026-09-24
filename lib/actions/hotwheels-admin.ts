@@ -6,6 +6,10 @@ import {
   runHotWheelsEbayAskAuditForRelease,
   type HotWheelsAskAuditResult,
 } from "@/lib/market/automation/hotwheels-ebay-audit"
+import {
+  buildHcj81MarketSignalPreview,
+  type HotWheelsMarketSignalPreview,
+} from "@/lib/market/automation/hotwheels-hcj81-preview"
 
 export type HotWheelsAuditProfileOption = {
   releaseId: string
@@ -118,4 +122,33 @@ export async function runHotWheelsAskAuditAction(input: {
   logHotWheelsAuditSummary(result, includeFallbackQuery)
 
   return result
+}
+
+
+export async function runHcj81MarketSignalPreviewAction(): Promise<HotWheelsMarketSignalPreview> {
+  await requireAdmin()
+
+  const releaseId = "f16ed92f-34fb-5fd6-bd8b-c26ff3e831ee"
+  const audit = await runHotWheelsEbayAskAuditForRelease(releaseId, {
+    perQueryLimit: 10,
+    includeFallbackQuery: false,
+    maxDetailLookups: 15,
+  })
+
+  logHotWheelsAuditSummary(audit, false)
+
+  const preview = await buildHcj81MarketSignalPreview(audit)
+  console.info("[hotwheels-market-signal-preview]", JSON.stringify({
+    releaseId: preview.releaseId,
+    identifier: preview.identifier,
+    marketStatus: preview.signal.marketStatus,
+    marketValueEUR: preview.signal.marketValueEUR,
+    askAnchorEUR: preview.signal.askAnchorEUR,
+    startingEffectiveCostEUR: preview.signal.startingEffectiveCostEUR,
+    sufficientForPreview: preview.readiness.sufficientForPreview,
+    sufficientForPublishedMv: preview.readiness.sufficientForPublishedMv,
+    evidenceCount: preview.evidence.length,
+  }))
+
+  return preview
 }
