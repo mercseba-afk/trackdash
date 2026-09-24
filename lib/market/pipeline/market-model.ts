@@ -543,13 +543,20 @@ function channelWeightedMarketValue(input: {
 function chooseStartingOffer(reps: OfferRepresentative[]): StartingOffer | null {
   if (!reps.length) return null
 
-  // This signal is observational, not a sales promise. Pick the most recently
-  // checked purchasable offer instead of manufacturing a storefront-like
-  // "starting price" from the cheapest listing.
-  const selected = [...reps].sort((a, b) => {
+  // TrackDash "Disponibile da" is acquisition intelligence: among the
+  // Europe-comparable, deduplicated and currently purchasable offers, prefer
+  // the lowest verified delivered cost. Only when no delivered cost exists may
+  // an item-only observation be used as fallback. Recency breaks equal-cost
+  // ties; it must never make a more expensive offer become the starting price.
+  const delivered = reps.filter((rep) => rep.costBasis === "delivered" && rep.effectiveCostEUR != null)
+  const pool = delivered.length ? delivered : reps
+  const selected = [...pool].sort((a, b) => {
+    const aCost = a.effectiveCostEUR ?? a.itemPriceEUR
+    const bCost = b.effectiveCostEUR ?? b.itemPriceEUR
+    if (aCost !== bCost) return aCost - bCost
+
     const recency = Date.parse(b.observedAt) - Date.parse(a.observedAt)
     if (Number.isFinite(recency) && recency !== 0) return recency
-    if (a.itemPriceEUR !== b.itemPriceEUR) return a.itemPriceEUR - b.itemPriceEUR
     return a.stableId.localeCompare(b.stableId)
   })[0]
 
