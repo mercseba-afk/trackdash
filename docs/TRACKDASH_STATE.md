@@ -123,6 +123,8 @@ This prevents Original 1994 and Special Kit from appearing as if no market evide
 
 ### Vercel / Production blocker
 
+**Redeploy retry 2026-09-24:** a fresh Git→Vercel Production trigger was requested after PR #248 specifically to test whether the account build-rate-limit had cleared. This line is operational only; it does not change catalog or market semantics.
+
 GitHub `main` is ahead of Vercel Production. The Vercel status on the recent merged commits is failing because of the account **build-rate-limit**, not because TrackDash verification/typecheck failed.
 
 The latest confirmed Vercel Production deployment is still the earlier Neo-Tridagger build at commit **d07275a2f5e9476dc32001014b92d4169cebcad0**. Branch previews for the Magnum audit / market work have built successfully when quota allowed, but the current public Production UI is not yet proof of the latest `main`.
