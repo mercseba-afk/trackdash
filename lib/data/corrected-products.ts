@@ -66,6 +66,10 @@ export function getReleaseById(releaseId: string): { product: Product; release: 
   return undefined
 }
 
+export function findByCode(query: string): { product: Product; release?: ProductRelease } | undefined {
+  return findByCodeInProducts(PRODUCTS, query)
+}
+
 export function primaryRelease(product: Product): ProductRelease {
   return product.releases.find((r) => r.isOriginal) ?? product.releases[0]
 }
@@ -106,9 +110,9 @@ export function tamiyaItemNumberFromJan(value: string): string | undefined {
 
 type ReleaseHit = { product: Product; release: ProductRelease }
 
-function releaseHitsByItemNumber(itemNumber: string): ReleaseHit[] {
+function releaseHitsByItemNumber(products: Product[], itemNumber: string): ReleaseHit[] {
   const hits: ReleaseHit[] = []
-  for (const product of PRODUCTS) {
+  for (const product of products) {
     for (const release of product.releases) {
       if (normalizeScannerCode(release.itemNumber ?? "") === itemNumber) hits.push({ product, release })
     }
@@ -128,13 +132,13 @@ function resolveItemNumberHits(hits: ReleaseHit[]): { product: Product; release?
   return hits.every((hit) => hit.product.id === productId) ? { product: hits[0].product } : undefined
 }
 
-export function findByCode(query: string): { product: Product; release?: ProductRelease } | undefined {
+export function findByCodeInProducts(products: Product[], query: string): { product: Product; release?: ProductRelease } | undefined {
   const q = normalizeScannerCode(query)
   if (!q) return undefined
 
   // 1) Explicit verified JAN/EAN is the strongest scanner identity.
   const barcodeHits: ReleaseHit[] = []
-  for (const product of PRODUCTS) {
+  for (const product of products) {
     for (const release of product.releases) {
       if (normalizeScannerCode(release.barcodeJAN ?? "") === q) barcodeHits.push({ product, release })
     }
@@ -144,23 +148,23 @@ export function findByCode(query: string): { product: Product; release?: Product
 
   // 2) Exact item number. Reused item numbers intentionally resolve only to
   // the model, never to an arbitrary first Release.
-  const directItem = resolveItemNumberHits(releaseHitsByItemNumber(q))
+  const directItem = resolveItemNumberHits(releaseHitsByItemNumber(products, q))
   if (directItem) return directItem
 
   // 3) Conservative Tamiya JAN derivation for standard 4950344+item barcodes.
   const derivedTamiyaItem = tamiyaItemNumberFromJan(q)
   if (derivedTamiyaItem) {
-    const derived = resolveItemNumberHits(releaseHitsByItemNumber(derivedTamiyaItem))
+    const derived = resolveItemNumberHits(releaseHitsByItemNumber(products, derivedTamiyaItem))
     if (derived) return derived
   }
 
   // 4) Canonical product item and legacy manual product code fallbacks.
-  const productByItem = PRODUCTS.find(
+  const productByItem = products.find(
     (product) => normalizeScannerCode(product.itemNumber ?? "") === q,
   )
   if (productByItem) return { product: productByItem }
 
-  const productByLegacyCode = PRODUCTS.find(
+  const productByLegacyCode = products.find(
     (product) => normalizeScannerCode(product.productCode ?? "") === q,
   )
   if (productByLegacyCode) return { product: productByLegacyCode }
