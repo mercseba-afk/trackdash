@@ -132,13 +132,18 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "tamiyablog.com",
-        pathname: "/wp-content/uploads/**",
+        hostname: "static.mercdn.net",
+        pathname: "/item/detail/orig/photos/**",
       },
       {
         protocol: "https",
-        hostname: "static.mercdn.net",
-        pathname: "/item/detail/orig/photos/**",
+        hostname: "assets.mercari-shops-static.com",
+        pathname: "/-/large/plain/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.suruga-ya.jp",
+        pathname: "/database/pics_webp/game/**",
       },
     ],
   },
