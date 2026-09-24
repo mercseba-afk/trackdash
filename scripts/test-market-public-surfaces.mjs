@@ -107,8 +107,8 @@ if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
 if (!marketOverview.includes("Valore stimato")) {
   errors.push("Shared market overview does not expose the public estimated market value")
 }
-if (!marketOverview.includes("observedMarketAskLabel")) {
-  errors.push("Shared market overview does not use the centralized seller-ask label")
+if (!marketOverview.includes("observedMarketDisplayLabel") || !marketOverview.includes("observedMarketDisplayPrice")) {
+  errors.push("Shared market overview does not use the centralized display reference with SOLD fallback")
 }
 if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("observedMarketAskTrendLabel")) {
   errors.push("Shared market overview does not distinguish Market Value trend from seller-ask trend")
@@ -121,6 +121,8 @@ for (const requiredSellerAskCopy of [
   "Asking price trend",
   "annuncio osservato",
   "listings observed",
+  "Prezzo di vendita osservato",
+  "Observed sale price",
 ]) {
   if (!marketPresentation.includes(requiredSellerAskCopy)) {
     errors.push(`Shared market presentation is missing seller-ask wording ${JSON.stringify(requiredSellerAskCopy)}`)
@@ -128,6 +130,13 @@ for (const requiredSellerAskCopy of [
 }
 if (!marketPresentation.includes("askTrendWindowDays >= 7") || !marketPresentation.includes("currentOfferCount >= 3")) {
   errors.push("Observed-price trend is not guarded against thin or too-short ASK windows")
+}
+if (!marketPresentation.includes("signal?.soldAnchorEUR") || !marketPresentation.includes('return "sold"')) {
+  errors.push("Shared market presentation does not expose SOLD anchor as a display-only fallback")
+}
+const analyticsSource = fs.readFileSync("lib/analytics.ts", "utf8")
+if (analyticsSource.includes("observedMarketDisplayPrice")) {
+  errors.push("Display-only SOLD fallback leaked into portfolio or wishlist valuation logic")
 }
 if (!marketOverview.includes("observedMarketAskCountLabel") || !marketOverview.includes("soldUnits")) {
   errors.push("Shared market overview does not expose compact listing/sales evidence")
