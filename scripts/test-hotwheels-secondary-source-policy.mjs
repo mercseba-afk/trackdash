@@ -16,6 +16,8 @@ const base = {
   sourceRecordKey: "fixture",
   title: "Hot Wheels Mountain Drifters LB-ER34 Super Silhouette Nissan Skyline",
   status: "sold",
+  sourceKind: "marketplace",
+  saleMechanism: "fixed_price",
   structuredCondition: "new",
   exactReleaseMatch: true,
   isLot: false,
@@ -91,6 +93,8 @@ ok("clean completed sale with date can become an MV candidate", () => {
 
   assert.equal(result.packaging, "acceptable")
   assert.equal(result.marketUse, "mv_candidate")
+  assert.equal(result.evidenceClass, "fixed_price_transaction")
+  assert.equal(result.valuationWeight, 1)
   assert.deepEqual(result.reasonCodes, [])
 })
 
@@ -104,12 +108,73 @@ ok("active exact-release listing is ASK, not SOLD", () => {
   })
 
   assert.equal(result.marketUse, "ask")
+  assert.equal(result.evidenceClass, "current_fixed_ask")
+  assert.equal(result.valuationWeight, 0)
+})
+
+ok("verified retailer sell-through contributes to MV with lower weight than explicit SOLD", () => {
+  const result = assessHotWheelsSecondaryObservation({
+    ...base,
+    source: "eu-retailer",
+    sourceKind: "retailer",
+    saleMechanism: "fixed_price",
+    sourceRecordKey: "retail-sellthrough",
+    status: "unavailable",
+    retailWasObservedInStockAtThisPrice: true,
+    price: 24,
+    currency: "EUR",
+    shipping: 7,
+    originCountry: "HU",
+    deliveryCountry: "IT",
+    soldOn: null,
+    description: "Brand new sealed, mint card.",
+  })
+
+  assert.equal(result.marketUse, "mv_candidate")
+  assert.equal(result.evidenceClass, "retail_sellthrough")
+  assert.equal(result.valuationWeight, 0.75)
+  assert.deepEqual(result.reasonCodes, ["RETAIL_SELLTHROUGH_INFERRED"])
+})
+
+ok("retailer sold-out page without prior in-stock observation remains context only", () => {
+  const result = assessHotWheelsSecondaryObservation({
+    ...base,
+    source: "eu-retailer",
+    sourceKind: "retailer",
+    saleMechanism: "fixed_price",
+    sourceRecordKey: "retail-soldout-unverified",
+    status: "unavailable",
+    retailWasObservedInStockAtThisPrice: false,
+    soldOn: null,
+    description: "Brand new sealed, mint card.",
+  })
+
+  assert.equal(result.marketUse, "context_only")
+  assert.equal(result.evidenceClass, "context")
+  assert.equal(result.valuationWeight, 0)
+})
+
+ok("completed auction is usable but receives lower valuation weight", () => {
+  const result = assessHotWheelsSecondaryObservation({
+    ...base,
+    source: "auction-marketplace",
+    saleMechanism: "auction",
+    sourceRecordKey: "auction-sold",
+    description: "Brand new sealed, mint card.",
+  })
+
+  assert.equal(result.marketUse, "mv_candidate")
+  assert.equal(result.evidenceClass, "auction_transaction")
+  assert.equal(result.valuationWeight, 0.6)
+  assert.equal(result.reasonCodes.includes("AUCTION_LOWER_WEIGHT"), true)
 })
 
 ok("EU retail ASK with unknown Italy shipping cannot become Disponibile da", () => {
   const result = assessHotWheelsSecondaryObservation({
     ...base,
     source: "eu-retailer",
+    sourceKind: "retailer",
+    saleMechanism: "fixed_price",
     sourceRecordKey: "eu-retail-shipping-unknown",
     status: "active",
     price: 9990,
@@ -129,6 +194,8 @@ ok("EU retail ASK with quoted Italy shipping gets a delivered cost", () => {
   const result = assessHotWheelsSecondaryObservation({
     ...base,
     source: "eu-retailer",
+    sourceKind: "retailer",
+    saleMechanism: "fixed_price",
     sourceRecordKey: "eu-retail-delivered",
     status: "active",
     price: 25,
