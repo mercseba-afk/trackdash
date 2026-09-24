@@ -16,6 +16,9 @@ jobs:
   exact-images:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Probe exact-item Tamiya image assets
         shell: bash
         run: |
