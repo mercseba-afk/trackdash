@@ -15,8 +15,8 @@ function summarizeSettled<T>(result: PromiseSettledResult<T>) {
 }
 
 export async function GET() {
-  if (process.env.VERCEL_ENV !== "production") {
-    return NextResponse.json({ ok: false, error: "PRODUCTION_ONLY" }, { status: 403 })
+  if (process.env.VERCEL_ENV !== "production" && process.env.VERCEL_ENV !== "preview") {
+    return NextResponse.json({ ok: false, error: "VERCEL_ENV_ONLY" }, { status: 403 })
   }
 
   if (Date.now() > EXPIRES_AT) {
@@ -35,6 +35,7 @@ export async function GET() {
 
   return NextResponse.json({
     ok: exactPages.ok && ebayActive.ok && recompute.ok,
+    environment: process.env.VERCEL_ENV,
     exactPages,
     ebayActive,
     recompute,
