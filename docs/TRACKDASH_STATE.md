@@ -7,13 +7,11 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — NEO-TRIDAGGER ZMC FAMILY MASTER AUDIT IN PROGRESS
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — NEO-TRIDAGGER ZMC FINAL RECOMPUTE PENDING
 
-**Current family: Neo-Tridagger ZMC. Do not declare COMPLETE until migration 0157 is live, all seven canonical Releases receive their initial canonical scans/recompute and the Completion Gate passes.**
+**The Neo-Tridagger ZMC catalog/identity audit, eBay initial scan, manual market challenge and SOLD research are complete. Do not mark the family COMPLETE until the final 92280 Smoke recompute triggered by migration 0159 has run and its v4 signal is re-verified.**
 
-### Canonical genealogy established by the audit
-
-TrackDash should contain **7 collector Releases**:
+### Canonical family — 7 collector Releases
 
 1. **19409 — Neo-Tridagger ZMC — 1996 — Original — Super 1**
 2. **94647 — Neo-Tridagger ZMC Special Kit — 2008 — Super 1**
@@ -23,67 +21,113 @@ TrackDash should contain **7 collector Releases**:
 6. **92280 — Neo-Tridagger ZMC Next (Smoke) — 2014 — Super 1**
 7. **95508 — Neo-Tridagger ZMC Carbon Special — 2019 — Super II**
    - JAN **4950344955084**
-   - official later on-sale/production wave **2023-08-12**
-   - same Item/JAN/spec and no verified physical discriminator → **one collector Release**, not a separate 2023 Release.
+   - 2023-08-12 is a production/reissue wave of the same collector Release, not a second Release.
 
-Parts-only body products such as **15172 / 15480** are excluded from Product Releases.
+Parts-only body products such as **15172 / 15480** remain excluded.
 
-### Legacy corrections
-
-- Product series is corrected from legacy **Super Mini 4WD** to official **Fully Cowled Mini 4WD**.
-- Existing UUIDs for correct 19409 and 95508 identities are preserved.
-- Legacy duplicate 2023 95508 Release is collapsed into the canonical 2019 95508 only after a safety check verifies it has no user/market references.
-- The 2023 official source remains as production-wave provenance.
-- Product slug is intentionally not changed in this audit to avoid breaking bookmarked routes; canonical item identity remains 19409.
-
-### Release-specific status / rarity
-
-- 19409: current official Tamiya Japan catalog/handling evidence → **active / Common**.
-- 94647: historical limited Special Kit → **discontinued / Rare**.
-- 92277–92280: SK Japan amusement-prize variants → **discontinued / Rare**.
-- 95508: Tamiya USA marks discontinued; broad reissue/current secondary market → **discontinued / Uncommon**.
+Legacy corrections now live:
+- Product series corrected to **Fully Cowled Mini 4WD**.
+- Legacy duplicate 95508 2023 Release removed safely.
+- Stable UUIDs retained for the original 19409 and canonical 95508.
+- exact identity duplicate count: **0**.
 
 ### Images
 
-Exact existing official images remain for:
+Exact official Release images:
 - 19409
 - 95508
 
-For 94647 and 92277–92280 the identity pages were found, but no stable direct exact-release image URL suitable for TrackDash/Next Image was established during the audit. These five Releases intentionally use placeholders rather than sibling/base images.
+Intentional placeholders after audit:
+- 94647
+- 92277
+- 92278
+- 92279
+- 92280
 
-### Initial market evidence prepared
+Do not substitute sibling/base images.
 
-- 19409: exact current new eBay observation; extra-EU Italy landed cost unresolved → context only.
-- 94647: exact historical RCJAZ out-of-stock reference plus current Mercari search context; no Europe-effective public ASK yet.
-- 92278 / 92280: exact current Mercari Japan unassembled prize listings; sealed state and Italy landed cost unresolved → context only.
-- 92277 / 92279: Empty Market Challenge found only sold-out/opened/used context, not a valid current canonical new Europe-effective offer.
-- 95508: exact RCJAZ historical retail plus current eBay market activity; Italy-effective current cost still requires canonical worker verification.
-- No fake Market Value or Europe-first ASK is created by this migration.
+### Market / eBay scan result
 
-### Repository / migration state
+Authenticated Admin refreshes completed the seven Neo-Tridagger eBay jobs successfully:
 
-Working branch:
-`neo-tridagger-zmc-master-audit-20260924`
+- eBay family successes: **7/7**
+- eBay failures: **0**
+- active family locks: **0**
+- accepted candidates requiring revalidation: **0**
+- valid current offers hidden behind empty signals: **0**
+
+Current publishable eBay ASK exists only for:
+
+- **19409**: 3 current offers; canonical lowest asking cost **€101.55 delivered** (€75.03 item + €26.52 shipping)
+- **95508**: 4 current offers; canonical lowest asking cost **€109.69 delivered** (€69.67 item + €40.02 shipping)
+
+The other five Releases completed the eBay audit without a publishable current eBay offer.
+
+### Granular SOLD evidence
+
+**19409**
+- JPY 3,300 — 2026-05-20 → **€17.89**
+- JPY 8,220 — 2026-06-15 → **€44.21**
+- two real sales but highly dispersed; current v4 correctly keeps **no consolidated MV**
+- current SOLD anchor: **€17.89**
+
+**95508 Carbon Special**
+- JPY 4,100 — 2026-06-07 → **€22.03**
+- JPY 2,900 — 2026-06-16 → **€15.60**
+- JPY 3,200 — 2026-06-16 → **€17.21**
+- current v4 correctly keeps **no consolidated MV** because seller independence cannot be established from the indexed closed-sale evidence
+- current SOLD anchor: **€17.21**
+
+**92280 Smoke**
+- exact unopened/unused Yahoo auction, 21 bids
+- JPY 9,000 — sold 2026-02-08
+- previous ECB business day 2026-02-06: **EUR 1 = JPY 185.27**
+- migration 0159 normalizes this exact sale to **€48.58**
+- one sale alone must remain evidence / SOLD anchor and must not create a Market Value.
+
+### Current v4 signal state before migration 0159 recompute
+
+All 7 Releases already have v4 signals and the previous family recompute queue is 0.
+
+- 19409: no MV; SOLD anchor €17.89; 2 SOLD; 3 current offers; lowest ASK €101.55 delivered
+- 94647: no MV / no current publishable ASK
+- 92277: no MV / no current publishable ASK
+- 92278: no MV / no current publishable ASK
+- 92279: no MV / no current publishable ASK
+- 92280: no MV / no current publishable ASK; exact raw SOLD exists and migration 0159 adds the missing EUR-normalized price point
+- 95508: no MV; SOLD anchor €17.21; 3 SOLD; 4 current offers; lowest ASK €109.69 delivered
+
+All remaining empty Releases passed the Empty Market Challenge through exact identity search across current marketplace, specialist/retail and Japan-market sources. Historical, sold-out, opened/condition-unresolved or extra-EU landed-cost-unknown evidence remains contextual rather than being promoted into a fake Europe-first price.
+
+### QA already passed
+
+- canonical Releases: **7**
+- exact identity duplicates: **0**
+- v4 signal rows: **7**
+- eBay successes: **7**
+- eBay failures: **0**
+- family scan locks: **0**
+- accepted candidates needing revalidation: **0**
+- hidden current-offer Releases: **0**
+- current offer rows: **7**, exactly matching the 19409 + 95508 signal offer counts
+- legacy 2023 95508 Release: **absent**
+- Collection/Wishlist references on removed legacy 2023 row: **0**
+
+### Migration / exact next action
 
 Migration:
-`0157_neo_tridagger_zmc_family_master_audit.sql`
+`0159_neo_tridagger_zmc_smoke_sold_fx.sql`
 
-Migration dry-run against live Supabase:
-**PASS with ROLLBACK**.
+It has passed a live Supabase dry-run with full **ROLLBACK**.
 
-The migration enrolls all seven Releases into adaptive market scans, enrolls exact RCJAZ endpoints for 94647 and 95508, enqueues all seven v4 recomputes, and raises this family to the front of the next canonical scan batches without fabricating success timestamps.
-
-### Exact next actions
-
-1. PR + `pnpm verify` + typecheck.
-2. Merge and apply migration 0157 live.
-3. Run enough authenticated **Admin → Aggiornamento mercato → Esegui ora** batches to process the seven high-priority family scan targets and recomputes.
-4. Verify all seven fresh `v4` Market Signals, queue/locks/errors, hidden-current-offer invariant, Scanner and Collection projection.
-5. Run the Empty Market Challenge again on every remaining empty public signal after worker results.
-6. Update this checkpoint to final status only after the Completion Gate passes.
+After merge/apply:
+1. 92280 receives the €48.58 granular SOLD price point;
+2. 92280 is enqueued for one canonical v4 recompute;
+3. run **Admin → Aggiornamento mercato → Esegui ora** once;
+4. verify 92280 v4 SOLD anchor ≈ €48.58, no forced MV, recompute queue 0, locks 0;
+5. re-check Production/runtime and update this checkpoint to **NEO-TRIDAGGER ZMC = COMPLETE — MARKET THIN**.
 
 ---
-
 ## PREVIOUS AUTHORITATIVE CHECKPOINT — 2026-09-24 — AVANTE MK.II COMPLETE — MARKET THIN
 
 
