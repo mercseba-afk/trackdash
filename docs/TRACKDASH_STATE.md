@@ -93,7 +93,7 @@ No granular sale has yet been accepted for Gray First Impact or the 2015 19401 R
 
 ### Migrations / branch state
 
-Prepared on branch `magnum-saber-master-audit-20260924` / PR **#244**:
+Merged from branch `magnum-saber-master-audit-20260924` / PR **#244** into `main` at **e2234e910dd9b8679efc84d6e5afe4238daa5934**:
 
 - **0161_magnum_saber_family_master_audit.sql**
   - rebuilds the canonical nine-Release family
@@ -109,19 +109,16 @@ Prepared on branch `magnum-saber-master-audit-20260924` / PR **#244**:
   - stores date-uncertain Mercari First Impact / Tokyo sales as non-valuation context only
   - does not fabricate SOLD dates or split lots.
 
-**0161 + 0162 have passed a combined live Supabase dry-run with full ROLLBACK. No Magnum Saber production mutation has been applied yet.**
+**0161 + 0162 have passed a combined live Supabase dry-run with full ROLLBACK. PR #244 is merged. No Magnum Saber production mutation has been applied yet because the first automatic Vercel Production build for the merge was blocked by the account build-rate-limit; branch previews are READY.**
 
 ### Exact next steps
 
-1. run final branch CI after scanner test + temporary workflow removal;
-2. update PR #244 from draft to ready;
-3. merge only if verify/typecheck are green;
-4. ensure Vercel Production accepts the image-host config;
-5. apply migrations 0161 and 0162 live;
-6. run authenticated Admin market refresh enough times to process all nine eBay targets;
-7. verify fresh v4 signals, ASK/SOLD separation, queue/locks and image rendering;
-8. complete Empty Market Challenge for thin Releases;
-9. update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE** as supported by the evidence.
+1. retry/verify Vercel Production deployment of merged `main`;
+2. once Production is READY with the Tokyo image-host config, apply migrations 0161 and 0162 live;
+3. run authenticated Admin market refresh enough times to process all nine eBay targets;
+4. verify fresh v4 signals, ASK/SOLD separation, queue/locks and image rendering;
+5. complete Empty Market Challenge for thin Releases;
+6. update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE** as supported by the evidence.
 
 ---
 
