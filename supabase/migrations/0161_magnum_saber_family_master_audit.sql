@@ -335,8 +335,8 @@ insert into public.release_sources(id,release_id,source_type,source_url,verified
 values
 (gen_random_uuid(),'057f6e89-225a-583a-8ec6-390a7e5a0887'::uuid,'official_archive',
  'https://tokyoanimecenter.jp/event/letsgo_30exh/',
- array['editionName','releaseDate','chassisBase','stickerDesign','retailPrice','image'],date '2026-09-24',
- 'Official Tokyo Anime Center event page documents the Magnum Saber Tokyo Anime Center Model, its exclusive sticker design, Premium/Super II base, JPY 2,860 standalone price and directly embeds the selected tenmen.jpg product image.'),
+ array['editionName','releaseDate','chassisBase','stickerDesign','retailPrice'],date '2026-09-24',
+ 'Official Tokyo Anime Center event page documents the Magnum Saber Tokyo Anime Center Model, its exclusive sticker design, Premium/Super II base and JPY 2,860 standalone price.'),
 (gen_random_uuid(),'057f6e89-225a-583a-8ec6-390a7e5a0887'::uuid,'official_archive',
  'https://tokyoanimecenter.jp/event/letsgo_30exh_popup/',
  array['editionName','retailPrice','marketAvailability'],date '2026-09-24',
@@ -344,7 +344,11 @@ values
 (gen_random_uuid(),'057f6e89-225a-583a-8ec6-390a7e5a0887'::uuid,'trusted_secondary',
  'https://www.atpress.ne.jp/news/7275106',
  array['editionName','chassisBase','stickerDesign','retailPrice'],date '2026-09-24',
- 'Official event press release corroborates that the collaboration is based on Magnum Saber Premium with Tokyo Anime Center-specific stickers and JPY 2,860 standalone pricing.')
+ 'Official event press release corroborates that the collaboration is based on Magnum Saber Premium with Tokyo Anime Center-specific stickers and JPY 2,860 standalone pricing.'),
+(gen_random_uuid(),'057f6e89-225a-583a-8ec6-390a7e5a0887'::uuid,'other',
+ 'https://jp.mercari.com/item/m78366053057',
+ array['editionName','chassis','image'],date '2026-09-24',
+ 'Image audit 2026-09-24 — HIGH-CONFIDENCE MATCHED. Exact sold-out Mercari listing identifies the sealed Magnum Saber Tokyo Anime Center Model on Super II; the selected first listing image is hosted on the already-approved static.mercdn.net image CDN.')
 on conflict do nothing;
 
 -- Images: existing original + Premium official images remain untouched.
@@ -366,7 +370,7 @@ insert into public.release_images(id,release_id,url,position) values
 (gen_random_uuid(),'a7ee5c90-da2a-5eb1-92a7-3895082186ff','https://cdn.suruga-ya.jp/database/pics_webp/game/603059997.jpg.webp',0),
 (gen_random_uuid(),'cb15faed-3873-58b9-a6c6-5553a556fd57','https://cdn.suruga-ya.jp/database/pics_webp/game/603059998.jpg.webp',0),
 (gen_random_uuid(),'a3a62418-84ad-5828-abab-289afdb43044','https://cdn.suruga-ya.jp/database/pics_webp/game/603060158.jpg.webp',0),
-(gen_random_uuid(),'057f6e89-225a-583a-8ec6-390a7e5a0887','https://tokyoanimecenter.jp/uploads/letsgo_30exh/tenmen.jpg',0);
+(gen_random_uuid(),'057f6e89-225a-583a-8ec6-390a7e5a0887','https://static.mercdn.net/item/detail/orig/photos/m78366053057_1.jpg?1783780563',0);
 
 -- Explicit image-confidence audit trail.
 update public.product_releases
@@ -378,7 +382,7 @@ set notes=concat_ws(' ',nullif(notes,''),
     when 'a7ee5c90-da2a-5eb1-92a7-3895082186ff'::uuid then 'Image audit 2026-09-24: EXACT VERIFIED Suruga ITEM 92320 White asset.'
     when 'cb15faed-3873-58b9-a6c6-5553a556fd57'::uuid then 'Image audit 2026-09-24: EXACT VERIFIED Suruga ITEM 92321 Gray asset.'
     when 'a3a62418-84ad-5828-abab-289afdb43044'::uuid then 'Image audit 2026-09-24: EXACT VERIFIED Suruga 2015 reissue asset.'
-    when '057f6e89-225a-583a-8ec6-390a7e5a0887'::uuid then 'Image audit 2026-09-24: EXACT VERIFIED Tokyo Anime Center official product image.'
+    when '057f6e89-225a-583a-8ec6-390a7e5a0887'::uuid then 'Image audit 2026-09-24: HIGH-CONFIDENCE MATCHED exact Mercari Tokyo Anime Center Model image; official Tokyo Anime Center page remains the identity authority.'
     else null
   end),
   updated_at=now()
