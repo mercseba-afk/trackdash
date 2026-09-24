@@ -144,8 +144,7 @@ set verified_fields = case
       else concat_ws(' ',nullif(notes,''),
         'Image audit 2026-09-24 — EXACT VERIFIED. The selected Suruga CDN asset is keyed by this exact product management number 603052146 / ITEM 92279 and returned HTTP 200 image/webp (512x512).')
     end,
-    checked_at=date '2026-09-24',
-    updated_at=now()
+    checked_at=date '2026-09-24'
 where release_id='581ca254-25b2-57d3-983a-caf0fa722806'::uuid
   and source_url='https://www.suruga-ya.jp/product/detail/603052146';
 
