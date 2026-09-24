@@ -70,6 +70,58 @@ if (avanteMkII && avanteBase18614) {
 const reused18038 = findByCode("18038")
 t("reused item 18038 resolves the model but not an arbitrary release", reused18038?.product?.name === "Proto Emperor ZX" && reused18038.release === undefined)
 
+const magnumSaber = PRODUCTS.find((product) => product.name === "Magnum Saber")
+const magnumOriginal19401 = magnumSaber?.releases.find((release) => release.itemNumber === "19401")
+if (magnumSaber && magnumOriginal19401) {
+  const canonicalWith19401Reissue = PRODUCTS.map((product) =>
+    product.id === magnumSaber.id
+      ? {
+          ...product,
+          releases: [
+            ...product.releases.map((release) =>
+              release.id === magnumOriginal19401.id
+                ? { ...release, barcodeJAN: "4950344194018" }
+                : release,
+            ),
+            {
+              ...magnumOriginal19401,
+              id: "scanner-test-magnum-saber-19401-reissue-2015",
+              editionName: "Magnum Saber (2015 Reissue)",
+              releaseType: "Reissue",
+              releaseYear: 2015,
+              barcodeJAN: "4950344061310",
+              isOriginal: false,
+            },
+          ],
+        }
+      : product,
+  )
+
+  const reused19401 = findByCodeInProducts(canonicalWith19401Reissue, "19401")
+  t(
+    "reused Magnum Saber item 19401 resolves the model but never an arbitrary Release",
+    reused19401?.product?.name === "Magnum Saber" && reused19401.release === undefined,
+  )
+
+  const original19401Jan = findByCodeInProducts(canonicalWith19401Reissue, "4950344194018")
+  t(
+    "Magnum Saber original JAN resolves the 1994 Release",
+    original19401Jan?.product?.name === "Magnum Saber" &&
+      original19401Jan.release?.releaseYear === 1994 &&
+      original19401Jan.release?.editionName === "Magnum Saber",
+  )
+
+  const reissue19401Jan = findByCodeInProducts(canonicalWith19401Reissue, "4950344061310")
+  t(
+    "Magnum Saber reissue JAN resolves the 2015 Release",
+    reissue19401Jan?.product?.name === "Magnum Saber" &&
+      reissue19401Jan.release?.releaseYear === 2015 &&
+      reissue19401Jan.release?.editionName === "Magnum Saber (2015 Reissue)",
+  )
+} else {
+  t("Magnum Saber scanner fixture exists", false)
+}
+
 const reissueBarcode = findByCode("4950344997107")
 t("Proto Emperor ZX 2007 barcode resolves the 2007 reissue", reissueBarcode?.release?.releaseYear === 2007 && reissueBarcode.release?.itemNumber === "18038")
 
