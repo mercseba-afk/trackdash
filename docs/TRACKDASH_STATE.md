@@ -7,119 +7,145 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — MAGNUM SABER MASTER AUDIT IN PROGRESS
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-24 — MAGNUM SABER LIVE — MARKET THIN / PRODUCTION QA PENDING
 
-**The Magnum Saber family is under active canonical rebuild. Do not mark COMPLETE until migrations 0161/0162 are merged/applied, all nine Releases receive fresh v4 signals, eBay/market refresh is completed and final QA passes.**
+**The Magnum Saber canonical rebuild is live in Supabase. Catalog identity, nine Release images, granular SOLD evidence, adaptive scan enrollment and canonical Market Method v4 recompute are applied. Do not mark the family COMPLETE until the latest `main` reaches Vercel Production, the public Release/Collection surfaces are verified there, and the remaining thin-market Empty Market Challenge is closed.**
 
-### Canonical inventory under audit — 9 collector Releases
+### Canonical family — 9 collector Releases
 
 1. **19401 — Magnum Saber — 1994 — Original — Super 1**
-   - verified original JAN: **4950344194018**
+   - JAN **4950344194018**
 2. **94618 — Magnum Saber Special Kit — 2007 — Super 1**
    - JAN **4950344946181**
 3. **19431 — Magnum Saber Premium — 2010 — Super II**
-   - legacy TrackDash year **2012 is wrong** and is corrected to **2010**
+   - corrected from the legacy TrackDash year 2012
    - JAN **4950344194315**
 4. **92318 — Magnum Saber First Impact (Blue) — 2015 — Super 1**
 5. **92319 — Magnum Saber First Impact (Red) — 2015 — Super 1**
 6. **92320 — Magnum Saber First Impact (White) — 2015 — Super 1**
 7. **92321 — Magnum Saber First Impact (Gray) — 2015 — Super 1**
 8. **19401 — Magnum Saber (2015 Reissue) — 2015 — Super 1**
-   - verified reissue JAN: **4950344061310**
+   - JAN **4950344061310**
 9. **Magnum Saber Tokyo Anime Center Model — 2026 — Super II**
    - official 30th-anniversary collaboration based on Magnum Saber Premium
    - no autonomous Tamiya Item Number/JAN is invented.
 
-### Critical identity invariant: ITEM 19401
+### Critical identity invariant: reused ITEM 19401
 
-Original 1994 and Reissue 2015 are separate collector Releases.
-
-They share ITEM **19401** but have different verified JANs:
+Original 1994 and Reissue 2015 are separate collector Releases. They share ITEM **19401** but have different verified JANs.
 
 - Original 1994 → **4950344194018**
 - Reissue 2015 → **4950344061310**
 
-Scanner behavior must therefore be fail-closed on ITEM 19401 alone. The item number may resolve the Magnum Saber model, but must not select either Release automatically. Each verified JAN must resolve its exact Release.
+Scanner and unattended eBay behavior remain fail-closed on ITEM 19401 alone. The item number may identify the Magnum Saber model, but it must not select either Release automatically. The two JANs resolve their exact Releases.
 
-A branch scanner test has been added for this invariant.
+### Images — live 9/9
 
-### Images
+Every Magnum Saber Release currently has one Release-level image row in live Supabase:
 
-Target state for the family is **9/9 Release images**.
+- 19401 Original → official Tamiya
+- 94618 Special Kit → official Tamiya
+- 19431 Premium → official Tamiya
+- 19401 2015 Reissue → verified Suruga
+- 92318 Blue / 92319 Red / 92320 White / 92321 Gray → verified/high-confidence Suruga family assets
+- Tokyo Anime Center Model → exact Mercari listing image; Tokyo Anime Center remains the identity source
 
-Already existing exact official assets:
-- 19401 Original
-- 19431 Premium
+No Release in the family is using the generic placeholder because of a missing image row.
 
-Audit-selected assets:
-- 94618 Special Kit → EXACT VERIFIED official Tamiya asset
-- 92318 First Impact Blue → HIGH-CONFIDENCE MATCHED Suruga family asset
-- 92319 First Impact Red → HIGH-CONFIDENCE MATCHED Suruga family asset
-- 92320 First Impact White → EXACT VERIFIED Suruga asset
-- 92321 First Impact Gray → EXACT VERIFIED Suruga asset
-- 19401 2015 Reissue → EXACT VERIFIED Suruga asset
-- Tokyo Anime Center Model 2026 → HIGH-CONFIDENCE MATCHED exact Mercari listing image; Tokyo Anime Center remains the official identity source
-
-The temporary image-audit workflow has been removed from the branch before merge.
-
-### Initial market findings
-
-The family already shows strong separation between collector generations.
+### Granular SOLD evidence — live
 
 **19401 Original 1994**
-- explicit original-era / 当時物 SOLD retained:
-  - JPY 9,000 — 2025-12-31 → ~EUR 48.89
-  - JPY 10,000 — 2026-01-19 → ~EUR 54.44
-- generic ITEM 19401 sales that cannot distinguish 1994 vs 2015 are intentionally excluded from valuation.
-
-**19431 Premium**
-- exact recent SOLD:
-  - JPY 990 — 2026-03-05 → ~EUR 5.41
-  - JPY 559 — 2026-04-23 → ~EUR 3.00
-  - JPY 880 — 2026-05-12 → ~EUR 4.76
-- this confirms that the modern Premium market must never be merged with vintage 19401.
+- JPY 9,000 — 2025-12-31
+- JPY 10,000 — 2026-01-19
+- canonical v4 SOLD anchor: **EUR 48.89**
+- 2 valuation-eligible SOLD; no current accepted ASK
+- generic ITEM 19401 evidence that cannot distinguish Original vs Reissue remains excluded.
 
 **94618 Special Kit**
-- exact recent SOLD:
-  - JPY 7,150 — 2026-03-28 → ~EUR 38.82
-  - JPY 9,100 — 2026-06-21 → ~EUR 49.22
+- JPY 7,150 — 2026-03-28
+- JPY 9,100 — 2026-06-21
+- canonical v4 SOLD anchor: **EUR 38.82**
+- 2 valuation-eligible SOLD; no current accepted ASK
+
+**19431 Premium**
+- JPY 990 — 2026-03-05
+- JPY 559 — 2026-04-23
+- JPY 880 — 2026-05-12
+- canonical v4 SOLD anchor: **EUR 4.76**
+- **16 current accepted offers**
+- active ASK anchor: **EUR 30.00**
+- canonical lowest valid acquisition cost / starting effective cost: **EUR 26.56**
+- no consolidated Market Value yet; confidence remains low because the SOLD side is thin / seller diversity is not sufficient.
 
 **First Impact / Tokyo Anime Center**
-- exact Mercari sold-out evidence is present for Blue, Red, White and Tokyo Anime Center Model.
-- where Mercari exposes only relative age rather than an absolute sale date, TrackDash stores the sale as accepted context only and does not create a valuation-eligible price point.
-- the Blue example is a two-unit lot and remains lot context; TrackDash does not divide it into invented granular transactions.
+- exact Mercari sold-out context is retained for Blue, Red, White and Tokyo Anime Center.
+- records without a trustworthy absolute sale date remain context-only and do not become valuation-eligible price points.
+- the Blue two-unit lot remains lot context and is not divided into invented unit transactions.
+- no granular valuation-eligible SOLD has yet been accepted for Gray First Impact or the 2015 19401 Reissue.
 
-No granular sale has yet been accepted for Gray First Impact or the 2015 19401 Reissue; absence of clean evidence is preserved honestly.
+### eBay active refresh — result of the three Admin runs
 
-### Migrations / branch state
+The prior expectation that nine Releases would run as **4 + 4 + 1** was incorrect.
 
-Merged from branch `magnum-saber-master-audit-20260924` / PR **#244** into `main` at **e2234e910dd9b8679efc84d6e5afe4238daa5934**:
+The unattended eBay active adapter is intentionally disabled for:
+- **19401 Original 1994**
+- **19401 Reissue 2015**
+- **Tokyo Anime Center 2026**
 
-- **0161_magnum_saber_family_master_audit.sql**
-  - rebuilds the canonical nine-Release family
-  - fixes Premium year
-  - separates 19401 Original / Reissue via JAN
-  - writes provenance + images
-  - enrolls all Releases into adaptive market scans
-  - enqueues canonical recompute
+Reason: the first two reuse the same Item Number and the Tokyo edition has no safe autonomous Item Number. Auto-attributing those results would violate UNKNOWN > INVENTED.
 
-- **0162_magnum_saber_granular_sold.sql**
-  - persists date-certain granular Yahoo SOLD for Original, Premium and Special Kit
-  - uses exact/previous-business-day ECB/Banca d'Italia JPY rates
-  - stores date-uncertain Mercari First Impact / Tokyo sales as non-valuation context only
-  - does not fabricate SOLD dates or split lots.
+The other six unique-item Releases were eligible for the worker. The three Admin clicks produced successful scan runs, but only **19431 Premium** generated accepted current ASK evidence. Search noise for the First Impact variants correctly failed closed; several results were actually Tokyo Anime Center listings. The 94618 search also found title-only Special Kit evidence, but the current automatic matcher rejects listings that omit the Item Number from the title. Do not globally relax that rule merely to increase coverage; resolve 94618 through a targeted Empty Market Challenge / explicit discriminator if needed.
 
-**0161 + 0162 passed a combined live Supabase dry-run with full ROLLBACK. PR #244 is merged. The first automatic Vercel Production build was rate-limited, so the Tokyo image was switched to an exact Mercari asset on static.mercdn.net, an image host already supported by the current Production deployment. This removes the Magnum data rollout dependency on a new Vercel deploy. No Magnum Saber production mutation has been applied yet.**
+### Canonical v4 signal state
+
+All nine Releases have a current **Market Method v4 / algorithm r3** signal in live Supabase, condition `new_complete_unbuilt`.
+
+- all nine remain `market_regime = insufficient`
+- no Release has a consolidated Market Value yet
+- Original, Special Kit and Premium expose real SOLD anchors as above
+- Premium additionally exposes the canonical current acquisition/ASK reference
+- First Impact variants, Reissue and Tokyo preserve thin/context-only states rather than inventing a value
+- recompute queue: **0**
+- active recompute locks: **0**
+- recompute errors: **0**
+
+### Public presentation alignment
+
+PR **#246** fixed the global starting-offer semantics so the canonical starting price is the **lowest valid acquisition cost**, preferring verified delivered cost and using recency only as a tie-breaker.
+
+PR **#247**, merged to `main` at **90e725087644a3001a088154a7a8ef317c51dd23**, adds a display-only fallback for Releases that have real SOLD evidence but no current ASK:
+- current ASK/retail acquisition reference remains first priority
+- otherwise a canonical SOLD anchor may be shown as **“Prezzo di vendita osservato / Observed sale price”**
+- SOLD fallback is presentation-only
+- it is explicitly not used for portfolio totals, wishlist target-price logic, current acquisition-price semantics or Market Value.
+
+This prevents Original 1994 and Special Kit from appearing as if no market evidence exists while still keeping SOLD and ASK semantically separate.
+
+### Vercel / Production blocker
+
+GitHub `main` is ahead of Vercel Production. The Vercel status on the recent merged commits is failing because of the account **build-rate-limit**, not because TrackDash verification/typecheck failed.
+
+The latest confirmed Vercel Production deployment is still the earlier Neo-Tridagger build at commit **d07275a2f5e9476dc32001014b92d4169cebcad0**. Branch previews for the Magnum audit / market work have built successfully when quota allowed, but the current public Production UI is not yet proof of the latest `main`.
+
+Therefore:
+- Supabase/catalog/market data are live
+- 9/9 Release image rows are live
+- backend v4 signals are live and clean
+- final public UI QA must wait for an actual Production deployment of latest `main`; do not claim the family COMPLETE before that QA.
 
 ### Exact next steps
 
-1. merge the image-host compatibility patch;
-2. apply migrations 0161 and 0162 live; all selected image hosts are already supported by current Production;
-3. run authenticated Admin market refresh enough times to process all nine eBay targets;
-4. verify fresh v4 signals, ASK/SOLD separation, queue/locks and image rendering;
-5. complete Empty Market Challenge for thin Releases;
-6. align Vercel to latest main when quota permits; this is operational housekeeping unless runtime code changes become necessary;
-7. update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE** as supported by the evidence.
+1. get Vercel Production aligned to the latest `main` once a production build is accepted;
+2. verify `/api/version` and confirm the Production commit matches `main`;
+3. visually QA all nine Magnum Release pages and Collection rendering, including:
+   - Original 1994 → SOLD display fallback around EUR 48.89, not “market data under review”
+   - Special Kit → SOLD display fallback around EUR 38.82
+   - Premium → lowest current acquisition reference around EUR 26.56, not the active ASK average
+   - 19401 Original vs Reissue remain visibly distinct
+   - all 9/9 images render without placeholders;
+4. run the remaining Empty Market Challenge for thin Releases, especially 94618 current title-only evidence, without weakening global fail-closed matching;
+5. if Production QA is clean, update this checkpoint to **MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE**.
+
 
 ---
 
