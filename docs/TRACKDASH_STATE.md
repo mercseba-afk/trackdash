@@ -183,6 +183,10 @@ After the final Admin run:
 
 The targeted 95060 recompute completed under the corrected minimum-current-offer runtime and moved the public acquisition reference from **EUR 33.52** to **EUR 31.06**.
 
+### Production deploy retry note — 2026-09-24
+
+PR **#255** (equal-weight SOLD weighted-median tie fix) is merged into `main`. The first Git→Vercel Production trigger hit the account build-rate limit even though Typecheck and full `pnpm verify` passed. This docs-only commit intentionally requests a fresh Production build; it does not change catalog, schema, market evidence or runtime semantics beyond the already-merged PR #255.
+
 ### Production and public QA
 
 Current Production / GitHub main alignment:
