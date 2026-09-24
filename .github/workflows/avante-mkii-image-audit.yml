@@ -1,0 +1,55 @@
+name: Avante Mk.II image audit
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/0154_avante_mkii_family_master_audit.sql"
+      - ".github/workflows/avante-mkii-image-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Probe exact-item Tamiya image assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          check() {
+            item="$1"
+            url="$2"
+            meta=$(curl -L --fail --max-time 20 -sS -o "/tmp/avante-mkii-$item" -w "%{http_code} %{content_type} %{size_download}" "$url")
+            echo "$item $meta $url"
+            code=$(printf '%s' "$meta" | awk '{print $1}')
+            ctype=$(printf '%s' "$meta" | awk '{print $2}')
+            size=$(printf '%s' "$meta" | awk '{print $3}')
+            test "$code" = "200"
+            case "$ctype" in
+              image/*) ;;
+              *) echo "Unexpected content type for $item: $ctype"; exit 1 ;;
+            esac
+            test "$size" -gt 5000
+          }
+
+          check 18614 https://www.tamiya.com/japan_contents/img/usr/item/1/18614/18614_1.jpg
+          check 94592 https://www.tamiya.com/japan_contents/img/usr/item/9/94592/94592_1.jpg
+          check 94626 https://www.tamiya.com/japan_contents/img/usr/item/9/94626/94626_1.jpg
+          check 94716 https://www.tamiya.com/japan_contents/img/usr/item/9/94716/94716_1.jpg
+          check 95061 https://www.tamiya.com/japan_contents/img/usr/item/9/95061/95061_1.jpg
+
+      - name: Verify unresolved releases stay on placeholder
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "Exact club-edition image intentionally unresolved" supabase/migrations/0154_avante_mkii_family_master_audit.sql || {
+            echo "Missing intentional-image-gap marker for 95525 / J.League editions"
+            exit 1
+          }
