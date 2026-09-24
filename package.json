@@ -24,7 +24,7 @@
     "market:edge:test": "node --experimental-strip-types scripts/test-market-edge-cases.mjs",
     "market:r3:test": "node --experimental-strip-types scripts/test-market-r3.mjs",
     "market:automation:test": "node --experimental-strip-types scripts/test-market-automation-v1.mjs",
-    "market:adapter:test": "node --experimental-strip-types scripts/test-market-exact-page-adapter.mjs && node --experimental-strip-types scripts/test-ebay-browse-adapter.mjs && node --experimental-strip-types scripts/test-hotwheels-ebay-matcher.mjs",
+    "market:adapter:test": "node --experimental-strip-types scripts/test-market-exact-page-adapter.mjs && node --experimental-strip-types scripts/test-ebay-browse-adapter.mjs && node --experimental-strip-types scripts/test-hotwheels-ebay-matcher.mjs && node --experimental-strip-types scripts/test-hotwheels-secondary-source-policy.mjs",
     "ebay:compliance:test": "node --experimental-strip-types scripts/test-ebay-account-deletion.mjs",
     "market:method:test": "node --experimental-strip-types scripts/test-market-method-v3.mjs",
     "market:trackdash-sales:test": "node scripts/test-trackdash-sale-evidence.mjs",
