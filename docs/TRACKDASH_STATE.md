@@ -98,11 +98,15 @@ All 13 Releases remain **market_regime = insufficient** and **Market Value = nul
 Key public references:
 
 **18506 Original 1989**
-- SOLD anchor: **EUR 5.33**
-- 2 observed SOLD
+- 2 release-specific observed SOLD:
+  - **EUR 5.33** equivalent (JPY 980, 2026-04-01)
+  - **EUR 12.62** equivalent (JPY 2,340, 2026-05-30)
 - seller count: 1
-- evidence is release-specific but still too thin for MV
-- public display: **Observed sale price ≈ EUR 5.33**
+- both observations have equal effective SOLD-evidence weight under r3
+- global weighted-median tie fix **PR #255** removes the former lower-price bias: an exact 50% boundary now uses the midpoint between the two central observations
+- post-fix canonical SOLD anchor: **EUR 8.98**
+- evidence remains too thin for Market Value; **MV stays null**
+- the pre-fix **EUR 5.33** public fallback was an algorithmic tie artifact, not a claim that the 1989 Release was worth EUR 5.33
 
 **18507 Special Version 1990**
 - current eBay active scan found exact NOS ITEM 18507
