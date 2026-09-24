@@ -72,4 +72,26 @@ jobs:
                       print("SEARCH_92279_SNIPPET_BEGIN")
                       print(snippet.replace("\\n"," ")[:15000])
                       print("SEARCH_92279_SNIPPET_END")
+                  decoded=html.unescape(raw).replace("\\/","/")
+                  static_urls=[]
+                  for m in re.finditer(r'https://static\.mercdn\.net/[^"\\\\<> ]+',decoded):
+                      u=m.group(0).replace('\\u0026','&')
+                      if u not in static_urls:
+                          static_urls.append(u)
+                  print("SEARCH_92279_STATIC_URLS",len(static_urls))
+                  for i,u in enumerate(static_urls[:200],1):
+                      print(f"MERC_IMG {i:03d} {u}")
+                  title='ネオトライダガーZMCネクスト(ホワイト)'
+                  for label in [title,'92279','ホワイト']:
+                      print("LABEL",label)
+                      start=0
+                      hits=0
+                      while True:
+                          p=decoded.find(label,start)
+                          if p<0 or hits>=20: break
+                          nearby=decoded[max(0,p-2500):p+5000]
+                          links=re.findall(r'(?:/item/m\\d+|/shops/product/[A-Za-z0-9]+|https://static\.mercdn\.net/[^"\\\\<> ]+)',nearby)
+                          print("HIT",hits+1,"POS",p,"LINKS",links[:20])
+                          hits+=1
+                          start=p+len(label)
           PY
