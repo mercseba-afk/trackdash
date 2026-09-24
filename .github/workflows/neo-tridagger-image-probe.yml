@@ -94,4 +94,31 @@ jobs:
                           print("HIT",hits+1,"POS",p,"LINKS",links[:20])
                           hits+=1
                           start=p+len(label)
+                  ids=[]
+                  for pat in [r'm\\d{10,14}', r'm%5C%5Cd{10,14}']:
+                      for m in re.finditer(pat,decoded):
+                          val=m.group(0)
+                          if val not in ids:
+                              ids.append(val)
+                  print("SEARCH_MERCARI_ITEM_IDS",ids[:100])
+                  for item_id in [x for x in ids if x.startswith("m")][:40]:
+                      item_url="https://jp.mercari.com/item/"+item_id
+                      try:
+                          req2=urllib.request.Request(item_url, headers={"User-Agent":ua})
+                          with urllib.request.urlopen(req2,timeout=15) as rr:
+                              body=rr.read().decode("utf-8","ignore")
+                          tm=re.search(r'<title[^>]*>(.*?)</title>',body,re.I|re.S)
+                          title_text=html.unescape(re.sub(r'<[^>]+>','',tm.group(1))).strip() if tm else ""
+                          if "92279" in body or "ホワイト" in body or "92279" in title_text:
+                              print("WHITE_ITEM",item_id,"TITLE",title_text)
+                              ims=[]
+                              for pat2 in patterns:
+                                  for mm in re.finditer(pat2,body,re.I):
+                                      uu=html.unescape(mm.group(1)).strip()
+                                      if uu and not uu.startswith("data:"):
+                                          uu=urljoin(item_url,uu)
+                                          if uu not in ims: ims.append(uu)
+                              print("WHITE_IMAGES",ims[:20])
+                      except Exception as e:
+                          print("ITEM_FETCH_ERROR",item_id,repr(e))
           PY
