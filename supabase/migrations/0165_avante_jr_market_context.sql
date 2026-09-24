@@ -41,7 +41,7 @@ insert into public.market_candidates(
   false,
   1,
   'exact',
-  array['item_number_exact','edition_name_exact','year_stated','nos_stated','manual_reaudit'],
+  array['item_number_exact','edition_name_exact','release_year_stated','manual_override'],
   'ebay:hadfields-antiques',
   null,
   null,
