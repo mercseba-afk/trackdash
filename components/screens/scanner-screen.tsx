@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Camera, CameraOff, PackageSearch, ScanBarcode, Search, Sparkles, X } from "lucide-react"
-import { findByCode, resolveRelease } from "@/lib/data/corrected-products"
+import { findByCodeInProducts, resolveRelease } from "@/lib/data/corrected-products"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import type { Product, ProductRelease } from "@/lib/types"
@@ -62,7 +62,7 @@ export function ScannerScreen({ products }: { products: Product[] }) {
     // Keep the tested local matcher as an identity index only. Once it finds
     // product/release IDs, hydrate every displayed field from the canonical DB
     // catalog passed by the server page.
-    const byCode = findByCode(code)
+    const byCode = findByCodeInProducts(products, code)
     if (byCode) {
       const canonicalProduct = productById.get(byCode.product.id)
       const matchedReleaseId = byCode.release?.id
