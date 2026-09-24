@@ -158,3 +158,29 @@ jobs:
                   print('WHITE_RENDER_SNIP',re.sub(r'\\s+',' ',html.unescape(s))[:12000])
                   break
           PY
+      - name: Validate selected image assets
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, pathlib
+          urls = {
+            "94647": "https://www.rcjaz.ca/images/tamiya/mini_4wd_series/mini_4wd_car_kit/super_i_chassis/b_94647.jpg",
+            "92277": "https://tamiyablog.com/wp-content/uploads/2014/09/tamiya-92277.jpg",
+            "92278": "https://static.mercdn.net/item/detail/orig/photos/m15829754498_1.jpg?1701782544",
+            "92279": "https://cdn.suruga-ya.jp/database/pics_webp/game/603052146.jpg.webp",
+            "92280": "https://static.mercdn.net/item/detail/orig/photos/m62676061261_1.jpg?1716629301",
+          }
+          ua="Mozilla/5.0 (compatible; TrackDash image audit/1.0)"
+          for key,url in urls.items():
+            try:
+              req=urllib.request.Request(url,headers={"User-Agent":ua})
+              with urllib.request.urlopen(req,timeout=25) as r:
+                data=r.read()
+                ct=r.headers.get("content-type")
+                final=r.geturl()
+                print("VALIDATE",key,"HTTP",r.status,"CT",ct,"LEN",len(data),"FINAL",final)
+                pathlib.Path(f"/tmp/{key}.img").write_bytes(data)
+            except Exception as e:
+              print("VALIDATE_ERROR",key,repr(e))
+          PY
+          for f in /tmp/*.img; do [ -e "$f" ] && file "$f"; done
