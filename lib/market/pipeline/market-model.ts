@@ -167,11 +167,24 @@ function weightedMedian(values: WeightedValue[]): number | null {
   if (!clean.length) return null
   const total = clean.reduce((sum, item) => sum + item.weight, 0)
   const halfway = total / 2
+  const tieTolerance = Number.EPSILON * Math.max(1, total) * 8
   let cumulative = 0
-  for (const item of clean) {
+
+  for (let index = 0; index < clean.length; index += 1) {
+    const item = clean[index]
     cumulative += item.weight
-    if (cumulative >= halfway) return round2(item.value)
+
+    // When cumulative weight lands exactly on the 50% boundary, the weighted
+    // median is any value between this point and the next one. For a published
+    // market anchor, using the midpoint avoids a systematic lower-price bias
+    // (for example two equally weighted SOLD observations).
+    if (Math.abs(cumulative - halfway) <= tieTolerance && index + 1 < clean.length) {
+      return round2((item.value + clean[index + 1].value) / 2)
+    }
+
+    if (cumulative > halfway) return round2(item.value)
   }
+
   return round2(clean[clean.length - 1].value)
 }
 

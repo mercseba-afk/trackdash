@@ -39,6 +39,39 @@ ok("18069: broad eBay sold evidence defeats a one-off 300 JPY anomaly", () => {
   assert.notEqual(signal.marketValueEUR, 1.61)
 })
 
+ok("equal-weight SOLD evidence uses the midpoint instead of biasing to the lower sale", () => {
+  const signal = computeCurrentMarketSignal({
+    offers: [],
+    soldEvidence: [
+      {
+        stableId: "yahoo-1989-a",
+        sourceId: "yahoo",
+        averagePriceEUR: 5.33,
+        salesCount: 1,
+        sellerCount: 1,
+        periodStart: "2026-04-01",
+        periodEnd: "2026-04-30",
+        grain: "monthly",
+        evidenceGrade: "indicative",
+      },
+      {
+        stableId: "yahoo-1989-b",
+        sourceId: "yahoo",
+        averagePriceEUR: 12.62,
+        salesCount: 1,
+        sellerCount: 1,
+        periodStart: "2026-05-01",
+        periodEnd: "2026-05-31",
+        grain: "monthly",
+        evidenceGrade: "indicative",
+      },
+    ],
+    asOfDate: "2026-09-24",
+  })
+
+  assert.equal(signal.soldAnchorEUR, 8.98)
+})
+
 ok("94717: two Product Research units can outweigh one isolated recent event", () => {
   const signal = computeCurrentMarketSignal({
     offers: [],
