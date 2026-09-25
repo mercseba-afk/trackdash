@@ -3361,3 +3361,34 @@ Production family page QA confirmed:
 
 Final status: **COMPLETE — PRODUCTION ALIGNED**.
 
+---
+
+# GLOBAL COMPACT RELEASE PREVIEW STANDARD — 25/09/2026
+
+The Dyna-Hawk GX compact-card pilot was accepted as the target layout.
+
+The shared family Release-row implementation is now being standardized so the same compact preview contract applies to:
+
+- every family already audited with the current method;
+- families originally inserted with older TrackDash workflows;
+- families still waiting for re-audit;
+- all future families and Releases.
+
+The UI standard is intentionally independent from genealogy/market audit maturity. Old-method families can still require data cleanup, image verification, exact Release reconstruction or market re-audit, but they must use the same Release-card component and wording in the meantime.
+
+Canonical compact preview behavior:
+- 3:2 Release image;
+- tighter title/meta/badge spacing;
+- compact status/rarity/ownership badges;
+- compact action buttons;
+- Market Value as a distinct reference;
+- SOLD = green `Vendite concluse`;
+- ASK = amber `Annunci attivi`;
+- SOLD + ASK shown together where both exist and no consolidated Market Value exists;
+- no `Venduto osservato vs richiesta attuale` explanatory line in family previews;
+- no family-specific UI exceptions.
+
+Collection remains a separate tighter surface and is not changed by this family-preview standard.
+
+Final Production alignment must be verified after the global rollout deploy.
+
