@@ -2,6 +2,7 @@
 
 > Mini 4WD vertical state / continuation index: `docs/MINI4WD_VERTICAL.md`
 > Global runtime/project checkpoint: `docs/TRACKDASH_STATE.md`
+> Release publication gate: `docs/RELEASE_PUBLICATION_GATE.md`
 
 This document is the persistent operational contract for catalog/family work.
 
@@ -30,6 +31,20 @@ Enrollment is never treated as scan execution.
 Same Item + same JAN + same specification + no reliable physical discriminator = one collector Release, with later dates stored as production waves.
 
 Different Item Numbers or a reliable physical discriminator = distinct collector Releases.
+
+## Public Release Publication Gate
+
+A researched/canonical Release is not automatically public.
+
+Permanent rule: a sufficiently verified Release is public only when it has at least one of:
+- an EXACT VERIFIED / HIGH-CONFIDENCE MATCHED Release image; or
+- credible market evidence attributable to that exact Release.
+
+A consolidated Market Value is not required. A photo-only verified Release may remain public while market research continues; a market-backed verified Release may remain public while the exact image is still missing.
+
+If both exact/high-confidence image and credible market evidence are missing, keep the Release as `research_only` in the database/master and exclude it from public Catalog/Product/Release surfaces. Never use a sibling image or ambiguous listing merely to pass the gate.
+
+See `docs/RELEASE_PUBLICATION_GATE.md` for the decision matrix and promotion rules.
 
 ## Legacy Family Audit
 
