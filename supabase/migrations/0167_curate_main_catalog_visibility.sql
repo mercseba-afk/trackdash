@@ -26,4 +26,23 @@ where id in (
   '6d6174e7-4040-5035-a3a4-cede97265d38'::uuid  -- Dyipne
 );
 
+-- Correct family-level official series labels discovered during the curation audit.
+update public.products
+set series = case name
+  when 'Festa Jaune' then 'Mini 4WD PRO'
+  when 'Trigale' then 'Mini 4WD PRO'
+  when 'Raikiri' then 'Mini 4WD PRO'
+  when 'DCR-01' then 'Mini 4WD PRO'
+  when 'Geo Glider' then 'Mini 4WD REV'
+  when 'Copperfang' then 'Mini 4WD REV'
+  when 'Dyipne' then 'Mini 4WD REV'
+  when 'Mach-Bullet' then 'Racing Mini 4WD'
+  else series
+end,
+updated_at=now()
+where name in (
+  'Festa Jaune','Trigale','Raikiri','DCR-01',
+  'Geo Glider','Copperfang','Dyipne','Mach-Bullet'
+);
+
 commit;
