@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { getPublicMarketSignalMap } from "@/lib/market/public"
+import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
 
 const SITE_URL = "https://trackdash.it"
 
@@ -21,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     getPublicMarketSignalMap().catch((error) => {
       console.error("Failed to load market freshness for sitemap:", error)
-      return {}
+      return {} as ReleaseMarketSignalMap
     }),
   ])
 
