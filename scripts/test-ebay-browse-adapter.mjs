@@ -46,6 +46,22 @@ ok("structured non-new condition is rejected regardless of display text", () => 
   assert.equal(result.reasonCodes.includes("NOT_NEW_CONDITION"), true)
 })
 
+ok("explicit replica/KO listings are rejected even with an exact item number", () => {
+  const result = classifyEbayActiveListing({
+    title: "Vintage Tamiya MINI 4WD - Wild Pao KO The Boomerang JR Type 1 (18004)",
+    condition: "New",
+    conditionId: "1000",
+    itemEndDate: null,
+  }, {
+    itemNumber: "18004",
+    editionName: "Boomerang Jr. — 1986 Standard / Later Production",
+    releaseYear: 1986,
+    itemNumberIsShared: false,
+  })
+  assert.equal(result.decision, "rejected")
+  assert.equal(result.reasonCodes.includes("NON_GENUINE_REPLICA"), true)
+})
+
 ok("parts and body-only listings are rejected", () => {
   const result = classifyEbayActiveListing({
     title: "Tamiya 95467 Dyna-Hawk GX clear body only",
