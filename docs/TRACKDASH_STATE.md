@@ -3016,3 +3016,96 @@ Hotshot Jr. broad family work is closed. Remaining image gaps (1998 Memorial and
 Final status:
 
 **HOTSHOT JR. — COMPLETE WITH DOCUMENTED GAPS**
+
+
+---
+
+# BOOMERANG JR. — COMPLETION CHECKPOINT — 2026-09-25
+
+Boomerang Jr. is now closed under the permanent Release Publication Gate.
+
+## Canonical / public split
+
+Canonical researched family: **7 Releases**
+
+Public catalog: **5**
+- `18004` — 1986 Standard / Later Production
+- `94183` — 1995 Pearl Color Special / Hello Mac
+- `18060` — 2005 Boomerang RS
+- `95003` — 2014 Boomerang RS Black Special
+- `92394` — 2018 Hiroshima Toyo Carp Collaboration
+
+Research-only: **2**
+- `2904` — 1986 First Production / Oshika KIT No.2904
+- `2954` — Clear Chassis Special
+
+The two research-only Releases remain preserved in the database/master and are not deleted. They can be promoted later only if exact/high-confidence imagery or credible exact-release market evidence is found.
+
+## Images
+
+Exact official Tamiya images are stored and verified for:
+- `18004`
+- `18060`
+
+The other three public Releases currently pass the publication gate through credible exact-release market evidence rather than stored exact images.
+
+## Market results
+
+`94183` Pearl Color Special:
+- exact Mandarake closed auction
+- sold JPY 30,000 on 2025-11-04
+- raw EUR evidence **EUR 170.08**
+- SOLD anchor **EUR 170.08**
+- Market Value null
+- confidence 15 / low
+
+`95003` RS Black Special:
+- exact eBay ITEM-number ASK evidence
+- four marketplace offers resolve to the same seller (`inamori-sangyo`)
+- canonical starting effective cost **EUR 51.53**
+- active ASK anchor **EUR 51.53**
+- Market Value null
+- single-seller evidence is sufficient for publication context but not Market Value
+
+`92394` Hiroshima Toyo Carp:
+- one manually reviewed exact collaboration ASK
+- USD 45 with shipping included
+- normalized delivered evidence **EUR 39.59**
+- one active offer
+- confidence **3 / low**
+- Market Value null
+- active anchor and starting effective cost remain null because the only evidence is a US-market ASK and the Europe-first method does not promote it into a European public price
+
+## eBay QA
+
+All seven initial eBay jobs completed successfully with:
+- failures: **0**
+- no locked jobs
+- no pending family eBay jobs
+
+A global fail-closed rule now rejects explicit replica / KO / bootleg / counterfeit listings even when a genuine Tamiya ITEM number appears in the title.
+
+This was added after a non-genuine Boomerang-related `18004` listing was found during the family audit.
+
+## Family genealogy decisions
+
+The weakly documented additional “2904 Special” variant remains unresolved research context and is not canonicalized.
+
+No other Boomerang Jr. candidate was promoted without autonomous product identity.
+
+## Final recompute state
+
+Verified after the final Admin refresh:
+- Boomerang recompute queue: **0**
+- locked recomputes: **0**
+- `92394` recomputed under Market Method **v4**
+- final `92394` state: 1 active offer, confidence 3/low, Market Value null
+
+Final status:
+
+**BOOMERANG JR. — COMPLETE WITH DOCUMENTED GAPS**
+
+Remaining work is opportunistic only:
+- recover exact stable images for `94183`, `95003`, `92394`;
+- recover exact image/market evidence for research-only `2904` and `2954`;
+- do not reopen the family unless new evidence materially changes publication status.
