@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
-import { getPublicMarketSignalMap } from "@/lib/market/public"
-import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
+import { listMarketSignals } from "@/lib/db/queries/market"
 
 const SITE_URL = "https://trackdash.it"
 
@@ -15,16 +14,23 @@ function latestDate(dates: Array<string | undefined | null>) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, marketSignals] = await Promise.all([
+  const [products, marketSignalRows] = await Promise.all([
     fetchCatalogProducts().catch((error) => {
       console.error("Failed to build catalog sitemap:", error)
       return []
     }),
-    getPublicMarketSignalMap().catch((error) => {
+    listMarketSignals().catch((error) => {
       console.error("Failed to load market freshness for sitemap:", error)
-      return {} as ReleaseMarketSignalMap
+      return []
     }),
   ])
+
+  const marketComputedAtByRelease = new Map(
+    marketSignalRows.map((signal) => [
+      signal.releaseId,
+      signal.computedAt instanceof Date ? signal.computedAt.toISOString() : String(signal.computedAt),
+    ]),
+  )
 
   const releaseLastModified = (release: (typeof products)[number]["releases"][number]) =>
     latestDate([
@@ -32,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       release.statusCheckedAt,
       release.catalogVisibilityUpdatedAt,
       ...release.sources.map((source) => source.checkedAt),
-      marketSignals[release.id]?.computedAt,
+      marketComputedAtByRelease.get(release.id),
     ])
 
   const productLastModified = (product: (typeof products)[number]) =>
@@ -42,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ])
 
   const catalogLastModified = latestDate(products.map((product) => productLastModified(product)))
-  const marketLastModified = latestDate(Object.values(marketSignals).map((signal) => signal.computedAt))
+  const marketLastModified = latestDate([...marketComputedAtByRelease.values()])
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "weekly", priority: 1 },
