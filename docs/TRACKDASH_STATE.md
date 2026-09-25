@@ -3390,5 +3390,28 @@ Canonical compact preview behavior:
 
 Collection remains a separate tighter surface and is not changed by this family-preview standard.
 
-Final Production alignment must be verified after the global rollout deploy.
+Global rollout merged through PR #275.
+
+Production merge commit:
+`e867a534ae866ff53cf8bd1fe4625e24d9bcc554`
+
+Production deployment:
+`dpl_84LTCp1HBZP65VHQEWXXhNKWhK5S`
+
+Production status: **READY**.
+
+Live QA confirmed the same compact Release-card contract on:
+- Hotshot Jr. (1986 family);
+- Thunder Dragon Jr. (1987 family);
+- Avante Jr. (1988 family);
+- Magnum Saber (1994 family);
+- Dyna-Hawk GX (1998 family).
+
+All five live family pages showed:
+- compact 3:2 Release image treatment;
+- compact action-button treatment;
+- the normalized compact market state;
+- no legacy `Venduto osservato vs richiesta attuale` / `Observed sale vs current asking price` preview line.
+
+Final status: **GLOBAL COMPACT RELEASE PREVIEW — PRODUCTION ALIGNED**.
 
