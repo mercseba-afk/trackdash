@@ -17,9 +17,11 @@ import {
 export function MarketSignalInline({
   signal,
   showStartingPrice = false,
+  showBothReferences = false,
 }: {
   signal?: ReleaseMarketSignalView | null
   showStartingPrice?: boolean
+  showBothReferences?: boolean
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
@@ -31,6 +33,15 @@ export function MarketSignalInline({
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
   const observedPrice = observedMarketDisplayPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
+  const askPrice = signal.startingEffectiveCostEUR
+    ?? signal.startingItemPriceEUR
+    ?? signal.retailAnchorEUR
+    ?? signal.activeAnchorEUR
+    ?? null
+  const hasAsk = askPrice != null && askPrice > 0
+  const soldPrice = signal.soldAnchorEUR
+  const hasSold = soldPrice != null && soldPrice > 0
+  const showDualReferences = showBothReferences && !hasValue && hasAsk && hasSold
   const observedKind = observedMarketDisplayKind(signal)
   const observedEvidence = observedMarketDisplayEvidenceLabel(signal, it)
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
@@ -38,7 +49,27 @@ export function MarketSignalInline({
 
   return (
     <div className="flex flex-col gap-1">
-      {hasValue ? (
+      {showDualReferences ? (
+        <div className="grid gap-1.5">
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-emerald-50 px-2.5 py-2 text-emerald-900">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
+              <BadgeCheck className="size-3 shrink-0" />
+              <span>{it ? "Vendite concluse" : "Completed sales"}</span>
+            </span>
+            <strong className="shrink-0 text-sm font-semibold tabular-nums">≈ {formatMoney(soldPrice!)}</strong>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900">
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
+              <Tag className="size-3 shrink-0" />
+              <span>{it ? "Annunci attivi" : "Active listings"}</span>
+            </span>
+            <strong className="shrink-0 text-sm font-semibold tabular-nums">{it ? "da " : "from "}{formatMoney(askPrice!)}</strong>
+          </div>
+          <span className="text-[10px] leading-tight text-muted-foreground">
+            {it ? "Venduto osservato vs richiesta attuale" : "Observed sale vs current asking price"}
+          </span>
+        </div>
+      ) : hasValue ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-lg font-semibold tabular-nums">≈ {formatMoney(signal.valueEUR!)}</span>
           {signal.trendPercent != null ? <TrendIndicator value={signal.trendPercent} /> : null}
