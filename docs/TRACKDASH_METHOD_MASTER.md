@@ -2,6 +2,7 @@
 
 > Mini 4WD vertical state / continuation index: `docs/MINI4WD_VERTICAL.md`
 > Global runtime/project checkpoint: `docs/TRACKDASH_STATE.md`
+> Gate pubblicazione Release: `docs/RELEASE_PUBLICATION_GATE.md`
 
 Stiamo lavorando su **TrackDash**, piattaforma indipendente per collezionisti Tamiya Mini 4WD.
 Questo documento definisce il metodo operativo permanente da utilizzare ogni volta che viene richiesto di:
@@ -67,6 +68,23 @@ Quando esiste mercato reale ma non ancora abbastanza robusto per un Market Value
 **Prezzo minimo richiesto \~€XX**
 
 ---
+
+## 4. RESEARCHED NON SIGNIFICA PUBBLICATO
+
+Una Release può essere reale e documentata ma non ancora sufficientemente utile per il catalogo pubblico.
+
+Regola permanente:
+- identità sufficientemente verificata + foto exact/high-confidence + mercato → PUBLIC;
+- identità sufficientemente verificata + mercato credibile ma foto mancante → PUBLIC, continuare ricerca foto;
+- identità sufficientemente verificata + foto exact/high-confidence ma mercato insufficiente → PUBLIC, mostrare il fallback mercato corretto;
+- identità sufficientemente verificata + nessuna foto exact/high-confidence + nessun mercato credibile → RESEARCH_ONLY, conservare nel master/database ma non mostrare nel catalogo pubblico;
+- identità ancora parziale/dubbia → non pubblicare finché non viene risolta.
+
+Non è necessario un Market Value consolidato per superare il gate; è sufficiente un segnale di mercato reale e attribuibile alla Release esatta. Un listing ambiguo non basta.
+
+La visibilità di pubblicazione è distinta da `verification_status`. Non falsare immagini o mercato per rendere pubblicabile una Release.
+
+Vedi `docs/RELEASE_PUBLICATION_GATE.md`.
 
 # WORKFLOW COMPLETO
 

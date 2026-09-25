@@ -181,6 +181,14 @@ export const productReleases = pgTable(
     // stock), which is a future Market Data concern, not a catalog fact.
     productionStatus: text("production_status").notNull().default("unknown"),
     statusCheckedAt: timestamp("status_checked_at", { withTimezone: true }),
+    // Public-catalog publication gate. A release can be factually verified
+    // while still remaining research-only when both an exact/high-confidence
+    // release image and credible exact-release market evidence are missing.
+    // Keep this distinct from verificationStatus: identity confidence and
+    // publication readiness are different concerns.
+    catalogVisibility: text("catalog_visibility").notNull().default("public"),
+    catalogVisibilityReason: text("catalog_visibility_reason"),
+    catalogVisibilityUpdatedAt: timestamp("catalog_visibility_updated_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -212,6 +220,10 @@ export const productReleases = pgTable(
     check(
       "product_releases_production_status_check",
       sql`${table.productionStatus} in ('announced', 'active', 'discontinued', 'unknown')`,
+    ),
+    check(
+      "product_releases_catalog_visibility_check",
+      sql`${table.catalogVisibility} in ('public', 'research_only')`,
     ),
     pgPolicy("product_releases_public_read", {
       for: "select",
