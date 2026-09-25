@@ -1104,3 +1104,22 @@ In the compact Release rows inside a model/family page:
 
 This contract is **global for every Release and every future family**. It is not family-specific.
 
+---
+
+# SEO PUBLICATION FRESHNESS CONTRACT — 25/09/2026
+
+The public website, installable PWA and search-engine-facing catalog must remain projections of the same canonical DB-backed catalog.
+
+For public Mini 4WD catalog pages:
+
+- family/model pages and exact Release pages use the same DB-backed catalog data used by the app;
+- `research_only` Releases must not be exposed as indexable public catalog entries or sitemap Release URLs;
+- canonical Release changes must propagate to the public website/PWA without a separate manual synchronization step;
+- public pages remain server-rendered so core identity, images and market references are present in crawlable HTML;
+- sitemap `lastmod` must follow the latest meaningful public change available from canonical Release updates, production-status checks, publication-gate changes, verified source checks and market-signal recomputation;
+- catalog and market index routes should inherit the latest meaningful child freshness where available.
+
+Do not use a DB child-image trigger solely to touch `product_releases.updated_at`: Release updates can participate in other operational triggers. SEO freshness should be derived from existing authoritative timestamps instead of creating side effects in the Market Engine.
+
+This rule is global for every current and future public Release.
+
