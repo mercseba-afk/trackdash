@@ -101,7 +101,7 @@ function MarketReference({
             ? (it
                 ? `Basato su ${count} ${count === 1 ? "vendita conclusa osservata" : "vendite concluse osservate"}.`
                 : `Based on ${count} completed ${count === 1 ? "sale" : "sales"} observed.`)
-            : (it ? "Riferimento derivato da vendite concluse osservate." : "Reference derived from observed completed sales.")}
+            : (it ? "Riferimento da vendite concluse." : "Completed-sale reference.")}
       </p>
     </div>
   )
