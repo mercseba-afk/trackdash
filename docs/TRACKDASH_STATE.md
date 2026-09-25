@@ -2888,3 +2888,110 @@ Documented residuals that do not block Completion:
 No further Admin Market Refresh is required for this family.
 
 A COMPLETE family stays closed unless a documented material error is found or an explicit future backfill/migration is planned.
+
+
+---
+
+# HOTSHOT JR. — PUBLICATION-GATE CHECKPOINT — 2026-09-25
+
+This checkpoint follows the permanent Release Publication Gate now documented in:
+
+- `docs/RELEASE_PUBLICATION_GATE.md`
+- `docs/FAMILY_COMPLETION_MASTER.md`
+- `docs/TRACKDASH_METHOD_MASTER.md`
+
+## Canonical / public split
+
+Hotshot Jr. remains a **16-Release researched/canonical family** in the database.
+
+Public catalog:
+
+- **11 public Releases**
+- **5 research-only Releases**
+
+The five `research_only` Releases are preserved in the database/master and excluded from public Catalog/Product/Release surfaces because they currently have neither an accepted exact/high-confidence Release image nor credible exact-Release market evidence:
+
+1. `2901` — 1986 First Production (Oshika KIT No.2901)
+2. `2951` — Clear Chassis Version
+3. Momoi Special Ver.2 Gold Plated Event Edition
+4. Momoi Special Ver.2 Orange Plated Event Edition
+5. Kashima Antlers Special Edition
+
+They are **not deleted** and may be promoted later after exact evidence is found or after a user requests/reports the Release and the audit passes.
+
+## Public image coverage
+
+Current public exact/high-confidence Release-image coverage:
+
+- **9 / 11 public Releases**
+- **9 / 16 researched Releases overall**
+
+The two public Releases still missing an accepted direct/stable exact image are:
+
+- `18001` — 1998 Memorial Edition (Limited Reissue)
+- `94688` — Hanshin Tigers Special
+
+A second-pass search found exact-product pages/images for both (Mandarake/Yahoo for the Memorial; Hobby Search/RCJAZ/HLJ for 94688), but no direct asset URL was accepted into TrackDash yet because the current accessible references are page-level or otherwise not stable enough for canonical image storage.
+
+Permanent decision remains:
+
+**missing image > fragile/wrong image**
+
+Urawa Red Diamonds Edition is now complete on the image side with the exact official club-launch image.
+
+## Market status
+
+Already recomputed public signals:
+
+- `94596` 25th Anniversary — SOLD anchor **EUR 44.89** from 2 accepted SOLD
+- `94680` Momoi Special Ver.2 — SOLD anchor **EUR 20.30** from 3 accepted SOLD
+- `94687` Yomiuri Giants — SOLD anchor **EUR 27.04** from 1 accepted SOLD
+- `94688` Hanshin Tigers — SOLD anchor **EUR 11.90** from 1 accepted SOLD
+- `92435` SMC Mall — SOLD anchor **EUR 15.79**, active ASK anchor **EUR 31.32**, canonical starting effective cost **EUR 27.90**
+- `18624` MS Chassis — active ASK anchor **EUR 27.33**, canonical starting effective cost **EUR 23.26**
+
+No consolidated Market Value is forced when evidence is still insufficient.
+
+Two newly imported exact SOLD sets are queued for canonical recompute:
+
+- 1998 Memorial: JPY 6,000 on 2026-03-25 and JPY 6,000 on 2026-04-21
+  - raw EUR evidence: **EUR 32.56** and **EUR 32.06**
+- Urawa Red Diamonds: JPY 2,980 on 2026-03-04
+  - raw EUR evidence: **EUR 16.28**
+
+Current recompute queue for those two Releases:
+
+- queued: **2**
+- attempts: **0**
+- errors: **0**
+
+## Deliberately unpromoted market observations
+
+- `18001` standard/later production has exact official imagery but no canonical market reference yet. A 2026 vintage `18001` sale was found, but the same item identity spans production history and could be confused with later production; it was not imported.
+- `94510` Year of the Monkey and `94579` Year of the Boar have exact images and real current marketplace/used-retail observations, but the observations reviewed in this pass are not clean enough to promote automatically into the `new_complete_unbuilt` public signal.
+- `94688` also has exact-product retail history/current references, but its accepted SOLD anchor already provides the public market signal; no extra retail datum was forced merely to increase sample count.
+
+## Unpublished candidate variants
+
+The following discoveries remain persisted only as unresolved research context and are **not canonical/public Releases**:
+
+- 2008 MS Red Metallic / Red Plated event candidate
+- 2008 ZOZOTOWN LIMITED candidate
+- 2012 Silver Metallic / Japan Cup candidate
+- 2012 Momoi Japan Cup special-kit/bundle context
+- 2013 Special Clear Body candidate
+
+They must not be promoted until autonomous product identity is demonstrated and the Release Publication Gate is satisfied.
+
+## Current status
+
+**HOTSHOT JR. — AUDIT COMPLETE WITH DOCUMENTED GAPS — 2 RECOMPUTES PENDING**
+
+The family no longer requires broad genealogy research.
+
+Remaining operational work is intentionally narrow:
+
+1. consume the two queued recomputes for Memorial + Urawa;
+2. verify their public signals;
+3. keep searching opportunistically for stable exact images for Memorial and `94688`;
+4. promote any research-only Release only when new exact evidence genuinely changes its publication status.
