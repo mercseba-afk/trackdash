@@ -28,7 +28,7 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
   const [chassis, setChassis] = React.useState<string>("all")
   const [series, setSeries] = React.useState<string>("all")
   const [rarity, setRarity] = React.useState<string>("all")
-  const [sort, setSort] = React.useState<SortKey>("year-desc")
+  const [sort, setSort] = React.useState<SortKey>("year-asc")
   const [view, setView] = React.useState<View>("grid")
   const [ownedOnly, setOwnedOnly] = React.useState(false)
 
