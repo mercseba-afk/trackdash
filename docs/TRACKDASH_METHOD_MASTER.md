@@ -1068,3 +1068,39 @@ Before declaring completion:
 ---
 
 **Repository gate note — 2026-09-21:** family work is not complete until the full `pnpm verify` gate passes on the exact code intended for `main`.
+
+---
+
+# MARKET REFERENCE UI CONTRACT — 25/09/2026
+
+Public collector-facing market surfaces must keep three different concepts visually and semantically distinct:
+
+1. **Market Value / Valore stimato**
+   - TrackDash consolidated valuation only when the engine has sufficient evidence.
+   - Must never be visually interchangeable with ASK or SOLD.
+
+2. **SOLD / Vendite concluse**
+   - Historical evidence from completed sales.
+   - Collector-facing wording: **Vendite concluse** / **Prezzo da vendite concluse**.
+   - Visual treatment: green/emerald semantic treatment with completed-sale iconography.
+
+3. **ASK / Annunci attivi**
+   - Current seller requests, not completed transactions.
+   - Collector-facing wording: **Annunci attivi** / **Prezzo richiesto più basso**.
+   - Visual treatment: amber semantic treatment with listing/tag iconography.
+   - When useful, explicitly state that it is a seller request and not a completed sale.
+
+## Release family preview rule
+
+In the compact Release rows inside a model/family page:
+
+- if only ASK exists, show the ASK reference;
+- if only SOLD exists, show the SOLD reference;
+- if both ASK and SOLD exist and no consolidated Market Value exists, show **both at the same time** in two compact rows:
+  - SOLD in green, e.g. `Vendite concluse ≈ €19,51`
+  - ASK in amber, e.g. `Annunci attivi da €88,00`
+- this dual-row treatment is intentionally scoped to Release-family previews where there is enough room;
+- tighter compact surfaces such as Collection may keep one primary reference, but must retain the semantic SOLD/ASK badge and wording.
+
+This contract is **global for every Release and every future family**. It is not family-specific.
+
