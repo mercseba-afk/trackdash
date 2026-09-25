@@ -233,7 +233,7 @@ select
   '94183',array[r.id],r.id,
   30000,'JPY',null,'unknown','auction_awarded',
   'Box 9 / main item 9 / unassembled','new_complete_unbuilt',
-  'unknown','near_mint',true,false,1,'exact',
+  'unknown','normal',true,false,1,'exact',
   array['item_number_exact','edition_name_exact','image_reviewed'],
   'mandarake:auction:769472',
   date '2025-11-04',now(),'accepted',array[]::text[],
