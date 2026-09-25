@@ -178,6 +178,10 @@ export interface ProductRelease {
   /** Whether Tamiya still officially sells/produces this exact release — distinct from marketplace availability. */
   productionStatus: ProductionStatus
   statusCheckedAt?: string // ISO date productionStatus was last confirmed
+  /** Last canonical row update; used for public freshness signals such as sitemap lastmod. */
+  updatedAt?: string
+  /** Last publication-gate change. */
+  catalogVisibilityUpdatedAt?: string
   /** Evidence backing this release's factual data — see ReleaseSource. Empty array is valid (no source recorded yet); NEVER invent a source. */
   sources: ReleaseSource[]
 }
@@ -237,6 +241,8 @@ export interface Product {
    * scripts/check-catalog-invariants.mjs, which both enforce this.
    */
   canonicalReleaseId?: string
+  /** Last canonical product-row update; used for public freshness signals. */
+  updatedAt?: string
   // derived convenience (computed at build time)
   hasMultipleReleases: boolean
   /** FACTUAL, verified-only MSRP of the primary release, for headline display -- undefined unless a real Tamiya-confirmed figure exists. */
