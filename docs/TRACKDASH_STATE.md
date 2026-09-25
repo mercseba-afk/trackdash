@@ -3306,3 +3306,58 @@ A follow-up compact-preview patch now scopes a dual reference to Release-family 
 
 This is a **global rule for all Releases**, not a Thunder Dragon-specific exception.
 
+---
+
+# SOLD / ASK PREVIEW + SEO FRESHNESS — PRODUCTION CHECKPOINT — 25/09/2026
+
+PR #273 is merged to `main`.
+
+Production merge commit:
+`7f615d3a10a35599ec44b729496c065e75c3e046`
+
+Production deployment:
+`dpl_HRihSwLnmSV9CJAmaQvSqoTAsFRV`
+
+Production status at close: **READY**, with `trackdash.it` assigned and no alias error.
+
+## Release preview market semantics
+
+The compact Release rows inside family/model pages now show both references when both exist and no consolidated Market Value exists:
+
+- **Completed sales / Vendite concluse** — green/emerald;
+- **Active listings / Annunci attivi** — amber;
+- the two values are intentionally simultaneous so collectors can compare observed completed-sale evidence with current seller requests.
+
+Example verified live on Thunder Dragon Premium `18068`:
+- completed-sale reference around **EUR 19.51**;
+- active asking reference **from EUR 88**.
+
+Collection and tighter compact surfaces keep the single-reference compact behavior.
+
+## SEO freshness
+
+Public catalog and PWA remain projections of the same DB-backed catalog.
+
+The public sitemap now derives `lastmod` from the latest meaningful available timestamp across:
+
+- canonical Release update;
+- production-status check;
+- publication-gate change;
+- verified source check;
+- current market-signal recomputation.
+
+Market freshness is read directly from canonical `market_release_signals.computed_at`, without requiring the Supabase admin/service-role client during sitemap generation.
+
+Verified live on Thunder Dragon Jr.:
+- Memorial 1998: `2026-09-25T13:07:14.407Z`
+- Premium 18068: `2026-09-25T13:07:59.197Z`
+- Clear Special 95336: `2026-09-25T13:07:48.969Z`
+
+Production family page QA confirmed:
+- SOLD and ASK labels are rendered in crawlable HTML;
+- the dual-reference explanatory copy is rendered;
+- exact market values are present in server-rendered output;
+- the public publication gate still exposes 4 Thunder Dragon Releases and excludes the 2 research-only historical Releases.
+
+Final status: **COMPLETE — PRODUCTION ALIGNED**.
+
