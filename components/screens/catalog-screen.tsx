@@ -28,7 +28,7 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
   const [chassis, setChassis] = React.useState<string>("all")
   const [series, setSeries] = React.useState<string>("all")
   const [rarity, setRarity] = React.useState<string>("all")
-  const [sort, setSort] = React.useState<SortKey>("year-desc")
+  const [sort, setSort] = React.useState<SortKey>("year-asc")
   const [view, setView] = React.useState<View>("grid")
   const [ownedOnly, setOwnedOnly] = React.useState(false)
 
@@ -57,8 +57,8 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
     items = items.sort((a, b) => {
       switch (sort) {
         case "name": return a.name.localeCompare(b.name)
-        case "year-desc": return (b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)
-        case "year-asc": return (a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)
+        case "year-desc": return ((b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)) || a.name.localeCompare(b.name)
+        case "year-asc": return ((a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)) || a.name.localeCompare(b.name)
       }
     })
     return items
