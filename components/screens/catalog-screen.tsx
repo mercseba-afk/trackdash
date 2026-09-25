@@ -57,8 +57,8 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
     items = items.sort((a, b) => {
       switch (sort) {
         case "name": return a.name.localeCompare(b.name)
-        case "year-desc": return (b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)
-        case "year-asc": return (a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)
+        case "year-desc": return ((b.originalReleaseYear ?? -Infinity) - (a.originalReleaseYear ?? -Infinity)) || a.name.localeCompare(b.name)
+        case "year-asc": return ((a.originalReleaseYear ?? Infinity) - (b.originalReleaseYear ?? Infinity)) || a.name.localeCompare(b.name)
       }
     })
     return items
