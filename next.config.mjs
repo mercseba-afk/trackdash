@@ -160,6 +160,14 @@ const nextConfig = {
         hostname: "cdn.suruga-ya.jp",
         pathname: "/database/pics_webp/game/**",
       },
+      {
+        // Thunder Dragon Clear Special 95336 — exact archived product image.
+        // The official Tamiya page still verifies the Release, but its legacy
+        // direct 95336_1.jpg asset currently returns 404 through Next Image.
+        protocol: "https",
+        hostname: "www.1999.co.jp",
+        pathname: "/itbig47/10477144a.jpg",
+      },
     ],
   },
 }
