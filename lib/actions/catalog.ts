@@ -9,9 +9,15 @@ import { mapProductRow } from "./mappers"
 // client-invoked mutations, so a plain server-only async function is the
 // right shape (no serialization boundary needed).
 
+function isCatalogVisible(row: { metadata: unknown }) {
+  const metadata = row.metadata
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return true
+  return (metadata as Record<string, unknown>).catalog_visibility !== "archived"
+}
+
 export async function fetchCatalogProductsForVertical(vertical: CollectibleVertical) {
   const rows = await listProductsForVerticalQuery(vertical, 500)
-  return rows.map(mapProductRow)
+  return rows.filter(isCatalogVisible).map(mapProductRow)
 }
 
 export async function fetchCatalogProducts() {
