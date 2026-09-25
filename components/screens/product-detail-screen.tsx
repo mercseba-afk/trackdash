@@ -189,6 +189,7 @@ function ReleaseRow({
   const collectorsHref = `${releaseHref}#collectors`
   const loginHref = `/login?next=${encodeURIComponent(releaseHref)}`
   const owned = ownedCount > 0
+  const compactPilot = product.id === "d3b4ad34-05ac-592e-ad93-fab4cfde0a5a"
   const ownershipLabel = locale === "it"
     ? (ownedCount === 1 ? "1 copia tua" : `${ownedCount} copie tue`)
     : (ownedCount === 1 ? "1 copy owned" : `${ownedCount} copies owned`)
@@ -197,7 +198,15 @@ function ReleaseRow({
     <article className="group overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_7px_22px_rgba(15,23,42,0.035)] transition-all duration-200 hover:border-brand/30 hover:shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
       <div className="grid gap-0 md:grid-cols-[160px_minmax(0,1fr)_minmax(190px,auto)]">
         <Link href={releaseHref} className="relative block overflow-hidden border-b border-border/50 bg-gradient-to-br from-white to-muted/20 md:border-b-0 md:border-r">
-          <ProductImage product={product} release={release} className="aspect-[4/3] h-full min-h-36 w-full transition-transform duration-300 group-hover:scale-[1.02] md:min-h-0" size="md" />
+          <ProductImage
+            product={product}
+            release={release}
+            className={cn(
+              "h-full w-full transition-transform duration-300 group-hover:scale-[1.02] md:min-h-0",
+              compactPilot ? "aspect-[3/2] min-h-32" : "aspect-[4/3] min-h-36",
+            )}
+            size="md"
+          />
           <span className={cn(
             "absolute left-2.5 top-2.5 rounded-full px-2 py-1 text-[10px] font-semibold shadow-sm",
             release.isOriginal ? "border border-border/70 bg-white/90 text-foreground" : "bg-brand text-white",
@@ -206,12 +215,12 @@ function ReleaseRow({
           </span>
         </Link>
 
-        <div className="min-w-0 p-3.5 sm:p-4 md:p-5">
+        <div className={cn("min-w-0", compactPilot ? "p-3 sm:p-3.5 md:p-4" : "p-3.5 sm:p-4 md:p-5")}>
           <Link href={releaseHref} className="text-base font-semibold leading-snug tracking-tight text-foreground transition-colors hover:text-brand sm:text-lg">
             {release.editionName}
           </Link>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground", compactPilot ? "mt-1.5" : "mt-2")}>
             <span className="font-semibold tabular-nums text-foreground">{release.itemNumber ? `#${release.itemNumber}` : "—"}</span>
             <span>·</span>
             <span>{release.chassis ?? "—"}</span>
@@ -219,33 +228,46 @@ function ReleaseRow({
             <span>{release.releaseYear ?? "—"}</span>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {release.rarity ? <RarityBadge rarity={release.rarity} /> : <Badge variant="outline" className="rounded-full text-[10px] font-medium">{locale === "it" ? "Rarità da verificare" : "Rarity to verify"}</Badge>}
-            <ProductionBadge release={release} locale={locale} />
-            {owned ? <Badge className="gap-1 rounded-full bg-success/15 text-success"><Check className="size-3" />{ownershipLabel}</Badge> : null}
+          <div className={cn("flex flex-wrap items-center gap-1.5", compactPilot ? "mt-2" : "mt-3")}>
+            {release.rarity ? (
+              <RarityBadge rarity={release.rarity} className={compactPilot ? "text-[9px]" : undefined} />
+            ) : (
+              <Badge variant="outline" className={cn("rounded-full font-medium", compactPilot ? "px-1.5 py-0.5 text-[9px]" : "text-[10px]")}>
+                {locale === "it" ? "Rarità da verificare" : "Rarity to verify"}
+              </Badge>
+            )}
+            <ProductionBadge release={release} locale={locale} compact={compactPilot} />
+            {owned ? (
+              <Badge className={cn("gap-1 rounded-full bg-success/15 text-success", compactPilot && "px-1.5 py-0.5 text-[10px]")}>
+                <Check className={compactPilot ? "size-2.5" : "size-3"} />{ownershipLabel}
+              </Badge>
+            ) : null}
           </div>
 
           {community && community.collectors > 0 ? (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <div className={cn("flex flex-wrap items-center gap-1.5", compactPilot ? "mt-2" : "mt-3")}>
               <Link href={collectorsHref} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"><UsersRound className="size-3.5" />{community.collectors} {t("common.collectors")}</Link>
               {community.openToOffers > 0 ? <Link href={collectorsHref} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-brand/25 bg-brand/10 px-2.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/15"><Handshake className="size-3.5" />{community.openToOffers} {t("common.acceptingOffers")}</Link> : null}
             </div>
           ) : null}
         </div>
 
-        <div className="flex flex-col justify-between gap-3 border-t border-border/60 bg-muted/15 p-3.5 sm:flex-row sm:items-center sm:p-4 md:items-stretch md:border-l md:border-t-0 md:p-4">
+        <div className={cn(
+          "flex flex-col justify-between border-t border-border/60 bg-muted/15 sm:flex-row sm:items-center md:items-stretch md:border-l md:border-t-0",
+          compactPilot ? "gap-2 p-3 sm:p-3 md:p-3" : "gap-3 p-3.5 sm:p-4 md:p-4",
+        )}>
           <div className="flex min-w-0 items-center md:items-start md:justify-end">
-            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences /></div>
+            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences compactPreview={compactPilot} /></div>
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto md:flex-col md:items-stretch md:justify-end">
-            <Button size="sm" variant="outline" className="flex-1 rounded-xl bg-white md:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
+            <Button size="sm" variant="outline" className={cn("flex-1 bg-white md:flex-none", compactPilot ? "h-8 rounded-lg px-3 text-xs" : "rounded-xl")} render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
             {isAuthed ? (
               <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-                <Button size="sm" variant={owned ? "outline" : "default"} className="flex-1 gap-1.5 rounded-xl md:flex-none">{owned ? <Check className="size-4" /> : <Plus className="size-4" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
+                <Button size="sm" variant={owned ? "outline" : "default"} className={cn("flex-1 gap-1.5 md:flex-none", compactPilot ? "h-8 rounded-lg px-3 text-xs" : "rounded-xl")}>{owned ? <Check className={compactPilot ? "size-3.5" : "size-4"} /> : <Plus className={compactPilot ? "size-3.5" : "size-4"} />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
               </AddToCollectionDialog>
             ) : (
-              <Button size="sm" className="flex-1 gap-1.5 rounded-xl md:flex-none" render={<Link href={loginHref} />}>
-                <LockKeyhole className="size-4" /> {locale === "it" ? "Accedi per aggiungere" : "Sign in to add"}
+              <Button size="sm" className={cn("flex-1 gap-1.5 md:flex-none", compactPilot ? "h-8 rounded-lg px-3 text-xs" : "rounded-xl")} render={<Link href={loginHref} />}>
+                <LockKeyhole className={compactPilot ? "size-3.5" : "size-4"} /> {locale === "it" ? "Accedi per aggiungere" : "Sign in to add"}
               </Button>
             )}
           </div>
@@ -255,16 +277,16 @@ function ReleaseRow({
   )
 }
 
-function ProductionBadge({ release, locale }: { release: ProductRelease; locale: string }) {
+function ProductionBadge({ release, locale, compact = false }: { release: ProductRelease; locale: string; compact?: boolean }) {
   if (release.productionStatus === "unknown") return null
   const it = locale === "it"
   if (release.productionStatus === "discontinued") {
-    return <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">{it ? "Fuori produzione" : "Discontinued"}</Badge>
+    return <Badge variant="secondary" className={cn("rounded-full font-semibold", compact ? "px-1.5 py-0.5 text-[9px]" : "text-[10px]")}>{it ? "Fuori produzione" : "Discontinued"}</Badge>
   }
   if (release.productionStatus === "active") {
-    return <Badge variant="outline" className="rounded-full text-[10px] font-medium">{it ? "In produzione" : "In production"}</Badge>
+    return <Badge variant="outline" className={cn("rounded-full font-medium", compact ? "px-1.5 py-0.5 text-[9px]" : "text-[10px]")}>{it ? "In produzione" : "In production"}</Badge>
   }
-  return <Badge variant="outline" className="rounded-full text-[10px] font-medium">{it ? "Annunciata" : "Announced"}</Badge>
+  return <Badge variant="outline" className={cn("rounded-full font-medium", compact ? "px-1.5 py-0.5 text-[9px]" : "text-[10px]")}>{it ? "Annunciata" : "Announced"}</Badge>
 }
 
 function sortReleasesForDisplay(releases: ProductRelease[]): ProductRelease[] {
