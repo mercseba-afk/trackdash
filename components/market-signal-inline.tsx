@@ -18,16 +18,24 @@ export function MarketSignalInline({
   signal,
   showStartingPrice = false,
   showBothReferences = false,
+  compactPreview = false,
 }: {
   signal?: ReleaseMarketSignalView | null
   showStartingPrice?: boolean
   showBothReferences?: boolean
+  compactPreview?: boolean
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
 
   if (!signal) {
-    return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
+    return compactPreview ? (
+      <div className="rounded-lg bg-muted/45 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground">
+        {it ? "Dati di mercato in verifica" : "Market data under review"}
+      </div>
+    ) : (
+      <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
+    )
   }
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
@@ -46,6 +54,47 @@ export function MarketSignalInline({
   const observedEvidence = observedMarketDisplayEvidenceLabel(signal, it)
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
   const observedDirection = observedMarketAskDirection(observedTrend, it)
+
+  if (compactPreview) {
+    return (
+      <div className="grid gap-1">
+        {hasValue ? (
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-brand/5 px-2.5 py-1.5 text-brand">
+            <span className="text-[10px] font-bold uppercase tracking-[0.06em]">
+              {it ? "Valore stimato" : "Estimated value"}
+            </span>
+            <strong className="shrink-0 text-sm font-semibold tabular-nums">≈ {formatMoney(signal.valueEUR!)}</strong>
+          </div>
+        ) : (
+          <>
+            {hasSold ? (
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-emerald-900">
+                <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
+                  <BadgeCheck className="size-3 shrink-0" />
+                  <span>{it ? "Vendite concluse" : "Completed sales"}</span>
+                </span>
+                <strong className="shrink-0 text-sm font-semibold tabular-nums">≈ {formatMoney(soldPrice!)}</strong>
+              </div>
+            ) : null}
+            {hasAsk ? (
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-2.5 py-1.5 text-amber-900">
+                <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
+                  <Tag className="size-3 shrink-0" />
+                  <span>{it ? "Annunci attivi" : "Active listings"}</span>
+                </span>
+                <strong className="shrink-0 text-sm font-semibold tabular-nums">{it ? "da " : "from "}{formatMoney(askPrice!)}</strong>
+              </div>
+            ) : null}
+            {!hasSold && !hasAsk ? (
+              <div className="rounded-lg bg-muted/45 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground">
+                {it ? "Dati di mercato in verifica" : "Market data under review"}
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-1">
