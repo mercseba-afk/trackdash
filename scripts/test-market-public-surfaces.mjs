@@ -107,22 +107,24 @@ if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
 if (!marketOverview.includes("Valore stimato")) {
   errors.push("Shared market overview does not expose the public estimated market value")
 }
-if (!marketOverview.includes("observedMarketDisplayLabel") || !marketOverview.includes("observedMarketDisplayPrice")) {
-  errors.push("Shared market overview does not use the centralized display reference with SOLD fallback")
+if (!marketOverview.includes("observedMarketPrice") || !marketOverview.includes("soldAnchorEUR")) {
+  errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
 if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("observedMarketAskTrendLabel")) {
   errors.push("Shared market overview does not distinguish Market Value trend from seller-ask trend")
 }
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
 for (const requiredSellerAskCopy of [
-  "Prezzo minimo richiesto",
+  "Prezzo richiesto più basso",
   "Lowest asking price",
   "Trend prezzi richiesti",
   "Asking price trend",
-  "annuncio osservato",
-  "listings observed",
-  "Prezzo di vendita osservato",
-  "Observed sale price",
+  "annuncio attivo osservato",
+  "active listings observed",
+  "Prezzo da vendite concluse",
+  "Price from completed sales",
+  "vendita conclusa osservata",
+  "completed sales observed",
 ]) {
   if (!marketPresentation.includes(requiredSellerAskCopy)) {
     errors.push(`Shared market presentation is missing seller-ask wording ${JSON.stringify(requiredSellerAskCopy)}`)
@@ -138,8 +140,8 @@ const analyticsSource = fs.readFileSync("lib/analytics.ts", "utf8")
 if (analyticsSource.includes("observedMarketDisplayPrice")) {
   errors.push("Display-only SOLD fallback leaked into portfolio or wishlist valuation logic")
 }
-if (!marketOverview.includes("observedMarketAskCountLabel") || !marketOverview.includes("soldUnits")) {
-  errors.push("Shared market overview does not expose compact listing/sales evidence")
+if (!marketOverview.includes("currentOfferCount") || !marketOverview.includes("soldUnits")) {
+  errors.push("Shared market overview does not expose separate active-listing/completed-sale evidence")
 }
 for (const verboseReleaseToken of [
   "Riferimento ricavato",
@@ -281,4 +283,4 @@ if (errors.length > 0) {
 }
 
 console.log(`Public R3 market surfaces: ${publicSurfaces.length}/${publicSurfaces.length} clean`)
-console.log("Collector UI uses one clear Lowest asking price concept everywhere and keeps Release market cards compact.")
+console.log("Collector UI clearly separates active asking prices from completed-sale references.")
