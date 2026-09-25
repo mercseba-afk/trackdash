@@ -104,6 +104,18 @@ if (!releaseScreen.includes("ReleaseMarketOverview")) {
 if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
   errors.push("Collection item detail is not using the same shared market overview as the Release")
 }
+
+const marketInline = fs.readFileSync("components/market-signal-inline.tsx", "utf8")
+const productDetailScreen = fs.readFileSync("components/screens/product-detail-screen.tsx", "utf8")
+if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Annunci attivi")) {
+  errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
+}
+if (!productDetailScreen.includes("showBothReferences")) {
+  errors.push("Release family rows are not enabling the dual SOLD + ASK preview")
+}
+if ((productDetailScreen.match(/showBothReferences/g) ?? []).length !== 1) {
+  errors.push("Dual SOLD + ASK preview must stay scoped to Release family rows instead of leaking into other compact surfaces")
+}
 if (!marketOverview.includes("Valore stimato")) {
   errors.push("Shared market overview does not expose the public estimated market value")
 }
