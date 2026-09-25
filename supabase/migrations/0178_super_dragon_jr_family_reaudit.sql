@@ -312,7 +312,7 @@ from (
     'Super Dragon Jr. — 1998 Memorial Edition (Limited Reissue)',
     'yahoo-auctions:super-dragon-memorial-1998:2026-04-24:3200',
     'タミヤ ミニ四駆 スーパードラゴンJr メモリアルエディション 限定復刻版 未組立品 箱傷み汚れ有り',
-    '18007',3200::numeric,date '2026-04-24','未組立 箱傷み汚れ有り','worn','strong',
+    '18007',3200::numeric,date '2026-04-24','未組立 箱傷み汚れ有り','significantly_damaged','strong',
     array['edition_name_exact','reissue_stated','manual_override']::text[],
     'Exact Memorial Edition limited reissue unassembled closed sale; JPY 3,200. Box wear stated; shipping/seller not exposed.'
   ),
@@ -328,7 +328,7 @@ from (
     'Super Dragon Premium — VS Chassis',
     'yahoo-auctions:super-dragon-18067:2026-02-12:2500',
     '★未使用 タミヤ ミニ四駆 スーパードラゴン プレミアム (VSシャーシ) 18067 箱痛み大',
-    '18067',2500::numeric,date '2026-02-12','未使用 箱痛み大','worn','exact',
+    '18067',2500::numeric,date '2026-02-12','未使用 箱痛み大','significantly_damaged','exact',
     array['item_number_exact','edition_name_exact','manual_override']::text[],
     'Exact ITEM 18067 unused closed sale; JPY 2,500. Box heavily worn; shipping/seller not exposed.'
   ),
