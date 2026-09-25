@@ -2985,7 +2985,7 @@ They must not be promoted until autonomous product identity is demonstrated and 
 
 ## Current status
 
-**HOTSHOT JR. — AUDIT COMPLETE WITH DOCUMENTED GAPS — 2 RECOMPUTES PENDING**
+**HOTSHOT JR. — COMPLETE WITH DOCUMENTED GAPS**
 
 The family no longer requires broad genealogy research.
 
@@ -2995,3 +2995,24 @@ Remaining operational work is intentionally narrow:
 2. verify their public signals;
 3. keep searching opportunistically for stable exact images for Memorial and `94688`;
 4. promote any research-only Release only when new exact evidence genuinely changes its publication status.
+
+
+## Hotshot Jr. — recompute closure — 2026-09-25
+
+The final two queued recomputes were consumed successfully from Production Admin.
+
+Verified live state:
+
+- recompute queue: **0**
+- locked recomputes: **0**
+- 1998 Memorial Edition: SOLD anchor **EUR 32.06**, 2 SOLD / 1 source, confidence 18 low, Market Value null
+- Urawa Red Diamonds Edition: SOLD anchor **EUR 16.28**, 1 SOLD / 1 source, confidence 15 low, Market Value null
+- both signals use `market_method_version = v4`
+
+The null Market Values are intentional: the available evidence is real enough to publish as market context, but not diverse/strong enough to establish a consolidated Market Value.
+
+Hotshot Jr. broad family work is closed. Remaining image gaps (1998 Memorial and 94688 Hanshin Tigers) are opportunistic future backfill only and do not keep the family open.
+
+Final status:
+
+**HOTSHOT JR. — COMPLETE WITH DOCUMENTED GAPS**
