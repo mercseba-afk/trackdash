@@ -139,6 +139,13 @@ const nextConfig = {
         pathname: "/i/2535/1951/resize/d2535-1951-173568-3.jpg",
       },
       {
+        // Hornet Jr. 1998 Memorial / limited-reissue archive image.
+        // Exact auction asset extracted from the Mandarake item archive.
+        protocol: "https",
+        hostname: "img.mandarake.co.jp",
+        pathname: "/aucimg/5/1/4/5/0002715145.jpeg",
+      },
+      {
         protocol: "https",
         hostname: "static.mercdn.net",
         pathname: "/item/detail/orig/photos/**",

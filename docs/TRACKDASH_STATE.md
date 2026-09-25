@@ -3136,3 +3136,115 @@ Mandarake has an exact 1995 ITEM 94183 auction archive with ten exact item photo
 **stable exact image > exact but fragile auction asset > placeholder/wrong image**
 
 After this backfill, public Boomerang image coverage is **4 / 5**.
+
+
+---
+
+# HORNET JR. — COMPLETION CHECKPOINT — 2026-09-25
+
+Hornet Jr. is closed under the permanent Release Publication Gate.
+
+## Canonical / public split
+
+Canonical researched family: **7 Releases**
+
+Public catalog: **5**
+- `18002` — 1986 Standard / Later Production
+- `18002` — 1998 Memorial Edition / Limited Reissue
+- `94446` — 2002 Year of the Horse
+- `92412` — Hiroshi Tanahashi Special
+- `18107` — 2026 VZ Chassis, announced
+
+Research-only: **2**
+- `2902` — 1986 First Production / Oshika KIT No.2902
+- `2952` — Clear Chassis Special
+
+The research-only Releases remain preserved in the database/master and are not deleted.
+
+## Public image coverage
+
+After the targeted Memorial backfill, all five public Hornet Jr. Releases have an exact/high-confidence image:
+
+- `18002` Standard — official Tamiya image
+- `18002` Memorial 1998 — exact Mandarake reissue-box archive image
+- `94446` Year of the Horse — exact Suruga product image
+- `92412` Tanahashi Special — exact Gakken / PR TIMES launch image
+- `18107` VZ — official Tamiya image
+
+Public image coverage: **5 / 5**
+
+The Memorial image is the exact Mandarake auction archive asset:
+`https://img.mandarake.co.jp/aucimg/5/1/4/5/0002715145.jpeg`
+
+It was verified through the TrackDash Next image proxy with HTTP 200 before persistence.
+
+## Market signals after initial scan + recompute
+
+`18002` Memorial 1998:
+- exact recent SOLD: JPY 3,400
+- SOLD anchor **EUR 18.19**
+- 1 SOLD / 1 source
+- Market Value null
+- confidence 16 / low
+
+`94446` Year of the Horse:
+- exact SOLD JPY 4,990
+- exact SOLD JPY 7,550
+- SOLD anchor **EUR 34.18**
+- 2 SOLD / 1 source
+- Market Value null
+- confidence 17 / low
+
+`92412` Hiroshi Tanahashi Special:
+- exact SOLD JPY 4,500 → SOLD anchor **EUR 24.18**
+- eBay exact ITEM-number active market: three seller clusters after storefront/currency deduplication
+- active ASK anchor **EUR 87.79**
+- canonical starting effective cost **EUR 74.26**
+- Market Value null
+- confidence 33 / low
+
+No Market Value is forced from the thin evidence.
+
+## eBay QA
+
+Initial eBay jobs completed successfully for:
+- `2902`
+- `2952`
+- `94446`
+- `92412`
+- `18107`
+
+The two `18002` Releases remain deliberately disabled for unattended eBay matching because the ITEM number is shared between standard/later production and the 1998 Memorial reissue.
+
+`2902` and `2952` scans returned RC parts / 1:10 Hornet material and other non-matching results; none were accepted.
+
+`18107` noisy R/C Hornet listings were also rejected.
+
+## Research-only evidence retained
+
+`2952` has strong exact collector evidence, including a Mandarake closed auction at JPY 225,000 on 2025-11-04. It was not promoted into the canonical `new_complete_unbuilt` Price Engine because the currently accessible record does not expose enough condition detail for a clean valuation row.
+
+`2902` has historical exact-sale evidence visible in older Yahoo archive/search material, but the sale date provenance available in the current crawl is not strong enough for a new canonical Price Engine import.
+
+The early clear-chassis transitional `2902` stickered box / `2952` instruction combination remains packaging-wave research context, not a separate canonical Release.
+
+The 2009 Tamiya x master-piece messenger-bag Hornet Jr. remains bundle/promotion context only.
+
+## Final state
+
+- researched Releases: **7**
+- public Releases: **5**
+- research-only Releases: **2**
+- public exact/high-confidence images: **5 / 5**
+- pending Hornet recomputes: **0**
+- scan failures: **0**
+- Market Values forced from insufficient evidence: **0**
+
+Final status:
+
+**HORNET JR. — COMPLETE WITH DOCUMENTED GAPS**
+
+Remaining work is opportunistic only:
+- recover exact stable image and clean current market evidence for `2902`;
+- recover exact stable image and condition-complete market evidence for `2952`;
+- monitor `18107` after its December 2026 market release.
