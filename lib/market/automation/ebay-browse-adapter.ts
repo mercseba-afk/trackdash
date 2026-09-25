@@ -48,6 +48,16 @@ export interface EbayBrowseItemDetails {
   localizedAspects: EbayLocalizedAspect[]
 }
 
+const NON_GENUINE_TERMS = [
+  "replica",
+  "knockoff",
+  "knock off",
+  "bootleg",
+  "counterfeit",
+  "fake",
+  "clone",
+]
+
 const PART_ONLY_TERMS = [
   "body only",
   "body set",
@@ -101,6 +111,17 @@ export function classifyEbayActiveListing(
 
   if (!containsToken(listing.title, release.itemNumber)) {
     return { decision: "rejected", reasonCodes: ["ITEM_NUMBER_NOT_IN_TITLE"] }
+  }
+
+  // Counterfeit/replica listings can deliberately include a genuine Tamiya
+  // item number in the title. Reject explicit non-genuine wording before any
+  // exact-number match is allowed to become market evidence.
+  const padded = ` ${normalized} `
+  if (
+    NON_GENUINE_TERMS.some((term) => padded.includes(` ${term} `)) ||
+    /(^|\s)ko($|\s)/.test(normalized)
+  ) {
+    return { decision: "rejected", reasonCodes: ["NON_GENUINE_REPLICA"] }
   }
 
   if (PART_ONLY_TERMS.some((term) => normalized.includes(term))) {
