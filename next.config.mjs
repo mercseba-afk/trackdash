@@ -131,6 +131,14 @@ const nextConfig = {
         pathname: "/images/tamiya/**",
       },
       {
+        // Hornet Jr. 92412 Tanahashi Special — exact product image from the
+        // original Gakken/PR TIMES 2018 launch release. Keep the allowlist
+        // deliberately restricted to this one audited asset.
+        protocol: "https",
+        hostname: "prtimes.jp",
+        pathname: "/i/2535/1951/resize/d2535-1951-173568-3.jpg",
+      },
+      {
         protocol: "https",
         hostname: "static.mercdn.net",
         pathname: "/item/detail/orig/photos/**",
