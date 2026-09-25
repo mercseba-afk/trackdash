@@ -189,7 +189,6 @@ function ReleaseRow({
   const collectorsHref = `${releaseHref}#collectors`
   const loginHref = `/login?next=${encodeURIComponent(releaseHref)}`
   const owned = ownedCount > 0
-  const compactPilot = product.id === "d3b4ad34-05ac-592e-ad93-fab4cfde0a5a"
   const ownershipLabel = locale === "it"
     ? (ownedCount === 1 ? "1 copia tua" : `${ownedCount} copie tue`)
     : (ownedCount === 1 ? "1 copy owned" : `${ownedCount} copies owned`)
@@ -201,10 +200,7 @@ function ReleaseRow({
           <ProductImage
             product={product}
             release={release}
-            className={cn(
-              "h-full w-full transition-transform duration-300 group-hover:scale-[1.02] md:min-h-0",
-              compactPilot ? "aspect-[3/2] min-h-32" : "aspect-[4/3] min-h-36",
-            )}
+            className="aspect-[3/2] h-full min-h-32 w-full transition-transform duration-300 group-hover:scale-[1.02] md:min-h-0"
             size="md"
           />
           <span className={cn(
@@ -215,12 +211,12 @@ function ReleaseRow({
           </span>
         </Link>
 
-        <div className={cn("min-w-0", compactPilot ? "p-3 sm:p-3.5 md:p-4" : "p-3.5 sm:p-4 md:p-5")}>
+        <div className="min-w-0 p-3 sm:p-3.5 md:p-4">
           <Link href={releaseHref} className="text-base font-semibold leading-snug tracking-tight text-foreground transition-colors hover:text-brand sm:text-lg">
             {release.editionName}
           </Link>
 
-          <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground", compactPilot ? "mt-1.5" : "mt-2")}>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
             <span className="font-semibold tabular-nums text-foreground">{release.itemNumber ? `#${release.itemNumber}` : "—"}</span>
             <span>·</span>
             <span>{release.chassis ?? "—"}</span>
@@ -228,46 +224,43 @@ function ReleaseRow({
             <span>{release.releaseYear ?? "—"}</span>
           </div>
 
-          <div className={cn("flex flex-wrap items-center gap-1.5", compactPilot ? "mt-2" : "mt-3")}>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {release.rarity ? (
-              <RarityBadge rarity={release.rarity} className={compactPilot ? "text-[9px]" : undefined} />
+              <RarityBadge rarity={release.rarity} className="text-[9px]" />
             ) : (
-              <Badge variant="outline" className={cn("rounded-full font-medium", compactPilot ? "px-1.5 py-0.5 text-[9px]" : "text-[10px]")}>
+              <Badge variant="outline" className="rounded-full px-1.5 py-0.5 text-[9px] font-medium">
                 {locale === "it" ? "Rarità da verificare" : "Rarity to verify"}
               </Badge>
             )}
-            <ProductionBadge release={release} locale={locale} compact={compactPilot} />
+            <ProductionBadge release={release} locale={locale} compact />
             {owned ? (
-              <Badge className={cn("gap-1 rounded-full bg-success/15 text-success", compactPilot && "px-1.5 py-0.5 text-[10px]")}>
-                <Check className={compactPilot ? "size-2.5" : "size-3"} />{ownershipLabel}
+              <Badge className="gap-1 rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] text-success">
+                <Check className="size-2.5" />{ownershipLabel}
               </Badge>
             ) : null}
           </div>
 
           {community && community.collectors > 0 ? (
-            <div className={cn("flex flex-wrap items-center gap-1.5", compactPilot ? "mt-2" : "mt-3")}>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <Link href={collectorsHref} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"><UsersRound className="size-3.5" />{community.collectors} {t("common.collectors")}</Link>
               {community.openToOffers > 0 ? <Link href={collectorsHref} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-brand/25 bg-brand/10 px-2.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/15"><Handshake className="size-3.5" />{community.openToOffers} {t("common.acceptingOffers")}</Link> : null}
             </div>
           ) : null}
         </div>
 
-        <div className={cn(
-          "flex flex-col justify-between border-t border-border/60 bg-muted/15 sm:flex-row sm:items-center md:items-stretch md:border-l md:border-t-0",
-          compactPilot ? "gap-2 p-3 sm:p-3 md:p-3" : "gap-3 p-3.5 sm:p-4 md:p-4",
-        )}>
+        <div className="flex flex-col justify-between gap-2 border-t border-border/60 bg-muted/15 p-3 sm:flex-row sm:items-center sm:p-3 md:items-stretch md:border-l md:border-t-0 md:p-3">
           <div className="flex min-w-0 items-center md:items-start md:justify-end">
-            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences compactPreview={compactPilot} /></div>
+            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences compactPreview /></div>
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto md:flex-col md:items-stretch md:justify-end">
-            <Button size="sm" variant="outline" className={cn("flex-1 bg-white md:flex-none", compactPilot ? "h-8 rounded-lg px-3 text-xs" : "rounded-xl")} render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
+            <Button size="sm" variant="outline" className="h-8 flex-1 rounded-lg bg-white px-3 text-xs md:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
             {isAuthed ? (
               <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-                <Button size="sm" variant={owned ? "outline" : "default"} className={cn("flex-1 gap-1.5 md:flex-none", compactPilot ? "h-8 rounded-lg px-3 text-xs" : "rounded-xl")}>{owned ? <Check className={compactPilot ? "size-3.5" : "size-4"} /> : <Plus className={compactPilot ? "size-3.5" : "size-4"} />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
+                <Button size="sm" variant={owned ? "outline" : "default"} className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none">{owned ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
               </AddToCollectionDialog>
             ) : (
-              <Button size="sm" className={cn("flex-1 gap-1.5 md:flex-none", compactPilot ? "h-8 rounded-lg px-3 text-xs" : "rounded-xl")} render={<Link href={loginHref} />}>
-                <LockKeyhole className={compactPilot ? "size-3.5" : "size-4"} /> {locale === "it" ? "Accedi per aggiungere" : "Sign in to add"}
+              <Button size="sm" className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none" render={<Link href={loginHref} />}>
+                <LockKeyhole className="size-3.5" /> {locale === "it" ? "Accedi per aggiungere" : "Sign in to add"}
               </Button>
             )}
           </div>
