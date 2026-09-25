@@ -168,6 +168,13 @@ const nextConfig = {
         hostname: "www.1999.co.jp",
         pathname: "/itbig47/10477144a.jpg",
       },
+      {
+        // Avante Jr. Special Version 18507 — exact vintage product photo from
+        // the audited JOY of the FIND 18507-600 specialist listing.
+        protocol: "https",
+        hostname: "joyofthefind.co.uk",
+        pathname: "/cdn/shop/files/rn-image_picker_lib_temp_1615b926-d90e-460f-a9ed-b31e02e45f38.jpg",
+      },
     ],
   },
 }
