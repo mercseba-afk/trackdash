@@ -1104,6 +1104,28 @@ In the compact Release rows inside a model/family page:
 
 This contract is **global for every Release and every future family**. It is not family-specific.
 
+### Global compact Release-card standard
+
+The family/model page must use one shared compact Release-card layout for **all current and future Mini 4WD families**, regardless of when or under which historical workflow the family was first inserted.
+
+The compact card standard is:
+
+- exact Release image in a compact 3:2 area;
+- title;
+- one metadata row: Item Number · chassis · year;
+- compact rarity / production / ownership badges;
+- one-line market boxes:
+  - Market Value: distinct brand treatment;
+  - SOLD: green/emerald `Vendite concluse ≈ €X`;
+  - ASK: amber `Annunci attivi da €X`;
+  - SOLD + ASK: both boxes, one line each;
+  - no long explanatory SOLD-vs-ASK sentence in the preview;
+- compact action buttons.
+
+Older families awaiting re-audit may still contain legacy or incomplete **data**, but they must not retain legacy **preview layouts or wording**. Re-auditing a family changes canonical data/evidence, not the shared Release-card structure.
+
+No family ID, Item Number, release date or audit generation may be used to opt into/out of this layout.
+
 ---
 
 # SEO PUBLICATION FRESHNESS CONTRACT — 25/09/2026

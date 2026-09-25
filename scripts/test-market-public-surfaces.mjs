@@ -116,6 +116,13 @@ if (!productDetailScreen.includes("showBothReferences")) {
 if ((productDetailScreen.match(/showBothReferences/g) ?? []).length !== 1) {
   errors.push("Dual SOLD + ASK preview must stay scoped to Release family rows instead of leaking into other compact surfaces")
 }
+
+if (!productDetailScreen.includes("compactPreview />")) {
+  errors.push("Release family rows are not using the global compact preview standard")
+}
+if (productDetailScreen.includes("compactPilot") || productDetailScreen.includes("d3b4ad34-05ac-592e-ad93-fab4cfde0a5a")) {
+  errors.push("Compact Release preview is still scoped to a single family instead of being global")
+}
 if (!marketOverview.includes("Valore stimato")) {
   errors.push("Shared market overview does not expose the public estimated market value")
 }
