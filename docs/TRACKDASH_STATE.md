@@ -3109,3 +3109,30 @@ Remaining work is opportunistic only:
 - recover exact stable images for `94183`, `95003`, `92394`;
 - recover exact image/market evidence for research-only `2904` and `2954`;
 - do not reopen the family unless new evidence materially changes publication status.
+
+
+## Boomerang Jr. — public image backfill — 2026-09-25
+
+A final targeted image recovery pass reduced the public image gap from three Releases to one.
+
+Recovered exact-product images:
+
+- `95003` Boomerang RS Black Special
+  - source: exact Suruga product record `603039270`
+  - direct asset: `https://cdn.suruga-ya.jp/database/pics_webp/game/603039270.jpg.webp`
+  - TrackDash image proxy verified HTTP 200 before persistence
+
+- `92394` Hiroshima Toyo Carp Collaboration
+  - source: exact Suruga product record `603092687`
+  - direct asset: `https://cdn.suruga-ya.jp/database/pics_webp/game/603092687.jpg.webp`
+  - TrackDash image proxy verified HTTP 200 before persistence
+
+Remaining public image gap:
+
+- `94183` Pearl Color Special / Hello Mac Limited
+
+Mandarake has an exact 1995 ITEM 94183 auction archive with ten exact item photographs, and other exact marketplace photos also exist. No image is persisted yet because a stable direct canonical asset URL has not been verified. The family keeps the stronger rule:
+
+**stable exact image > exact but fragile auction asset > placeholder/wrong image**
+
+After this backfill, public Boomerang image coverage is **4 / 5**.
