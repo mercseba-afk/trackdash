@@ -235,7 +235,7 @@ function ReleaseRow({
 
         <div className="flex flex-col justify-between gap-3 border-t border-border/60 bg-muted/15 p-3.5 sm:flex-row sm:items-center sm:p-4 md:items-stretch md:border-l md:border-t-0 md:p-4">
           <div className="flex min-w-0 items-center md:items-start md:justify-end">
-            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice /></div>
+            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences /></div>
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto md:flex-col md:items-stretch md:justify-end">
             <Button size="sm" variant="outline" className="flex-1 rounded-xl bg-white md:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>

@@ -3248,3 +3248,61 @@ Remaining work is opportunistic only:
 - recover exact stable image and clean current market evidence for `2902`;
 - recover exact stable image and condition-complete market evidence for `2952`;
 - monitor `18107` after its December 2026 market release.
+
+---
+
+# THUNDER DRAGON JR. — COMPLETION + MARKET UI CHECKPOINT — 25/09/2026
+
+## Canonical family
+
+Researched family: **6 Releases**
+
+Public:
+- `18008` — 1998 Memorial Edition / Limited Reissue
+- `18008` — 2012 Spot Reissue
+- `18068` — Thunder Dragon Premium / VS
+- `95336` — Clear Special / Polycarbonate Body
+
+Research-only:
+- `2908` — 1987 Oshika 4-digit first-production identity
+- `18008` — 1987 Standard / Later Production
+
+The two 1987 Releases stay research-only because neither currently has a persisted exact image nor sufficiently discriminated exact market evidence for publication.
+
+## Market evidence
+
+- Memorial 1998: 3 accepted exact SOLD, SOLD anchor **EUR 20.74**
+- Premium 18068: 1 accepted exact SOLD around **EUR 19.51**, plus current active ASK context
+- Clear Special 95336: 3 accepted exact SOLD, SOLD anchor **EUR 7.04**, plus active ASK context
+- reused `18008` generations remain excluded from unattended eBay attribution
+- `2908`, `18068`, `95336` initial eBay jobs completed successfully
+- no Market Value was forced from thin or conflicting evidence
+
+## 95336 image repair
+
+The official Tamiya Release page remains the identity/specification authority for ITEM `95336`, but the legacy direct Tamiya image asset `95336_1.jpg` returns 404 through the Next.js image path.
+
+Production therefore renders an exact archived Hobby Search image:
+
+`https://www.1999.co.jp/itbig47/10477144a.jpg`
+
+The image was verified through the TrackDash Next image proxy with HTTP 200 before Production persistence.
+
+## Global collector-market UI
+
+PR #272 introduced a global distinction between:
+- **Valore stimato**
+- **Vendite concluse / Prezzo da vendite concluse**
+- **Annunci attivi / Prezzo richiesto più basso**
+
+Production commit after PR #272:
+`d1d0d9d19a3ee3a975f4f576bcf7c69d3233e1ab`
+
+The Release detail page can show SOLD and ASK as separate semantic cards.
+
+A follow-up compact-preview patch now scopes a dual reference to Release-family rows:
+- SOLD and ASK are both shown when both exist and no consolidated Market Value exists;
+- Collection and other tighter compact surfaces keep the existing single-reference behavior.
+
+This is a **global rule for all Releases**, not a Thunder Dragon-specific exception.
+

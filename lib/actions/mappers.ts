@@ -144,6 +144,8 @@ type ReleaseRow = {
   verificationStatus: string
   productionStatus: string
   statusCheckedAt: Date | null
+  catalogVisibilityUpdatedAt: Date | null
+  updatedAt: Date
   images?: { url: string }[]
   sources?: SourceRow[]
 }
@@ -175,6 +177,8 @@ export function mapReleaseRow(row: ReleaseRow): ProductRelease {
     verificationStatus: row.verificationStatus as VerificationStatus,
     productionStatus: row.productionStatus as ProductionStatus,
     statusCheckedAt: row.statusCheckedAt ? row.statusCheckedAt.toISOString() : undefined,
+    catalogVisibilityUpdatedAt: row.catalogVisibilityUpdatedAt ? row.catalogVisibilityUpdatedAt.toISOString() : undefined,
+    updatedAt: row.updatedAt.toISOString(),
     sources: row.sources ? row.sources.map(mapSourceRow) : [],
   }
 }
@@ -192,6 +196,7 @@ type ProductRow = {
   rarity: string | null
   description: string | null
   canonicalReleaseId: string | null
+  updatedAt: Date
   images?: { url: string }[]
   releases?: ReleaseRow[]
 }
@@ -226,6 +231,7 @@ export function mapProductRow(row: ProductRow): Product {
     images: row.images ? row.images.map((i) => i.url) : [],
     releases,
     canonicalReleaseId: row.canonicalReleaseId ?? undefined,
+    updatedAt: row.updatedAt.toISOString(),
     hasMultipleReleases: releases.length > 1,
     // FACTUAL, verified-only -- undefined (never 0, which would wrongly
     // imply "verified as free") unless a real Tamiya-confirmed figure
