@@ -36,7 +36,7 @@ export function observedMarketDisplayLabel(
   it: boolean,
 ): string {
   return observedMarketDisplayKind(signal) === "sold"
-    ? (it ? "Prezzo di vendita osservato" : "Observed sale price")
+    ? (it ? "Prezzo da vendite concluse" : "Price from completed sales")
     : observedMarketAskLabel(signal, it)
 }
 
@@ -47,8 +47,8 @@ export function observedMarketDisplayEvidenceLabel(
   if (observedMarketDisplayKind(signal) === "sold") {
     const count = signal?.soldUnits ?? 0
     if (count <= 0) return null
-    if (it) return `${count} ${count === 1 ? "vendita osservata" : "vendite osservate"}`
-    return `${count} ${count === 1 ? "observed sale" : "observed sales"}`
+    if (it) return `${count} ${count === 1 ? "vendita conclusa osservata" : "vendite concluse osservate"}`
+    return `${count} ${count === 1 ? "completed sale observed" : "completed sales observed"}`
   }
   return observedMarketAskCountLabel(signal, it)
 }
@@ -77,7 +77,7 @@ export function observedMarketAskLabel(
   _signal: ReleaseMarketSignalView | null | undefined,
   it: boolean,
 ): string {
-  return it ? "Prezzo minimo richiesto" : "Lowest asking price"
+  return it ? "Prezzo richiesto più basso" : "Lowest asking price"
 }
 
 export function observedMarketAskTrendLabel(it: boolean): string {
@@ -100,6 +100,6 @@ export function observedMarketAskCountLabel(
 ): string | null {
   const count = signal?.currentOfferCount ?? 0
   if (count <= 0) return null
-  if (it) return `${count} ${count === 1 ? "annuncio osservato" : "annunci osservati"}`
-  return `${count} ${count === 1 ? "listing observed" : "listings observed"}`
+  if (it) return `${count} ${count === 1 ? "annuncio attivo osservato" : "annunci attivi osservati"}`
+  return `${count} ${count === 1 ? "active listing observed" : "active listings observed"}`
 }
