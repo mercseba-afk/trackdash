@@ -1,7 +1,7 @@
 # TrackDash — Mini 4WD Vertical
 
 > Dedicated operational record for the Tamiya Mini 4WD vertical.
-> Last updated: 2026-09-23.
+> Last updated: 2026-09-26.
 > This file records the current state, durable Mini 4WD-specific decisions, reference families and exact continuation rules.
 > It is an index/state document, not a replacement for the operational Masters.
 > `docs/TRACKDASH_STATE.md` remains the cross-project authoritative checkpoint.
@@ -92,7 +92,7 @@ Do not duplicate or fork those rules here.
 
 ## Current platform state — 2026-09-23
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-23”** in `docs/TRACKDASH_STATE.md`.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-26 — FIRE DRAGON JR. COMPLETE — MARKET THIN / ACTIVE”** in `docs/TRACKDASH_STATE.md`.
 
 Final functional Production baseline recorded there before the documentation-only checkpoint:
 
@@ -114,6 +114,38 @@ Current shared market UI cleanup is considered **closed**. No further UI work re
 ---
 
 ## Current / recent reference families
+
+### Fire Dragon Jr.
+
+Status:
+
+**COMPLETE — MARKET THIN / ACTIVE**
+
+Canonical family:
+
+**9 public Releases**
+
+- `18011` — 1988 Original
+- `18011` — 1998 Memorial Edition / Limited Reissue
+- `18011` — 2012 Reissue
+- `18072` — Fire Dragon Premium
+- `92290` — 21st Century Clear Red
+- `92291` — 21st Century Pearl
+- `92292` — 21st Century Black
+- `92293` — 21st Century Clear Blue
+- `95337` — Clear Special / Polycarbonate Body
+
+Durable state:
+- image coverage **8/9**; Memorial 1998 intentionally remains without a stored hero until a stable exact asset is recovered;
+- the three `18011` generations remain fail-closed for unattended eBay attribution;
+- final initial eBay scan completed **6/6 unique-item targets** without worker errors;
+- Memorial 1998 SOLD anchor **EUR 16.00**;
+- Premium 18072 SOLD anchor **EUR 19.04**, minimum current effective ASK **EUR 31.03**;
+- Clear Special 95337 SOLD anchor **EUR 8.16**, minimum current effective ASK **EUR 24.10**;
+- no Release currently has sufficient evidence for a consolidated Market Value;
+- recompute queue and active locks are clear.
+
+Do not reopen this family merely because some Releases remain market-thin.
 
 ### Avante Mk.III
 
