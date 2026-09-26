@@ -3415,3 +3415,96 @@ All five live family pages showed:
 
 Final status: **GLOBAL COMPACT RELEASE PREVIEW — PRODUCTION ALIGNED**.
 
+---
+
+# AVANTE JR. — RE-AUDIT CHECKPOINT — 26/09/2026
+
+## Family identity
+
+Product:
+- `Avante Jr.`
+- product id `82b478fd-21dd-5c93-82fb-bf50461a107d`
+- original year 1988
+- canonical family size: **13 public Releases**
+
+The re-audit did not find a missing principal Release. Current TrackDash genealogy remains:
+- `18014` — 1988 original
+- `18506` — Black Special original
+- `18507` — Special Version
+- `93001` — Champion's Gold
+- `18058` — Avante RS
+- `92210` — RS Purple Special
+- `18014` — 2012 reissue
+- `18506` — 2012 reissue
+- `95060` — Yellow Special (Clear Body)
+- `95474` — 30th Anniversary Special
+- `95501` — 2019 reissue
+- `95501` — 2021 modern reissue line
+- `18014` — 2024 reissue
+
+`93001` remains without a forced canonical year because historical secondary sources conflict; identity itself is verified.
+
+## Image coverage
+
+After the re-audit:
+- Releases with stored hero image: **12 / 13**
+- exact missing hero: **93001 Champion's Gold**
+- `18507` Special Version received a new exact specialist image from the audited JOY of the FIND `18507-600` listing.
+- the new `18507` image was verified through the TrackDash Next image proxy and is live in Production.
+
+Do not use a sibling/generic Avante image for `93001`; keep searching for a stable exact asset.
+
+## Market refresh result
+
+Admin market refresh after the audit completed successfully for the staged targets:
+- `18507` eBay Active — success
+- `92210` eBay Active — success
+- `93001` eBay Active — success
+- `18014` 2024 Modellismo Gandolfi retail — success
+- original `18014` recompute — completed
+
+Pending Avante Jr recomputes: **0**.
+
+Current useful public signals:
+- `18506` 1989 Black Special — SOLD anchor **EUR 8.98** from 2 indicative Yahoo Japan completed-sale observations; no Market Value.
+- `18507` Special Version — current exact ASK **EUR 160.81 + EUR 49.31 shipping = EUR 210.12 effective**; no Market Value.
+- `18058` Avante RS — current ASK **EUR 62.10 effective**; no Market Value.
+- `95060` Yellow Special — SOLD anchor **EUR 8.03**, starting ASK **EUR 31.06**, active anchor **EUR 32.29**; no Market Value.
+- `95474` 30th Anniversary — SOLD anchor **EUR 9.10**, starting ASK **EUR 47.06**, active anchor **EUR 79.30**; no Market Value.
+- `18014` 2024 reissue — exact Italian current retail **EUR 15.00**, market regime `retail_driven`; no Market Value.
+
+The `92210` refresh returned only irrelevant/wrong-item eBay candidates and therefore correctly published no current ASK.
+
+The `93001` refresh returned no acceptable current ASK. Its exact 2024 Yahoo auction at JPY 165,000 remains historical/context-only because it is old and completeness is not independently confirmed.
+
+The original `18014` Mandarake awarded auction at JPY 29,000 is exact identity evidence but remains **valuation-ineligible** because condition/completeness/inner-bag state is insufficiently proven. Recompute correctly leaves the public SOLD headline empty.
+
+The `95501` modern-line June 2026 Yahoo result at JPY 1,000 is also intentionally excluded from the canonical new-complete-unbuilt lane because the marketplace condition was not independently confirmed.
+
+Shared Item Numbers `18014`, `18506`, and `95501` remain protected from unattended eBay attribution.
+
+No Release in the family currently has sufficient evidence for a consolidated Market Value.
+
+## Production
+
+Re-audit PR: **#276**
+Production merge commit:
+`e391774bba9262d21ade0cd13f83b23d924480f8`
+
+Production deployment:
+`dpl_Hy1QQMdSDVoSJqFCKL13HZXm2pUG`
+
+Production status: **READY** on `trackdash.it`.
+
+Live QA confirmed:
+- `18507` exact image renders;
+- `18507` compact preview shows current ASK from **EUR 210.12**;
+- `18014` 2024 compact preview shows current listing from **EUR 15**.
+
+Family status:
+**AVANTE JR. — COMPLETE WITH DOCUMENTED IMAGE / MARKET GAPS**
+
+Remaining opportunistic work:
+- recover a stable exact `93001` Champion's Gold hero image;
+- continue collecting exact current or completed evidence for market-thin Releases;
+- never weaken reused-Item-Number attribution safety merely to fill an empty price.
