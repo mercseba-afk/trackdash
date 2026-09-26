@@ -36,6 +36,8 @@ jobs:
 
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
           const chromeBin = process.env.CHROME_BIN
+          const historicalSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n  <rect width=\"512\" height=\"512\" rx=\"112\" fill=\"#080d18\"/>\n  <path d=\"M70 208h138l-34 34H70z\" fill=\"#ef1b24\"/>\n  <path d=\"M70 250h112l-30 30H70z\" fill=\"#fff\"/>\n  <path d=\"M70 288h86l-26 26H70z\" fill=\"#ef1b24\"/>\n  <path d=\"M170 162h96l-28 49h-35l-26 139h-70l27-139H96l12-49z\" fill=\"#fff\"/>\n  <path d=\"M269 162h80c68 0 104 35 104 86 0 63-48 102-124 102h-98l38-188zm54 56-18 76h29c31 0 50-17 50-42 0-22-15-34-43-34h-18z\" fill=\"#ef1b24\"/>\n  <circle cx=\"190\" cy=\"361\" r=\"25\" fill=\"#d7dde7\" stroke=\"#fff\" stroke-width=\"9\"/>\n  <circle cx=\"355\" cy=\"361\" r=\"25\" fill=\"#d7dde7\" stroke=\"#fff\" stroke-width=\"9\"/>\n</svg>"
+          const historicalSvgUrl = 'https://trackdash.it/__pwa-diag/historical-icon.svg'
 
           function pngDimensions(buffer) {
             if (buffer.length < 24) return null
@@ -120,12 +122,29 @@ jobs:
                       })
                       return
                     }
+                    if (request.url === historicalSvgUrl) {
+                      await Fetch.fulfillRequest({
+                        requestId,
+                        responseCode: 200,
+                        responseHeaders: [
+                          { name: 'Content-Type', value: 'image/svg+xml' },
+                          { name: 'Cache-Control', value: 'no-store' },
+                        ],
+                        body: Buffer.from(historicalSvg).toString('base64'),
+                      })
+                      return
+                    }
                     await Fetch.continueRequest({ requestId })
                   })().catch(async () => {
                     try { await Fetch.continueRequest({ requestId }) } catch {}
                   })
                 })
-                await Fetch.enable({ patterns: [{ urlPattern: '*manifest.webmanifest*', requestStage: 'Request' }] })
+                await Fetch.enable({
+                  patterns: [
+                    { urlPattern: '*manifest.webmanifest*', requestStage: 'Request' },
+                    { urlPattern: '*__pwa-diag/historical-icon.svg*', requestStage: 'Request' },
+                  ],
+                })
               }
 
               await Page.navigate({ url: `https://trackdash.it/?pwa-isolated=${encodeURIComponent(name)}&t=${Date.now()}` })
@@ -168,6 +187,43 @@ jobs:
             const variants = {
               baselineDirect: null,
               baselineRefetched: original,
+              currentNoId: (() => {
+                const { id, ...withoutId } = original
+                return withoutId
+              })(),
+              historicalSvgNoId: {
+                name: 'TrackDash',
+                short_name: 'TrackDash',
+                description: 'Mini 4WD collection, marketplace and Price Intelligence.',
+                start_url: '/',
+                scope: '/',
+                display: 'standalone',
+                background_color: '#080d18',
+                theme_color: '#080d18',
+                orientation: 'portrait-primary',
+                icons: [
+                  { src: historicalSvgUrl, sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+                  { src: historicalSvgUrl, sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+                  { src: '/apple-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+                ],
+              },
+              historicalSvgWithId: {
+                id: '/',
+                name: 'TrackDash',
+                short_name: 'TrackDash',
+                description: 'Mini 4WD collection, marketplace and Price Intelligence.',
+                start_url: '/',
+                scope: '/',
+                display: 'standalone',
+                background_color: '#080d18',
+                theme_color: '#080d18',
+                orientation: 'portrait-primary',
+                icons: [
+                  { src: historicalSvgUrl, sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+                  { src: historicalSvgUrl, sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+                  { src: '/apple-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+                ],
+              },
               legacyV4: {
                 ...original,
                 icons: [
