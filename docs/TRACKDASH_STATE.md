@@ -1,9 +1,145 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-24  
+> **Last updated:** 2026-09-26  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
+
+---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-26 — FIRE DRAGON JR. COMPLETE — MARKET THIN / ACTIVE
+
+**Fire Dragon Jr. has completed the current TrackDash family workflow: catalog genealogy, Release publication gate, exact/high-confidence images, granular SOLD evidence, initial eBay ASK scans, recompute and queue health are all closed. Thin evidence remains fail-closed; COMPLETE does not imply a consolidated Market Value.**
+
+### Canonical family — 9 public collector Releases
+
+1. **18011 — Fire Dragon Jr. — 1988 Original — Type 1**
+2. **18011 — Fire Dragon Jr. — 1998 Memorial Edition / Limited Reissue — Type 1**
+3. **18011 — Fire Dragon Jr. — 2012 Reissue — Type 1**
+4. **18072 — Fire Dragon Premium — 2012 — VS**
+5. **92290 — Fire Dragon 21st Century Edition — Clear Red — 2014 — VS**
+6. **92291 — Fire Dragon 21st Century Edition — Pearl — 2014 — VS**
+7. **92292 — Fire Dragon 21st Century Edition — Black — 2014 — VS**
+8. **92293 — Fire Dragon 21st Century Edition — Clear Blue — 2014 — VS**
+9. **95337 — Fire Dragon Clear Special — Polycarbonate Body — 2017 — VS**
+
+All 9 Releases pass the publication gate.
+
+### Shared ITEM 18011 invariant
+
+The 1988 Original, 1998 Memorial reissue and 2012 reissue share ITEM **18011**.
+
+Unattended eBay attribution remains disabled for all three rows:
+- queue enabled = false
+- next scan parked at 2099
+- reason = `DISABLED_SHARED_ITEM_NUMBER_18011`
+
+Generic ITEM-only eBay evidence must never be assigned automatically to one of these generations.
+
+### Images
+
+Canonical image coverage is **8/9**.
+
+Exact/high-confidence Release images are stored for every public Release except:
+- **18011 — 1998 Memorial Edition**
+
+The Memorial Release remains public because it has credible exact-release completed-sale evidence. Do not use a sibling 18011 image merely to eliminate the placeholder.
+
+### Final Market Method v4 state
+
+No Fire Dragon Release has sufficient evidence for a consolidated Market Value.
+
+**18011 — 1998 Memorial Edition**
+- 3 exact recent SOLD observations
+- canonical SOLD anchor: **EUR 16.00**
+- SOLD source count: 1
+- market regime: **insufficient**
+- Market Value: **null**
+- no current exact ASK
+
+**18072 — Fire Dragon Premium**
+- 2 exact recent SOLD observations
+- canonical SOLD anchor: **EUR 19.04**
+- 2 current accepted eBay ASK offers
+- canonical minimum effective current cost: **EUR 31.03**
+- active ASK anchor: **EUR 52.12**
+- market regime: **insufficient**
+- Market Value: **null**
+
+Current minimum offer:
+- item: **GBP 26.70**
+- shipping: **GBP 0.00**
+- effective EUR cost: **EUR 31.03**
+
+**95337 — Fire Dragon Clear Special**
+- 3 exact recent SOLD observations
+- canonical SOLD anchor: **EUR 8.16**
+- 2 current accepted eBay ASK offers
+- canonical minimum effective current cost: **EUR 24.10**
+- active ASK anchor: **EUR 31.57**
+- market regime: **insufficient**
+- Market Value: **null**
+
+Current minimum offer:
+- item: **EUR 14.46**
+- shipping: **EUR 9.64**
+- effective EUR cost: **EUR 24.10**
+
+**92290 / 92291 / 92292 / 92293 — 21st Century variants**
+- all four initial eBay jobs completed successfully
+- no exact current ASK was publishable
+- unrelated / non-discriminating search noise failed closed
+- no Market Value was invented
+
+### Final initial eBay scan
+
+The six unique-item Release jobs were staged at the head of the queue and processed in two Admin runs:
+
+- first run: **4 targets attempted / 4 succeeded**
+- second run: **2 targets attempted / 2 succeeded**
+- aggregate: **6 / 6 succeeded**
+- worker errors: **0**
+- review rows: **0**
+
+Run-level aggregate:
+- 10 candidate classifications observed
+- 4 accepted
+- 6 rejected
+
+Accepted current offers are attributable only to:
+- **18072 Premium** — 2
+- **95337 Clear Special** — 2
+
+### Queue / recompute health
+
+After the final Admin run:
+- Fire Dragon recompute queue: **0**
+- active Fire Dragon locks: **0**
+- recompute errors: **0**
+- all six unique-item eBay jobs have successful refresh timestamps and normal future cadence
+- shared ITEM 18011 jobs remain intentionally disabled
+
+### Production alignment
+
+PR **#278** merged the controlled Fire Dragon Jr. re-audit.
+
+Production deployment is **READY** from merge commit:
+
+**7303baaacf8da6975c0639329aca90c6d277c985**
+
+Live Supabase confirms the canonical 9-Release family and the final market/queue state above.
+
+Direct public-page HTTP probing was not available from the current connector during this close-out, so this checkpoint does not claim a fresh page-render probe beyond the verified Production deployment + live database state.
+
+### Completion status
+
+**FIRE DRAGON JR. COMPLETE — MARKET THIN / ACTIVE**
+
+Future work is opportunistic only:
+- recover a stable exact hero image for the 1998 Memorial Edition;
+- collect additional exact SOLD / ASK evidence;
+- preserve shared-ITEM 18011 fail-closed attribution;
+- reopen genealogy only if new identity evidence proves a factual split/merge correction.
 
 ---
 
