@@ -3508,3 +3508,35 @@ Remaining opportunistic work:
 - recover a stable exact `93001` Champion's Gold hero image;
 - continue collecting exact current or completed evidence for market-thin Releases;
 - never weaken reused-Item-Number attribution safety merely to fill an empty price.
+
+---
+
+# AVANTE JR. — IMAGE RENDER HEALTH FIX — 26/09/2026
+
+This work does **not** reopen the Avante Jr. genealogy or market audit. It only verifies live image rendering for the Release previews reported missing by the user.
+
+Root cause:
+- `18506` 1989 Original had a stored legacy Tamiya USA image URL, but TrackDash Next Image returned HTTP 400.
+- `18506` 2012 Reissue already used the official Tamiya Japan asset and returned HTTP 200; no change required.
+- both `95501` Releases (2019 and 2021) shared a stored legacy Tamiya USA image URL that returned HTTP 400.
+- `93001` Champion's Gold has no stored hero image at all.
+
+Repairs applied:
+- `18506` 1989 Original → exact Suruga asset `603014086.jpg.webp`.
+- `95501` 2019 Reissue → exact ITEM 95501 Suruga asset `603200437.jpg.webp`.
+- `95501` 2021 Reissue → exact ITEM 95501 Suruga asset `603200437.jpg.webp`.
+- `18506` 2012 Reissue left unchanged.
+
+Live Production verification after DB update:
+- replacement `18506` image proxy → HTTP 200;
+- replacement `95501` image proxy → HTTP 200;
+- existing `18506` 2012 image proxy → HTTP 200;
+- family HTML contains the new Suruga hero URLs.
+
+Image-render health is therefore **12/13 Releases healthy**.
+
+Only remaining genuine image gap:
+- `93001` — Avante Jr. Champion's Gold.
+
+Exact 93001 image-bearing historical sources exist (Yahoo Japan auction, collector museum/archive), but no stable direct hero asset has yet been verified. Do not substitute a generic Avante/sibling image merely to remove the placeholder.
+
