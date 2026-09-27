@@ -1,7 +1,7 @@
 # TrackDash — Mini 4WD Vertical
 
 > Dedicated operational record for the Tamiya Mini 4WD vertical.
-> Last updated: 2026-09-26.
+> Last updated: 2026-09-27.
 > This file records the current state, durable Mini 4WD-specific decisions, reference families and exact continuation rules.
 > It is an index/state document, not a replacement for the operational Masters.
 > `docs/TRACKDASH_STATE.md` remains the cross-project authoritative checkpoint.
@@ -90,9 +90,9 @@ Do not duplicate or fork those rules here.
 
 ---
 
-## Current platform state — 2026-09-23
+## Current platform state — 2026-09-27
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-26 — FIRE DRAGON JR. COMPLETE — MARKET THIN / ACTIVE”** in `docs/TRACKDASH_STATE.md`.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-27 — THUNDER SHOT JR. COMPLETE — MARKET THIN / NO CURRENT EXACT ASK”** in `docs/TRACKDASH_STATE.md`.
 
 Final functional Production baseline recorded there before the documentation-only checkpoint:
 
@@ -114,6 +114,32 @@ Current shared market UI cleanup is considered **closed**. No further UI work re
 ---
 
 ## Current / recent reference families
+
+### Thunder Shot Jr.
+
+Status:
+
+**COMPLETE — MARKET THIN / NO CURRENT EXACT ASK**
+
+Canonical researched family:
+
+**16 identities — 15 public + 1 research-only**
+
+Durable state:
+- shared ITEM `18009` generations are fail-closed for unattended eBay attribution;
+- two TKC Releases are distinct: `92078` (1992) and shared-item `18009` TKC Nuremberg (1999);
+- Mazda Promotional Version remains `research_only` because sources conflict on ITEM `92006` vs `92008`;
+- stored exact/high-confidence hero coverage: **8/15 public Releases**;
+- public Production QA passed **15/15 Release pages** and **8/8 stored images**;
+- 10/10 unique-item initial eBay jobs completed successfully;
+- no current exact eBay ASK was accepted;
+- Black Special 18013 SOLD anchor **EUR 48.77**;
+- Memorial 1998 SOLD anchor **EUR 23.65**;
+- Thunder Shot RS 18059 SOLD anchor **EUR 41.79**;
+- no Release currently has sufficient evidence for a consolidated Market Value;
+- Thunder Shot recompute queue, due queue and locks are clear.
+
+Do not reopen the family merely because current ASK coverage is empty or some exact hero images remain unavailable.
 
 ### Fire Dragon Jr.
 
