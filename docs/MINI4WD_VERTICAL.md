@@ -129,8 +129,10 @@ Durable state:
 - shared ITEM `18009` generations are fail-closed for unattended eBay attribution;
 - two TKC Releases are distinct: `92078` (1992) and shared-item `18009` TKC Nuremberg (1999);
 - Mazda Promotional Version remains `research_only` because sources conflict on ITEM `92006` vs `92008`;
-- stored exact/high-confidence hero coverage: **8/15 public Releases**;
-- public Production QA passed **15/15 Release pages** and **8/8 stored images**;
+- stored exact/high-confidence hero coverage after the 2026-09-27 recovery pass: **12/15 public Releases**;
+- newly recovered heroes: 18009 Original 1988, 92078 TKC 1992, 92314 Legend Style Gold, 92315 Legend Style Silver;
+- remaining intentional placeholders: Shonen Jump, 92254 Excalibur Red, 92255 Excalibur Clear Blue;
+- public Production QA passed **15/15 Release pages**; all four newly recovered assets passed the TrackDash Next Image proxy before insertion;
 - 10/10 unique-item initial eBay jobs completed successfully;
 - no current exact eBay ASK was accepted;
 - Black Special 18013 SOLD anchor **EUR 48.77**;
