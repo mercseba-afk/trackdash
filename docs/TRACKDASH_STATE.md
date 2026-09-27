@@ -62,9 +62,9 @@ The 2005 Memorial Box Vol.4 Black Special is a five-car set occurrence and is no
 
 ### Images / public QA
 
-Stored exact/high-confidence hero coverage: **8 / 15 public Releases**.
+Stored exact/high-confidence hero coverage after the dedicated image-recovery pass: **12 / 15 public Releases**.
 
-Verified stored heroes:
+Previously verified stored heroes:
 - 18013 Black Special;
 - 18009 Memorial 1998;
 - 18009 TKC Nuremberg 1999;
@@ -74,14 +74,28 @@ Verified stored heroes:
 - 92252 Excalibur White;
 - 92253 Excalibur Black.
 
-Production QA on functional merge commit **9f0f7291efc10bd2eb29b67747c7d0d8d3ed6e78**:
+Recovered on **2026-09-27** and persisted by `0184_thunder_shot_jr_image_backfill.sql`:
+- **18009 Original 1988** — exact-era Mercari listing explicitly identified as 1988 production;
+- **92078 TKC Version 1992** — exact Mercari example independently matching the DATEV/TKC 1992 identity;
+- **92314 Legend Style Gold** — exact RCJAZ Canada ITEM-specific product hero;
+- **92315 Legend Style Silver** — exact RCJAZ Canada ITEM-specific product hero.
+
+All four recovered assets returned **HTTP 200** through the TrackDash Next Image proxy before insertion.
+
+The only remaining public placeholders are:
+- **18009 Shonen Jump 20th Anniversary Prize Version**;
+- **92254 Excalibur Red**;
+- **92255 Excalibur Clear Blue**.
+
+These three remain intentional because the current research found identity evidence but did not establish a sufficiently reliable individual hero asset. No sibling, family-group or uncertain image is substituted merely to reach 15/15.
+
+Production QA on functional merge commit **9f0f7291efc10bd2eb29b67747c7d0d8d3ed6e78** already confirmed:
 - Production deployment READY;
 - `/api/version` returned the same commit;
 - family page HTTP 200;
-- **15/15 public Release pages** HTTP 200 with the correct identity label;
-- **8/8 stored image assets** HTTP 200 through the TrackDash Next image proxy.
+- **15/15 public Release pages** HTTP 200 with the correct identity label.
 
-Missing heroes remain intentional; no sibling/base image is substituted merely to remove placeholders.
+Image-backfill PR: **#282**.
 
 ### Granular SOLD evidence
 
@@ -149,7 +163,11 @@ Treat the Dash-1 95110 error as a separate queue/runtime issue when that family 
 Controlled re-audit migration:
 - `supabase/migrations/0183_thunder_shot_jr_family_reaudit.sql`
 
+Image backfill migration:
+- `supabase/migrations/0184_thunder_shot_jr_image_backfill.sql`
+
 PR **#280** merged the family re-audit.
+PR **#282** carries the post-completion exact/high-confidence image backfill.
 
 Functional Production merge commit:
 **9f0f7291efc10bd2eb29b67747c7d0d8d3ed6e78**
@@ -159,7 +177,7 @@ Functional Production merge commit:
 **THUNDER SHOT JR. COMPLETE — MARKET THIN / NO CURRENT EXACT ASK**
 
 Future work is opportunistic only:
-- recover stable exact hero assets for public placeholder Releases;
+- recover stable individual hero assets specifically for Shonen Jump, 92254 Red and 92255 Clear Blue;
 - resolve Mazda ITEM 92006 vs 92008 with stronger primary/exact evidence before promotion;
 - collect additional exact SOLD/current ASK evidence;
 - preserve fail-closed shared-ITEM 18009 behavior.
