@@ -1,9 +1,168 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-26  
+> **Last updated:** 2026-09-27  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
+
+---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-27 — THUNDER SHOT JR. COMPLETE — MARKET THIN / NO CURRENT EXACT ASK
+
+**Thunder Shot Jr. has completed the current TrackDash family workflow. The legacy two-Release family was re-audited into 16 researched collector identities: 15 public and 1 research-only. Publication remains evidence-driven; COMPLETE does not mean every Release has a hero image, current ASK or consolidated Market Value.**
+
+### Canonical researched family — 16 identities
+
+Public:
+1. **18009 — Thunder Shot Jr. — 1988 Original — Type 1**
+2. **18009 — Shonen Jump 20th Anniversary Prize Version — 1988 — Type 1**
+3. **18013 — Thunder Shot Jr. Black Special — 1988 — Type 1**
+4. **92078 — Thunder Shot Jr. TKC Version — 1992 — Type 1**
+5. **18009 — Thunder Shot Jr. Memorial Edition / Limited Reissue — 1998 — Type 1**
+6. **18009 — Thunder Shot Jr. TKC Nuremberg Custom — 1999 — Type 1**
+7. **18059 — Thunder Shot RS — 2005 — VS**
+8. **18009 — Thunder Shot Jr. Reissue — 2006 — Type 1**
+9. **94814 — Thunder Shot Open Top — 2011 — Super XX**
+10. **92252 — Thunder Shot Excalibur — White — 2013 — VS**
+11. **92253 — Thunder Shot Excalibur — Black — 2013 — VS**
+12. **92254 — Thunder Shot Excalibur — Red — 2013 — VS**
+13. **92255 — Thunder Shot Excalibur — Clear Blue — 2013 — VS**
+14. **92314 — Thunder Shot Legend Style — Gold — 2015 — VS**
+15. **92315 — Thunder Shot Legend Style — Silver — 2015 — VS**
+
+Research-only:
+16. **Thunder Shot Jr. Mazda Promotional Version — 1988**
+   - real promotional identity is retained;
+   - source evidence conflicts on ITEM **92006 vs 92008**;
+   - no Item Number is invented;
+   - no stable exact hero + resolved-identifier market combination yet;
+   - therefore it remains correctly hidden from the public Catalog.
+
+### Identity / shared Item Number rules
+
+ITEM **18009** is reused across multiple collector-distinct Thunder Shot identities:
+- 1988 Original;
+- Shonen Jump prize;
+- 1998 Memorial limited reissue;
+- 1999 TKC Nuremberg custom;
+- 2006 reissue line.
+
+Unattended eBay attribution is disabled for every shared-ITEM 18009 row:
+- enabled = false;
+- next scan parked at 2099;
+- reason = `DISABLED_SHARED_ITEM_NUMBER_18009`.
+
+Generic ITEM-only evidence must not choose one of those generations automatically.
+
+Two TKC identities are intentionally distinct:
+- **92078 — TKC Version 1992**
+- **18009 — TKC Nuremberg 1999 Custom**
+
+The 2005 Memorial Box Vol.4 Black Special is a five-car set occurrence and is not duplicated as a standalone Thunder Shot Release.
+
+### Images / public QA
+
+Stored exact/high-confidence hero coverage: **8 / 15 public Releases**.
+
+Verified stored heroes:
+- 18013 Black Special;
+- 18009 Memorial 1998;
+- 18009 TKC Nuremberg 1999;
+- 18059 Thunder Shot RS;
+- 18009 Reissue 2006;
+- 94814 Open Top;
+- 92252 Excalibur White;
+- 92253 Excalibur Black.
+
+Production QA on functional merge commit **9f0f7291efc10bd2eb29b67747c7d0d8d3ed6e78**:
+- Production deployment READY;
+- `/api/version` returned the same commit;
+- family page HTTP 200;
+- **15/15 public Release pages** HTTP 200 with the correct identity label;
+- **8/8 stored image assets** HTTP 200 through the TrackDash Next image proxy.
+
+Missing heroes remain intentional; no sibling/base image is substituted merely to remove placeholders.
+
+### Granular SOLD evidence
+
+No Thunder Shot Release currently has enough evidence for a consolidated Market Value.
+
+**18013 — Black Special 1988**
+- 1 exact recent SOLD;
+- JPY 9,075;
+- canonical SOLD anchor: **EUR 48.77**;
+- market regime: **insufficient**;
+- Market Value: **null**.
+
+**18009 — Memorial Edition 1998**
+- 1 exact recent SOLD;
+- JPY 4,400;
+- canonical SOLD anchor: **EUR 23.65**;
+- market regime: **insufficient**;
+- Market Value: **null**.
+
+**18059 — Thunder Shot RS**
+- 1 exact recent SOLD;
+- JPY 7,750;
+- canonical SOLD anchor: **EUR 41.79**;
+- market regime: **insufficient**;
+- Market Value: **null**.
+
+### Final eBay Initial Scan
+
+The 10 unique-item eBay jobs all completed successfully:
+- **10 / 10 successful**
+- Thunder Shot queue errors: **0**
+- active Thunder Shot locks: **0**
+- due Thunder Shot eBay jobs: **0**
+- recompute queue: **0**
+
+Across the final initial-scan window:
+- **41 classified candidates** were persisted for the 10 unique Item Numbers;
+- **0 accepted**
+- **0 review**
+- **41 rejected**
+
+No current eBay ASK passed the exact Item Number / Release attribution gate.
+
+Examples of correctly rejected noise included:
+- Thunder Shot RC parts and 1/10 buggy listings;
+- Thunder Shot Mk.II variants;
+- generic Excalibur/Legend Style listings where the exact Tamiya Item Number was absent from the title.
+
+Therefore no public **Prezzo minimo richiesto** is invented from the automated eBay pass.
+
+### Separate unrelated worker note
+
+During the second Admin click, the shared worker also claimed an unrelated **Dash-1 Emperor 95110** target. That target failed with:
+`market_offer_states.release_id null violates not-null constraint`.
+
+This did **not** affect Thunder Shot Jr.:
+- 18013 succeeded;
+- 92255 succeeded;
+- all 10 Thunder Shot unique-item jobs have successful refresh timestamps.
+
+Treat the Dash-1 95110 error as a separate queue/runtime issue when that family is next audited; do not reopen Thunder Shot because of it.
+
+### Production / implementation
+
+Controlled re-audit migration:
+- `supabase/migrations/0183_thunder_shot_jr_family_reaudit.sql`
+
+PR **#280** merged the family re-audit.
+
+Functional Production merge commit:
+**9f0f7291efc10bd2eb29b67747c7d0d8d3ed6e78**
+
+### Completion status
+
+**THUNDER SHOT JR. COMPLETE — MARKET THIN / NO CURRENT EXACT ASK**
+
+Future work is opportunistic only:
+- recover stable exact hero assets for public placeholder Releases;
+- resolve Mazda ITEM 92006 vs 92008 with stronger primary/exact evidence before promotion;
+- collect additional exact SOLD/current ASK evidence;
+- preserve fail-closed shared-ITEM 18009 behavior.
 
 ---
 
