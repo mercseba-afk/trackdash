@@ -119,7 +119,7 @@ Current shared market UI cleanup remains **closed**. No further UI work remains 
 
 Status:
 
-**COMPLETE — MARKET THIN / ACTIVE — SIX DOCUMENTED IMAGE GAPS**
+**COMPLETE — MARKET THIN / ACTIVE — ONE DOCUMENTED IMAGE GAP**
 
 Canonical family:
 
@@ -138,12 +138,13 @@ Durable state:
 - Memorial Box Vol.1 2005 is a set occurrence, not a standalone Release;
 - 1989 original and 2007 reissue share ITEM/JAN 18019 and remain fail-closed for unattended eBay attribution;
 - the 1989 vintage identity is separated by Ondawara / first-edition packaging evidence;
+- external-source exact images are explicitly allowed: Suruga CDN heroes were recovered for 94820 and all four Dragontail colors using the same stable management-ID pattern already used elsewhere in TrackDash;
 - 94820 is an autonomous Blue Plated full kit;
 - all four Dragontail colors are autonomous fixed ITEM identities;
 - shared SK Japan code 4519869512006 is not treated as a unique color barcode;
 - Silver Body is a Grade-Up Parts/body-set item and remains outside the collector Release family;
-- exact/high-confidence image coverage is **2/8**;
-- intentional placeholders: 18019 Original 1989, 94820 and all four Dragontail colors;
+- exact/high-confidence image coverage is **7/8**;
+- only intentional placeholder: 18019 Original 1989 Ondawara;
 - 1989 Original SOLD anchor **EUR 147.17**, 1 sale / 1 source, no MV;
 - 18630 minimum current effective ASK **EUR 25.71**;
 - 92338 Red minimum current effective ASK **EUR 72.99**;
@@ -151,7 +152,7 @@ Durable state:
 - eBay listing-level sold counters must not be converted into invented granular sales;
 - final hard gate: A=0, B=0, stale v4=0, recompute=0, locks=0, due eBay=0.
 
-Do not reopen the family merely because six stable exact hero assets remain unavailable or because the market is thin.
+Do not reopen the family merely because the single vintage Ondawara hero remains unavailable or because the market is thin.
 
 ### Dash-2 Burning Sun
 
