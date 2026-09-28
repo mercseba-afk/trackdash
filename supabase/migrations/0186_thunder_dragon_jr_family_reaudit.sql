@@ -20,30 +20,40 @@ set edition_name = 'Thunder Dragon Jr. — 1987 Original (Oshika 5-digit No.1800
     catalog_visibility = 'public',
     catalog_visibility_reason = 'publication_gate:exact_current_collector_market_trace',
     catalog_visibility_updated_at = now(),
-    notes = concat_ws(
-      ' ',
-      nullif(notes,''),
-      'Re-audit 2026-09-28: the five-digit Oshika 18008 identity is kept distinct from the four-digit 2908 package because the printed number is a collector-visible physical discriminator. Mandarake catalogs both separately under JAN 4950344180080. A current Japanese marketplace listing explicitly identifies an unassembled Oshika-era Thunder Dragon Jr. as 18008; this is sufficient publication evidence but is not converted into a canonical European ASK because landed cost is not established.'
-    ),
+    notes = case
+      when coalesce(notes,'') like '%Re-audit 2026-09-28:%' then notes
+      else concat_ws(
+        ' ',
+        nullif(notes,''),
+        'Re-audit 2026-09-28: the five-digit Oshika 18008 identity is kept distinct from the four-digit 2908 package because the printed number is a collector-visible physical discriminator. Mandarake catalogs both separately under JAN 4950344180080. A current Japanese marketplace listing explicitly identifies an unassembled Oshika-era Thunder Dragon Jr. as 18008; this is sufficient publication evidence but is not converted into a canonical European ASK because landed cost is not established.'
+      )
+    end,
     updated_at = now()
-where id = 'ef8c9a34-a78f-5f47-9f48-79460a21d40b'::uuid;
+where product_id = (select id from public.products where slug = 'thunder-dragon-jr-18008')
+  and item_number = '18008'
+  and release_year = 1987;
 
 insert into public.release_sources (
   release_id, source_type, source_url, verified_fields, checked_at, notes
 )
 select
-  'ef8c9a34-a78f-5f47-9f48-79460a21d40b'::uuid,
+  r.id,
   'other',
   'https://fril.jp/brand/17163/category/827',
   array['itemNumber','editionName','marketPresence']::text[],
   date '2026-09-28',
   'Current Japanese marketplace result explicitly titled as an 80s Oshika Tamiya Thunder Dragon Jr. 18008, Japan-made and unassembled. Used only as exact-release current-market/publication evidence; no canonical EUR ASK is persisted because exact landed cost is not established.'
-where not exists (
-  select 1
-  from public.release_sources
-  where release_id = 'ef8c9a34-a78f-5f47-9f48-79460a21d40b'::uuid
-    and source_url = 'https://fril.jp/brand/17163/category/827'
-);
+from public.product_releases r
+join public.products p on p.id = r.product_id
+where p.slug = 'thunder-dragon-jr-18008'
+  and r.item_number = '18008'
+  and r.release_year = 1987
+  and not exists (
+    select 1
+    from public.release_sources s
+    where s.release_id = r.id
+      and s.source_url = 'https://fril.jp/brand/17163/category/827'
+  );
 
 -- 1987 four-digit Oshika package: retain as a separate collector Release but
 -- avoid claiming that every first production used 2908. Strong collector
@@ -54,30 +64,40 @@ set edition_name = 'Thunder Dragon Jr. — 1987 Oshika 4-digit KIT No.2908',
     catalog_visibility = 'public',
     catalog_visibility_reason = 'publication_gate:exact_collector_market_identity_and_current_buy_market',
     catalog_visibility_updated_at = now(),
-    notes = concat_ws(
-      ' ',
-      nullif(notes,''),
-      'Re-audit 2026-09-28: 2908 is retained as a distinct four-digit Oshika package identity, but the prior blanket label "First Production" is removed because surviving evidence is packaging-specific rather than proof that all earliest domestic production used 2908. Mandarake separately catalogs 2908 and five-digit 18008 under JAN 4950344180080; collector documentation also records a 2908 USA/export box. Exact current buy-market evidence is publication-grade context only and is not a canonical consumer ASK/SOLD signal.'
-    ),
+    notes = case
+      when coalesce(notes,'') like '%Re-audit 2026-09-28:%' then notes
+      else concat_ws(
+        ' ',
+        nullif(notes,''),
+        'Re-audit 2026-09-28: 2908 is retained as a distinct four-digit Oshika package identity, but the prior blanket label "First Production" is removed because surviving evidence is packaging-specific rather than proof that all earliest domestic production used 2908. Mandarake separately catalogs 2908 and five-digit 18008 under JAN 4950344180080; collector documentation also records a 2908 USA/export box. Exact current buy-market evidence is publication-grade context only and is not a canonical consumer ASK/SOLD signal.'
+      )
+    end,
     updated_at = now()
-where id = '9478e707-8ac2-4f91-8596-280393cbfc34'::uuid;
+where product_id = (select id from public.products where slug = 'thunder-dragon-jr-18008')
+  and item_number = '2908'
+  and release_year = 1987;
 
 insert into public.release_sources (
   release_id, source_type, source_url, verified_fields, checked_at, notes
 )
 select
-  '9478e707-8ac2-4f91-8596-280393cbfc34'::uuid,
+  r.id,
   'trusted_secondary',
   'https://plaza.rakuten.co.jp/mini4museum/diary/202106070003/',
   array['itemNumber','editionName','packaging']::text[],
   date '2026-09-28',
   'Collector museum entry documents KIT NO.2908 as a Thunder Dragon Jr. USA/export package with Oshika address markings, while separately documenting the ordinary 18008 and 1998 limited reissue. Used to refine the 2908 packaging identity, not to infer a universal first-production chronology.'
-where not exists (
-  select 1
-  from public.release_sources
-  where release_id = '9478e707-8ac2-4f91-8596-280393cbfc34'::uuid
-    and source_url = 'https://plaza.rakuten.co.jp/mini4museum/diary/202106070003/'
-);
+from public.product_releases r
+join public.products p on p.id = r.product_id
+where p.slug = 'thunder-dragon-jr-18008'
+  and r.item_number = '2908'
+  and r.release_year = 1987
+  and not exists (
+    select 1
+    from public.release_sources s
+    where s.release_id = r.id
+      and s.source_url = 'https://plaza.rakuten.co.jp/mini4museum/diary/202106070003/'
+  );
 
 -- Product-level audit state. Non-autonomous occurrences stay documented
 -- context rather than being inflated into extra catalog Releases.
@@ -99,20 +119,24 @@ set metadata =
         )
       ),
     updated_at = now()
-where id = '9babb5d8-f8d0-5741-bb12-22e5a069015a'::uuid;
+where slug = 'thunder-dragon-jr-18008';
 
 -- Re-stage only the unique-item eBay jobs for a final post-audit initial scan.
 -- Shared ITEM 18008 eBay rows remain disabled/fail-closed.
-update public.market_scan_queue
+update public.market_scan_queue q
 set priority = 130,
     next_scan_at = timestamp with time zone '2000-01-01 00:00:00+00'
-where source_id = '709dcecf-d368-4742-b114-f00f5d7ed646'::uuid
-  and scan_scope = 'active_marketplace'
-  and enabled = true
-  and release_id in (
-    '9478e707-8ac2-4f91-8596-280393cbfc34'::uuid,
-    'bbc9e062-ba69-5cf9-9228-de2de15640a6'::uuid,
-    '650fcdc3-c510-4630-bff3-d176a68bf5c0'::uuid
+where q.source_id = (
+    select id from public.price_sources where slug = 'ebay_active_public'
+  )
+  and q.scan_scope = 'active_marketplace'
+  and q.enabled = true
+  and q.release_id in (
+    select r.id
+    from public.product_releases r
+    join public.products p on p.id = r.product_id
+    where p.slug = 'thunder-dragon-jr-18008'
+      and r.item_number in ('2908','18068','95336')
   );
 
 commit;
