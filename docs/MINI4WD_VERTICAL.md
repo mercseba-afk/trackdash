@@ -92,25 +92,65 @@ Do not duplicate or fork those rules here.
 
 ## Current platform state — 2026-09-28
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-1 EMPEROR COMPLETE — ACTIVE / MIXED MARKET DEPTH”** in docs/TRACKDASH_STATE.md.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-2 BURNING SUN COMPLETE — MARKET THIN / ACTIVE”** in docs/TRACKDASH_STATE.md.
 
 Functional family close-out Production baseline:
 
-**f7b7833c314bf3042428e6630e8d3cb628a09f88**
+**d35489469434faba0fae7e6a9b3e32ca31a188e7**
 
 At close-out:
-- GitHub main pointed to that functional merge commit;
+- GitHub main pointed to that merge commit;
 - Vercel Production for that commit was READY;
-- live Supabase genealogy, market completeness, recompute and queue gates were clear;
-- the 95110 eBay lifecycle regression was fixed globally by PR #287.
+- live Supabase showed 10 canonical public Dash-2 Releases;
+- all nine valuation-compatible eBay jobs had successful refresh timestamps;
+- recompute queue, scan locks and due Dash-2 eBay queue were clear;
+- Europe-first logic correctly kept the surviving EBAY_US 18026 offer as non-European context rather than a public European asking price.
 
-A subsequent documentation/status-history commit may advance main without changing the functional close-out behavior. Future sessions must still verify current main, Vercel Production and live Supabase before a material Production change.
+Future sessions must still verify current main, Vercel Production and live Supabase before a material Production change.
 
 Current shared market UI cleanup remains **closed**. No further UI work remains on that block unless a new regression/evidence requires it.
 
 ---
 
 ## Current / recent reference families
+
+### Dash-2 Burning Sun
+
+Status:
+
+**COMPLETE — MARKET THIN / ACTIVE — SIX DOCUMENTED IMAGE GAPS**
+
+Canonical family:
+
+**10 public Releases**
+
+- 18015 — 1989 Original / Type 1
+- 18026 — 1990 Type 3
+- 18628 — 2008 MS
+- 94675 — 2009 MS Finished Model
+- 94819 — 2011 Green Plated
+- 92343–92346 — 2016 Burning Sun Helios four fixed-color prize Releases / Super 1
+- 92373 — 2017 Kirin Mets Cola Original / MS
+
+Durable state:
+- Memorial Box Vol.1 2005 is a set occurrence, not a standalone Release;
+- 94819 is an autonomous Green Plated commercial kit, distinct from the plated Memorial Box occurrence;
+- all four Helios colors are autonomous fixed ITEM identities;
+- 92373 is an autonomous campaign boxed kit;
+- exact/high-confidence image coverage is **4/10**;
+- six placeholders are intentional after second-pass image research;
+- 94675 Finished Model stays outside the automatic new_complete_unbuilt valuation lane;
+- 18628 has canonical minimum effective ASK **EUR 24.64** from one exact Europe-comparable current offer;
+- 18026 has exact market evidence but no public European ASK because the currently purchasable exact listing is EBAY_US / north_america and the older eBay.it state is availability unknown;
+- all nine valuation-compatible eBay jobs completed successfully;
+- stale v4=0, recompute=0, locks=0, due eBay=0.
+
+Europe-first invariant illustrated by 18026:
+- exact identity acceptance and public price publication are separate decisions;
+- extra-EU marketplace shipping is not assumed to be delivered-to-Europe cost;
+- do not reject valid exact evidence merely to force a raw accepted-evidence counter to zero.
+
+Do not reopen this family merely because six hero images remain unavailable or because thin Releases have no numeric European signal.
 
 ### Dash-1 Emperor
 
