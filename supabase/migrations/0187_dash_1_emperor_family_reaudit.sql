@@ -531,7 +531,6 @@ set enabled=false,
     locked_until=null,
     updated_at=now()
 where q.source_id=(select id from public.price_sources where slug='ebay_active_public')
-  and q.scan_scope='active_marketplace'
   and q.release_id in (
     select r.id from public.product_releases r join public.products p on p.id=r.product_id
     where p.slug='dash-1-emperor-18025' and r.item_number in ('18012','18025')
@@ -565,7 +564,6 @@ set enabled=true,
     locked_until=null,
     updated_at=now()
 where q.source_id=(select id from public.price_sources where slug='ebay_active_public')
-  and q.scan_scope='active_marketplace'
   and q.release_id in (
     select r.id from public.product_releases r join public.products p on p.id=r.product_id
     where p.slug='dash-1-emperor-18025'
