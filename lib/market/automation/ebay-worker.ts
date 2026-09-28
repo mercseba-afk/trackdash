@@ -359,7 +359,16 @@ async function upsertCandidate(
     title_raw: input.listing.title,
     item_number_observed: input.release.itemNumber,
     possible_release_ids: input.release.sharedReleaseIds,
-    resolved_release_id: isAccepted ? input.release.id : null,
+    // A listing that was already exactly assigned to this Release keeps that
+    // identity even if a later refresh downgrades the listing to review/rejected.
+    // Lifecycle/availability is handled in market_offer_states; clearing the
+    // Release identity here would also cascade through the composite FK and can
+    // attempt to null market_offer_states.release_id.
+    resolved_release_id: isAccepted
+      ? input.release.id
+      : existing?.resolved_release_id === input.release.id
+        ? input.release.id
+        : null,
     price: input.listing.price,
     currency: input.listing.currency,
     shipping_cost: input.listing.shipping,
