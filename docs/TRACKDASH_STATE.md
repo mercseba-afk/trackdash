@@ -7,6 +7,167 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-2 BURNING SUN COMPLETE — MARKET THIN / ACTIVE
+
+**Dash-2 Burning Sun has completed the current TrackDash family workflow. The legacy five-row catalog was rebuilt into 10 canonical public Releases, the 2005 Memorial Box component was removed as a standalone identity, six missing collector identities were added, exact-image policy was re-applied, all nine valuation-compatible eBay jobs completed successfully, recompute/queue health is clear, and Europe-first publication correctly suppresses non-European current ASK evidence. COMPLETE does not imply complete image coverage or a consolidated Market Value.**
+
+### Canonical family — 10 public Releases
+
+1. **18015 — 1989 Original / Type 1**
+2. **18026 — 1990 Type 3 Chassis**
+3. **18628 — 2008 MS Chassis**
+4. **94675 — 2009 MS Finished Model**
+5. **94819 — 2011 Green Plated Body Specification**
+6. **92343 — 2016 Burning Sun Helios Red / Super 1**
+7. **92344 — 2016 Burning Sun Helios Silver / Super 1**
+8. **92345 — 2016 Burning Sun Helios White / Super 1**
+9. **92346 — 2016 Burning Sun Helios Black / Super 1**
+10. **92373 — 2017 Kirin Mets Cola Original / MS**
+
+Final publication split:
+- public: **10**
+- research-only: **0**
+
+### Genealogy corrections
+
+**Racer Mini 4WD Memorial Box Vol.1 — 2005**
+- contains Burning Sun as one component of parent set ITEM 94547;
+- removed as a standalone Release;
+- retained only as set/production context.
+
+**94819 Green Plated**
+- autonomous 2011 commercial kit;
+- JAN **4950344948192**;
+- distinct from the earlier green-plated Burning Sun contained in Memorial Box ITEM 94615.
+
+**Burning Sun Helios**
+- four autonomous fixed-color amusement-prize identities:
+  - 92343 Red
+  - 92344 Silver
+  - 92345 White
+  - 92346 Black
+- all use Super 1 chassis;
+- White has verified JAN **4519869603001**.
+
+**92373 Kirin Mets Cola Original**
+- autonomous 2017 promotional boxed Burning Sun kit;
+- red MS specification with dedicated campaign treatment;
+- distributed in the Kirin Mets Cola campaign alongside Emperor ITEM 92372.
+
+### Images
+
+Exact/high-confidence stored hero coverage: **4 / 10**.
+
+Stored exact heroes:
+- 18015
+- 18026
+- 18628
+- 94675 Finished Model
+
+Intentional placeholders after targeted second pass:
+- 94819 Green Plated
+- 92343 Helios Red
+- 92344 Helios Silver
+- 92345 Helios White
+- 92346 Helios Black
+- 92373 Kirin Mets Cola
+
+Exact-product pages with visible imagery were found for the six missing heroes, but no stable direct asset URL was accepted. No sibling or fragile page asset is substituted merely to remove placeholders.
+
+### Status / rarity
+
+Verified production state:
+- 18015 — active/current Tamiya handling
+- 18026 — active/current Tamiya handling
+- 18628 — active
+- 94675 — discontinued
+- 94819 — discontinued
+- 92343–92346 Helios — discontinued prize Releases
+- 92373 Kirin Mets Cola — discontinued promotional Release
+
+Rarity remains intentionally unforced where evidence is insufficient. UNKNOWN > INVENTED.
+
+### Final Market Method v4 state
+
+No Dash-2 Burning Sun Release currently has sufficient evidence for a consolidated Market Value.
+
+**18628 — 2008 MS Chassis**
+- exact current eBay Europe-facing offer accepted
+- canonical minimum effective current cost: **EUR 24.64**
+- active ASK anchor: **EUR 24.64**
+- 1 active/current offer
+- confidence: **15 / low**
+- regime: **insufficient**
+- Market Value: null
+
+**18026 — 1990 Type 3**
+- exact eBay evidence exists;
+- an older eBay.it exact candidate is no longer confirmed purchasable and its offer-state availability is now **unknown**;
+- the currently purchasable exact candidate is on **EBAY_US** at USD 97.99 + USD 29.99;
+- repository mapping correctly classifies EBAY_US as **north_america**;
+- Market Method v4 Europe-first rules therefore retain that listing as contextual evidence but do **not** publish it as European “Prezzo minimo richiesto”;
+- public Market Value / ASK anchor / starting effective cost remain null by design.
+
+**18015 / 94819 / 92343 / 92344 / 92345 / 92346 / 92373**
+- controlled eBay jobs completed successfully;
+- no publishable current European exact ASK emerged;
+- no Market Value is invented.
+
+**94675 Finished Model**
+- intentionally excluded from the automatic new_complete_unbuilt eBay valuation lane because it is a factory-finished product format.
+
+### Final eBay Initial Scan
+
+All nine valuation-compatible unique ITEM jobs completed successfully across the user's three Admin runs:
+- **9 / 9 success**
+- worker errors: **0**
+- active locks: **0**
+- due Dash-2 eBay jobs: **0**
+
+Accepted exact current-listing candidates:
+- 18026 Type 3 — exact, but current purchasable lane is extra-EU and therefore not a European public ASK
+- 18628 MS — exact Europe-comparable offer, minimum effective cost **EUR 24.64**
+
+The remaining seven scanned ITEMs produced no publishable exact current eBay ASK.
+
+### Completion gate / Europe-first note
+
+Final live Supabase state:
+- Europe-comparable live offer with empty public signal: **0**
+- stale Market Method versions: **0**
+- Dash-2 recompute queue: **0**
+- active Dash-2 scan locks: **0**
+- due enabled Dash-2 eBay jobs: **0**
+
+A raw “accepted candidate but public signal empty” counter returns **1** because 18026 still has exact accepted candidate history while the surviving current purchasable offer is extra-EU and the Europe-facing prior offer has availability unknown. This is **expected Europe-first behavior**, not an incomplete recompute or publication defect. Do not mutate or reject exact identity evidence merely to force that raw counter to zero.
+
+### Production / implementation
+
+Controlled re-audit migration:
+- supabase/migrations/0189_dash_2_burning_sun_family_reaudit.sql
+
+PR **#289** merged the family re-audit.
+
+Functional Production merge commit:
+**d35489469434faba0fae7e6a9b3e32ca31a188e7**
+
+Verified:
+- GitHub main = **d3548946...** at functional close;
+- Vercel Production deployment for that commit = **READY**;
+- live Supabase family, recompute and queue state is consistent with the Europe-first publication rules above.
+
+### Completion status
+
+**DASH-2 BURNING SUN COMPLETE — MARKET THIN / ACTIVE — SIX DOCUMENTED IMAGE GAPS**
+
+Future work is opportunistic only:
+- recover stable exact heroes for 94819, the four Helios colors and 92373;
+- collect exact SOLD evidence and additional Europe-comparable current ASK;
+- preserve the finished-model valuation separation for 94675;
+- reopen genealogy only if stronger evidence proves a factual correction.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-1 EMPEROR COMPLETE — ACTIVE / MIXED MARKET DEPTH
 
 **Dash-1 Emperor has completed the current TrackDash family workflow. The legacy 14-row catalog was rebuilt into 17 canonical public collector Releases, production-wave/set-occurrence duplication was removed, exact-image policy was re-applied, the final eBay pass completed, the 95110 lifecycle bug was fixed globally, recompute/completeness gates are clear, and shared-ITEM ambiguity remains fail-closed. COMPLETE does not imply that every Release has a hero image, a current ASK or a consolidated Market Value.**
