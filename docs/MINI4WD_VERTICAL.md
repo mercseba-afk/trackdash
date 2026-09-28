@@ -92,11 +92,11 @@ Do not duplicate or fork those rules here.
 
 ## Current platform state — 2026-09-28
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE”** in docs/TRACKDASH_STATE.md.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — RISING BIRD COMPLETE — MARKET THIN / SHARED-ITEM FAIL-CLOSED”** in docs/TRACKDASH_STATE.md.
 
 Functional family close-out Production baseline:
 
-**8bf3f10679eeabbbe1221e15dab0b1780c09911f**
+**ab5011f48d0033e91cfb40a06832830d5f2f59b9**
 
 At close-out:
 - GitHub main pointed to that functional merge commit;
@@ -114,6 +114,30 @@ Current shared market UI cleanup remains **closed**. No further UI work remains 
 ---
 
 ## Current / recent reference families
+
+### Rising Bird
+
+Status:
+
+**COMPLETE — MARKET THIN / SHARED-ITEM FAIL-CLOSED — TWO DOCUMENTED IMAGE GAPS**
+
+Canonical family: **3 public Releases**
+
+- 18017 — 1989 Original Japan / Type 3
+- 18017 — 1989 USA MRC / Lightning Racers Special Pack
+- 18017 — 2007 Reissue / Type 3
+
+Durable state:
+- all three share ITEM 18017 and remain fail-closed for unattended eBay attribution;
+- the USA Lightning Racers package is physically distinct through packaging + booklet;
+- 2007 Reissue JAN: 4950344996643;
+- exact/high-confidence image coverage: **1/3**, with stable Suruga hero on the 2007 reissue;
+- 1989 Japan and 1989 USA package heroes remain intentional placeholders;
+- historical indicative 1989 Original SOLD: EUR 69.33 / JPY 12,000 / 2025-09-05;
+- that sale is outside the current 365-day SOLD window, so it remains historical evidence rather than a current public SOLD anchor;
+- recompute=0, locks=0, due eBay=0.
+
+Do not reopen this family without new evidence or a real pipeline regression.
 
 ### Dash-3 Shooting Star
 

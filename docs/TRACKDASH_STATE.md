@@ -7,6 +7,119 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — RISING BIRD COMPLETE — MARKET THIN / SHARED-ITEM FAIL-CLOSED
+
+Rising Bird has completed the current TrackDash family workflow. The legacy two-row catalog was rebuilt into 3 canonical public collector identities: the 1989 Japanese original, the physically distinct 1989 USA MRC/Lightning Racers package variant, and the 2007 Type 3 reissue. Shared ITEM 18017 remains fail-closed for unattended eBay attribution. External image research recovered a stable exact hero for the 2007 reissue; the two 1989 package generations retain intentional placeholders.
+
+### Canonical family — 3 public Releases
+
+1. 18017 — 1989 Original (Japan / Type 3)
+2. 18017 — 1989 USA MRC / Lightning Racers Special Pack
+3. 18017 — 2007 Reissue (Type 3)
+
+Final publication split:
+- public: 3
+- research-only: 0
+
+### Genealogy / identity
+
+1989 Japanese original:
+- Type 3 debut-era Rising Bird;
+- exact vintage identity retained separately from later package generations.
+
+1989 USA MRC / Lightning Racers:
+- same core Rising Bird kit / ITEM 18017;
+- separate collector Release because the MRC/Lightning Racers packaging and bonus booklet are reliable physical discriminators;
+- contemporary US evidence places the Lightning Racers retail program in late 1989.
+
+2007 Reissue:
+- official Tamiya release date: 2007-03-24;
+- verified JAN: 4950344996643;
+- kept distinct from both 1989 package generations.
+
+Excluded / context only:
+- Gold Plated Body = Grade-Up Parts/body accessory, not a full kit;
+- 2017 plated-kit editorial bonus is documented by Tamiya but remains unresolved context because the autonomous complete-kit identity/bundle composition is not sufficiently proven;
+- 2026 Tomica Premium unlimited Rising Bird is a die-cast product and outside the Mini 4WD family.
+
+### Images
+
+Stored exact/high-confidence hero coverage: 1 / 3.
+
+Stored hero:
+- 18017 — 2007 Reissue — stable Suruga management-ID asset 603015729.
+
+Intentional placeholders:
+- 18017 — 1989 Original Japan;
+- 18017 — 1989 USA MRC / Lightning Racers.
+
+Exact marketplace imagery exists for both 1989 identities, but no stable direct asset passed the persistence requirement during this audit. Do not reuse the reissue hero for either vintage package.
+
+### Market
+
+No Rising Bird Release currently has a publishable consolidated Market Value or current European asking-price signal.
+
+1989 Original:
+- one accepted historical Aucfan/Yahoo closed-sale observation:
+  - JPY 12,000
+  - sold on 2025-09-05
+  - normalized historical raw sale reference EUR 69.33
+  - evidence grade: indicative
+- on the current checkpoint date 2026-09-28, that sale is older than the Market Method v4 365-day current-SOLD window;
+- recompute therefore correctly retains it as historical evidence but excludes it from the current SOLD anchor / sold-unit count;
+- no Market Value is published.
+
+USA Lightning Racers:
+- exact current marketplace/package evidence exists;
+- no Europe-delivered canonical ASK is published because the shared ITEM worker is disabled and current exact research does not provide a safe Europe-first delivered-cost signal.
+
+2007 Reissue:
+- exact product/retailer evidence exists;
+- no publishable current numeric market signal at close-out.
+
+### Shared ITEM fail-closed
+
+All three collector identities share ITEM 18017.
+
+Unattended eBay active-market jobs are therefore disabled/parked for:
+- 1989 Japan Original;
+- 1989 USA MRC / Lightning Racers;
+- 2007 Reissue.
+
+Generic ITEM-only evidence must not choose among these Releases automatically.
+
+### Completion gate
+
+Final live state after the user's Admin recompute:
+- recompute queue: 0
+- active scan locks: 0
+- due enabled Rising Bird eBay jobs: 0
+- current-offer-with-empty-signal gate A: 0
+
+A raw accepted-evidence-with-empty-current-signal counter returns 1 because the 2025-09-05 historical SOLD remains accepted/auditable while being older than the 365-day current-SOLD window. This is expected Market Method v4 behavior, not a failed recompute. Do not reject or mutate valid historical evidence merely to force the raw counter to zero.
+
+### Production / implementation
+
+Controlled family re-audit migration:
+- supabase/migrations/0193_rising_bird_family_reaudit.sql
+
+Family re-audit:
+- PR #294
+- functional merge commit ab5011f48d0033e91cfb40a06832830d5f2f59b9
+- Production deployment for that commit verified READY on trackdash.it.
+
+### Completion status
+
+RISING BIRD COMPLETE — MARKET THIN / SHARED-ITEM FAIL-CLOSED — TWO DOCUMENTED IMAGE GAPS
+
+Future work is opportunistic only:
+- recover stable exact heroes for the 1989 Japanese and USA Lightning Racers packages;
+- collect newer (<365-day) exact SOLD evidence or Europe-comparable current ASK;
+- preserve ITEM 18017 fail-closed behavior;
+- revisit the 2017 plated-kit bonus only if stronger packaging/bundle evidence proves an autonomous full-kit identity.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE
 
 **Dash-3 Shooting Star has completed the current TrackDash family workflow. The legacy three-row catalog was rebuilt into 8 canonical public Releases, the 2005 Memorial Box component was removed as a standalone identity, the 1989 Ondawara original was separated from the 2007 ITEM 18019 reissue, the 2011 Blue Plated and four 2015 Dragontail prize Releases were added, the controlled eBay scan completed 6/6 unique-item jobs successfully, and all final market/recompute/queue gates are clear. COMPLETE does not imply complete image coverage or a consolidated Market Value.**
