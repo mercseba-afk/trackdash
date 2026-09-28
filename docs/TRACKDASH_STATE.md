@@ -1,9 +1,168 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-27  
+> **Last updated:** 2026-09-28  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
+
+---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — THUNDER DRAGON JR. COMPLETE — MARKET THIN / ACTIVE
+
+**Thunder Dragon Jr. has completed the current TrackDash family workflow. The pre-existing six-Release family was re-audited against the current publication gate, 1987 packaging identities were refined, all six canonical Releases are public, the final unique-item eBay scan completed successfully, recompute/completeness gates are clear, and thin evidence remains fail-closed. COMPLETE does not imply a consolidated Market Value or complete image coverage.**
+
+### Canonical family — 6 public collector Releases
+
+1. **18008 — Thunder Dragon Jr. — 1987 Original — Oshika 5-digit No.18008 — Type 1**
+   - historical JAN: **4950344180080**
+2. **2908 — Thunder Dragon Jr. — 1987 Oshika 4-digit KIT No.2908 — Type 1**
+   - historical JAN: **4950344180080**
+   - retained as a collector-distinct physical packaging/numbering identity
+   - the previous blanket label “First Production” was removed because surviving evidence is packaging-specific rather than proof that every earliest domestic kit used 2908
+3. **18008 — Thunder Dragon Jr. — 1998 Memorial Edition / Limited Reissue — Type 1**
+4. **18008 — Thunder Dragon Jr. — 2012 Spot Reissue — Type 1**
+   - release date **2012-06-16**
+   - JAN **4950344962778**
+5. **18068 — Thunder Dragon Premium — 2012 — VS**
+   - release date **2012-03-17**
+   - JAN **4950344180684**
+6. **95336 — Thunder Dragon Clear Special — Polycarbonate Body — 2017 — VS**
+   - release date **2017-08-05**
+   - JAN **4950344953363**
+
+Final publication split:
+- public: **6**
+- research-only: **0**
+
+### Non-canonical documented context
+
+**Lotte Racer Mini 4WD Chocolate prize**
+- real Thunder Dragon Jr. promotional occurrence;
+- documented with selectable plated-body/chassis/wheel/tire colors;
+- because the prize was configurable rather than one fixed autonomous product identity, it remains promotion context only and is not inflated into a separate Release.
+
+**Racer Mini 4WD Memorial Box Vol.2 — 2005**
+- contains a Thunder Dragon Jr. as part of a five-car set;
+- retained as a set/production occurrence;
+- not duplicated as a standalone collector Release.
+
+### Shared ITEM 18008 invariant
+
+The 1987 Original, 1998 Memorial and 2012 Spot Reissue share ITEM **18008**.
+
+Unattended eBay attribution remains disabled for all three:
+- enabled = false;
+- next scan parked at 2099;
+- generic ITEM-only evidence must never choose one generation automatically.
+
+The 1987 Original is independently supported by current exact collector-market evidence, but no numeric European ASK is manufactured because landed cost is not established.
+
+### Images
+
+Stored exact/high-confidence hero coverage: **4 / 6**.
+
+Exact heroes are present for:
+- 18008 Memorial 1998;
+- 18008 Spot Reissue 2012;
+- 18068 Premium;
+- 95336 Clear Special.
+
+Remaining intentional image gaps:
+- **18008 Original 1987**
+- **2908 Oshika 4-digit 1987**
+
+Vintage images exist, but the current evidence does not reliably separate the two 1987 packaging identities with a stable canonical asset. No sibling image is substituted merely to remove the placeholders.
+
+### Final Market Method v4 state
+
+No Thunder Dragon Release has sufficient evidence for a consolidated Market Value.
+
+**18008 — Memorial Edition 1998**
+- 3 accepted exact recent SOLD observations
+- canonical SOLD anchor: **EUR 20.74**
+- SOLD source count: 1
+- current exact ASK: none
+- market regime: **insufficient**
+- Market Value: **null**
+
+**18068 — Thunder Dragon Premium**
+- 1 accepted exact recent SOLD
+- canonical SOLD anchor: **EUR 19.51**
+- final eBay scan observed 3 exact active candidates, deduplicated by the canonical signal into **2 current offers**
+- canonical minimum effective current cost: **EUR 87.94**
+- active ASK anchor: **EUR 92.77**
+- confidence: **30 / low**
+- market regime: **insufficient**
+- Market Value: **null**
+
+**95336 — Clear Special**
+- 3 accepted exact recent SOLD observations
+- canonical SOLD anchor: **EUR 7.04**
+- final canonical current offers: **11**
+- canonical minimum effective current cost: **EUR 26.14**
+- active ASK anchor: **EUR 28.17**
+- confidence: **42 / low**
+- market regime: **insufficient**
+- Market Value: **null**
+
+**2908 — Oshika 4-digit 1987**
+- final eBay unique-item scan completed successfully;
+- no exact current eBay ASK was found;
+- exact collector-market identity/current buy-market evidence remains sufficient for publication;
+- no numeric consumer ASK/SOLD/MV is invented.
+
+**18008 — Original 1987 / Spot Reissue 2012**
+- no canonical numeric signal is currently published;
+- shared ITEM attribution remains fail-closed.
+
+### Final eBay Initial Scan
+
+Exactly the three unique-item eBay jobs were staged and processed in one Admin run:
+
+- **2908** — success; no exact current eBay ASK accepted
+- **18068** — success; exact active offers refreshed
+- **95336** — success; exact active offers refreshed
+- aggregate worker errors: **0**
+- active locks: **0**
+- due Thunder Dragon eBay jobs after completion: **0**
+
+### Market completeness hard gate
+
+Post-run live Supabase audit:
+
+- **A — current offer but public signal empty: 0**
+- **B — accepted evidence but public signal empty: 0**
+- stale Market Method versions: **0**
+- Thunder Dragon recompute queue: **0**
+- active Thunder Dragon scan locks: **0**
+- due enabled Thunder Dragon eBay jobs: **0**
+
+### Production / implementation
+
+Controlled re-audit migration:
+- `supabase/migrations/0186_thunder_dragon_jr_family_reaudit.sql`
+
+PR **#284** merged the family re-audit.
+
+Functional Production merge commit:
+**e52732bb103a3acab6ef8e5c16ab2d0311cc62eb**
+
+Verified:
+- GitHub `main` = **e52732bb...** at functional close;
+- Vercel Production deployment for that commit = **READY**;
+- Production runtime logs show repeated **GET /api/version 200** responses on that deployment after rollout and after the final Admin cycle.
+
+Direct public family-page probing was not available from the current network path during close-out, so this checkpoint does not claim an independent fresh browser render probe beyond the verified Production deployment, runtime version endpoint and live canonical database state.
+
+### Completion status
+
+**THUNDER DRAGON JR. COMPLETE — MARKET THIN / ACTIVE — TWO DOCUMENTED IMAGE GAPS**
+
+Future work is opportunistic only:
+- recover stable exact heroes that independently discriminate 18008 Original 1987 and 2908 Oshika 1987;
+- collect additional exact SOLD/current ASK evidence;
+- preserve fail-closed shared-ITEM 18008 behavior;
+- reopen genealogy only if stronger evidence proves a factual split/merge correction.
 
 ---
 

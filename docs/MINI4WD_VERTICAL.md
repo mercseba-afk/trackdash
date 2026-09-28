@@ -1,7 +1,7 @@
 # TrackDash — Mini 4WD Vertical
 
 > Dedicated operational record for the Tamiya Mini 4WD vertical.
-> Last updated: 2026-09-27.
+> Last updated: 2026-09-28.
 > This file records the current state, durable Mini 4WD-specific decisions, reference families and exact continuation rules.
 > It is an index/state document, not a replacement for the operational Masters.
 > `docs/TRACKDASH_STATE.md` remains the cross-project authoritative checkpoint.
@@ -90,30 +90,60 @@ Do not duplicate or fork those rules here.
 
 ---
 
-## Current platform state — 2026-09-27
+## Current platform state — 2026-09-28
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-27 — THUNDER SHOT JR. COMPLETE — MARKET THIN / NO CURRENT EXACT ASK”** in `docs/TRACKDASH_STATE.md`.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — THUNDER DRAGON JR. COMPLETE — MARKET THIN / ACTIVE”** in `docs/TRACKDASH_STATE.md`.
 
-Final functional Production baseline recorded there before the documentation-only checkpoint:
+Functional family close-out Production baseline:
 
-`203434b969f7a7f46fa26a636dcf9cdcf6a01234`
+`e52732bb103a3acab6ef8e5c16ab2d0311cc62eb`
 
-Documentation-only `main` after PR #210:
+At close-out:
+- GitHub `main` pointed to that merge commit;
+- Vercel Production for that commit was READY;
+- Production runtime logs showed repeated `GET /api/version 200` responses;
+- live Supabase family/completeness gates were clear.
 
-`0e091747ad6a4944ba16aa0c5bfecda8c0f90168`
+Subsequent documentation-only commits do not change the functional Thunder Dragon state. Future sessions must still verify current `main`, Vercel Production and `/api/version` before a material Production change.
 
-Important distinction:
-
-- `203434b…` = functional Production checkpoint;
-- `0e091747…` = subsequent documentation-only main checkpoint.
-
-Future sessions must still verify current `main`, Vercel Production and `/api/version` before a material Production change.
-
-Current shared market UI cleanup is considered **closed**. No further UI work remains on that block unless a new regression/evidence requires it.
+Current shared market UI cleanup remains **closed**. No further UI work remains on that block unless a new regression/evidence requires it.
 
 ---
 
 ## Current / recent reference families
+
+### Thunder Dragon Jr.
+
+Status:
+
+**COMPLETE — MARKET THIN / ACTIVE — TWO DOCUMENTED IMAGE GAPS**
+
+Canonical family:
+
+**6 public Releases**
+
+- `18008` — 1987 Original / Oshika 5-digit
+- `2908` — 1987 Oshika 4-digit KIT No.2908
+- `18008` — 1998 Memorial Edition / Limited Reissue
+- `18008` — 2012 Spot Reissue
+- `18068` — Thunder Dragon Premium / VS
+- `95336` — Clear Special / Polycarbonate Body
+
+Durable state:
+- `18008` Original 1987 and `2908` are collector-distinct packaging/numbering identities sharing historical JAN `4950344180080`;
+- the old blanket “First Production” wording for 2908 was removed because evidence is packaging-specific rather than proof of universal earliest chronology;
+- all three shared `18008` generations remain fail-closed for unattended eBay attribution;
+- Lotte Racer Mini 4WD Chocolate is promotion context only, not an autonomous Release;
+- Memorial Box Vol.2 (2005) is a five-car set occurrence, not a duplicate standalone Release;
+- image coverage is **4/6**; only the two 1987 packaging identities intentionally retain placeholders;
+- Memorial 1998 SOLD anchor **EUR 20.74**;
+- Premium 18068 SOLD anchor **EUR 19.51**, minimum current effective ASK **EUR 87.94**;
+- Clear Special 95336 SOLD anchor **EUR 7.04**, minimum current effective ASK **EUR 26.14**;
+- no Release currently has sufficient evidence for a consolidated Market Value;
+- final unique-item eBay run completed successfully for 2908, 18068 and 95336;
+- market hard gate: A=0, B=0, stale v4=0, recompute=0, locks=0, due eBay=0.
+
+Do not reopen this family merely because the two exact 1987 hero images remain unavailable or because thin Releases have no numeric public signal.
 
 ### Thunder Shot Jr.
 
