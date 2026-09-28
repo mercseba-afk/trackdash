@@ -92,25 +92,73 @@ Do not duplicate or fork those rules here.
 
 ## Current platform state — 2026-09-28
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — THUNDER DRAGON JR. COMPLETE — MARKET THIN / ACTIVE”** in `docs/TRACKDASH_STATE.md`.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-1 EMPEROR COMPLETE — ACTIVE / MIXED MARKET DEPTH”** in docs/TRACKDASH_STATE.md.
 
 Functional family close-out Production baseline:
 
-`e52732bb103a3acab6ef8e5c16ab2d0311cc62eb`
+**f7b7833c314bf3042428e6630e8d3cb628a09f88**
 
 At close-out:
-- GitHub `main` pointed to that merge commit;
+- GitHub main pointed to that functional merge commit;
 - Vercel Production for that commit was READY;
-- Production runtime logs showed repeated `GET /api/version 200` responses;
-- live Supabase family/completeness gates were clear.
+- live Supabase genealogy, market completeness, recompute and queue gates were clear;
+- the 95110 eBay lifecycle regression was fixed globally by PR #287.
 
-Subsequent documentation-only commits do not change the functional Thunder Dragon state. Future sessions must still verify current `main`, Vercel Production and `/api/version` before a material Production change.
+A subsequent documentation/status-history commit may advance main without changing the functional close-out behavior. Future sessions must still verify current main, Vercel Production and live Supabase before a material Production change.
 
 Current shared market UI cleanup remains **closed**. No further UI work remains on that block unless a new regression/evidence requires it.
 
 ---
 
 ## Current / recent reference families
+
+### Dash-1 Emperor
+
+Status:
+
+**COMPLETE — ACTIVE / MIXED MARKET DEPTH — SEVEN DOCUMENTED IMAGE GAPS**
+
+Canonical family:
+
+**17 public Releases**
+
+- 18012 — 1988 Original / Oshika Type 1
+- 18025 — 1990 Original / Type 3
+- 18012 — 2007 Reissue / Type 1
+- 18625 — 2008 MS
+- 94666 — 2008 Type 3 Special Kit
+- 94670 — 2008 MS Finished Model
+- 94704 — 2009 MS Black Special
+- 94818 — 2011 Silver-Plated Body Specification
+- 18069 — 2012 Premium / Super II
+- 92267–92270 — 2014 Imperial Force four fixed-color prize Releases / VS
+- 95296 — 2017 Black Special with 2023 production wave / MS
+- 95110 — 2018 Memorial / 30 Years of the Japan Cup
+- 95622 — 2021 Type 3 Special Kit Reissue
+- 18025 — 2026 Type 3 Reissue
+
+Durable state:
+- Memorial Box Vol.1 2005 is a set occurrence, not a standalone Release;
+- 95296 2017 + 2023 is one Release with a later production wave;
+- 18012 1988 Oshika and the 2007 reissue are collector-distinct;
+- shared ITEM 18012 and 18025 generations remain fail-closed for unattended eBay attribution;
+- image coverage is **10/17**;
+- intentional placeholders: 18012 Original 1988, 18025 Original 1990, 94670 Finished Model and all four Imperial Force colors;
+- 1988 Oshika 18012 MV/SOLD anchor **EUR 179.41**;
+- 18625 SOLD **EUR 13.75**, minimum current effective ASK **EUR 25.71**;
+- 94704 minimum current effective ASK **EUR 12.31**;
+- 18069 Premium MV/SOLD anchor **EUR 16.85**, minimum current effective ASK **EUR 24.00**;
+- 95110 SOLD **EUR 15.53**, minimum current effective ASK **EUR 57.75**;
+- 95622 minimum current effective ASK **EUR 55.20**;
+- 2026 18025 retail-driven MV **EUR 8.43**;
+- final market hard gate: A=0, B=0, stale v4=0, recompute=0, locks=0, due eBay=0.
+
+Worker regression closed during this family:
+- 95110 exposed a lifecycle bug when an already-assigned exact eBay candidate later became rejected/ended;
+- PR #287 preserves the exact Release assignment while availability/lifecycle changes are handled in market_offer_states;
+- targeted 95110 rerun succeeded after the fix.
+
+Do not reopen the family merely because seven exact hero images remain unavailable or because some thin Releases have no numeric signal.
 
 ### Thunder Dragon Jr.
 
