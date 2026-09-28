@@ -7,6 +7,233 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-1 EMPEROR COMPLETE — ACTIVE / MIXED MARKET DEPTH
+
+**Dash-1 Emperor has completed the current TrackDash family workflow. The legacy 14-row catalog was rebuilt into 17 canonical public collector Releases, production-wave/set-occurrence duplication was removed, exact-image policy was re-applied, the final eBay pass completed, the 95110 lifecycle bug was fixed globally, recompute/completeness gates are clear, and shared-ITEM ambiguity remains fail-closed. COMPLETE does not imply that every Release has a hero image, a current ASK or a consolidated Market Value.**
+
+### Canonical family — 17 public Releases
+
+1. **18012 — 1988 Original (Oshika Type 1)**
+2. **18025 — 1990 Original (Type 3)**
+3. **18012 — 2007 Reissue (Type 1)**
+4. **18625 — 2008 MS Chassis**
+5. **94666 — 2008 Type 3 Special Kit**
+6. **94670 — 2008 MS Finished Model**
+7. **94704 — 2009 MS Black Special**
+8. **94818 — 2011 Silver-Plated Body Specification**
+9. **18069 — 2012 Premium / Super II**
+10. **92267 — 2014 Imperial Force Pearl / VS**
+11. **92268 — 2014 Imperial Force Clear Red / VS**
+12. **92269 — 2014 Imperial Force Orange / VS**
+13. **92270 — 2014 Imperial Force Smoke / VS**
+14. **95296 — 2017 Black Special / 2023 production wave / MS**
+15. **95110 — 2018 Memorial — 30 Years of the Japan Cup / MS**
+16. **95622 — 2021 Type 3 Special Kit Reissue**
+17. **18025 — 2026 Type 3 Reissue**
+
+Final publication split:
+- public: **17**
+- research-only: **0**
+
+### Genealogy corrections closed in this audit
+
+**Memorial Box Vol.1 — 2005**
+- contains Dash-1 Emperor as a component of a multi-car set;
+- removed as a standalone Release;
+- retained only as set/production context.
+
+**ITEM 95296**
+- initial Release: **2017**
+- later official reissue/production wave: **2023-05-27**
+- same ITEM/JAN/chassis/specification;
+- represented as **one collector Release with a 2023 production wave**, not two Releases.
+
+**ITEM 18012**
+- 1988 Oshika original and later reissue line are collector-distinct;
+- vintage packaging/instruction/address evidence supports the split;
+- later reissue line is represented separately as **2007 Reissue**.
+
+**Imperial Force**
+- four fixed-color amusement/prize Releases are autonomous identities:
+  - 92267 Pearl
+  - 92268 Clear Red
+  - 92269 Orange
+  - 92270 Smoke
+- they are not treated as configurable prize variants.
+
+### Shared Item Number fail-closed rules
+
+ITEM **18012** is shared by:
+- 1988 Original
+- 2007 Reissue
+
+ITEM **18025** is shared by:
+- 1990 Original
+- 2026 Reissue
+
+Unattended eBay attribution remains disabled for all four shared-item rows:
+- enabled = false
+- next scan parked at 2099
+- generic Item Number evidence must not choose a generation automatically.
+
+### Images
+
+Exact/high-confidence hero coverage: **10 / 17**.
+
+Intentional placeholders:
+- 18012 Original 1988
+- 18025 Original 1990
+- 94670 Finished Model
+- 92267 Imperial Force Pearl
+- 92268 Imperial Force Clear Red
+- 92269 Imperial Force Orange
+- 92270 Imperial Force Smoke
+
+The previous sibling/current-production images on the vintage 18012, vintage 18025 and 94670 identities were removed. Exact placeholder is preferred to an incorrect sibling hero.
+
+### Status / rarity
+
+Verified status corrections include:
+- 94666 — discontinued
+- 94670 — discontinued
+- 95296 — discontinued
+- 95622 — discontinued
+- four Imperial Force variants — discontinued
+- 2026 ITEM 18025 reissue — active
+
+For 94704, 94818 and 95110, current production status remains intentionally **unknown** because available evidence does not justify a stronger primary-source claim.
+
+Rarity remains unforced where evidence is insufficient. UNKNOWN > INVENTED.
+
+### Final Market Method v4 highlights
+
+**18012 — 1988 Original (Oshika)**
+- consolidated Market Value: **EUR 179.41**
+- SOLD anchor: **EUR 179.41**
+- 3 SOLD
+- 2 SOLD sources
+- confidence: **59 / medium**
+- regime: **secondary_market_driven**
+
+**18625 — 2008 MS**
+- SOLD anchor: **EUR 13.75**
+- minimum current effective ASK: **EUR 25.71**
+- active ASK anchor: **EUR 30.70**
+- active offers: **18**
+- current offers: **20**
+- confidence: **49 / low**
+- Market Value: null
+
+**94704 — 2009 Black Special**
+- minimum current effective ASK: **EUR 12.31**
+- active ASK anchor: **EUR 12.31**
+- 1 current offer
+- Market Value: null
+
+**18069 — 2012 Premium**
+- consolidated Market Value: **EUR 16.85**
+- SOLD anchor: **EUR 16.85**
+- 53 SOLD units in the canonical evidence set
+- minimum current effective ASK: **EUR 24.00**
+- active ASK anchor: **EUR 31.45**
+- active offers: **9**
+- current offers: **11**
+- confidence: **55 / medium**
+- regime: **retail_driven**
+
+**95110 — 2018 Memorial**
+- SOLD anchor: **EUR 15.53**
+- 1 SOLD
+- minimum current effective ASK: **EUR 57.75**
+- active ASK anchor: **EUR 78.71**
+- active offers/current offers: **3 / 3**
+- confidence: **33 / low**
+- regime: **insufficient**
+- Market Value: null
+
+**95622 — 2021 Special Kit Reissue**
+- minimum current effective ASK: **EUR 55.20**
+- active ASK anchor: **EUR 65.88**
+- active/current offers: **3 / 4**
+- confidence: **29 / low**
+- regime: **mixed_scarce**
+- Market Value: null
+
+**18025 — 2026 Reissue**
+- consolidated Market Value: **EUR 8.43**
+- confidence: **50 / medium**
+- regime: **retail_driven**
+
+No numeric signal is manufactured for Releases where the exact current market is absent or attribution is not strong enough.
+
+### Final eBay scan and 95110 worker fix
+
+The controlled post-audit scan targeted 10 unique-item Releases across three Admin runs.
+
+One recurrent error surfaced on **95110**:
+- exact new offers were persisted correctly;
+- a legacy exact candidate that had ended was downgraded to rejected;
+- the worker attempted to clear its resolved Release identity;
+- the composite FK then attempted to null market_offer_states.release_id, violating the NOT NULL constraint.
+
+Global worker fix:
+- **PR #287**
+- merge commit **f7b7833c314bf3042428e6630e8d3cb628a09f88**
+- existing exact Release assignment is now preserved when a candidate is later downgraded to review/rejected;
+- lifecycle/availability changes remain handled in market_offer_states.
+
+A targeted rerun of **95110** after the fix:
+- completed successfully;
+- last error: null;
+- consecutive failures: 0;
+- ended legacy listing remained assigned to 95110 but was correctly marked rejected / LISTING_ENDED;
+- signal recomputed successfully to minimum effective ASK **EUR 57.75**.
+
+### Market completeness hard gate
+
+Final live Supabase audit:
+- **A — current offer but public signal empty: 0**
+- **B — accepted evidence but public signal empty: 0**
+- stale Market Method versions: **0**
+- Dash-1 Emperor recompute queue: **0**
+- active Dash-1 Emperor scan locks: **0**
+- due enabled Dash-1 Emperor eBay jobs: **0**
+
+### Production / implementation
+
+Family re-audit migration:
+- supabase/migrations/0187_dash_1_emperor_family_reaudit.sql
+
+Status persistence migration:
+- supabase/migrations/0188_dash_1_emperor_status_refresh.sql
+
+Family re-audit:
+- PR **#286**
+- merge commit **1b99b44282632e145a73f2c88eec1f99f00f8c81**
+
+Global eBay lifecycle fix:
+- PR **#287**
+- merge commit **f7b7833c314bf3042428e6630e8d3cb628a09f88**
+
+Verified at functional close:
+- GitHub main = **f7b7833c...**
+- Vercel Production deployment for **f7b7833c...** = **READY**
+- live Supabase genealogy/market/queue hard gates are clear
+
+A direct external HTTP probe of https://trackdash.it/api/version was unavailable from the current web execution path, so this checkpoint does not claim a fresh browser/version body beyond the verified Production deployment metadata and live DB state.
+
+### Completion status
+
+**DASH-1 EMPEROR COMPLETE — ACTIVE / MIXED MARKET DEPTH — SEVEN DOCUMENTED IMAGE GAPS**
+
+Future work is opportunistic only:
+- recover exact heroes for the seven intentional placeholders;
+- collect more exact SOLD evidence for thin limited/prize Releases;
+- preserve shared-ITEM 18012/18025 fail-closed behavior;
+- reopen genealogy only if stronger primary/exact evidence proves a factual correction.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — THUNDER DRAGON JR. COMPLETE — MARKET THIN / ACTIVE
 
 **Thunder Dragon Jr. has completed the current TrackDash family workflow. The pre-existing six-Release family was re-audited against the current publication gate, 1987 packaging identities were refined, all six canonical Releases are public, the final unique-item eBay scan completed successfully, recompute/completeness gates are clear, and thin evidence remains fail-closed. COMPLETE does not imply a consolidated Market Value or complete image coverage.**
