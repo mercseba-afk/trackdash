@@ -7,6 +7,164 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE
+
+**Dash-3 Shooting Star has completed the current TrackDash family workflow. The legacy three-row catalog was rebuilt into 8 canonical public Releases, the 2005 Memorial Box component was removed as a standalone identity, the 1989 Ondawara original was separated from the 2007 ITEM 18019 reissue, the 2011 Blue Plated and four 2015 Dragontail prize Releases were added, the controlled eBay scan completed 6/6 unique-item jobs successfully, and all final market/recompute/queue gates are clear. COMPLETE does not imply complete image coverage or a consolidated Market Value.**
+
+### Canonical family — 8 public Releases
+
+1. **18019 — 1989 Original (Ondawara Type 3)**
+2. **18019 — 2007 Reissue (Type 3)**
+3. **18630 — 2008 MS Chassis**
+4. **94820 — 2011 Blue Plated Body Specification**
+5. **92338 — 2015 Shooting Star Dragontail Red / Super 1**
+6. **92339 — 2015 Shooting Star Dragontail Blue / Super 1**
+7. **92340 — 2015 Shooting Star Dragontail White / Super 1**
+8. **92341 — 2015 Shooting Star Dragontail Black / Super 1**
+
+Final publication split:
+- public: **8**
+- research-only: **0**
+
+### Genealogy corrections
+
+**ITEM 18019**
+- 1989 first edition and 2007 reissue share Item Number and JAN;
+- 1989 is collector-distinct through Ondawara / first-edition packaging evidence;
+- 2007 reissue is documented separately by exact Suruga release history;
+- unattended eBay attribution remains fail-closed for both generations.
+
+**Memorial Box Vol.1 — 2005**
+- contains Shooting Star as one component of ITEM 94547;
+- removed as a standalone Release;
+- retained only as set/production context.
+
+**ITEM 94820**
+- autonomous Blue Plated full kit, not merely the plated body occurrence inside Memorial Box ITEM 94615.
+
+**Shooting Star Dragontail**
+- four autonomous fixed-color amusement-prize Releases:
+  - 92338 Red
+  - 92339 Blue
+  - 92340 White
+  - 92341 Black
+- Super 1 chassis;
+- shared SK Japan code 4519869512006 appears across multiple colors and is deliberately not promoted as a unique Release barcode.
+
+**Silver Body**
+- excluded from the family because it is a Grade-Up Parts/body-set item rather than a complete autonomous Mini 4WD kit.
+
+### Images
+
+Exact/high-confidence stored hero coverage: **2 / 8**.
+
+Stored heroes:
+- 18019 — 2007 Reissue
+- 18630 — 2008 MS
+
+Intentional placeholders after targeted second pass:
+- 18019 — 1989 Original Ondawara
+- 94820 — Blue Plated
+- 92338 — Dragontail Red
+- 92339 — Dragontail Blue
+- 92340 — Dragontail White
+- 92341 — Dragontail Black
+
+The current official ITEM 18019 hero is assigned only to the later/current reissue line, never to the 1989 vintage collector identity. Exact eBay/retailer pages with visible imagery exist for some limited Releases, but no additional stable direct asset passed the persistence check. Placeholder remains preferable to a fragile or sibling image.
+
+### Final Market Method v4 state
+
+No Dash-3 Shooting Star Release currently has sufficient evidence for a consolidated Market Value.
+
+**18019 — 1989 Original (Ondawara)**
+- exact Mandarake closed auction: JPY 26,000 on 2025-11-05
+- normalized raw SOLD reference: **EUR 147.17**
+- SOLD anchor: **EUR 147.17**
+- SOLD units: **1**
+- SOLD sources: **1**
+- confidence: **15 / low**
+- regime: **insufficient**
+- Market Value: null
+- automatic eBay active scan disabled because ITEM 18019 is shared with the 2007 reissue
+
+**18019 — 2007 Reissue**
+- no publishable current European ASK or granular SOLD in the canonical signal;
+- automatic Item-only eBay attribution disabled due to shared ITEM 18019;
+- a sold-out Mercari shop result and Suruga dealer-buyback context exist but are not promoted into a canonical SOLD/value because condition/transaction semantics are insufficient.
+
+**18630 — 2008 MS**
+- exact current eBay Europe-facing offer accepted
+- canonical minimum effective current cost: **EUR 25.71**
+- active ASK anchor: **EUR 25.71**
+- 1 active/current offer
+- confidence: **15 / low**
+- regime: **insufficient**
+- Market Value: null
+
+**92338 — Dragontail Red**
+- exact current eBay evidence accepted across regional mirrors and deduplicated to one canonical current offer
+- canonical minimum effective current cost: **EUR 72.99**
+- active ASK anchor: **EUR 72.99**
+- 1 active/current offer
+- confidence: **15 / low**
+- regime: **insufficient**
+- Market Value: null
+- eBay listing-level “sold” counters are retained only as context and are not converted into invented granular SOLD transactions without individual dated sales.
+
+**94820 / 92339 / 92340 / 92341**
+- controlled eBay jobs completed successfully;
+- worker received no exact publishable current candidate for these Releases;
+- no Market Value or asking price is invented.
+
+### Final Initial Market Scan
+
+All six unique-item eBay jobs completed successfully across two Admin runs:
+- **6 / 6 success**
+- worker errors: **0**
+- active locks: **0**
+- due Dash-3 eBay jobs: **0**
+
+Shared ITEM 18019 generations remain disabled/parked for unattended eBay attribution:
+- 1989 Original
+- 2007 Reissue
+
+### Market completeness hard gate
+
+Final live Supabase audit:
+- **A — current offer but public signal empty: 0**
+- **B — accepted evidence but public signal empty: 0**
+- stale Market Method versions: **0**
+- Dash-3 recompute queue: **0**
+- active Dash-3 scan locks: **0**
+- due enabled Dash-3 eBay jobs: **0**
+
+### Production / implementation
+
+Controlled family re-audit migration:
+- supabase/migrations/0190_dash_3_shooting_star_family_reaudit.sql
+
+Family re-audit:
+- PR **#291**
+- merge commit **8bf3f10679eeabbbe1221e15dab0b1780c09911f**
+
+Verified at functional close:
+- GitHub main = **8bf3f106...**
+- Vercel Production deployment for **8bf3f106...** = **READY**
+- live Supabase genealogy, market, recompute and queue gates are clear
+
+### Completion status
+
+**DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE — SIX DOCUMENTED IMAGE GAPS**
+
+Future work is opportunistic only:
+- recover stable exact heroes for the 1989 original, 94820 and the four Dragontail colors;
+- collect more exact dated SOLD evidence, especially for Dragontail and Blue Plated;
+- preserve shared ITEM/JAN 18019 fail-closed behavior;
+- do not convert eBay listing-level sold counters into fake granular sales;
+- reopen genealogy only if stronger evidence proves a factual correction.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-2 BURNING SUN COMPLETE — MARKET THIN / ACTIVE
 
 **Dash-2 Burning Sun has completed the current TrackDash family workflow. The legacy five-row catalog was rebuilt into 10 canonical public Releases, the 2005 Memorial Box component was removed as a standalone identity, six missing collector identities were added, exact-image policy was re-applied, all nine valuation-compatible eBay jobs completed successfully, recompute/queue health is clear, and Europe-first publication correctly suppresses non-European current ASK evidence. COMPLETE does not imply complete image coverage or a consolidated Market Value.**
