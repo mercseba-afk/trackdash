@@ -140,7 +140,7 @@ select
   p.id,'18017','Regional Package Variant','Rising Bird — 1989 USA MRC / Lightning Racers Special Pack',1989,null,'Type 3',
   null,'Blue / Lightning Racers package','USA',null,null,
   'Controlled re-audit 2026-09-28. Collector documentation shows ITEM 18017 in an English MRC/Lightning Racers package marked “BONUS 16 PAGE FUN & STUNT CHALLENGE BOOKLET INSIDE”, Parts Made in Japan / Packed in USA / Box Printed in Canada. Contemporary US press documents the Lightning Racers toy line in December 1989. The core car remains Rising Bird Type 3; TrackDash separates this identity because package + booklet are a reliable physical collector discriminator.',
-  true,false,null,'master_reaudit_20260928','regional','verified','discontinued',now(),
+  true,false,null,'master_reaudit_20260928','special','verified','discontinued',now(),
   '1989 USA MRC/Lightning Racers regional Rising Bird package with bonus booklet, ITEM 18017.',
   'Confezione regionale USA MRC/Lightning Racers del Rising Bird 1989 con booklet bonus, ITEM 18017.',
   'public','publication_gate:physical_regional_package_discriminator_and_exact_current_market_evidence',now()
