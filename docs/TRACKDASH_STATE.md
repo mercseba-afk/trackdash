@@ -3853,3 +3853,106 @@ Only remaining genuine image gap:
 
 Exact 93001 image-bearing historical sources exist (Yahoo Japan auction, collector museum/archive), but no stable direct hero asset has yet been verified. Do not substitute a generic Avante/sibling image merely to remove the placeholder.
 
+
+
+---
+
+# SUPER DRAGON JR. — COMPLETION CHECKPOINT — 2026-09-28
+
+Super Dragon Jr. has been re-checked against the permanent Release Publication Gate.
+
+## Canonical family
+
+Canonical researched family: **7 Releases**
+
+- `2907` — 1987 First Production / Oshika KIT No.2907
+- `18007` — 1987 Standard / Later Production
+- `18007` — 1998 Memorial Edition / Limited Reissue
+- Year of the Dragon 2000 Gold
+- Year of the Dragon 2000 Green Metallic / Second Edition
+- `18007` — 2012 Spot Reissue
+- `18067` — Super Dragon Premium / VS
+
+The configurable Lotte chocolate-prize Super Dragon and the single-trace silver-plated Premium event specimen remain unresolved promotion/event context only and are not canonicalized.
+
+## Publication gate
+
+The former research-only `2907` now has multiple independent exact current-market traces:
+
+- exact eBay listing titled `Tamiya Super Dragon Jr. Mini 4WD No.2907`;
+- exact Yahoo current listing titled `1987 TAMIYA KIT 2907 MINI 4WD SUPER DRAGON JUNIOR ... 小鹿`;
+- current Mercari Japan Oshika / early-production listings including an explicitly described `超初期2907 / 穴無し / 日本製` example.
+
+The Release is therefore eligible for **PUBLIC** status through credible exact-release current-market evidence.
+
+Important: these traces are **not** converted into a canonical `new_complete_unbuilt` European numeric signal:
+- the specific eBay row is Used;
+- the Japanese observations are search-level ASK evidence rather than a persisted delivered offer;
+- no Market Value is manufactured from them.
+
+Final publication split after migration 0185:
+
+- public: **7**
+- research-only: **0**
+
+## Public image coverage
+
+Exact/high-confidence stored images remain available for **6 / 7** public Releases.
+
+The only public image gap is:
+
+- `2907` Oshika first production
+
+Current exact marketplace pages visibly contain photographs of the correct 2907, but no stable direct canonical asset URL has yet been accepted into TrackDash.
+
+Rule remains:
+
+**stable exact image > fragile marketplace asset > wrong sibling image**
+
+## Market state
+
+`18007` Memorial 1998:
+- SOLD anchor **EUR 18.09**
+- 3 SOLD
+- Market Value null
+- confidence 19 / low
+
+`18067` Super Dragon Premium:
+- SOLD anchor **EUR 18.73**
+- active ASK anchor **EUR 50.86**
+- canonical starting effective cost **EUR 40.73**
+- 2 SOLD + 2 active offers
+- Market Value null
+- confidence 36 / low
+
+Year of the Dragon 2000 Gold:
+- exact image stored
+- current Japanese unassembled ASK observed in September 2026 at JPY 44,800
+- no canonical numeric Price Engine signal persisted because the observation is search-level / Japan-local
+
+Year of the Dragon 2000 Green Metallic:
+- exact image stored
+- Mandarake archive confirms the exact 2000 Green Metallic variant
+- archived JPY 20,000 listing closed with 0 bids; this is **not a SOLD** and must not become Market Value
+
+`18007` Standard and `18007` 2012 Spot Reissue:
+- exact images stored
+- unattended eBay stays disabled because ITEM 18007 is shared across multiple commercial Releases
+- generic 18007 sales are not assigned arbitrarily to either production
+
+## Queue / QA state
+
+At checkpoint time:
+- Super Dragon recompute queue: **0**
+- locked recomputes: **0**
+- no Market Value forced from insufficient evidence
+
+Final status:
+
+**SUPER DRAGON JR. — COMPLETE WITH ONE DOCUMENTED IMAGE GAP**
+
+Remaining work is opportunistic only:
+- recover a stable exact image asset for `2907`;
+- convert any future exact 2907 NEW/unassembled listing or confirmed SOLD into canonical market evidence;
+- continue monitoring `18067` normally;
+- preserve shared-`18007` fail-closed behavior.
