@@ -56,21 +56,26 @@ Final publication split:
 
 ### Images
 
-Exact/high-confidence stored hero coverage: **2 / 8**.
+Exact/high-confidence stored hero coverage: **7 / 8**.
 
 Stored heroes:
 - 18019 — 2007 Reissue
 - 18630 — 2008 MS
-
-Intentional placeholders after targeted second pass:
-- 18019 — 1989 Original Ondawara
-- 94820 — Blue Plated
+- 94820 — 2011 Blue Plated
 - 92338 — Dragontail Red
 - 92339 — Dragontail Blue
 - 92340 — Dragontail White
 - 92341 — Dragontail Black
 
-The current official ITEM 18019 hero is assigned only to the later/current reissue line, never to the 1989 vintage collector identity. Exact eBay/retailer pages with visible imagery exist for some limited Releases, but no additional stable direct asset passed the persistence check. Placeholder remains preferable to a fragile or sibling image.
+Remaining intentional placeholder:
+- 18019 — 1989 Original Ondawara
+
+External-source recovery rule applied:
+- exact retailer/marketplace imagery is valid when Release identity is unambiguous;
+- the five recovered heroes use Suruga's stable management-ID CDN, the same pattern already used by TrackDash across completed Mini 4WD families;
+- the current official ITEM 18019 hero remains assigned only to the later/current reissue line, never to the 1989 vintage collector identity.
+
+Only the 1989 Ondawara original remains without a hero because its image must discriminate the vintage packaging generation from the later ITEM 18019 reissue.
 
 ### Final Market Method v4 state
 
@@ -142,6 +147,8 @@ Final live Supabase audit:
 
 Controlled family re-audit migration:
 - supabase/migrations/0190_dash_3_shooting_star_family_reaudit.sql
+- supabase/migrations/0191_dash_3_shooting_star_image_backfill.sql
+- supabase/migrations/0192_dash_3_shooting_star_image_audit_note.sql
 
 Family re-audit:
 - PR **#291**
@@ -154,10 +161,10 @@ Verified at functional close:
 
 ### Completion status
 
-**DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE — SIX DOCUMENTED IMAGE GAPS**
+**DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE — ONE DOCUMENTED IMAGE GAP**
 
 Future work is opportunistic only:
-- recover stable exact heroes for the 1989 original, 94820 and the four Dragontail colors;
+- recover a stable exact hero for the 1989 Ondawara original;
 - collect more exact dated SOLD evidence, especially for Dragontail and Blue Plated;
 - preserve shared ITEM/JAN 18019 fail-closed behavior;
 - do not convert eBay listing-level sold counters into fake granular sales;
