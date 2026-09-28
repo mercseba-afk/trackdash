@@ -92,19 +92,20 @@ Do not duplicate or fork those rules here.
 
 ## Current platform state — 2026-09-28
 
-The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-2 BURNING SUN COMPLETE — MARKET THIN / ACTIVE”** in docs/TRACKDASH_STATE.md.
+The latest authoritative global checkpoint is the opening **“LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — DASH-3 SHOOTING STAR COMPLETE — MARKET THIN / ACTIVE”** in docs/TRACKDASH_STATE.md.
 
 Functional family close-out Production baseline:
 
-**d35489469434faba0fae7e6a9b3e32ca31a188e7**
+**8bf3f10679eeabbbe1221e15dab0b1780c09911f**
 
 At close-out:
-- GitHub main pointed to that merge commit;
+- GitHub main pointed to that functional merge commit;
 - Vercel Production for that commit was READY;
-- live Supabase showed 10 canonical public Dash-2 Releases;
-- all nine valuation-compatible eBay jobs had successful refresh timestamps;
-- recompute queue, scan locks and due Dash-2 eBay queue were clear;
-- Europe-first logic correctly kept the surviving EBAY_US 18026 offer as non-European context rather than a public European asking price.
+- live Supabase showed 8 canonical public Dash-3 Shooting Star Releases;
+- the controlled eBay initial scan completed 6/6 unique-item jobs successfully;
+- the 1989 Ondawara original had one exact Mandarake SOLD anchor at EUR 147.17 but no consolidated Market Value;
+- recompute queue, scan locks, stale v4 and due Dash-3 eBay queue were clear;
+- shared ITEM/JAN 18019 remained fail-closed between the 1989 original and 2007 reissue.
 
 Future sessions must still verify current main, Vercel Production and live Supabase before a material Production change.
 
@@ -113,6 +114,44 @@ Current shared market UI cleanup remains **closed**. No further UI work remains 
 ---
 
 ## Current / recent reference families
+
+### Dash-3 Shooting Star
+
+Status:
+
+**COMPLETE — MARKET THIN / ACTIVE — SIX DOCUMENTED IMAGE GAPS**
+
+Canonical family:
+
+**8 public Releases**
+
+- 18019 — 1989 Original / Ondawara Type 3
+- 18019 — 2007 Reissue / Type 3
+- 18630 — 2008 MS
+- 94820 — 2011 Blue Plated / Type 3
+- 92338 — 2015 Dragontail Red / Super 1
+- 92339 — 2015 Dragontail Blue / Super 1
+- 92340 — 2015 Dragontail White / Super 1
+- 92341 — 2015 Dragontail Black / Super 1
+
+Durable state:
+- Memorial Box Vol.1 2005 is a set occurrence, not a standalone Release;
+- 1989 original and 2007 reissue share ITEM/JAN 18019 and remain fail-closed for unattended eBay attribution;
+- the 1989 vintage identity is separated by Ondawara / first-edition packaging evidence;
+- 94820 is an autonomous Blue Plated full kit;
+- all four Dragontail colors are autonomous fixed ITEM identities;
+- shared SK Japan code 4519869512006 is not treated as a unique color barcode;
+- Silver Body is a Grade-Up Parts/body-set item and remains outside the collector Release family;
+- exact/high-confidence image coverage is **2/8**;
+- intentional placeholders: 18019 Original 1989, 94820 and all four Dragontail colors;
+- 1989 Original SOLD anchor **EUR 147.17**, 1 sale / 1 source, no MV;
+- 18630 minimum current effective ASK **EUR 25.71**;
+- 92338 Red minimum current effective ASK **EUR 72.99**;
+- 94820 / 92339 / 92340 / 92341 currently have no publishable exact European current ASK;
+- eBay listing-level sold counters must not be converted into invented granular sales;
+- final hard gate: A=0, B=0, stale v4=0, recompute=0, locks=0, due eBay=0.
+
+Do not reopen the family merely because six stable exact hero assets remain unavailable or because the market is thin.
 
 ### Dash-2 Burning Sun
 
