@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils"
 
 type SortKey = "name" | "year-desc" | "year-asc"
 type View = "grid" | "list"
+type CatalogSection = "available" | "coming-soon"
 
 export function CatalogScreen({ products, initialQuery = "" }: { products: Product[]; initialQuery?: string }) {
   const { isInCollection, isInWishlist } = useStore()
@@ -31,19 +32,27 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
   const [rarity, setRarity] = React.useState<string>("all")
   const [sort, setSort] = React.useState<SortKey>("year-asc")
   const [view, setView] = React.useState<View>("grid")
+  const [section, setSection] = React.useState<CatalogSection>("available")
   const [ownedOnly, setOwnedOnly] = React.useState(false)
   const availableCount = products.filter((product) => product.catalogLaunchStatus !== "coming_soon").length
   const comingSoonCount = products.length - availableCount
 
-  const chassisOptions = React.useMemo(
-    () => Array.from(new Set(products.map((p) => p.chassis).filter((c): c is NonNullable<typeof c> => Boolean(c)))),
-    [products],
+  const activeProducts = React.useMemo(
+    () => products.filter((product) => section === "coming-soon"
+      ? product.catalogLaunchStatus === "coming_soon"
+      : product.catalogLaunchStatus !== "coming_soon"),
+    [products, section],
   )
-  const seriesOptions = React.useMemo(() => Array.from(new Set(products.map((p) => p.series))), [products])
+
+  const chassisOptions = React.useMemo(
+    () => Array.from(new Set(activeProducts.map((p) => p.chassis).filter((c): c is NonNullable<typeof c> => Boolean(c)))),
+    [activeProducts],
+  )
+  const seriesOptions = React.useMemo(() => Array.from(new Set(activeProducts.map((p) => p.series))), [activeProducts])
 
   const results = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    let items = products.filter((p) => {
+    let items = activeProducts.filter((p) => {
       const comingSoon = p.catalogLaunchStatus === "coming_soon"
       if (chassis !== "all" && (comingSoon || p.chassis !== chassis)) return false
       if (series !== "all" && p.series !== series) return false
@@ -66,9 +75,11 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
       }
     })
     return items
-  }, [products, query, chassis, series, rarity, sort, ownedOnly, isInCollection])
+  }, [activeProducts, query, chassis, series, rarity, sort, ownedOnly, isInCollection])
 
-  const hasFilters = chassis !== "all" || series !== "all" || rarity !== "all" || ownedOnly || query.trim()
+  const hasFilters = series !== "all"
+    || query.trim()
+    || (section === "available" && (chassis !== "all" || rarity !== "all" || ownedOnly))
   const sortLabel = (value: SortKey) => value === "year-desc"
     ? (it ? "Più recenti" : "Newest")
     : value === "year-asc"
@@ -83,6 +94,12 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
     setOwnedOnly(false)
   }
 
+  function selectSection(next: CatalogSection) {
+    if (next === section) return
+    setSection(next)
+    reset()
+  }
+
   return (
     <div className="flex flex-col gap-5 md:gap-6">
       <section className="overflow-hidden rounded-3xl border border-brand/10 bg-gradient-to-br from-white via-white to-brand/5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
@@ -92,15 +109,15 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t("catalog.title")}</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
               {it
-                ? `${products.length} famiglie Mini 4WD censite. Le famiglie disponibili sono verificate Release per Release; le altre vengono aggiunte progressivamente.`
-                : `${products.length} Mini 4WD families tracked. Available families are verified Release by Release; the rest are being added progressively.`}
+                ? `${availableCount} famiglie Mini 4WD disponibili nel catalogo. Le prossime famiglie vengono verificate Release per Release prima della pubblicazione.`
+                : `${availableCount} Mini 4WD families are available in the catalog. Upcoming families are verified Release by Release before publication.`}
             </p>
           </div>
 
           <div className="shrink-0 rounded-2xl border border-border/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm">
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{it ? "Nel catalogo" : "In catalog"}</p>
-            <p className="mt-0.5 text-2xl font-semibold tabular-nums text-foreground">{products.length}</p>
-            <p className="text-xs text-muted-foreground">{comingSoonCount > 0 ? (it ? `${availableCount} disponibili · ${comingSoonCount} in arrivo` : `${availableCount} available · ${comingSoonCount} coming soon`) : (it ? "modelli censiti" : "tracked models")}</p>
+            <p className="mt-0.5 text-2xl font-semibold tabular-nums text-foreground">{availableCount}</p>
+            <p className="text-xs text-muted-foreground">{comingSoonCount > 0 ? (it ? `${comingSoonCount} famiglie in preparazione` : `${comingSoonCount} families in preparation`) : (it ? "famiglie disponibili" : "available families")}</p>
           </div>
         </div>
 
@@ -133,16 +150,67 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
           <div className="flex items-center gap-2">
             <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand"><SlidersHorizontal className="size-4" /></span>
             <div>
-              <p className="text-sm font-semibold text-foreground">{it ? "Filtra il catalogo" : "Filter catalog"}</p>
-              <p className="text-[11px] text-muted-foreground">{it ? "Trova più velocemente il modello o la Release che stai cercando." : "Find the model or Release you are looking for faster."}</p>
+              <p className="text-sm font-semibold text-foreground">
+                {section === "available"
+                  ? (it ? "Filtra il catalogo" : "Filter catalog")
+                  : (it ? "Filtra le Release in arrivo" : "Filter upcoming releases")}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {section === "available"
+                  ? (it ? "Trova più velocemente il modello o la Release che stai cercando." : "Find the model or Release you are looking for faster.")
+                  : (it ? "Scopri le prossime famiglie che stiamo verificando e preparando." : "Explore the next families we are verifying and preparing.")}
+              </p>
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-border/70 bg-muted/30 p-1 sm:inline-grid sm:w-fit">
+            <button
+              type="button"
+              onClick={() => selectSection("available")}
+              className={cn(
+                "inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors",
+                section === "available"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-white/70 hover:text-foreground",
+              )}
+              aria-pressed={section === "available"}
+            >
+              <span>{it ? "Catalogo" : "Catalog"}</span>
+              <span className={cn(
+                "rounded-full px-1.5 py-0.5 text-[10px] tabular-nums",
+                section === "available" ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
+              )}>{availableCount}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => selectSection("coming-soon")}
+              className={cn(
+                "inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors",
+                section === "coming-soon"
+                  ? "bg-white text-brand shadow-sm"
+                  : "text-muted-foreground hover:bg-white/70 hover:text-foreground",
+              )}
+              aria-pressed={section === "coming-soon"}
+            >
+              <span>{it ? "Release in arrivo" : "Upcoming releases"}</span>
+              <span className={cn(
+                "rounded-full px-1.5 py-0.5 text-[10px] tabular-nums",
+                section === "coming-soon" ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
+              )}>{comingSoonCount}</span>
+            </button>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
-            <FilterSelect value={chassis} onChange={setChassis} placeholder="Chassis" options={chassisOptions} allLabel={t("catalog.allChassis")} />
-            <FilterSelect value={series} onChange={setSeries} placeholder={it ? "Serie" : "Series"} options={seriesOptions} allLabel={t("catalog.allSeries")} />
-            <FilterSelect value={rarity} onChange={setRarity} placeholder={it ? "Rarità" : "Rarity"} options={["Common", "Uncommon", "Rare", "Very Rare", "Grail"]} optionLabels={it ? { Common: "Comune", Uncommon: "Non comune", Rare: "Rara", "Very Rare": "Molto rara", Grail: "Grail" } : undefined} allLabel={t("catalog.allRarity")} />
-            <Button variant={ownedOnly ? "default" : "outline"} size="sm" className="rounded-xl" onClick={() => setOwnedOnly((v) => !v)}><Check /> {it ? "Posseduti" : "Owned"}</Button>
+            {section === "available" ? (
+              <>
+                <FilterSelect value={chassis} onChange={setChassis} placeholder="Chassis" options={chassisOptions} allLabel={t("catalog.allChassis")} />
+                <FilterSelect value={series} onChange={setSeries} placeholder={it ? "Serie" : "Series"} options={seriesOptions} allLabel={t("catalog.allSeries")} />
+                <FilterSelect value={rarity} onChange={setRarity} placeholder={it ? "Rarità" : "Rarity"} options={["Common", "Uncommon", "Rare", "Very Rare", "Grail"]} optionLabels={it ? { Common: "Comune", Uncommon: "Non comune", Rare: "Rara", "Very Rare": "Molto rara", Grail: "Grail" } : undefined} allLabel={t("catalog.allRarity")} />
+                <Button variant={ownedOnly ? "default" : "outline"} size="sm" className="rounded-xl" onClick={() => setOwnedOnly((v) => !v)}><Check /> {it ? "Posseduti" : "Owned"}</Button>
+              </>
+            ) : (
+              <FilterSelect value={series} onChange={setSeries} placeholder={it ? "Serie" : "Series"} options={seriesOptions} allLabel={t("catalog.allSeries")} />
+            )}
             {hasFilters && <Button variant="ghost" size="sm" className="rounded-xl" onClick={reset}><X /> {it ? "Azzera" : "Clear"}</Button>}
           </div>
         </div>
@@ -151,7 +219,9 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-foreground">
-            {results.length} {it ? (results.length === 1 ? "risultato" : "risultati") : (results.length === 1 ? "result" : "results")}
+            {results.length} {section === "available"
+              ? (it ? (results.length === 1 ? "modello disponibile" : "modelli disponibili") : (results.length === 1 ? "available model" : "available models"))
+              : (it ? (results.length === 1 ? "famiglia in arrivo" : "famiglie in arrivo") : (results.length === 1 ? "upcoming family" : "upcoming families"))}
           </p>
           {hasFilters ? <p className="text-xs text-muted-foreground">{it ? "Filtri attivi" : "Active filters"}</p> : null}
         </div>
