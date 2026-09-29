@@ -716,7 +716,7 @@ on conflict (release_id,source_id,endpoint_url) do update set
 
 update public.market_scan_queue q
 set enabled=true,
-    priority=140,
+    priority=150,
     next_scan_at='2000-01-01 00:00:00+00',
     locked_until=null,
     consecutive_failures=0,
@@ -761,7 +761,7 @@ where r.product_id=(select id from public.products where slug='proto-emperor-zx-
 -- Reassert the exact endpoint/queue state after generic enrollment.
 update public.market_scan_queue q
 set enabled=true,
-    priority=140,
+    priority=150,
     next_scan_at='2000-01-01 00:00:00+00',
     locked_until=null,
     consecutive_failures=0,
