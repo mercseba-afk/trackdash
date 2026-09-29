@@ -597,3 +597,20 @@ Mini 4WD parity checks after deployment:
 **Mini 4WD family work may resume in parallel from this checkpoint.**
 
 Parallel work is safe when it stays vertical-specific. Coordinate before modifying shared Collection, Wishlist, Scanner, Market Engine, navigation/onboarding or shared schema.
+
+---
+
+## Catalog available / upcoming UX — 29/09/2026
+
+For Mini 4WD progressive rollout, the public Catalog must not visually mix completed families with families still under verification.
+
+Canonical behavior:
+- default Catalog view = `available` only;
+- dedicated **Release in arrivo / Upcoming releases** selector inside the filter area;
+- upcoming cards remain visibly marked and open the existing coming-soon information dialog;
+- no unreviewed Item Number, chassis, rarity or Release metadata is exposed;
+- responsive behavior must remain consistent across website and installable PWA/app;
+- every new UI label/copy must be maintained in Italian and English.
+
+This is a presentation separation only: the underlying `coming_soon -> available` workflow, SEO protection and notification trigger remain unchanged.
+
