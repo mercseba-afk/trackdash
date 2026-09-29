@@ -4,6 +4,7 @@ import { cache } from "react"
 import { PublicShell } from "@/components/public-shell"
 import { ReleaseFamilyLinks } from "@/components/release-family-links"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
+import { CatalogComingSoonScreen } from "@/components/screens/catalog-coming-soon-screen"
 import { fetchCatalogProductById } from "@/lib/actions/catalog"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
 import { getPublicOpenOffersForRelease } from "@/lib/db/queries/public-sharing"
@@ -57,6 +58,14 @@ export async function generateMetadata({ params }: { params: ReleasePageParams }
     return {
       title: "Release not found | TrackDash",
       robots: { index: false, follow: false },
+    }
+  }
+
+  if (product.catalogLaunchStatus === "coming_soon") {
+    return {
+      title: `Tamiya ${product.name} Mini 4WD — Coming Soon | TrackDash`,
+      description: `${product.name} is being verified for the TrackDash catalog. Exact release details are coming soon.`,
+      robots: { index: false, follow: true },
     }
   }
 
@@ -124,6 +133,16 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
 
   const release = product.releases.find((candidate) => candidate.id === releaseId)
   if (!release) return notFound()
+
+  if (product.catalogLaunchStatus === "coming_soon") {
+    return (
+      <PublicShell>
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+          <CatalogComingSoonScreen product={product} />
+        </div>
+      </PublicShell>
+    )
+  }
 
   const siblingReleases = product.releases
     .filter((candidate) => candidate.id !== release.id)
