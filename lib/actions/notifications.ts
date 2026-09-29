@@ -2,6 +2,9 @@
 
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { createClient } from "@/lib/supabase/server"
+import { COLLECTIBLE_VERTICALS } from "@/lib/verticals"
+
+export type CatalogExpansionNotice = { count: number; names: string[] }
 
 export type AppNotification = {
   id: string
@@ -105,4 +108,26 @@ export async function markAllNotificationsReadAction() {
     .lte("available_at", new Date().toISOString())
 
   if (error) throw new Error(error.message)
+}
+
+
+export async function getCatalogExpansionNoticeAction(): Promise<CatalogExpansionNotice> {
+  const user = await getCurrentUser()
+  if (!user) return { count: 0, names: [] }
+
+  const supabase = await createClient()
+  const { data, count, error } = await supabase
+    .from("products")
+    .select("name,original_release_year", { count: "exact" })
+    .eq("category_id", COLLECTIBLE_VERTICALS.mini4wd.categoryId)
+    .contains("metadata", { launch_status: "coming_soon" })
+    .order("original_release_year", { ascending: true, nullsFirst: false })
+    .order("name", { ascending: true })
+    .limit(6)
+
+  if (error) throw new Error(error.message)
+  return {
+    count: count ?? 0,
+    names: (data ?? []).map((row) => row.name),
+  }
 }
