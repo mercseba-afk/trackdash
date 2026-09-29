@@ -8,6 +8,7 @@ import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { ProductCard } from "@/components/product-card"
 import { ProductImage } from "@/components/catalog/product-image"
+import { CatalogComingSoonDialog } from "@/components/catalog/catalog-coming-soon-dialog"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,8 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
   const [sort, setSort] = React.useState<SortKey>("year-asc")
   const [view, setView] = React.useState<View>("grid")
   const [ownedOnly, setOwnedOnly] = React.useState(false)
+  const availableCount = products.filter((product) => product.catalogLaunchStatus !== "coming_soon").length
+  const comingSoonCount = products.length - availableCount
 
   const chassisOptions = React.useMemo(
     () => Array.from(new Set(products.map((p) => p.chassis).filter((c): c is NonNullable<typeof c> => Boolean(c)))),
@@ -96,7 +99,7 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
           <div className="shrink-0 rounded-2xl border border-border/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm">
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{it ? "Nel catalogo" : "In catalog"}</p>
             <p className="mt-0.5 text-2xl font-semibold tabular-nums text-foreground">{products.length}</p>
-            <p className="text-xs text-muted-foreground">{it ? "modelli censiti" : "tracked models"}</p>
+            <p className="text-xs text-muted-foreground">{comingSoonCount > 0 ? (it ? `${availableCount} disponibili · ${comingSoonCount} in arrivo` : `${availableCount} available · ${comingSoonCount} coming soon`) : (it ? "modelli censiti" : "tracked models")}</p>
           </div>
         </div>
 
@@ -192,6 +195,42 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
           {results.map((p) => {
             const owned = isInCollection(p.id)
             const wished = isInWishlist(p.id)
+            const comingSoon = p.catalogLaunchStatus === "coming_soon"
+
+            if (comingSoon) {
+              return (
+                <CatalogComingSoonDialog
+                  key={p.id}
+                  product={p}
+                  trigger={
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 opacity-[0.78] shadow-[0_6px_20px_rgba(15,23,42,0.025)] transition-all hover:border-brand/25 hover:opacity-100 sm:gap-4 sm:p-3.5"
+                    >
+                      <div className="overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+                        <ProductImage product={p} size="sm" className="h-16 w-20 shrink-0 grayscale-[0.18] sm:h-20 sm:w-28" />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{p.series}</p>
+                        <div className="mt-0.5 flex flex-wrap items-start gap-1.5 sm:gap-2">
+                          <p className="line-clamp-2 text-sm font-semibold leading-tight text-foreground sm:text-base">{p.name}</p>
+                          <Badge variant="outline" className="border-brand/20 bg-brand/5 text-[9px] font-bold uppercase tracking-[0.08em] text-brand">
+                            {it ? "In arrivo" : "Coming soon"}
+                          </Badge>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                          <span>{p.originalReleaseYear ?? "—"}</span>
+                          <span>·</span>
+                          <span>{it ? "Release e mercato in verifica" : "Releases and market under review"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                />
+              )
+            }
+
             return (
               <div key={p.id} className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3 shadow-[0_6px_20px_rgba(15,23,42,0.03)] transition-colors hover:border-brand/25 sm:gap-4 sm:p-3.5">
                 <Link href={`/catalog/${p.id}`} className="overflow-hidden rounded-xl border border-border/50 bg-muted/20"><ProductImage product={p} size="sm" className="h-16 w-20 shrink-0 sm:h-20 sm:w-28" /></Link>
