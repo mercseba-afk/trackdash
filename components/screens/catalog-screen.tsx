@@ -44,14 +44,15 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
   const results = React.useMemo(() => {
     const q = query.trim().toLowerCase()
     let items = products.filter((p) => {
-      if (chassis !== "all" && p.chassis !== chassis) return false
+      const comingSoon = p.catalogLaunchStatus === "coming_soon"
+      if (chassis !== "all" && (comingSoon || p.chassis !== chassis)) return false
       if (series !== "all" && p.series !== series) return false
-      if (rarity !== "all" && !p.releases.some((release) => release.rarity === rarity)) return false
+      if (rarity !== "all" && (comingSoon || !p.releases.some((release) => release.rarity === rarity))) return false
       if (ownedOnly && !isInCollection(p.id)) return false
       if (q) {
-        const itemNumbers = p.releases.map((r) => r.itemNumber ?? "").join(" ")
-        const releaseNames = p.releases.map((r) => r.editionName).join(" ")
-        const hay = `${p.name} ${p.japaneseName ?? ""} ${p.chassis ?? ""} ${p.series} ${p.itemNumber ?? ""} ${itemNumbers} ${releaseNames}`.toLowerCase()
+        const hay = comingSoon
+          ? `${p.name} ${p.japaneseName ?? ""} ${p.series} ${p.originalReleaseYear ?? ""}`.toLowerCase()
+          : `${p.name} ${p.japaneseName ?? ""} ${p.chassis ?? ""} ${p.series} ${p.itemNumber ?? ""} ${p.releases.map((r) => r.itemNumber ?? "").join(" ")} ${p.releases.map((r) => r.editionName).join(" ")}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true
@@ -91,8 +92,8 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t("catalog.title")}</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
               {it
-                ? `${products.length} modelli Mini 4WD. Ogni scheda separa le diverse Release per anno, Item Number, chassis ed edizione.`
-                : `${products.length} Mini 4WD models. Each page separates Releases by year, Item Number, chassis and edition.`}
+                ? `${products.length} famiglie Mini 4WD censite. Le famiglie disponibili sono verificate Release per Release; le altre vengono aggiunte progressivamente.`
+                : `${products.length} Mini 4WD families tracked. Available families are verified Release by Release; the rest are being added progressively.`}
             </p>
           </div>
 
