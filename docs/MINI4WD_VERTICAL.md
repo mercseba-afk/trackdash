@@ -614,3 +614,24 @@ Canonical behavior:
 
 This is a presentation separation only: the underlying `coming_soon -> available` workflow, SEO protection and notification trigger remain unchanged.
 
+
+
+## Proto Emperor ZX re-audit — 29/09/2026
+
+Family closed under the current Master as **COMPLETE WITH DOCUMENTED IMAGE GAP**.
+
+Canonical/public genealogy stays at 3 Releases:
+- 18038 — 1992 Original / Zero
+- 18038 — 2007 spot-production Reissue / Zero
+- 95335 — 2017 Premium / Super-II
+
+No fourth commercial Release was verified; the 1991 Autumn Cup advance sale is a pre-sale wave of the 1992 Release.
+
+Current public market state:
+- 1992 Original — SOLD anchor EUR 50.20 from 2 recent vintage-attributable completed sales; no MV.
+- 2007 Reissue — exact current Japan spot-production ASK exists but remains item-only/contextual because European landed cost is unknown; no MV.
+- 95335 Premium — Market Value / SOLD anchor EUR 22.78, confidence medium, 3 SOLD / 2 sources; current eBay starting effective cost EUR 73.20.
+
+Image coverage is 2/3. Only the 1992 Original lacks a persisted exact hero; do not use the 2007 shared-ITEM image as fallback.
+
+Shared ITEM 18038 eBay Active remains disabled/fail-closed. Exact RCJAZ endpoint exists only for 95335; current manual check reports Not Available. RCJAZ global adapter policy remains planned.
