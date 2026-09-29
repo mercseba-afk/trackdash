@@ -16,6 +16,7 @@ import type {
   ReleaseType,
   Series,
   VerificationStatus,
+  CatalogLaunchStatus,
   WishlistItem,
   WishlistPriority,
 } from "@/lib/types"
@@ -196,6 +197,7 @@ type ProductRow = {
   rarity: string | null
   description: string | null
   canonicalReleaseId: string | null
+  metadata: unknown
   updatedAt: Date
   images?: { url: string }[]
   releases?: ReleaseRow[]
@@ -203,6 +205,10 @@ type ProductRow = {
 
 export function mapProductRow(row: ProductRow): Product {
   const releases = (row.releases ?? []).map(mapReleaseRow)
+  const metadata = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+    ? row.metadata as Record<string, unknown>
+    : {}
+  const launchStatus = metadata.launch_status === "coming_soon" ? "coming_soon" : "available"
   const primary = releases.find((r) => r.isOriginal) ?? releases[0]
   // Catalog Model V2 (docs/CATALOG_MODEL_V2.md section 11): prefer the
   // release the DB explicitly names canonical; fall back to the row's own
@@ -232,6 +238,7 @@ export function mapProductRow(row: ProductRow): Product {
     releases,
     canonicalReleaseId: row.canonicalReleaseId ?? undefined,
     updatedAt: row.updatedAt.toISOString(),
+    catalogLaunchStatus: launchStatus as CatalogLaunchStatus,
     hasMultipleReleases: releases.length > 1,
     // FACTUAL, verified-only -- undefined (never 0, which would wrongly
     // imply "verified as free") unless a real Tamiya-confirmed figure
