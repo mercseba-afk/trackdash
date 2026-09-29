@@ -91,6 +91,8 @@ export type PriceConfidence = "High" | "Medium" | "Low" | "Insufficient"
 
 export type TrendDirection = "rising" | "stable" | "falling"
 
+export type CatalogLaunchStatus = "available" | "coming_soon"
+
 // -----------------------------------------------------------------------------
 // CATALOG MODEL V2 — controlled vocabularies (see docs/CATALOG_MODEL_V2.md)
 // -----------------------------------------------------------------------------
@@ -243,6 +245,8 @@ export interface Product {
   canonicalReleaseId?: string
   /** Last canonical product-row update; used for public freshness signals. */
   updatedAt?: string
+  /** Progressive-launch state. `coming_soon` keeps the family visible in the catalog without exposing its unaudited detail data as complete. */
+  catalogLaunchStatus?: CatalogLaunchStatus
   // derived convenience (computed at build time)
   hasMultipleReleases: boolean
   /** FACTUAL, verified-only MSRP of the primary release, for headline display -- undefined unless a real Tamiya-confirmed figure exists. */

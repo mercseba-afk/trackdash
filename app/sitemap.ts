@@ -66,7 +66,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  const productRoutes: MetadataRoute.Sitemap = products.map((product) => {
+  const availableProducts = products.filter((product) => product.catalogLaunchStatus !== "coming_soon")
+
+  const productRoutes: MetadataRoute.Sitemap = availableProducts.map((product) => {
     const lastModified = productLastModified(product)
     return {
       url: `${SITE_URL}/catalog/${product.id}`,
@@ -76,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
-  const releaseRoutes: MetadataRoute.Sitemap = products.flatMap((product) =>
+  const releaseRoutes: MetadataRoute.Sitemap = availableProducts.flatMap((product) =>
     product.releases.map((release) => {
       const lastModified = releaseLastModified(release)
       return {

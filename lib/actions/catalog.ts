@@ -24,6 +24,21 @@ function withPublicCatalogReleases<
   }
 }
 
+function withProgressivePublicProjection(product: ReturnType<typeof mapProductRow>) {
+  if (product.catalogLaunchStatus !== "coming_soon") return product
+  return {
+    ...product,
+    itemNumber: undefined,
+    chassis: undefined,
+    rarity: undefined,
+    description: "",
+    releases: [],
+    hasMultipleReleases: false,
+    msrpJPY: undefined,
+    msrpEUR: undefined,
+  }
+}
+
 export async function fetchCatalogProductsForVertical(vertical: CollectibleVertical) {
   const rows = await listProductsForVerticalQuery(vertical, 500)
   return rows
@@ -31,6 +46,7 @@ export async function fetchCatalogProductsForVertical(vertical: CollectibleVerti
     .map(withPublicCatalogReleases)
     .filter((row) => row.releases.length > 0)
     .map(mapProductRow)
+    .map(withProgressivePublicProjection)
 }
 
 export async function fetchCatalogProducts() {
@@ -50,5 +66,5 @@ export async function fetchCatalogProductById(id: string) {
   if (!row) return null
   const publicRow = withPublicCatalogReleases(row)
   if (publicRow.releases.length === 0) return null
-  return mapProductRow(publicRow)
+  return withProgressivePublicProjection(mapProductRow(publicRow))
 }

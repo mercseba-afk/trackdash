@@ -7,6 +7,40 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-29 — PROGRESSIVE MINI 4WD CATALOG LAUNCH
+
+TrackDash no longer requires the full historical Mini 4WD catalog to be re-audited before public launch. The public catalog now uses a progressive family state:
+
+- available — family has passed the current audit/completion workflow and exposes its full Product/Release pages;
+- coming_soon — family remains visible in catalog order, but its legacy/unaudited Release details are not presented as complete;
+- archived — intentionally hidden/deprioritized families remain hidden.
+
+Initial Production state:
+- available families: **20**
+- coming-soon families: **27**
+- archived Mini 4WD families: **8**
+
+Public UX:
+- coming-soon cards remain visible in the normal catalog order with reduced emphasis and an **In arrivo / Coming soon** badge;
+- opening one shows a short explanation that Releases, images and market data are being verified;
+- direct Product/Release URLs for coming-soon families are guarded and noindexed;
+- sitemap detail URLs include only available families;
+- the notification center contains a persistent, non-unread **Catalogo in espansione** notice;
+- future coming_soon -> available transitions automatically create one catalog_family_available notification per user;
+- initial launch-state assignment deliberately creates no retroactive notification burst.
+
+Durable launch principle:
+
+**Launchable catalog first; verified long tail progressively after launch.**
+
+Do not expose an unaudited legacy family as if its Release count, images or market state were final merely to make the catalog look complete.
+
+Implementation:
+- metadata key: products.metadata.launch_status
+- migration: supabase/migrations/0194_progressive_catalog_launch.sql
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-28 — RISING BIRD COMPLETE — MARKET THIN / SHARED-ITEM FAIL-CLOSED
 
 Rising Bird has completed the current TrackDash family workflow. The legacy two-row catalog was rebuilt into 3 canonical public collector identities: the 1989 Japanese original, the physically distinct 1989 USA MRC/Lightning Racers package variant, and the 2007 Type 3 reissue. Shared ITEM 18017 remains fail-closed for unattended eBay attribution. External image research recovered a stable exact hero for the 2007 reissue; the two 1989 package generations retain intentional placeholders.
