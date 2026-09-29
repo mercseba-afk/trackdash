@@ -127,9 +127,13 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("catalog.search")}
+              placeholder={section === "available"
+                ? t("catalog.search")
+                : (it ? "Cerca tra le Release in arrivo" : "Search upcoming releases")}
               className="h-12 rounded-xl border-border/70 bg-white pl-10 pr-10 text-sm shadow-sm focus-visible:border-brand/40"
-              aria-label={it ? "Cerca nel catalogo" : "Search catalog"}
+              aria-label={section === "available"
+                ? (it ? "Cerca nel catalogo" : "Search catalog")
+                : (it ? "Cerca tra le Release in arrivo" : "Search upcoming releases")}
             />
             {query ? (
               <button
