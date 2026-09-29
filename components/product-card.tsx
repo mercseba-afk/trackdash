@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n"
 import { primaryRelease } from "@/lib/data/products"
 import { Button } from "@/components/ui/button"
 import { ProductImage } from "@/components/catalog/product-image"
+import { CatalogComingSoonDialog } from "@/components/catalog/catalog-coming-soon-dialog"
 import { AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
@@ -45,8 +46,58 @@ export function ProductCard({ product }: { product: Product }) {
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
   const meta = getCatalogProductMeta(product, it)
+  const comingSoon = product.catalogLaunchStatus === "coming_soon"
   const href = `/catalog/${product.id}`
   const loginHref = `/login?next=${encodeURIComponent(href)}`
+
+  if (comingSoon) {
+    return (
+      <CatalogComingSoonDialog
+        product={product}
+        trigger={
+          <article
+            role="button"
+            tabIndex={0}
+            className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/60 bg-card opacity-[0.78] shadow-[0_6px_20px_rgba(15,23,42,0.03)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/25 hover:opacity-100 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]"
+          >
+            <div className="relative overflow-hidden border-b border-border/50 bg-gradient-to-br from-white via-muted/15 to-brand/5">
+              <ProductImage
+                product={product}
+                className="aspect-[4/3] w-full grayscale-[0.18] transition-transform duration-300 group-hover:scale-[1.015]"
+              />
+              <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full border border-brand/20 bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-brand shadow-sm backdrop-blur-sm">
+                {it ? "In arrivo" : "Coming soon"}
+              </span>
+            </div>
+
+            <div className="flex flex-1 flex-col p-3.5 sm:p-4">
+              <div className="min-w-0">
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{product.series}</p>
+                <h3 className="line-clamp-2 text-[15px] font-semibold leading-[1.2rem] tracking-tight text-foreground sm:text-base sm:leading-5">
+                  {product.name}
+                </h3>
+                <div className="mt-3 grid grid-cols-2 gap-1.5">
+                  <span className="flex min-w-0 flex-col rounded-xl border border-border/50 bg-muted/20 px-2.5 py-2">
+                    <span className="text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{it ? "Prima uscita" : "First release"}</span>
+                    <strong className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">{meta.year}</strong>
+                  </span>
+                  <span className="flex min-w-0 flex-col rounded-xl border border-border/50 bg-muted/20 px-2.5 py-2">
+                    <span className="text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Status</span>
+                    <strong className="mt-0.5 truncate text-xs font-semibold text-brand">{it ? "Prossimamente" : "Coming soon"}</strong>
+                  </span>
+                </div>
+              </div>
+              <div className="mt-auto pt-3">
+                <span className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-brand/20 bg-brand/5 px-3 text-xs font-semibold text-brand">
+                  {it ? "Scopri quando arriva" : "See availability"}
+                </span>
+              </div>
+            </div>
+          </article>
+        }
+      />
+    )
+  }
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
