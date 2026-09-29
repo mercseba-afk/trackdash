@@ -45,7 +45,6 @@ export function ProductCard({ product }: { product: Product }) {
   const it = locale === "it"
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
-  const meta = getCatalogProductMeta(product, it)
   const comingSoon = product.catalogLaunchStatus === "coming_soon"
   const href = `/catalog/${product.id}`
   const loginHref = `/login?next=${encodeURIComponent(href)}`
@@ -79,7 +78,7 @@ export function ProductCard({ product }: { product: Product }) {
                 <div className="mt-3 grid grid-cols-2 gap-1.5">
                   <span className="flex min-w-0 flex-col rounded-xl border border-border/50 bg-muted/20 px-2.5 py-2">
                     <span className="text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{it ? "Prima uscita" : "First release"}</span>
-                    <strong className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">{meta.year}</strong>
+                    <strong className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">{product.originalReleaseYear ?? "—"}</strong>
                   </span>
                   <span className="flex min-w-0 flex-col rounded-xl border border-border/50 bg-muted/20 px-2.5 py-2">
                     <span className="text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Status</span>
@@ -98,6 +97,8 @@ export function ProductCard({ product }: { product: Product }) {
       />
     )
   }
+
+  const meta = getCatalogProductMeta(product, it)
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
