@@ -75,6 +75,27 @@ TrackDash does **not** value a generic model when a more exact Release identity 
 
 ---
 
+## Progressive public catalog launch
+
+Mini 4WD public launch is intentionally progressive.
+
+- completed/audited family -> **available**
+- legacy/unaudited family -> **coming_soon**
+- intentionally deprioritized family -> **archived**
+
+Coming-soon families remain discoverable in the chronological catalog, but do not expose legacy Release data as finished. Their cards show **In arrivo**, their detail routes show a verification message, and their detail URLs are excluded from the sitemap until promotion.
+
+The notification center keeps a pinned **Catalogo in espansione** notice. When a family is later promoted from coming_soon to available, the database creates one normal user notification announcing that the family is ready.
+
+Initial 2026-09-29 split:
+- **20 available**
+- **27 coming soon**
+- **8 archived**
+
+This launch strategy does not change the family-completion methodology. A family becomes available only after the existing audit/image/market/QA workflow is satisfied.
+
+---
+
 ## Operational workflow
 
 The authoritative workflow remains:
