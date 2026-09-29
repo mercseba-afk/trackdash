@@ -52,9 +52,8 @@ function absoluteImage(url?: string) {
 export async function generateMetadata({ params }: { params: ReleasePageParams }): Promise<Metadata> {
   const { id, releaseId } = await params
   const product = await getProduct(id).catch(() => null)
-  const release = product?.releases.find((candidate) => candidate.id === releaseId)
 
-  if (!product || !release) {
+  if (!product) {
     return {
       title: "Release not found | TrackDash",
       robots: { index: false, follow: false },
@@ -66,6 +65,14 @@ export async function generateMetadata({ params }: { params: ReleasePageParams }
       title: `Tamiya ${product.name} Mini 4WD — Coming Soon | TrackDash`,
       description: `${product.name} is being verified for the TrackDash catalog. Exact release details are coming soon.`,
       robots: { index: false, follow: true },
+    }
+  }
+
+  const release = product.releases.find((candidate) => candidate.id === releaseId)
+  if (!release) {
+    return {
+      title: "Release not found | TrackDash",
+      robots: { index: false, follow: false },
     }
   }
 
@@ -131,9 +138,6 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
 
   if (!product) return notFound()
 
-  const release = product.releases.find((candidate) => candidate.id === releaseId)
-  if (!release) return notFound()
-
   if (product.catalogLaunchStatus === "coming_soon") {
     return (
       <PublicShell>
@@ -143,6 +147,9 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
       </PublicShell>
     )
   }
+
+  const release = product.releases.find((candidate) => candidate.id === releaseId)
+  if (!release) return notFound()
 
   const siblingReleases = product.releases
     .filter((candidate) => candidate.id !== release.id)
