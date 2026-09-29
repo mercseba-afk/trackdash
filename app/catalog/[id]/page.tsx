@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { cache } from "react"
 import { PublicShell } from "@/components/public-shell"
 import { ProductDetailScreen } from "@/components/screens/product-detail-screen"
+import { CatalogComingSoonScreen } from "@/components/screens/catalog-coming-soon-screen"
 import { fetchCatalogProductById, fetchCatalogProducts } from "@/lib/actions/catalog"
 import { getRelatedProducts } from "@/lib/data/products"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
@@ -34,6 +35,14 @@ export async function generateMetadata({ params }: { params: ProductPageParams }
   }
 
   const canonicalUrl = `${SITE_URL}/catalog/${product.id}`
+  if (product.catalogLaunchStatus === "coming_soon") {
+    return {
+      title: `Tamiya ${product.name} Mini 4WD — Coming Soon | TrackDash`,
+      description: `${product.name} is being verified for the TrackDash Mini 4WD catalog. Releases, images and market data are coming soon.`,
+      alternates: { canonical: canonicalUrl },
+      robots: { index: false, follow: true },
+    }
+  }
   const title = `Tamiya ${product.name} Mini 4WD — Releases & Market Value | TrackDash`
   const description = `Explore Tamiya ${product.name} Mini 4WD releases by year, item number, chassis and edition, with public TrackDash Market Value data for exact Releases.`
   const image = absoluteImage(product.images?.[0])
@@ -84,6 +93,16 @@ export default async function ProductPage({ params }: { params: ProductPageParam
     }),
   ])
   if (!product) return notFound()
+
+  if (product.catalogLaunchStatus === "coming_soon") {
+    return (
+      <PublicShell>
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+          <CatalogComingSoonScreen product={product} />
+        </div>
+      </PublicShell>
+    )
+  }
 
   const allProducts = await fetchCatalogProducts().catch((error) => {
     console.error("Failed to load catalog for related products:", error)
