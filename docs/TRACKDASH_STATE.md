@@ -4815,3 +4815,29 @@ Remaining work is opportunistic only:
 - convert any future exact 2907 NEW/unassembled listing or confirmed SOLD into canonical market evidence;
 - continue monitoring `18067` normally;
 - preserve shared-`18007` fail-closed behavior.
+
+---
+
+# CATALOG AVAILABLE / COMING-SOON VIEW SEPARATION — 29/09/2026
+
+The progressive catalog launch remains unchanged at the data/SEO/notification level, but the Catalog UI no longer mixes available and `coming_soon` families in the default result stream.
+
+Permanent UX rule:
+- Catalog opens on **available families only**.
+- The filter panel exposes a separate **Release in arrivo / Upcoming releases** view with its own count.
+- `coming_soon` families are rendered only inside that dedicated view.
+- The available Catalog retains chassis, series, rarity and owned filters.
+- The upcoming view intentionally exposes only safe pre-audit metadata and series filtering; unrevised Item Number, chassis, rarity and Release details remain hidden.
+- Switching between available/upcoming clears incompatible filters/search state.
+- Header/catalog counts emphasize the currently available family count, while separately disclosing how many families are in preparation.
+- The implementation is shared by responsive web and the installable PWA/app surface.
+- Italian and English copy are both covered.
+
+The existing progressive-launch guarantees remain authoritative:
+- direct URL protection for `coming_soon`;
+- `noindex` for upcoming family pages;
+- upcoming Releases excluded from sitemap;
+- pinned “Catalogo in espansione” notification;
+- normal user notification on `coming_soon -> available`;
+- no retroactive launch notifications.
+
