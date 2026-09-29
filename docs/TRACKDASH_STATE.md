@@ -4841,3 +4841,118 @@ The existing progressive-launch guarantees remain authoritative:
 - normal user notification on `coming_soon -> available`;
 - no retroactive launch notifications.
 
+
+
+---
+
+# PROTO EMPEROR ZX — FAMILY RE-AUDIT COMPLETION — 29/09/2026
+
+Proto Emperor ZX has been re-audited under the current Family Completion Master.
+
+## Canonical family
+
+Canonical/public Releases remain **3**:
+
+- `18038` — Proto Emperor ZX (1992 Original) — Zero chassis
+- `18038` — Proto Emperor ZX (2007 Reissue / spot production) — Zero chassis
+- `95335` — Proto Emperor ZX Premium (2017) — Super-II chassis
+
+No fourth commercial Release was verified. The documented 1991 Autumn Cup advance sale is treated as a pre-sale/distribution wave of the 1992 commercial Release, not a separate collector Release.
+
+Shared ITEM `18038` remains fail-closed for unattended eBay Active attribution.
+
+## Identity / status / rarity
+
+All three Releases are now `verification_status=verified` and `production_status=discontinued`.
+
+Release-specific rarity:
+- 1992 Original — Rare
+- 2007 Reissue — Rare
+- 2017 Premium — Uncommon
+
+Bilingual IT/EN descriptions were normalized.
+
+The legacy 2007 Tamiya JPY 990 row was corrected from a false current-retail signal to a historical MSRP/reference record.
+
+## Images
+
+Public exact/high-confidence image coverage: **2 / 3**.
+
+Healthy:
+- 2007 Reissue — official Tamiya ITEM 18038 asset
+- 2017 Premium — official Tamiya ITEM 95335 asset
+
+Documented gap:
+- 1992 Original — no persisted exact hero image
+
+A targeted second pass found vintage 18038 imagery but no stable asset with a sufficiently strong physical/packaging discriminator against the 2007 shared-ITEM reissue.
+
+Permanent decision:
+**documented image gap > sibling/reissue image risk**.
+
+## Market result after recompute
+
+### 18038 — 1992 Original
+- 2 accepted recent Yahoo completed-sale observations attributable to the vintage/original generation
+- SOLD anchor: **EUR 50.20**
+- sold units: 2
+- sold sources: 1
+- Market Value: null
+- confidence: 18 / low
+- no current Europe-comparable ASK
+- no recompute pending
+
+### 18038 — 2007 Reissue
+- exact current Mercari Japan spot-production `18038SP` ASK observed at JPY 7,370
+- Japan-local shipping range is not a verified European landed cost, therefore the offer stays contextual/item-only
+- public Market Value: null
+- public starting effective cost: null
+- confidence: 3 / low
+- no recompute pending
+
+### 95335 — 2017 Premium
+- 3 accepted recent completed-sale observations
+- 2 independent SOLD sources
+- SOLD anchor / Market Value: **EUR 22.78**
+- confidence: 56 / medium
+- current eBay Europe-facing ASK anchor: **EUR 73.20 delivered**
+- canonical starting effective cost: **EUR 73.20**
+- active offers: 1 marketplace / 2 current observed offers total
+- no recompute pending
+
+The strong SOLD-vs-ASK spread is intentionally preserved; TrackDash does not average the current seller request into the completed-sale Market Value.
+
+## RCJAZ
+
+Exact RCJAZ endpoint verified for ITEM `95335`:
+`https://www.rcjaz.com/tamiya-95335-protoemperor-zx-premium-super-ii-chassis-p-90079925.html`
+
+Manual check on 2026-09-29:
+- ITEM 95335
+- GTIN 4950344953356
+- displayed price USD 12.30
+- status: Not Available
+
+This is stored as an unavailable retail reference / sell-through-date-unknown context only. It is not treated as a current purchasable offer.
+
+RCJAZ source policy remains globally `planned`; it was not promoted to `ready` for this family. The verified endpoint is enrolled for the future adapter rollout without enabling RCJAZ globally.
+
+## Final completion state
+
+- researched Releases: **3**
+- public Releases: **3**
+- research-only Releases: **0**
+- exact/high-confidence images: **2 / 3**
+- recompute queue: **0**
+- reused-ITEM eBay Active safety: preserved
+- Premium market coverage: `strategic_coverage_ready`
+- Market Values forced from insufficient evidence: **0**
+
+Final status:
+
+**PROTO EMPEROR ZX — COMPLETE WITH DOCUMENTED IMAGE GAP**
+
+Remaining work is opportunistic only:
+- recover a stable exact 1992 Original hero image with a defensible discriminator;
+- gather more 2007 exact completed-sale evidence;
+- continue normal scheduled market refresh, with shared ITEM 18038 fail-closed.
