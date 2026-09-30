@@ -12,6 +12,7 @@
 //   generic product:  product image -> oldest photographed release -> placeholder
 //   NEVER release A -> release B for a specifically-selected release.
 import { register } from "node:module"
+import { readFileSync } from "node:fs"
 
 register("./ts-extension-loader.mjs", import.meta.url)
 
@@ -102,6 +103,17 @@ function makeProduct({ productImages = [], releases = [] }) {
   const rel = { images: [RELEASE_IMG] }
   const p = makeProduct({ productImages: [PRODUCT_IMG], releases: [rel, { images: [SIBLING_IMG] }] })
   t("release image takes priority over product image", resolveReleaseImageUrl(rel, p) === RELEASE_IMG)
+}
+
+
+// --- Public release page must not bypass the fail-closed resolver in SEO/JSON-LD ---
+{
+  const releasePage = readFileSync(new URL("../app/catalog/[id]/releases/[releaseId]/page.tsx", import.meta.url), "utf8")
+  const releaseScreen = readFileSync(new URL("../components/screens/release-detail-screen.tsx", import.meta.url), "utf8")
+
+  t("release metadata uses the exact-release resolver", releasePage.includes("resolveReleaseImageUrl(release, product)"))
+  t("release metadata never falls back directly to product.images", !releasePage.includes("release.images?.[0] ?? product.images?.[0]"))
+  t("imageless release copy explicitly describes a placeholder", releaseScreen.includes("placeholder"))
 }
 
 console.log(`\n${pass} passed, ${fail} failed`)

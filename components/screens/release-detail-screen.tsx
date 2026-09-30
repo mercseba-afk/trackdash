@@ -69,8 +69,8 @@ export function ReleaseDetailScreen({
             {hasExactImage
               ? (it ? "Immagine esatta della Release." : "Exact image for this Release.")
               : (it
-                  ? "L'immagine esatta della Release non è ancora disponibile: viene mostrata l'immagine del modello."
-                  : "The exact Release image is not available yet, so the model image is shown instead.")}
+                  ? "L'immagine esatta della Release non è ancora disponibile: viene mostrato un placeholder per evitare immagini di edizioni diverse."
+                  : "The exact Release image is not available yet: a placeholder is shown to avoid using imagery from a different edition.")}
           </p>
         </div>
 
