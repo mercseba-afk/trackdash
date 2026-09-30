@@ -44,7 +44,7 @@ class FakeSoldStore {
         ingestionMode: "licensed_feed",
       }],
     ])
-    this.releases = new Set(["r1"])
+    this.releases = new Set(["r1", "r2"])
     this.candidates = new Map()
     this.points = new Map()
     this.recompute = []
@@ -89,12 +89,27 @@ class FakeSoldStore {
       row = {
         id: `c${this.nextCandidate++}`,
         ...draft,
+        needsRevalidation: false,
       }
       this.candidates.set(key, row)
     } else {
+      const releaseChanged = row.resolvedReleaseId !== draft.resolvedReleaseId
       Object.assign(row, draft)
+      if (releaseChanged) row.needsRevalidation = true
     }
-    return { id: row.id, decision: row.decision }
+    return {
+      id: row.id,
+      decision: row.decision,
+      resolvedReleaseId: row.resolvedReleaseId,
+      needsRevalidation: row.needsRevalidation,
+    }
+  }
+
+  async markCandidateNeedsReview(candidateId, reasonCodes) {
+    const row = [...this.candidates.values()].find((candidate) => candidate.id === candidateId)
+    if (!row) throw new Error("candidate not found")
+    row.decision = "needs_review"
+    row.reasonCodes = [...reasonCodes]
   }
 
   async disablePricePoint(candidateId) {
@@ -211,6 +226,34 @@ await test("same source record is idempotent", async () => {
   assert.equal(first.pricePointId, second.pricePointId)
   assert.equal(store.candidates.size, 1)
   assert.equal(store.points.size, 1)
+})
+
+await test("release correction is quarantined for DB-style revalidation", async () => {
+  const store = new FakeSoldStore()
+  await ingestSoldObservationWithStore(
+    fixedSale(),
+    store,
+    { mode: "manual", fxResolver },
+  )
+
+  const corrected = await ingestSoldObservationWithStore(
+    fixedSale({
+      releaseId: "r2",
+      exactReleaseMatch: true,
+      originalRecordId: "123",
+    }),
+    store,
+    { mode: "manual", fxResolver },
+  )
+
+  assert.equal(corrected.status, "needs_review")
+  assert.equal(corrected.recomputeQueued, false)
+  assert.equal(corrected.reasonCodes.includes("REVALIDATION_REQUIRED"), true)
+  const candidate = [...store.candidates.values()][0]
+  assert.equal(candidate.needsRevalidation, true)
+  assert.equal(candidate.decision, "needs_review")
+  const point = [...store.points.values()][0]
+  assert.equal(point.valuationEligible, false)
 })
 
 await test("ambiguous packaging routes to review without a price point", async () => {
