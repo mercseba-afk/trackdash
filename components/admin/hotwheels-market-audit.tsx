@@ -4,12 +4,12 @@ import * as React from "react"
 import { ChartNoAxesColumnIncreasing, Search, ShieldCheck } from "lucide-react"
 import {
   listHotWheelsAuditProfilesAction,
-  runHcj81MarketSignalPreviewAction,
+  runHotWheelsSharedMarketPreviewAction,
   runHotWheelsAskAuditAction,
   type HotWheelsAuditProfileOption,
 } from "@/lib/actions/hotwheels-admin"
 import type { HotWheelsAskAuditResult } from "@/lib/market/automation/hotwheels-ebay-audit"
-import type { HotWheelsMarketSignalPreview } from "@/lib/market/automation/hotwheels-hcj81-preview"
+import type { HotWheelsSharedMarketPreview } from "@/lib/market/automation/hotwheels-shared-market-preview"
 import { useI18n } from "@/lib/i18n"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,7 @@ export function HotWheelsMarketAudit() {
   const [releaseId, setReleaseId] = React.useState("")
   const [includeFallback, setIncludeFallback] = React.useState(false)
   const [result, setResult] = React.useState<HotWheelsAskAuditResult | null>(null)
-  const [preview, setPreview] = React.useState<HotWheelsMarketSignalPreview | null>(null)
+  const [preview, setPreview] = React.useState<HotWheelsSharedMarketPreview | null>(null)
   const [loadingProfiles, startProfiles] = React.useTransition()
   const [running, startAudit] = React.useTransition()
   const [runningPreview, startPreview] = React.useTransition()
@@ -75,11 +75,15 @@ export function HotWheelsMarketAudit() {
   }
 
   function runPreview() {
+    if (!releaseId) return
     startPreview(async () => {
       try {
-        const next = await runHcj81MarketSignalPreviewAction()
+        const next = await runHotWheelsSharedMarketPreviewAction({
+          releaseId,
+          includeFallbackQuery: includeFallback,
+        })
         setPreview(next)
-        toast.success(it ? "Preview HCJ81 aggiornato · snapshot ASK salvato" : "HCJ81 preview updated · ASK snapshot saved")
+        toast.success(it ? "Preview Market Method v4 completata" : "Market Method v4 preview completed")
       } catch (error) {
         toast.error(error instanceof Error ? error.message : (it ? "Preview mercato non riuscito" : "Market preview failed"))
       }
@@ -151,17 +155,17 @@ export function HotWheelsMarketAudit() {
           <div>
             <p className="flex items-center gap-2 text-sm font-semibold">
               <ChartNoAxesColumnIncreasing className="size-4 text-brand" />
-              {it ? "HCJ81 · Market Signal Preview" : "HCJ81 · Market Signal Preview"}
+              {it ? "Hot Wheels · Market Method v4 condiviso" : "Hot Wheels · shared Market Method v4"}
             </p>
             <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
               {it
-                ? "Combina l'audit eBay live con le evidenze Mercari/retail già verificate. Non scrive Market Value o Price Points: salva solo uno snapshot ASK giornaliero diagnostico."
-                : "Combines the live eBay audit with already verified Mercari/retail evidence. It writes no Market Value or Price Points: only one diagnostic daily ASK snapshot is stored."}
+                ? "Calcola la Release selezionata con lo stesso motore Market Value usato da Mini 4WD. Matching e fonti restano specifici Hot Wheels; ASK da soli non possono creare un Market Value. Preview read-only."
+                : "Calculates the selected Release with the same Market Value engine used by Mini 4WD. Matching and sources stay Hot Wheels-specific; ASK alone cannot create Market Value. Read-only preview."}
             </p>
           </div>
-          <Button variant="outline" onClick={runPreview} disabled={runningPreview || running} className="shrink-0">
+          <Button variant="outline" onClick={runPreview} disabled={!releaseId || runningPreview || running || loadingProfiles} className="shrink-0">
             <ChartNoAxesColumnIncreasing data-icon="inline-start" className={runningPreview ? "animate-pulse" : ""} />
-            {runningPreview ? (it ? "Calcolo…" : "Calculating…") : (it ? "Calcola preview HCJ81" : "Calculate HCJ81 preview")}
+            {runningPreview ? (it ? "Calcolo…" : "Calculating…") : (it ? "Calcola con Market Method v4" : "Run Market Method v4")}
           </Button>
         </div>
 
@@ -176,129 +180,47 @@ export function HotWheelsMarketAudit() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
-                  {preview.identifier} · {it ? "segnale simulato" : "simulated signal"}
+                  {preview.identifier} · {preview.engine}
                 </p>
                 <h3 className="mt-1 text-lg font-semibold">
-                  {preview.signal.marketStatus === "consolidated"
-                    ? (it ? "Market Value consolidabile" : "Market Value can consolidate")
-                    : preview.signal.marketStatus === "observing"
+                  {preview.readiness.marketValuePublished
+                    ? (it ? "Market Value pubblicabile" : "Market Value publishable")
+                    : preview.readiness.hasCurrentAskContext
                       ? (it ? "Mercato in osservazione" : "Market under observation")
-                      : (it ? "Dati di mercato in arrivo" : "Market data incoming")}
+                      : (it ? "Dati di mercato insufficienti" : "Insufficient market data")}
                 </h3>
                 <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">{preview.readiness.note}</p>
               </div>
-              <Badge variant={preview.readiness.sufficientForPublishedMv ? "default" : "secondary"}>
-                {preview.readiness.sufficientForPublishedMv
-                  ? (it ? "MV sufficiente" : "MV sufficient")
-                  : (it ? "MV non ancora sufficiente" : "MV not sufficient yet")}
+              <Badge variant={preview.readiness.marketValuePublished ? "default" : "secondary"}>
+                {preview.signal.confidenceLabel === "high"
+                  ? (it ? "Copertura alta" : "High coverage")
+                  : preview.signal.confidenceLabel === "medium"
+                    ? (it ? "Copertura media" : "Medium coverage")
+                    : (it ? "Copertura limitata" : "Limited coverage")}
               </Badge>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <PreviewMetric label={it ? "ASK centrale" : "ASK center"} value={euro(preview.signal.askAnchorEUR)} />
-              <PreviewMetric label={it ? "Min. consegnato UE verificato" : "Verified EU delivered min"} value={euro(preview.signal.startingEffectiveCostEUR)} />
-              <PreviewMetric label={it ? "Market Value" : "Market Value"} value={euro(preview.signal.marketValueEUR)} />
-              <PreviewMetric label={it ? "ASK eBay accettati" : "Accepted eBay ASK"} value={String(preview.liveEbay.acceptedAskCount)} />
+              <PreviewMetric label="Market Value" value={euro(preview.signal.marketValueEUR)} />
+              <PreviewMetric label={it ? "SOLD anchor" : "SOLD anchor"} value={euro(preview.signal.soldAnchorEUR)} />
+              <PreviewMetric label={it ? "ASK centrale" : "ASK center"} value={euro(preview.signal.activeAnchorEUR)} />
+              <PreviewMetric
+                label={it ? "Disponibile da" : "Available from"}
+                value={euro(preview.signal.startingOffer?.effectiveCostEUR ?? preview.signal.startingOffer?.itemPriceEUR ?? null)}
+              />
             </div>
 
-            {preview.askHistory.length > 0 ? (
-              <div className="rounded-xl border border-border/70 bg-background p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-xs font-semibold">{it ? "Storico ASK HCJ81" : "HCJ81 ASK history"}</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">
-                      {it ? "Snapshot giornalieri diagnostici · massimo 14 mostrati" : "Diagnostic daily snapshots · up to 14 shown"}
-                    </p>
-                  </div>
-                  <Badge variant="outline">{preview.askHistory.length} snapshot</Badge>
-                </div>
-                <div className="mt-3 overflow-x-auto">
-                  <table className="w-full min-w-[620px] text-left text-[11px]">
-                    <thead className="text-muted-foreground">
-                      <tr>
-                        <th className="pb-2 font-medium">{it ? "Data" : "Date"}</th>
-                        <th className="pb-2 font-medium">{it ? "ASK centrale" : "ASK center"}</th>
-                        <th className="pb-2 font-medium">{it ? "Range" : "Range"}</th>
-                        <th className="pb-2 font-medium">{it ? "Offerte" : "Offers"}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {preview.askHistory.map((row) => (
-                        <tr key={row.snapshotDate} className="border-t border-border/50">
-                          <td className="py-2">{new Intl.DateTimeFormat(it ? "it-IT" : "en-GB").format(new Date(row.snapshotDate + "T12:00:00Z"))}</td>
-                          <td className="py-2 font-semibold tabular-nums">{euro(row.typicalEUR)}</td>
-                          <td className="py-2 tabular-nums">{euro(row.lowEUR)} – {euro(row.highEUR)}</td>
-                          <td className="py-2 tabular-nums">{row.offerCount}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-border/70 bg-background p-3 text-xs">
-                <p className="font-semibold">{it ? "Audit eBay live" : "Live eBay audit"}</p>
-                <p className="mt-2 text-muted-foreground">
-                  {preview.liveEbay.uniqueListings} {it ? "annunci unici" : "unique listings"} · {preview.liveEbay.accepted} {it ? "accettati" : "accepted"} · {preview.liveEbay.review} {it ? "da verificare" : "review"} · {preview.liveEbay.rejected} {it ? "scartati" : "rejected"}.
-                </p>
-                <p className="mt-1 text-muted-foreground">
-                  {preview.liveEbay.deliveredAskCount} {it ? "ASK eBay hanno un costo consegnato UE verificato. Questo dato non viene ancora mostrato come “Disponibile da” finché la copertura resta bassa." : "eBay ASK have a verified EU delivered cost. This is not yet shown as “Available from” while delivery coverage remains thin."}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/70 bg-background p-3 text-xs">
-                <p className="font-semibold">{it ? "Guard rail" : "Guard rail"}</p>
-                <p className="mt-2 text-muted-foreground">
-                  {preview.signal.guardedSold.length > 0
-                    ? preview.signal.guardedSold.map((row) => `${row.source}: ${euro(row.itemPriceEUR)}`).join(" · ")
-                    : (it ? "Nessun SOLD idoneo è stato escluso come outlier in questo calcolo." : "No eligible SOLD was excluded as an outlier in this calculation.")}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <PreviewMetric label={it ? "ASK exact" : "Exact ASK"} value={String(preview.inputs.acceptedAskCount)} />
+              <PreviewMetric label={it ? "ASK consegnati UE" : "EU delivered ASK"} value={String(preview.inputs.deliveredAskCount)} />
+              <PreviewMetric label={it ? "SOLD qualificati" : "Qualified SOLD"} value={String(preview.signal.soldUnits)} />
+              <PreviewMetric label={it ? "Fonti SOLD" : "SOLD sources"} value={String(preview.signal.soldSourceCount)} />
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-border/70 bg-background">
-              <table className="w-full min-w-[900px] text-left text-xs">
-                <thead className="bg-muted/40 text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">{it ? "Fonte" : "Source"}</th>
-                    <th className="px-3 py-2 font-medium">{it ? "Tipo" : "Type"}</th>
-                    <th className="px-3 py-2 font-medium">{it ? "Prezzo" : "Price"}</th>
-                    <th className="px-3 py-2 font-medium">{it ? "Costo consegnato" : "Delivered cost"}</th>
-                    <th className="px-3 py-2 font-medium">{it ? "Uso" : "Use"}</th>
-                    <th className="px-3 py-2 font-medium">{it ? "Nota" : "Note"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.evidence.map((row) => (
-                    <tr key={`${row.sourceFamily}-${row.sourceRecordKey}`} className="border-t border-border/60 align-top">
-                      <td className="px-3 py-2">
-                        {row.url ? (
-                          <a href={row.url} target="_blank" rel="noreferrer" className="font-medium hover:text-brand hover:underline">
-                            {row.source}
-                          </a>
-                        ) : <span className="font-medium">{row.source}</span>}
-                      </td>
-                      <td className="px-3 py-2 font-mono text-[10px]">{row.kind}</td>
-                      <td className="px-3 py-2 tabular-nums">{euro(row.itemPriceEUR)}</td>
-                      <td className="px-3 py-2 tabular-nums">{euro(row.deliveredCostEUR)}</td>
-                      <td className="px-3 py-2">
-                        <Badge variant={row.marketUse === "mv_candidate" ? "default" : row.marketUse === "ask" ? "secondary" : "outline"}>
-                          {row.marketUse}
-                        </Badge>
-                      </td>
-                      <td className="max-w-[360px] px-3 py-2 text-muted-foreground">{row.note}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <p className="text-[10px] text-muted-foreground">
-              {it ? "Generato " : "Generated "}
-              {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { dateStyle: "short", timeStyle: "short" }).format(new Date(preview.generatedAt))}
-              {" · "}
-              {it ? "nessuna scrittura nel Price Engine" : "no writes to the Price Engine"}
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              {it
+                ? "Condizione Hot Wheels: nuovo, carded/confezione originale, non aperto. Internamente resta nella lane condivisa new_complete_unbuilt per non creare un secondo Price Engine. Nessuna scrittura in market_candidates, Price Points o Market Value."
+                : "Hot Wheels condition: new, original card/package, unopened. Internally it stays in the shared new_complete_unbuilt lane so there is no second Price Engine. No writes to market_candidates, Price Points or Market Value."}
             </p>
           </div>
         ) : null}
