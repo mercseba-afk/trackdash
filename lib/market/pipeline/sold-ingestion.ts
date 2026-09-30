@@ -168,6 +168,8 @@ export interface SoldIngestionSourceRow {
 export interface SoldIngestionCandidateRow {
   id: string
   decision: "accepted" | "needs_review" | "rejected" | "duplicate"
+  resolvedReleaseId: string | null
+  needsRevalidation: boolean
 }
 
 export interface SoldIngestionStore {
@@ -180,6 +182,7 @@ export interface SoldIngestionStore {
     excludeCandidateId?: string | null
   }): Promise<{ id: string } | null>
   upsertCandidate(draft: SoldIngestionCandidateDraft): Promise<SoldIngestionCandidateRow>
+  markCandidateNeedsReview(candidateId: string, reasonCodes: string[]): Promise<void>
   disablePricePoint(candidateId: string): Promise<void>
   upsertPricePoint(draft: SoldIngestionPointDraft): Promise<{ id: string }>
   enqueueRecompute(releaseId: string, condition: MarketCondition, dirtyAt: string): Promise<void>
@@ -436,6 +439,19 @@ export async function ingestSoldObservationWithStore(
         : decision === "rejected"
           ? "rejected"
           : "needs_review",
+      candidateId: candidate.id,
+      pricePointId: null,
+      reasonCodes,
+      recomputeQueued: false,
+    }
+  }
+
+  if (candidate.needsRevalidation || candidate.resolvedReleaseId !== input.releaseId) {
+    reasonCodes = uniq([...reasonCodes, "REVALIDATION_REQUIRED"])
+    await store.markCandidateNeedsReview(candidate.id, reasonCodes)
+    await store.disablePricePoint(candidate.id)
+    return {
+      status: "needs_review",
       candidateId: candidate.id,
       pricePointId: null,
       reasonCodes,
