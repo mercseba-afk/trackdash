@@ -5434,3 +5434,30 @@ Interpretation:
 - single-SOLD publication guard behaves correctly;
 - exact HKF21 identity remains usable via Toy Number / Boulevard #70 context;
 - the currently accepted ASK set is extra-EU only, therefore Europe-first policy correctly leaves public ASK / starting cost empty rather than importing a US item price into the European reference market.
+
+
+## JDJ24 single-SOLD shared Market Method QA — 2026-09-30
+
+Production rerun for Boulevard All Stars after persisting one verified exact JDJ24 completed-sale event:
+
+- exact ASK audit, contextual query OFF:
+  - unique listings: **11**
+  - accepted exact-release: **1**
+  - review: **2**
+  - rejected: **8**
+  - verified EU-delivered ASK count: **0**
+  - active ASK anchor: null
+  - starting effective cost: null
+- canonical SOLD:
+  - sold evidence count: **1**
+  - sold units: **1**
+  - sold sources: **1**
+  - SOLD anchor: **EUR 17.20**
+- shared Market Method v4:
+  - Market Value: **null**
+  - confidence: **low**
+
+Interpretation:
+- the single-SOLD publication guard behaves correctly;
+- JDJ24 exact identity is recoverable through structured item details even when the Toy Number is absent from the listing title;
+- the currently accepted ASK is extra-EU only, so Europe-first correctly leaves public ASK / starting cost empty.
