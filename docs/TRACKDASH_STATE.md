@@ -8,9 +8,9 @@
 ---
 
 
-## CURRENT WORKING CHECKPOINT — 2026-09-30 — MAGNUM SABER RE-AUDIT — ADMIN RECOMPUTE/SCAN PENDING
+## CURRENT WORKING CHECKPOINT — 2026-09-30 — MAGNUM SABER RE-AUDIT — EU-FIRST FIX / FINAL RECOMPUTE PENDING
 
-Magnum Saber has completed the genealogy / identity / image / manual Initial Market Challenge portion of the current re-audit. The family is **not yet re-closed** because canonical recompute and the refreshed eBay Active jobs still need to run through the authorized Admin worker and then pass the final Completion Gate.
+Magnum Saber has completed genealogy, identity, image audit, manual Initial Market Challenge and the refreshed Admin scan/recompute pass. The family is **not yet re-closed** because that pass exposed a shared EU-first mapping defect: EBAY_GB / EBAY_CH were still being classified as European-comparable. The code fix is on the Magnum branch and must reach Production before the final Premium recompute / Completion Gate.
 
 ### Canonical family
 
@@ -103,15 +103,42 @@ Post-migration verification:
   - 92321
 - eBay Active remains disabled/parked for both ITEM 19401 generations and Tokyo Anime Center.
 
+### First Admin run — verified result
+
+The authorized Admin run was verified from runtime timestamps/queue state rather than UI counters:
+
+- all **9 Magnum Releases** were recomputed under v4/r3;
+- global recompute queue returned to 0;
+- all **6 eligible unique-ITEM eBay jobs** received a successful refresh on 2026-09-30;
+- 19431 Premium accepted 20 exact eBay listings;
+- First Impact White and 94618 produced only rejected candidates in the refreshed batch; Blue/Red/Gray had no accepted exact eBay offer;
+- Original/Reissue shared ITEM 19401 and Tokyo remained fail-closed as designed.
+
+Post-run market state before the EU-first mapping fix:
+- 1994 Original — SOLD 2, anchor EUR 51.67, MV null, ASK none;
+- 94618 — SOLD 2, anchor EUR 49.22, MV null, ASK none;
+- 19431 Premium — SOLD 3, anchor EUR 4.76, MV null, 16 current offers, provisional starting cost EUR 24.51;
+- remaining Releases — no valuation-eligible SOLD / no European current ASK.
+
+The Premium provisional EUR 24.51 starting cost was traced to an **EBAY_GB** listing. An exact EBAY_IT listing exists at EUR 17.50 + EUR 7.90 shipping = **EUR 25.40 delivered**.
+
+Root cause:
+- `marketplaceRegionFromOriginalSource()` still mapped EBAY_GB and EBAY_CH to `europe`;
+- this violated the durable EU-first rule because UK/Switzerland local marketplace shipping is not EU landed cost.
+
+Branch fix:
+- EU marketplaces remain `europe`;
+- EBAY_GB / EBAY_CH now map to `global`;
+- mapping was extracted into `lib/market/pipeline/market-region.ts`;
+- `scripts/test-market-r3.mjs` now asserts GB/CH remain extra-EU.
+
+No Hot Wheels catalog/data work was performed; this is a shared engine correctness fix discovered by the Magnum Saber audit.
+
 ### Exact next action
 
-Authenticated admin must run:
+Merge/deploy the EU-first mapping fix, then enqueue **19431 Premium only** for canonical recompute and run the authorized Admin worker once. Verify that the public starting offer no longer uses EBAY_GB as a European delivered offer and resolves to the best valid EU-comparable offer (currently the exact EBAY_IT listing at EUR 25.40 delivered, subject to unchanged availability).
 
-**Admin → Aggiornamento mercato → Esegui ora**
-
-At least two passes are expected because the eBay lane processes 4 jobs per run and recompute processes 8, but the button is global. After each run, verify the actual Release IDs processed. Do not infer Magnum completion from the UI counters alone.
-
-After worker completion: rerun A/B/stale/queue gates, public family + Release + Collection QA, update this checkpoint to the final Magnum completion state, then PR/merge/Production alignment.
+After that recompute: rerun A/B/stale/queue gates, public family + Release + Collection QA, update this checkpoint to final Magnum completion state and verify GitHub main = Vercel Production = /api/version.
 
 ---
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-29 — PROGRESSIVE MINI 4WD CATALOG LAUNCH
