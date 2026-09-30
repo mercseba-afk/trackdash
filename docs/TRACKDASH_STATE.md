@@ -4989,3 +4989,25 @@ Existing Hot Wheels dataset remains the test base; do not expand catalog breadth
 
 Next decision gate:
 prove whether TrackDash can produce a more transparent and defensible price-intelligence result than current competitor surfaces before committing to Hot Wheels scale.
+---
+
+# HOT WHEELS — HWR91 EUROPE-FIRST ASK CORRECTION — 30/09/2026
+
+HWR91 Elite 64 benchmark exposed a Hot Wheels preview adapter inconsistency:
+
+- exact identity performance was strong: 21 unique ASK listings, 21 accepted, 0 review, 0 rejected;
+- 4 accepted offers had a verified EU-to-Italy delivered-cost basis;
+- lowest verified delivered EU cost was EUR 45.99;
+- the preview nevertheless produced an active ASK anchor of EUR 32.05 because GB-origin item-only offers were tagged as `marketRegion=europe` even though the Hot Wheels audit correctly classifies GB as extra-EU / import-unknown.
+
+This contradicted the permanent Europe-first rule documented in the Method Master and Operations: extra-EU item-only evidence may remain market context but must not define or lower the European observed ASK anchor.
+
+Correction:
+- the Hot Wheels shared preview now maps only EU member-state origins to the Europe-comparable pool;
+- GB / CH / NO remain extra-EU / global context until a trustworthy landed-to-Italy cost exists;
+- delivered-cost handling and Market Method v4 remain shared and unchanged;
+- no canonical Hot Wheels market writes are enabled.
+
+Benchmark next action after Production alignment:
+- rerun HWR91 with fallback OFF and verify that identity remains 21/21 while the active ASK anchor is derived only from Europe-comparable evidence;
+- then continue with HWF11 and JBC35.
