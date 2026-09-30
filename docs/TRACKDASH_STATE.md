@@ -5011,3 +5011,29 @@ Correction:
 Benchmark next action after Production alignment:
 - rerun HWR91 with fallback OFF and verify that identity remains 21/21 while the active ASK anchor is derived only from Europe-comparable evidence;
 - then continue with HWF11 and JBC35.
+
+
+## Production validation after PR #300
+
+Production merge commit: `e87d710e18a06e54fc426ebe0ee1fccea1ea6906`
+
+Production deployment:
+`dpl_AXqHEfLBUbPXcw5njqcrPCwmMNnM`
+
+HWR91 rerun with fallback OFF after the adapter correction:
+- unique listings: **21**
+- accepted exact-release: **21**
+- review: **0**
+- rejected: **0**
+- verified EU-delivered asks: **4**
+- lowest verified EU-delivered cost: **EUR 45.99**
+- active ASK anchor: **EUR 50.01**
+- Market Value: null
+- SOLD anchor: null
+- confidence: low
+
+The previous EUR 32.05 anchor was confirmed to be caused by extra-EU GB item-only evidence entering the Europe-comparable pool. After the fix, the active ASK anchor is derived only from EU-comparable evidence while GB remains contextual/import-unknown.
+
+HWR91 identity + Europe-first ASK QA is therefore **PASS**.
+
+Next benchmark target: `HWF11` RLC Lamborghini Miura P400 SV, first run with fallback/context query OFF.
