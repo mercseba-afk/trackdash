@@ -7,6 +7,105 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-09-30 — NEO-TRIDAGGER ZMC RE-AUDIT — ADMIN SCAN/RECOMPUTE PENDING
+
+Neo-Tridagger ZMC has completed the new genealogy / identity / image / manual Initial Market Challenge pass under the current TrackDash Master. The family is **not yet re-closed** because refreshed eBay Active work and canonical recompute must run through the authorized Admin worker, followed by Completion Gate and Production QA.
+
+### Canonical family
+
+Canonical/public collector Releases remain **7**:
+
+1. 19409 — Neo-Tridagger ZMC — 1996 Original — Super 1
+2. 94647 — Neo-Tridagger ZMC Special Kit — 2008 — Super 1
+3. 92277 — Neo-Tridagger ZMC Next (Navy) — 2014 — Super 1
+4. 92278 — Neo-Tridagger ZMC Next (Clear Red) — 2014 — Super 1
+5. 92279 — Neo-Tridagger ZMC Next (White) — 2014 — Super 1
+6. 92280 — Neo-Tridagger ZMC Next (Smoke) — 2014 — Super 1
+7. 95508 — Neo-Tridagger ZMC Carbon Special — 2019 — Super II
+
+No eighth autonomous full-kit Release was verified. Parts/body-only products such as 15172 / 15480 / 94213 remain excluded.
+
+### Identity corrections
+
+19409:
+- JAN **4950344194094** is now verified and canonical;
+- stored both in product_releases.barcode_jan and release_identifiers;
+- official Tamiya Japan still lists ITEM 19409 in the Fully Cowled / Super-1 catalog and Tamiya Tokyo handling;
+- production_status remains active/current-handled without claiming uninterrupted manufacturing since 1996.
+
+94647 Special Kit:
+- JAN **4950344946471** remains verified;
+- contemporary Tamiya material establishes **February 2008**;
+- reliable secondary sources disagree on exact debut day (around 2008-02-23 vs 2008-02-25), so release_date is now intentionally null under UNKNOWN > INVENTED;
+- Suruga records **2012-01-13** for a later occurrence of the same ITEM/spec;
+- 2012 is retained as a production/reissue wave, not a second collector Release;
+- status remains discontinued.
+
+2014 Next prize variants:
+- four-color genealogy remains 92277 / 92278 / 92279 / 92280;
+- JAN **4519869409009** is observed on more than one color (including Navy and White), therefore it remains an assortment/shared identifier and is not assigned as a Release-specific barcode;
+- scanner attribution remains fail-closed by exact ITEM/color.
+
+95508 Carbon Special:
+- JAN **4950344955084** retained and added to release_identifiers;
+- one collector Release, initial month August 2019;
+- official 2023-08-12 on-sale event remains a later production wave under the same ITEM/spec;
+- Tamiya USA explicitly marks the item discontinued, so status remains conservative despite current Japanese catalog/Tamiya Tokyo handling.
+
+### Images
+
+Current exact/high-confidence stored hero coverage remains **7 / 7**:
+- 19409 official Tamiya
+- 94647 exact RCJaz
+- 92277 high-confidence exact-item Mercari Shops
+- 92278 high-confidence exact-item Mercari
+- 92279 exact Suruga
+- 92280 high-confidence exact-item Mercari
+- 95508 official Tamiya
+
+No image was replaced during this re-audit.
+
+### Manual Initial Market Challenge
+
+Existing valuation-eligible granular SOLD remains:
+- 19409: JPY 3,300 on 2026-05-20 + JPY 8,220 on 2026-06-15
+- 92280 Smoke: JPY 9,000 on 2026-02-08
+- 95508: JPY 4,100 on 2026-06-07 + JPY 2,900 / 3,200 on 2026-06-16
+
+Existing current Europe-comparable eBay market before refresh:
+- 19409: 2 EBAY_IT offers, previous starting delivered cost EUR 101.46
+- 95508: 4 EBAY_IT offers, previous starting delivered cost EUR 85.40
+
+Empty-price challenge:
+- 94647 / 92277 / 92278 / 92279: exact Japan-market used, sold-out, search-only or condition-unresolved evidence exists, but no qualifying Europe-comparable new-complete ASK was found;
+- 92280 has exact recent SOLD but no qualifying current Europe-comparable ASK;
+- no price or Market Value is forced from extra-EU/local-shipping, used, condition-unresolved or sold-out evidence.
+
+### Migration / queue state
+
+Applied live:
+- **0198_neo_tridagger_zmc_family_reaudit.sql**
+
+Post-migration:
+- public Releases: 7
+- image coverage: 7/7
+- verified primary JAN identifiers added for 19409 / 94647 / 95508
+- 7 family recompute jobs queued first globally with dirty_at/available_at 2000-01-02
+- 7 unique-ITEM eBay Active jobs queued first with next_scan_at 2000-01-02 and priority 180
+- all seven eBay jobs are safe for exact-item discovery because each canonical Release has a unique ITEM number.
+
+### Exact next action
+
+Authenticated admin must run:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+First pass should claim up to 4 Neo-Tridagger eBay jobs and all 7 family recomputes. Because the Admin action is global and lanes run in parallel, verify actual Release IDs/timestamps after the click rather than inferring completion from 4/4 or 7/7 counters.
+
+A second eBay pass will likely be necessary for the remaining 3 jobs, followed by any recompute jobs created by changed evidence.
+
+---
+
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-30 — MAGNUM SABER COMPLETE — MARKET THIN / ACTIVE PREMIUM
 
