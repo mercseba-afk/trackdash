@@ -5407,3 +5407,30 @@ Interpretation:
 - publication guard remains correct: one verified SOLD is retained as context but does not publish Market Value;
 - HCN54 continues to demonstrate the known Team Transport identity limitation in active ASK discovery: exact Toy Number search alone recovered no auto-accepted current listing;
 - do not loosen the matcher generically. Team Transport should gain a composite/set identity rule using casting + line + subseries/collector context + transporter/set member when available.
+
+
+## HKF21 single-SOLD shared Market Method QA — 2026-09-30
+
+Production rerun for Boulevard #70 after persisting one verified exact HKF21 completed-sale event:
+
+- exact ASK audit, contextual query OFF:
+  - unique listings: **15**
+  - accepted exact-release: **3**
+  - review: **5**
+  - rejected: **7**
+  - verified EU-delivered ASK count: **0**
+  - active ASK anchor: null
+  - starting effective cost: null
+- canonical SOLD:
+  - sold evidence count: **1**
+  - sold units: **1**
+  - sold sources: **1**
+  - SOLD anchor: **EUR 27.45**
+- shared Market Method v4:
+  - Market Value: **null**
+  - confidence: **low**
+
+Interpretation:
+- single-SOLD publication guard behaves correctly;
+- exact HKF21 identity remains usable via Toy Number / Boulevard #70 context;
+- the currently accepted ASK set is extra-EU only, therefore Europe-first policy correctly leaves public ASK / starting cost empty rather than importing a US item price into the European reference market.
