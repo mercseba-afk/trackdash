@@ -7,6 +7,113 @@
 
 ---
 
+
+## CURRENT WORKING CHECKPOINT — 2026-09-30 — MAGNUM SABER RE-AUDIT — ADMIN RECOMPUTE/SCAN PENDING
+
+Magnum Saber has completed the genealogy / identity / image / manual Initial Market Challenge portion of the current re-audit. The family is **not yet re-closed** because canonical recompute and the refreshed eBay Active jobs still need to run through the authorized Admin worker and then pass the final Completion Gate.
+
+### Canonical family
+
+Canonical/public Releases remain **9**; no tenth autonomous full-kit Release was verified and no existing Release was removed:
+
+1. 19401 — 1994 Original — Super 1 — JAN 4950344194018
+2. 94618 — 2007 Special Kit — Super 1 — JAN 4950344946181
+3. 19431 — 2010 Premium — Super II — primary JAN 4950344194315
+4. 19401 — 2015 Reissue — Super 1 — JAN 4950344061310
+5. 92318 — 2015 First Impact Blue — Super 1
+6. 92319 — 2015 First Impact Red — Super 1
+7. 92320 — 2015 First Impact White — Super 1
+8. 92321 — 2015 First Impact Gray — Super 1
+9. Magnum Saber Tokyo Anime Center Model — 2026 — Super II
+
+ITEM 19401 Original/Reissue remains fail-closed for unattended marketplace attribution. Tokyo Anime Center remains no-ITEM and also fail-closed for eBay Active.
+
+### 19431 production-wave identifiers
+
+Premium remains **one collector Release**, not three. Current re-audit found multiple documented JANs associated with the same ITEM/spec across production/retail waves:
+- primary/historical 2010 JAN: 4950344194315 (still corroborated by Tamiya USA 2026 MAP data);
+- later/current channel alias: 4950344064007;
+- current official Tamiya Shop Japan/Yahoo alias: 4950344086887.
+
+The latter two are stored in release_identifiers as verified non-primary JAN aliases. No Release split is created without a physical collector discriminator.
+
+### First Impact shared barcode
+
+JAN 4519869507002 remains an assortment/shared identifier observed on First Impact color metadata (including exact White/Gray sources). It is deliberately **not** promoted into any one color Release barcode because that would make scanner attribution unsafe.
+
+### Images
+
+Current exact/high-confidence hero coverage after re-audit: **8 / 9**.
+
+The previous Original 1994 hero was the current Tamiya ITEM 19401 asset and did not safely discriminate vintage 1994 packaging from the 2015/current line. It has been removed.
+
+Suruga management 603004020 is exact for the 1994 Original (ITEM 19401 / JAN 4950344194018 / 1994-09-08) and displays exact imagery, but no stable direct image asset URL was verified during this audit. Therefore:
+
+**1994 Original = DOCUMENTED IMAGE GAP**
+
+This is intentional: documented gap > sibling/reissue image contamination.
+
+### Production status
+
+- 1994 Original — discontinued
+- 94618 Special Kit — discontinued
+- 19431 Premium — active
+- 19401 2015 Reissue — discontinued (kept conservative: Tamiya USA explicitly reports ITEM 19401 discontinued; Japanese catalog/residual retail handling alone is not treated as proof of active manufacturing)
+- First Impact 92318–92321 — discontinued prize Releases
+- Tokyo Anime Center 2026 — active at 2026-09-30; official Osaka POP UP availability runs through 2026-10-06
+
+### Manual Initial Market Challenge
+
+Existing eligible granular SOLD evidence remains valid:
+- 1994 Original: 2 recent exact/strong original-era Yahoo SOLD; pre-recompute SOLD anchor EUR 48.89
+- 94618 Special Kit: 2 exact Yahoo SOLD; pre-recompute SOLD anchor EUR 38.82
+- 19431 Premium: 3 exact Yahoo SOLD plus active eBay market; pre-recompute SOLD anchor EUR 4.76 and starting effective cost EUR 24.35
+
+First Impact / Reissue / Tokyo remain thin:
+- current Japan-market observations exist for First Impact variants, but exact condition / Europe-comparable acquisition cost is insufficient for a European public ASK;
+- Reissue current Japanese catalog/retail context exists, but no safe Europe-comparable exact ASK was promoted;
+- Tokyo has current high extra-EU eBay asks and sold-out Mercari context, but no robust European landed-cost signal and no dateable granular SOLD suitable for Market Value.
+
+New Tokyo context persisted:
+- exact Mercari sold-out observation at JPY 22,100, new/unopened, JPY 455 included domestic shipping;
+- absolute sold date is not exposed;
+- reason SOLD_DATE_UNRESOLVED;
+- no price_point was created and it cannot influence Market Value.
+
+An earlier exploratory mention of a possible JPY 5,800 Original sale was **not confirmed on re-check and was discarded**; it is not persisted anywhere.
+
+### Migration / queue state
+
+Applied live:
+- 0197_magnum_saber_family_reaudit.sql
+
+Post-migration verification:
+- public Releases: 9
+- research-only Releases: 0
+- image coverage: 8/9
+- candidates needing revalidation: 0 before enqueue
+- stale v4 signals before recompute: 0
+- 9 Magnum recompute jobs queued first globally with dirty_at/available_at 2000-01-01
+- six unique-ITEM Magnum eBay Active jobs queued first with next_scan_at 2000-01-01 and priority 180:
+  - 94618
+  - 19431
+  - 92318
+  - 92319
+  - 92320
+  - 92321
+- eBay Active remains disabled/parked for both ITEM 19401 generations and Tokyo Anime Center.
+
+### Exact next action
+
+Authenticated admin must run:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+At least two passes are expected because the eBay lane processes 4 jobs per run and recompute processes 8, but the button is global. After each run, verify the actual Release IDs processed. Do not infer Magnum completion from the UI counters alone.
+
+After worker completion: rerun A/B/stale/queue gates, public family + Release + Collection QA, update this checkpoint to the final Magnum completion state, then PR/merge/Production alignment.
+
+---
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-09-29 — PROGRESSIVE MINI 4WD CATALOG LAUNCH
 
 TrackDash no longer requires the full historical Mini 4WD catalog to be re-audited before public launch. The public catalog now uses a progressive family state:
