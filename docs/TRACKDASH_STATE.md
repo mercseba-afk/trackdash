@@ -5355,3 +5355,28 @@ the first attempted insert was rejected by the existing `market_candidates_match
 
 Next QA:
 run the read-only shared Market Method v4 preview on `HCJ81`, `HCN54`, `HKF21`, and `JDJ24` to observe how a single verified SOLD behaves against each Release's current ASK context. Do not weaken the two-sale/publication rules merely to force a Market Value.
+
+
+## HCJ81 single-SOLD shared Market Method QA — 2026-09-30
+
+Production rerun after persisting one verified HCJ81 completed-sale event:
+
+- exact ASK audit:
+  - unique listings: **26**
+  - accepted exact-release: **11**
+  - review: **4**
+  - rejected: **11**
+  - verified EU-delivered ASK count: **1**
+  - active ASK anchor: **EUR 99.50**
+  - starting effective cost: **EUR 99.50**
+- canonical SOLD:
+  - sold evidence count: **1**
+  - sold units: **1**
+  - sold sources: **1**
+  - SOLD anchor: **EUR 21.76**
+- shared Market Method v4:
+  - Market Value: **null**
+  - confidence: **low**
+
+Interpretation:
+the publication guard is behaving as intended. A single verified completed sale is retained as SOLD context but is not enough to publish a Market Value. No threshold was weakened or bypassed to force a number.
