@@ -5272,3 +5272,31 @@ Shipping remains unknown for both events and is not folded into the raw complete
 
 Next QA:
 rerun the read-only HWR91 Market Method v4 preview with contextual query OFF and inspect SOLD anchor, Market Value, ASK relationship and confidence. Do not infer additional sale events from listing-level cumulative sold counters.
+
+
+## HWR91 shared Market Method result — 2026-09-30
+
+Production rerun after persisting two exact/dateable HWR91 completed-sale events:
+
+- exact ASK audit:
+  - unique listings: **21**
+  - accepted exact-release: **21**
+  - review: **0**
+  - rejected: **0**
+  - verified EU-delivered ASK count: **4**
+  - lowest verified EU-delivered cost: **EUR 45.99**
+  - active ASK anchor: **EUR 50.01**
+- canonical SOLD:
+  - **2** completed-sale events
+  - sold units: **2**
+  - sold sources: **1**
+  - SOLD anchor: **EUR 14.33**
+- shared Market Method v4:
+  - Market Value: **EUR 14.33**
+  - confidence: **medium**
+
+Interpretation:
+- exact-release identity remains a strong PASS for Elite 64;
+- the shared engine correctly separates completed-sale value from current European ASK / acquisition cost;
+- the current HWR91 sample shows a large SOLD-vs-ASK spread, so do not collapse the two concepts into one public number;
+- more qualified SOLD evidence, preferably Europe-facing and/or multi-source, is required before treating EUR 14.33 as a mature European collectible value.
