@@ -1,4 +1,4 @@
-import { resolveMarketEurBasis, type HistoricalEurBasis } from "@/lib/fx/ecb"
+import { resolveMarketEurBasis, type HistoricalEurBasis } from "../../fx/ecb"
 import {
   MATCH_EVIDENCE_CODES,
   type EvidenceGrade,
