@@ -5123,3 +5123,88 @@ ASK identity benchmark conclusion:
 
 Next decision gate:
 design and validate an exact, dateable, condition-compatible SOLD evidence adapter/source flow for the 10-release Hot Wheels benchmark, feed it into the same shared Market Method v4, then compare TrackDash output/explainability against competitor price surfaces. Do not scale Hot Wheels catalog depth before this SOLD gate.
+
+
+---
+
+# HOT WHEELS — SOLD EVIDENCE PILOT — 30/09/2026
+
+ASK/identity benchmark is complete. The next gate is qualified completed-sale evidence.
+
+Canonical architecture remains unchanged:
+
+**one shared Market Method v4, no separate Hot Wheels valuation engine.**
+
+## Source feasibility
+
+Current eBay Production integration through Browse remains suitable for active ASK discovery, not arbitrary marketplace-wide completed-sale history.
+
+Official eBay documentation currently describes Marketplace Insights as the sales-history API and marks it Limited Release. The former Finding API was decommissioned in 2025 and replaced by Browse for listing search. Therefore TrackDash must not pretend that the existing Browse credential provides a normal completed-sale feed.
+
+Until a licensed/approved automated SOLD source is available, exact ended-sale research remains a controlled/manual evidence lane.
+
+## Shared preview wiring
+
+Branch:
+`hotwheels-sold-evidence-pilot`
+
+The Hot Wheels Market Method preview now loads canonical completed-sale evidence from the same R3 repositories used by normal recompute:
+
+- granular external `price_points`;
+- aggregate SOLD observations;
+- confirmed TrackDash sales;
+- current SOLD selection policy;
+- existing ASK snapshots.
+
+The preview remains read-only: it does not write Market Value, candidates, offers or signals.
+
+This closes the previous pilot gap where valid canonical SOLD rows could exist but the Hot Wheels preview would still pass an empty `soldEvidence` array.
+
+## First controlled SOLD target
+
+HWF11 — RLC '71 Lamborghini Miura P400 SV has two independently observable exact eBay ended-sale pages suitable for the first canonical ingestion test:
+
+- fixed-price exact HWF11, New/unopened, USD 39.99, sold 2026-06-28;
+- auction exact HWF11, New/unopened, USD 32.00, 13 bids, ended/sold 2026-03-31.
+
+The fixed-price transaction is stronger evidence than the auction; both remain separate events and must keep their provenance.
+
+No sale quantity beyond the single explicitly dated event is inferred from a listing-level “sold” counter.
+
+Next action:
+1. pass repository verify/PR for canonical SOLD-read wiring;
+2. ingest the two exact HWF11 events into existing `market_candidates` + `price_points` with historical ECB FX provenance;
+3. rerun HWF11 preview;
+4. inspect the actual SOLD anchor / Market Value produced by shared Market Method v4 before expanding SOLD research to the other benchmark Releases.
+
+
+## HWF11 first canonical SOLD ingestion
+
+Two exact, dateable HWF11 eBay completed-sale events have now been persisted in the existing canonical evidence model under `ebay_product_research`:
+
+1. eBay item `358697520177`
+   - fixed-price completed sale;
+   - sold on 2026-06-28;
+   - USD 39.99;
+   - New / unopened / undamaged;
+   - exact HWF11 identity;
+   - historical FX basis 2026-06-26: 0.87711604 EUR per USD;
+   - market raw-sale basis: **EUR 35.08**;
+   - evidence grade: **verified**;
+   - valuation eligible: true.
+
+2. eBay item `227276980785`
+   - completed auction;
+   - sold/ended on 2026-03-31;
+   - USD 32.00;
+   - 13 bids;
+   - New / unopened / undamaged;
+   - exact HWF11 identity;
+   - historical FX basis 2026-03-31: 0.86971647 EUR per USD;
+   - market raw-sale basis: **EUR 27.83**;
+   - evidence grade: **indicative** to preserve the lower-weight auction treatment;
+   - valuation eligible: true.
+
+Both rows use deterministic eBay-ended source keys, separate seller fingerprints and separate evidence-group keys. Shipping is explicitly unknown and is not folded into the raw completed-sale value.
+
+No `market_release_signals` row was recomputed/written as part of this ingestion. The first result must be observed through the read-only shared preview after the SOLD-read wiring reaches Production.
