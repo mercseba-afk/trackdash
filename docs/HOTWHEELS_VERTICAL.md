@@ -2121,3 +2121,85 @@ These are internal pilot weights, not published confidence percentages and not f
 Retail sell-through requires the exact Release to have been previously observed in stock at the same fixed price before becoming unavailable/sold out. A historical sold-out page discovered after the fact remains contextual unless that prior in-stock state is independently verifiable.
 
 The goal is a robust multi-source market estimate, not a single-source price guide.
+
+
+---
+
+## 2026-09-30 — Shared Market Method pilot for Hot Wheels
+
+Status: **IMPLEMENTED ON BRANCH — read-only / no canonical market writes**.
+
+After re-reading the current Master and latest checkpoint, the Hot Wheels pricing architecture is explicitly frozen as:
+
+**one shared TrackDash Market Engine, vertical-specific ingestion/matching adapters.**
+
+Hot Wheels must **not** get a second independent price engine.
+
+### Architecture
+
+Shared with Mini 4WD:
+- Market Method v4 computation;
+- SOLD-first publication policy;
+- ASK kept separate from Market Value;
+- EUR normalization;
+- delivered-cost semantics;
+- confidence labels;
+- retail corroboration rules;
+- trend model;
+- fail-closed behavior when evidence is insufficient.
+
+Hot Wheels-specific:
+- Mattel Toy Number / SKU / UPC identity;
+- Chase / STH / TH discriminators;
+- card/package rules;
+- Hot Wheels eBay matcher;
+- Hot Wheels source-quality policy;
+- packaging-condition eligibility.
+
+The internal shared collector condition remains `new_complete_unbuilt` for compatibility with the canonical market tables/public queries. For Hot Wheels this lane semantically means **new, original card/package, unopened**. Do not introduce a parallel `new_carded` canonical engine lane unless a future cross-vertical schema decision requires it.
+
+### Pilot implementation
+
+New read-only adapter:
+- `lib/market/automation/hotwheels-shared-market-preview.ts`
+
+The Admin Hot Wheels market panel now allows any verified Hot Wheels Release to be passed through the **same Market Method v4 core used by Mini 4WD**.
+
+Important safety behavior:
+- accepted exact-release eBay listings become ASK context only;
+- ASK alone can never manufacture Market Value;
+- shipping is counted as delivered cost only for verified EU-to-Italy delivery basis;
+- extra-EU / unknown landed cost stays item-only/contextual;
+- no `market_candidates`, `price_points`, `market_offer_states` or canonical `market_release_signals` writes are enabled by this preview.
+
+The older HCJ81-only simulator is no longer the Admin path for valuation testing. It remains historical diagnostic code until cleanup, but **canonical pilot decisions must use the shared Market Method path**.
+
+### Benchmark scope
+
+Use the existing TrackDash Hot Wheels data before expanding the catalog.
+
+Primary 10-Release benchmark:
+- HCJ81 — Car Culture Mountain Drifters regular
+- HCK01 — Mountain Drifters Chase 0/5
+- HCN54 — Team Transport #44
+- HKF21 — Boulevard #70
+- HKF49 — Car Culture 2-Pack
+- HPX97 — Team Transport Fast & Furious
+- JDJ24 — Boulevard All Stars
+- HWR91 — Elite 64 Aston Martin Valkyrie
+- HWF11 — RLC Lamborghini Miura P400 SV
+- JBC35 — 2025 Super Treasure Hunt '87 Audi quattro
+
+Goal:
+compare TrackDash against competitor price surfaces on exact identity, SOLD/ASK separation, provenance, confidence and whether a defensible Market Value can be produced without inventing evidence.
+
+### Next gate
+
+Do **not** add broad Hot Wheels catalog depth yet.
+
+For the 10 benchmark Releases:
+1. run shared-engine ASK preview;
+2. collect only exact, dateable, condition-compatible SOLD evidence;
+3. feed verified SOLD evidence into the same shared Market Method;
+4. compare resulting TrackDash value/explainability with Hunt64 / Carlect;
+5. decide whether TrackDash Price Intelligence is materially differentiated before scaling Hot Wheels.
