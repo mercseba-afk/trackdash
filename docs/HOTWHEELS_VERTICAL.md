@@ -2221,3 +2221,26 @@ Permanent Hot Wheels adapter rule:
 - extra-EU item-only evidence may remain contextual but cannot define or lower the public European ASK anchor.
 
 This is an adapter correction only. The shared Market Method v4 core and no-write pilot architecture remain unchanged.
+
+
+### 2026-09-30 — Automation is a Hot Wheels go-live requirement
+
+Manual market research is acceptable only during the validation/benchmark phase.
+
+If Hot Wheels progresses beyond the pilot, the recurring market workflow must be automated end-to-end wherever the source legally/technically allows it. The target flow is:
+
+1. discover current ASK / completed-sale evidence from approved adapters;
+2. exact-release match using Toy Number / SKU / UPC plus line, casting, chase and packaging discriminators;
+3. normalize sold state, date, condition, quantity/lot status and source provenance;
+4. apply historical FX normalization automatically;
+5. deduplicate transaction evidence and assign evidence grade / quality flags;
+6. persist canonical candidates / price points / offer states;
+7. enqueue shared Market Method v4 recompute;
+8. publish only when the existing fail-closed confidence/publication rules are satisfied;
+9. route ambiguous or high-risk matches to Admin review rather than silently accepting them.
+
+This is a **go-live gate**, not an optional future convenience. A production Hot Wheels vertical must not depend on Sebastiano or an operator manually finding and entering every SOLD observation.
+
+The current manual HWF11 work is therefore intentionally a falsification/ground-truth exercise used to define and test the rules that an automated SOLD adapter must later reproduce.
+
+Source acquisition remains adapter-specific. The existing eBay Browse integration covers active listings and must not be treated as a completed-sale feed; completed-sale automation requires an approved/available SOLD-capable source or licensed feed. All downstream stages should remain shared with the existing Market Method architecture rather than creating a Hot Wheels-only valuation engine.
