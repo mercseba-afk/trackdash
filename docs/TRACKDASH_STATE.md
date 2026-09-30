@@ -5513,3 +5513,39 @@ Next QA:
 1. rerun HCJ81 shared Market Method v4 preview, contextual query OFF;
 2. rerun JDJ24 shared Market Method v4 preview, contextual query OFF;
 3. verify whether the shared publication policy now opens Market Value and what confidence it assigns.
+
+
+## HCJ81 + JDJ24 two-SOLD publication QA — 2026-09-30
+
+Production rerun after each Release reached two verified completed-sale events.
+
+### HCJ81
+- SOLD evidence count: **2**
+- sold units: **2**
+- sold sources: **1**
+- SOLD anchor: **EUR 21.76**
+- Market Value: **EUR 21.76**
+- confidence: **medium**
+- active ASK anchor: **EUR 99.50**
+- starting effective cost: **EUR 99.50**
+- accepted ASK count: **11**
+- verified EU-delivered ASK count: **1**
+
+The publication policy therefore opens Market Value at two verified completed-sale events even with a single source, while confidence remains medium rather than high.
+
+### JDJ24
+- SOLD evidence count: **2**
+- sold units: **2**
+- sold sources: **1**
+- SOLD anchor: **EUR 17.31**
+- Market Value: **EUR 17.31**
+- confidence: **medium**
+- active ASK anchor: null
+- starting effective cost: null
+- accepted ASK count: **1**
+- verified EU-delivered ASK count: **0**
+
+JDJ24's two verified SOLD values are tightly clustered (EUR 17.20 and EUR 17.42), producing a stable midpoint anchor of EUR 17.31. The single accepted current ASK remains extra-EU only, so Europe-first continues to leave public ASK / starting cost empty.
+
+Conclusion:
+the real 1-SOLD -> 2-SOLD transition is now verified in Production on two different Hot Wheels Releases. No publication threshold was bypassed or tuned specifically for Hot Wheels.
