@@ -2203,3 +2203,21 @@ For the 10 benchmark Releases:
 3. feed verified SOLD evidence into the same shared Market Method;
 4. compare resulting TrackDash value/explainability with Hunt64 / Carlect;
 5. decide whether TrackDash Price Intelligence is materially differentiated before scaling Hot Wheels.
+### 2026-09-30 — Europe-first ASK adapter correction
+
+The HWR91 Elite 64 benchmark revealed a preview-adapter mismatch, not a Market Method v4 problem.
+
+Observed before the fix:
+- 21 unique HWR91 active listings;
+- 21 accepted exact-release;
+- 4 with verified EU-to-Italy delivered cost;
+- lowest verified delivered EU cost EUR 45.99;
+- active ASK anchor EUR 32.05 because GB-origin item-only offers were incorrectly tagged as Europe-comparable.
+
+Permanent Hot Wheels adapter rule:
+- only EU member-state origins enter the Europe-comparable ASK pool;
+- GB / CH / NO stay extra-EU / global context while landed-to-Italy cost is unknown;
+- visible extra-EU postage is not treated as VAT/import-complete delivered cost;
+- extra-EU item-only evidence may remain contextual but cannot define or lower the public European ASK anchor.
+
+This is an adapter correction only. The shared Market Method v4 core and no-write pilot architecture remain unchanged.

@@ -42,7 +42,12 @@ const EU_COUNTRIES = new Set([
 function marketRegion(country: string | null | undefined): CurrentOfferEvidence["marketRegion"] {
   const code = country?.trim().toUpperCase()
   if (!code) return "global"
-  if (EU_COUNTRIES.has(code) || code === "GB" || code === "CH" || code === "NO") return "europe"
+
+  // In this adapter "europe" means Europe-comparable for the public TrackDash
+  // reference market, not merely geographically European. The audit only has a
+  // verified Italy-delivered basis for EU origins. GB / CH / NO remain
+  // extra-EU item-only context until a trustworthy landed-to-Italy cost exists.
+  if (EU_COUNTRIES.has(code)) return "europe"
   if (code === "JP") return "japan"
   if (code === "US" || code === "CA") return "north_america"
   if (["AU", "NZ", "SG", "HK", "TW", "KR"].includes(code)) return "asia_pacific"
