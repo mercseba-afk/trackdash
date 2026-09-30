@@ -5549,3 +5549,46 @@ JDJ24's two verified SOLD values are tightly clustered (EUR 17.20 and EUR 17.42)
 
 Conclusion:
 the real 1-SOLD -> 2-SOLD transition is now verified in Production on two different Hot Wheels Releases. No publication threshold was bypassed or tuned specifically for Hot Wheels.
+
+
+## Source-agnostic SOLD ingestion v1 — 2026-09-30
+
+Branch: `hotwheels-sold-ingestion-v1`.
+
+The downstream SOLD automation foundation is now implemented without inventing a new completed-sales source and without creating a second Hot Wheels valuation engine.
+
+New shared pipeline:
+- `lib/market/pipeline/sold-ingestion.ts`
+- `lib/market/pipeline/sold-ingestion-repository.ts`
+- test: `scripts/test-market-sold-ingestion.mjs`
+
+The pipeline accepts source-specific SOLD observations only after the source adapter has established:
+- exact Release identity;
+- explicit sold state;
+- reliable sold date;
+- compatible canonical condition / unopened packaging;
+- single-item quantity;
+- usable price/currency provenance.
+
+Then it performs shared downstream work:
+1. canonical evidence-code validation;
+2. historical ECB FX normalization;
+3. fixed-price vs auction evidence grading;
+4. shipping-quality flags without inventing landed cost;
+5. same-source idempotency;
+6. cross-source original-event deduplication;
+7. canonical `market_candidates` + `price_points` persistence;
+8. enqueue into the existing `market_recompute_queue`.
+
+Fail-closed behavior:
+- uncertain Release or packaging -> Admin review;
+- lots / multi-quantity / incompatible condition -> rejected;
+- missing FX provenance -> review;
+- an existing candidate whose resolved Release changes is quarantined through the database revalidation guard and is not silently re-promoted.
+
+Automation gate:
+`ebay_product_research` remains **manual-only**. The new automated runner explicitly refuses it because no approved/runtime-verified SOLD-capable eBay feed is currently configured. A future automated adapter must be marked approved, runtime-verified and license-ready when licensing is required.
+
+The existing `sold_research` scan scope remains the intended scheduler entry point, but no normal cron/Admin SOLD discovery worker is enabled yet because no source currently satisfies that gate.
+
+No database schema change is required for this foundation. Market Method v4 remains the single canonical valuation/publication path.

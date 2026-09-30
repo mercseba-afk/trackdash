@@ -2244,3 +2244,36 @@ This is a **go-live gate**, not an optional future convenience. A production Hot
 The current manual HWF11 work is therefore intentionally a falsification/ground-truth exercise used to define and test the rules that an automated SOLD adapter must later reproduce.
 
 Source acquisition remains adapter-specific. The existing eBay Browse integration covers active listings and must not be treated as a completed-sale feed; completed-sale automation requires an approved/available SOLD-capable source or licensed feed. All downstream stages should remain shared with the existing Market Method architecture rather than creating a Hot Wheels-only valuation engine.
+
+
+### 2026-09-30 — SOLD automation downstream foundation
+
+Status: **IMPLEMENTED ON BRANCH — acquisition source still gated**.
+
+The first engineering step toward the Hot Wheels go-live automation requirement is now source-agnostic rather than eBay-specific.
+
+Implemented:
+- exact completed-sale normalization;
+- canonical Match Evidence allow-list;
+- unopened/new-carded comparability checks;
+- fixed-price vs auction evidence grade;
+- historical ECB FX;
+- unknown-shipping quality flag without invented landed cost;
+- same-record idempotency;
+- cross-source original-event deduplication;
+- canonical candidate / price-point persistence;
+- existing recompute-queue enqueue;
+- DB revalidation guard respected on Release corrections;
+- ambiguous/high-risk evidence routed to review.
+
+The automated adapter contract is deliberately fail-closed. A source cannot run in automated mode unless it is explicitly:
+- automated;
+- approved for automation;
+- runtime verified;
+- license-ready when licensing is required.
+
+`ebay_product_research` is explicitly configured as **manual-only / not automation-ready**. The current Browse API is still ASK-only and has not been repurposed as a fake SOLD feed.
+
+The existing `sold_research` scheduler scope is the future integration point. It is not yet wired into normal cron because there is currently no approved SOLD-capable provider to claim those jobs.
+
+This completes the reusable downstream pipeline, not the source-acquisition problem. The next gate is to identify/approve a real SOLD-capable source and implement only its acquisition adapter on top of this shared path.

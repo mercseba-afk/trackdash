@@ -511,3 +511,30 @@ If a future automated SOLD adapter is added:
 - exact Release + sold state + sold date + compatible condition are mandatory;
 - failures must not fake `last_success_at`;
 - Operations must be updated in the same work unit.
+
+
+## SOLD ingestion foundation — 2026-09-30
+
+A source-agnostic downstream SOLD ingestion layer now exists:
+
+- `lib/market/pipeline/sold-ingestion.ts`
+- `lib/market/pipeline/sold-ingestion-repository.ts`
+
+It can normalize a qualified completed-sale event, apply historical ECB FX, deduplicate it, persist canonical `market_candidates` / `price_points`, and enqueue the existing recompute queue.
+
+This does **not** mean the recurring cron now has an automated completed-sale source.
+
+Current operational gate:
+- eBay Browse remains active-listing only;
+- `ebay_product_research` remains manual-only for SOLD evidence;
+- an automated SOLD adapter must be explicitly approved, runtime-verified, and license-ready when required;
+- the runner refuses sources that do not satisfy those conditions;
+- the existing `sold_research` scan scope is reserved for the future READY adapter.
+
+Revalidation safety:
+if an existing candidate is reassigned to a different Release, the database trigger marks it for revalidation and disables its existing valuation point. The SOLD ingestion path must respect that state, route the candidate to review, and must not clear the guard by writing a fresh eligible point.
+
+Therefore the current regular Admin/cron refresh remains unchanged:
+**Retail 4 + eBay Active 4 + Recompute 8**.
+
+Do not add a SOLD-research worker to cron until a real provider/source passes the readiness gate.
