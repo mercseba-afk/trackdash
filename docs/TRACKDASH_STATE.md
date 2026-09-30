@@ -5300,3 +5300,58 @@ Interpretation:
 - the shared engine correctly separates completed-sale value from current European ASK / acquisition cost;
 - the current HWR91 sample shows a large SOLD-vs-ASK spread, so do not collapse the two concepts into one public number;
 - more qualified SOLD evidence, preferably Europe-facing and/or multi-source, is required before treating EUR 14.33 as a mature European collectible value.
+
+
+## Additional exact Hot Wheels SOLD benchmark evidence — 2026-09-30
+
+Four further exact/dateable eBay completed-sale observations were persisted into the existing canonical SOLD lane under `ebay_product_research`:
+
+- **HCJ81 — Car Culture Mountain Drifters**
+  - eBay item `365969568822`
+  - sold 2026-07-23
+  - USD 24.79
+  - exact HCJ81 / UPC 0194735011636
+  - New / unopened
+  - raw-sale EUR basis: **EUR 21.76**
+  - evidence grade: verified
+
+- **HCN54 — Team Transport #44**
+  - eBay item `287203749451`
+  - sold 2026-07-06
+  - USD 35.00
+  - exact HCN54, Team Transport set context
+  - New / unopened
+  - raw-sale EUR basis: **EUR 30.66**
+  - evidence grade: verified
+
+- **HKF21 — Boulevard #70**
+  - eBay item `266770474820`
+  - sold 2026-07-18
+  - AUD 45.00
+  - exact HKF21 / Boulevard #70
+  - New / unopened
+  - ECB basis uses previous working day 2026-07-17
+  - raw-sale EUR basis: **EUR 27.45**
+  - evidence grade: verified
+
+- **JDJ24 — Boulevard All Stars**
+  - eBay item `176427655414`
+  - sold 2026-09-04
+  - USD 19.99
+  - exact JDJ24
+  - New / unopened
+  - raw-sale EUR basis: **EUR 17.20**
+  - evidence grade: verified
+
+All four rows:
+- are valuation eligible;
+- keep shipping unknown rather than inventing landed cost;
+- use deterministic `ebay-ended:<item-id>` source keys;
+- preserve separate seller/evidence-group fingerprints;
+- are stored only as canonical SOLD evidence, with no manual Market Value override.
+
+Important:
+the first attempted insert was rejected by the existing `market_candidates_match_evidence_check` guard because pilot-specific evidence labels were not allowed. The transaction rolled back. The successful insert was repeated using only canonical evidence labels already permitted by the schema. No invalid partial rows remained.
+
+Next QA:
+run the read-only shared Market Method v4 preview on `HCJ81`, `HCN54`, `HKF21`, and `JDJ24` to observe how a single verified SOLD behaves against each Release's current ASK context. Do not weaken the two-sale/publication rules merely to force a Market Value.
