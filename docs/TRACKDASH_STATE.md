@@ -5236,3 +5236,39 @@ HWF11 canonical completed-sale set now contains **3 independent events**:
 
 Next QA:
 rerun the read-only HWF11 Market Method v4 preview in Production with contextual query OFF and inspect the new SOLD anchor / Market Value / confidence. Do not manually override the shared algorithm.
+
+
+## HWR91 first canonical SOLD set — 2026-09-30
+
+Elite 64 Aston Martin Valkyrie `HWR91` now has two exact, dateable, explicitly sold eBay observations persisted in the canonical SOLD evidence lane under `ebay_product_research`:
+
+1. eBay item `406546300183`
+   - seller: `starworldtoys`
+   - sold on **2026-09-01**
+   - **USD 14.99**
+   - condition **New / unopened / undamaged**
+   - exact HWR91 identity
+   - ECB reference rate: 1 EUR = 1.1590 USD
+   - FX to EUR: **0.86281277**
+   - market raw-sale basis: **EUR 12.93**
+   - evidence grade: **verified**
+   - valuation eligible: true
+   - listing page displays a higher cumulative "sold" counter; only the single explicitly dated sale event is persisted.
+
+2. eBay item `298481711178`
+   - seller: `323collectibles`
+   - sold on **2026-07-09**
+   - **USD 17.99**
+   - condition **New / unopened / undamaged**
+   - exact HWR91 identity
+   - ECB reference rate: 1 EUR = 1.1435 USD
+   - FX to EUR: **0.87450809**
+   - market raw-sale basis: **EUR 15.73**
+   - evidence grade: **verified**
+   - valuation eligible: true
+   - listing page displays multiple cumulative sales; only the single explicitly dated sale event is persisted.
+
+Shipping remains unknown for both events and is not folded into the raw completed-sale value.
+
+Next QA:
+rerun the read-only HWR91 Market Method v4 preview with contextual query OFF and inspect SOLD anchor, Market Value, ASK relationship and confidence. Do not infer additional sale events from listing-level cumulative sold counters.
