@@ -10,6 +10,9 @@ import {
   buildHotWheelsSharedMarketPreview,
   type HotWheelsSharedMarketPreview,
 } from "@/lib/market/automation/hotwheels-shared-market-preview"
+import { MarketR3Repository } from "@/lib/market/pipeline/market-r3-repository"
+import { selectCurrentSoldEvidence } from "@/lib/market/pipeline/sold-selection"
+import { loadConfirmedTrackDashSales } from "@/lib/market/pipeline/trackdash-sales"
 
 export type HotWheelsAuditProfileOption = {
   releaseId: string
@@ -142,10 +145,33 @@ export async function runHotWheelsSharedMarketPreviewAction(input: {
 
   logHotWheelsAuditSummary(audit, includeFallbackQuery)
 
+  // The preview remains read-only, but it now reads the same canonical SOLD
+  // evidence lanes used by the normal R3 recompute. This lets verified Hot
+  // Wheels SOLD observations exercise Market Method v4 without creating a
+  // second valuation path.
+  const repo = new MarketR3Repository()
+  const condition = "new_complete_unbuilt" as const
+  const asOfDate = new Date().toISOString().slice(0, 10)
+  const [granularExternal, aggregate, trackDashSales, askSnapshots] = await Promise.all([
+    repo.listGranularSoldEvidence(releaseId, condition),
+    repo.listAggregateSoldEvidence(releaseId, condition),
+    loadConfirmedTrackDashSales(releaseId, condition),
+    repo.listAskSnapshots(releaseId, condition),
+  ])
+  const soldEvidence = selectCurrentSoldEvidence({
+    granular: [...granularExternal, ...trackDashSales],
+    aggregate,
+    asOfDate,
+  })
+
   // Read-only preview through the exact same valuation/publication core used by
   // Mini 4WD. Hot Wheels has its own identity/source adapters, not a parallel
   // price engine. ASK alone cannot manufacture a Market Value.
-  const preview = buildHotWheelsSharedMarketPreview({ audit })
+  const preview = buildHotWheelsSharedMarketPreview({
+    audit,
+    soldEvidence,
+    askSnapshots,
+  })
 
   console.info("[hotwheels-shared-market-preview]", JSON.stringify({
     releaseId: preview.releaseId,
@@ -158,6 +184,9 @@ export async function runHotWheelsSharedMarketPreviewAction(input: {
     confidence: preview.signal.confidenceLabel,
     acceptedAskCount: preview.inputs.acceptedAskCount,
     deliveredAskCount: preview.inputs.deliveredAskCount,
+    soldEvidenceCount: preview.inputs.soldEvidenceCount,
+    soldUnits: preview.signal.soldUnits,
+    soldSourceCount: preview.signal.soldSourceCount,
   }))
 
   return preview
