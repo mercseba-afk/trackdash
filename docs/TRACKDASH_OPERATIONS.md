@@ -480,3 +480,34 @@ Current cron:
 Current Completion version check:
 
 **main SHA = Production SHA = /api/version**
+
+
+---
+
+# 12. HOT WHEELS MARKET METHOD PREVIEW / SOLD RESEARCH
+
+Admin Hot Wheels Market Method preview remains a controlled, MFA-protected diagnostic and is **not** part of the global 4/4/8 market refresh button.
+
+The preview:
+- runs the Hot Wheels exact eBay ASK audit;
+- feeds accepted ASK observations through shared Market Method v4;
+- reads canonical SOLD evidence from the same R3 repository lanes used by normal recompute;
+- applies the shared current-SOLD selection policy;
+- reads existing ASK snapshots;
+- performs no canonical market writes.
+
+Canonical SOLD evidence means existing accepted/eligible data in:
+- `price_points` for granular external transactions;
+- `market_aggregate_observations` for attributable aggregates;
+- confirmed TrackDash transaction evidence.
+
+Manual/controlled SOLD research is still distinct from automation.
+
+Current eBay Browse integration is the active-listing lane. Do not relabel it as a completed-sale API. A manually verified ended-sale page may be persisted through the canonical candidate/price-point evidence model, but the normal Admin market refresh and cron do not currently include a SOLD-research worker.
+
+If a future automated SOLD adapter is added:
+- it must use the existing `sold_research` queue scope;
+- its source must be READY/licensed/runtime-verified before cron claims it;
+- exact Release + sold state + sold date + compatible condition are mandatory;
+- failures must not fake `last_success_at`;
+- Operations must be updated in the same work unit.
