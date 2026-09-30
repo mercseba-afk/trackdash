@@ -145,6 +145,7 @@ function fixedSale(overrides = {}) {
     itemNumberObserved: "HCJ81",
     exactReleaseMatch: true,
     matchEvidence: ["item_number_exact", "edition_name_exact"],
+    soldStateVerified: true,
     packagingVerified: true,
     price: 25,
     currency: "USD",
@@ -256,6 +257,21 @@ await test("release correction is quarantined for DB-style revalidation", async 
   assert.equal(point.valuationEligible, false)
 })
 
+await test("unverified SOLD state routes to review without a price point", async () => {
+  const store = new FakeSoldStore()
+  const result = await ingestSoldObservationWithStore(
+    fixedSale({ sourceRecordKey: "sold-state-review", soldStateVerified: false }),
+    store,
+    { mode: "manual", fxResolver },
+  )
+
+  assert.equal(result.status, "needs_review")
+  assert.equal(result.recomputeQueued, false)
+  assert.equal(store.points.size, 0)
+  const candidate = [...store.candidates.values()][0]
+  assert.equal(candidate.reasonCodes.includes("SOLD_STATE_NOT_VERIFIED"), true)
+})
+
 await test("ambiguous packaging routes to review without a price point", async () => {
   const store = new FakeSoldStore()
   const result = await ingestSoldObservationWithStore(
@@ -317,6 +333,31 @@ await test("same original event across sources is deduplicated", async () => {
   assert.equal(store.points.size, 1)
 })
 
+await test("manual DB source cannot be promoted by a forged READY automation policy", async () => {
+  const store = new FakeSoldStore()
+  const forgedPolicy = {
+    slug: "ebay_product_research",
+    discovery: "automated",
+    approvedForAutomation: true,
+    runtimeVerified: true,
+    requiresLicense: false,
+    licenseReady: true,
+  }
+
+  await assert.rejects(
+    () => ingestSoldObservationWithStore(
+      fixedSale(),
+      store,
+      {
+        mode: "automated",
+        sourcePolicy: forgedPolicy,
+        fxResolver,
+      },
+    ),
+    /SOLD_SOURCE_INGESTION_MODE_NOT_AUTOMATED:ebay_product_research/,
+  )
+})
+
 await test("READY licensed adapter can run the automated path", async () => {
   const store = new FakeSoldStore()
   const policy = {
@@ -360,6 +401,22 @@ await test("READY licensed adapter can run the automated path", async () => {
   })
   assert.equal(store.points.size, 1)
   assert.equal(store.recompute.length, 1)
+})
+
+await test("missing seller downgrades fixed-price SOLD evidence to indicative", async () => {
+  const normalized = await normalizeSoldObservation(
+    fixedSale({
+      sourceRecordKey: "seller-unknown",
+      sellerFingerprint: null,
+      currency: "EUR",
+      price: 20,
+    }),
+    fxResolver,
+  )
+
+  assert.equal(normalized.decision, "accepted")
+  assert.equal(normalized.evidenceGrade, "indicative")
+  assert.equal(normalized.qualityFlags.includes("seller_unknown"), true)
 })
 
 await test("normalizer rejects multi-item lots fail-closed", async () => {
