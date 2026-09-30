@@ -5593,19 +5593,14 @@ The existing `sold_research` scan scope remains the intended scheduler entry poi
 
 No database schema change is required for this foundation. Market Method v4 remains the single canonical valuation/publication path.
 
-
 ## SOLD ingestion v1 Production alignment — 2026-09-30
 
-PR #302 is merged into `main`.
+PR #302 is merged and the source-agnostic SOLD downstream pipeline has passed the Production deployment/version alignment check.
 
-Final aligned version:
-- GitHub `main`: `dcf45844356bf46c1c19a05fdd9067d0ca978233`
-- Vercel Production deployment: `dpl_JRTh2AwaxWVnuU3xspmBfC9jTHtf`
-- Production state: **READY**
-- `/api/version`: `dcf45844356bf46c1c19a05fdd9067d0ca978233`
+Operational invariant verified:
 
-Therefore the completion invariant is satisfied:
+**GitHub current main SHA = Vercel Production deployed SHA = /api/version**
 
-**main SHA = Production SHA = /api/version**
+Do not hard-code the exact alignment SHA into this checkpoint: updating this document itself creates a new main commit and therefore advances the version. The exact current SHA must be checked operationally through GitHub/Vercel and `/api/version`.
 
-The reusable source-agnostic SOLD downstream pipeline is now live in Production. Automated completed-sale acquisition remains intentionally disabled until a real SOLD-capable source passes the approved/runtime-verified/license-ready gate.
+The reusable SOLD downstream pipeline is live in Production. Automated completed-sale acquisition remains intentionally disabled until a real SOLD-capable source passes the approved/runtime-verified/license-ready gate.
