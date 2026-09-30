@@ -5089,3 +5089,37 @@ Interpretation:
 
 Next action:
 - rerun JBC35 with contextual/fallback query ON to measure recall on explicitly STH-labelled listings while checking that regular Audi listings remain out of auto-accept.
+
+
+## JBC35 STH contextual rerun — 2026-09-30
+
+Second run with contextual/fallback query ON:
+- queries: exact Toy Number query + contextual `'87 Audi quattro / Mainline / Factory Fresh / Super Treasure Hunt / 016/250 / 2/5`;
+- unique listings: **23**
+- accepted exact-release: **5**
+- review: **17**
+- rejected: **1**
+- accepted via Mattel identifier in item details: **4**
+- accepted via exact release-context discriminators: **1**
+- review reasons include `CHASE_NOT_CONFIRMED`, `IDENTIFIER_NOT_IN_TITLE`, and `CHASE_CONTEXT_MATCH`;
+- one listing rejected for casting mismatch;
+- verified EU-delivered ASK count: **0**
+- active ASK anchor: null
+- starting effective cost: null
+- SOLD anchor: null
+- Market Value: null
+- confidence: low.
+
+Interpretation:
+- contextual search improves recall from 13 to 23 unique listings and from 4 to 5 accepted exact-release;
+- the matcher remains fail-closed: 17 ambiguous results are not auto-promoted to the STH Release;
+- no evidence of regular-to-STH contamination appeared in the accepted set under current discriminators.
+
+ASK identity benchmark conclusion:
+- HWR91 and HWF11 demonstrate strong Toy Number / item-details identity;
+- JBC35 demonstrates safe rare-variant handling with contextual recall gain and conservative review;
+- HCN54 and HPX97 confirm Team Transport requires composite/set-specific identity rules for best recall;
+- the main remaining price-intelligence blocker is now **qualified SOLD acquisition**, not ASK identity.
+
+Next decision gate:
+design and validate an exact, dateable, condition-compatible SOLD evidence adapter/source flow for the 10-release Hot Wheels benchmark, feed it into the same shared Market Method v4, then compare TrackDash output/explainability against competitor price surfaces. Do not scale Hot Wheels catalog depth before this SOLD gate.
