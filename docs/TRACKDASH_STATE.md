@@ -5176,3 +5176,35 @@ Next action:
 2. ingest the two exact HWF11 events into existing `market_candidates` + `price_points` with historical ECB FX provenance;
 3. rerun HWF11 preview;
 4. inspect the actual SOLD anchor / Market Value produced by shared Market Method v4 before expanding SOLD research to the other benchmark Releases.
+
+
+## HWF11 first canonical SOLD ingestion
+
+Two exact, dateable HWF11 eBay completed-sale events have now been persisted in the existing canonical evidence model under `ebay_product_research`:
+
+1. eBay item `358697520177`
+   - fixed-price completed sale;
+   - sold on 2026-06-28;
+   - USD 39.99;
+   - New / unopened / undamaged;
+   - exact HWF11 identity;
+   - historical FX basis 2026-06-26: 0.87711604 EUR per USD;
+   - market raw-sale basis: **EUR 35.08**;
+   - evidence grade: **verified**;
+   - valuation eligible: true.
+
+2. eBay item `227276980785`
+   - completed auction;
+   - sold/ended on 2026-03-31;
+   - USD 32.00;
+   - 13 bids;
+   - New / unopened / undamaged;
+   - exact HWF11 identity;
+   - historical FX basis 2026-03-31: 0.86971647 EUR per USD;
+   - market raw-sale basis: **EUR 27.83**;
+   - evidence grade: **indicative** to preserve the lower-weight auction treatment;
+   - valuation eligible: true.
+
+Both rows use deterministic eBay-ended source keys, separate seller fingerprints and separate evidence-group keys. Shipping is explicitly unknown and is not folded into the raw completed-sale value.
+
+No `market_release_signals` row was recomputed/written as part of this ingestion. The first result must be observed through the read-only shared preview after the SOLD-read wiring reaches Production.
