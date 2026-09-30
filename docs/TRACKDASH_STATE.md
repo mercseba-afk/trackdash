@@ -5592,3 +5592,20 @@ Automation gate:
 The existing `sold_research` scan scope remains the intended scheduler entry point, but no normal cron/Admin SOLD discovery worker is enabled yet because no source currently satisfies that gate.
 
 No database schema change is required for this foundation. Market Method v4 remains the single canonical valuation/publication path.
+
+
+## SOLD ingestion v1 Production alignment — 2026-09-30
+
+PR #302 is merged into `main`.
+
+Final aligned version:
+- GitHub `main`: `dcf45844356bf46c1c19a05fdd9067d0ca978233`
+- Vercel Production deployment: `dpl_JRTh2AwaxWVnuU3xspmBfC9jTHtf`
+- Production state: **READY**
+- `/api/version`: `dcf45844356bf46c1c19a05fdd9067d0ca978233`
+
+Therefore the completion invariant is satisfied:
+
+**main SHA = Production SHA = /api/version**
+
+The reusable source-agnostic SOLD downstream pipeline is now live in Production. Automated completed-sale acquisition remains intentionally disabled until a real SOLD-capable source passes the approved/runtime-verified/license-ready gate.
