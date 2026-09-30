@@ -54,7 +54,7 @@ export class SupabaseSoldIngestionStore implements SoldIngestionStore {
   async findCandidate(sourceId: string, sourceRecordKey: string): Promise<SoldIngestionCandidateRow | null> {
     const { data, error } = await this.client
       .from("market_candidates")
-      .select("id,decision")
+      .select("id,decision,resolved_release_id,needs_revalidation")
       .eq("source_id", sourceId)
       .eq("source_record_key", sourceRecordKey)
       .maybeSingle()
@@ -64,6 +64,8 @@ export class SupabaseSoldIngestionStore implements SoldIngestionStore {
       ? {
           id: data.id,
           decision: data.decision,
+          resolvedReleaseId: data.resolved_release_id,
+          needsRevalidation: data.needs_revalidation,
         }
       : null
   }
@@ -131,14 +133,28 @@ export class SupabaseSoldIngestionStore implements SoldIngestionStore {
         },
         { onConflict: "source_id,source_record_key" },
       )
-      .select("id,decision")
+      .select("id,decision,resolved_release_id,needs_revalidation")
       .single()
     fail(error, "upsert SOLD candidate")
 
     return {
       id: data!.id,
       decision: data!.decision,
+      resolvedReleaseId: data!.resolved_release_id,
+      needsRevalidation: data!.needs_revalidation,
     }
+  }
+
+  async markCandidateNeedsReview(candidateId: string, reasonCodes: string[]): Promise<void> {
+    const { error } = await this.client
+      .from("market_candidates")
+      .update({
+        decision: "needs_review",
+        reason_codes: reasonCodes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", candidateId)
+    fail(error, "mark SOLD candidate for revalidation")
   }
 
   async disablePricePoint(candidateId: string): Promise<void> {
