@@ -51,6 +51,7 @@ export interface SoldObservationInput {
 
   exactReleaseMatch: boolean
   matchEvidence: MatchEvidence[]
+  soldStateVerified: boolean
   packagingVerified: boolean
 
   price: number
@@ -246,6 +247,10 @@ export async function normalizeSoldObservation(
     decision = "needs_review"
     reasonCodes.push("MATCH_EVIDENCE_REQUIRED")
   }
+  if (!input.soldStateVerified) {
+    decision = "needs_review"
+    reasonCodes.push("SOLD_STATE_NOT_VERIFIED")
+  }
   if (!input.packagingVerified) {
     decision = "needs_review"
     reasonCodes.push("PACKAGING_UNVERIFIED")
@@ -321,9 +326,11 @@ export async function normalizeSoldObservation(
   }
 
   const qualityFlags: MarketQualityFlag[] = []
+  if (!input.sellerFingerprint) qualityFlags.push("seller_unknown")
   if (["included_unknown", "unknown"].includes(shippingBasis)) qualityFlags.push("shipping_unknown")
 
-  const evidenceGrade: EvidenceGrade = saleMechanism === "auction" ? "indicative" : "verified"
+  const evidenceGrade: EvidenceGrade =
+    saleMechanism === "auction" || !input.sellerFingerprint ? "indicative" : "verified"
   if (saleMechanism === "auction") reasonCodes.push("AUCTION_LOWER_WEIGHT")
 
   return {
@@ -371,6 +378,12 @@ export async function ingestSoldObservationWithStore(
   const source = await store.getSourceBySlug(input.sourceSlug)
   if (!source) throw new Error(`SOLD_SOURCE_NOT_FOUND:${input.sourceSlug}`)
   if (!source.isActive) throw new Error(`SOLD_SOURCE_INACTIVE:${input.sourceSlug}`)
+  if (
+    options.mode === "automated" &&
+    !["api", "licensed_feed", "internal"].includes(source.ingestionMode)
+  ) {
+    throw new Error(`SOLD_SOURCE_INGESTION_MODE_NOT_AUTOMATED:${input.sourceSlug}`)
+  }
   if (!(await store.releaseExists(input.releaseId))) throw new Error(`SOLD_RELEASE_NOT_FOUND:${input.releaseId}`)
 
   const normalized = await normalizeSoldObservation(input, options.fxResolver)
