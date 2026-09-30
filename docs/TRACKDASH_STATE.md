@@ -5037,3 +5037,29 @@ The previous EUR 32.05 anchor was confirmed to be caused by extra-EU GB item-onl
 HWR91 identity + Europe-first ASK QA is therefore **PASS**.
 
 Next benchmark target: `HWF11` RLC Lamborghini Miura P400 SV, first run with fallback/context query OFF.
+
+
+## HWF11 RLC ASK benchmark — 2026-09-30
+
+First run with contextual/fallback query OFF:
+- Release: HWF11 — RLC '71 Lamborghini Miura P400 SV
+- unique listings: **26**
+- accepted exact-release: **16**
+- review: **0**
+- rejected: **10**
+- direct Mattel identifier matches: **6**
+- item-details identifier matches: **10**
+- rejected for casting mismatch: **9**
+- rejected loose/custom/accessory: **1**
+- verified EU-delivered ASK count: **2**
+- lowest verified EU-delivered cost: **EUR 81.48**
+- active ASK anchor: **EUR 69.00**
+- SOLD anchor: null
+- Market Value: null
+- confidence: low
+
+Identity result: **PASS** without fallback query. RLC exact-release recovery is strong via Toy Number plus structured item details.
+
+The active ASK anchor remains lower than the verified delivered minimum because the shared market model may retain EU-origin item-only ASK observations when shipping is not known, while `startingEffectiveCostEUR` requires a verified delivered basis. Keep these two concepts distinct in UI/analysis; do not reinterpret the EUR 69.00 anchor as an Italy-delivered acquisition cost.
+
+Next benchmark target: `JBC35` — 2025 Super Treasure Hunt '87 Audi quattro, first run with contextual/fallback query OFF.
