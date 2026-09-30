@@ -5461,3 +5461,55 @@ Interpretation:
 - the single-SOLD publication guard behaves correctly;
 - JDJ24 exact identity is recoverable through structured item details even when the Toy Number is absent from the listing title;
 - the currently accepted ASK is extra-EU only, so Europe-first correctly leaves public ASK / starting cost empty.
+
+
+## HCJ81 + JDJ24 second verified SOLD — 2026-09-30
+
+Two additional exact/dateable eBay completed-sale events were persisted into the canonical SOLD lane to test the real 1-SOLD -> 2-SOLD publication transition.
+
+### HCJ81 — second verified SOLD
+- eBay item `236703931284`
+- sold on **2026-06-21**
+- **USD 19.99**
+- condition **New / unopened / undamaged**
+- MPN **HCJ81**
+- UPC **0194735011636**
+- seller `taeddy02`
+- ECB basis uses previous working day **2026-06-19**
+  - 1 EUR = 1.1467 USD
+  - FX to EUR = **0.87206767**
+  - raw-sale EUR basis = **EUR 17.43**
+- evidence grade: **verified**
+- valuation eligible: true
+
+HCJ81 now has two verified completed-sale events in the current SOLD lane:
+- EUR 21.76
+- EUR 17.43
+
+### JDJ24 — second verified SOLD
+- eBay item `277439977227`
+- sold on **2026-07-30**
+- **USD 19.99**
+- condition **New / unopened / undamaged**
+- exact 2024 Boulevard LB-ER34 identity via UPC **194735285136**
+- seller `rpy4950`
+- ECB basis **2026-07-30**
+  - 1 EUR = 1.1476 USD
+  - FX to EUR = **0.87138376**
+  - raw-sale EUR basis = **EUR 17.42**
+- evidence grade: **verified**
+- valuation eligible: true
+
+JDJ24 now has two verified completed-sale events in the current SOLD lane:
+- EUR 17.20
+- EUR 17.42
+
+Important:
+- only the explicitly dated completed-sale event is persisted when an eBay listing shows a cumulative sold counter;
+- shipping remains unknown and is not folded into raw SOLD value;
+- no Market Value is manually written or overridden.
+
+Next QA:
+1. rerun HCJ81 shared Market Method v4 preview, contextual query OFF;
+2. rerun JDJ24 shared Market Method v4 preview, contextual query OFF;
+3. verify whether the shared publication policy now opens Market Value and what confidence it assigns.
