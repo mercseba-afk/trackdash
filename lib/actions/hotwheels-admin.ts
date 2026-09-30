@@ -1,16 +1,15 @@
 "use server"
 
 import { requireAdmin } from "@/lib/admin/access"
-import { createAdminClient } from "@/lib/supabase/admin"
 import {
   listHotWheelsEbayAuditProfiles,
   runHotWheelsEbayAskAuditForRelease,
   type HotWheelsAskAuditResult,
 } from "@/lib/market/automation/hotwheels-ebay-audit"
 import {
-  buildHcj81MarketSignalPreview,
-  type HotWheelsMarketSignalPreview,
-} from "@/lib/market/automation/hotwheels-hcj81-preview"
+  buildHotWheelsSharedMarketPreview,
+  type HotWheelsSharedMarketPreview,
+} from "@/lib/market/automation/hotwheels-shared-market-preview"
 
 export type HotWheelsAuditProfileOption = {
   releaseId: string
@@ -26,56 +25,6 @@ function countBy(values: string[]): Record<string, number> {
   const counts: Record<string, number> = {}
   for (const value of values) counts[value] = (counts[value] ?? 0) + 1
   return counts
-}
-
-function numericOrNull(value: unknown): number | null {
-  if (value == null) return null
-  const numberValue = Number(value)
-  return Number.isFinite(numberValue) ? numberValue : null
-}
-
-async function persistHcj81AskSnapshot(preview: HotWheelsMarketSignalPreview) {
-  const admin = createAdminClient()
-  const snapshotDate = preview.generatedAt.slice(0, 10)
-  const offerCount = preview.evidence.filter(
-    (row) => row.marketUse === "ask" && row.itemPriceEUR != null,
-  ).length
-
-  const { error: upsertError } = await admin
-    .from("market_release_ask_snapshots")
-    .upsert({
-      release_id: preview.releaseId,
-      condition: "new_carded",
-      snapshot_date: snapshotDate,
-      typical_eur: preview.signal.askAnchorEUR,
-      low_eur: preview.signal.askMinEUR,
-      high_eur: preview.signal.askMaxEUR,
-      offer_count: offerCount,
-      computed_at: preview.generatedAt,
-    }, {
-      onConflict: "release_id,condition,snapshot_date",
-    })
-
-  if (upsertError) throw upsertError
-
-  const { data, error } = await admin
-    .from("market_release_ask_snapshots")
-    .select("snapshot_date,typical_eur,low_eur,high_eur,offer_count,computed_at")
-    .eq("release_id", preview.releaseId)
-    .eq("condition", "new_carded")
-    .order("snapshot_date", { ascending: false })
-    .limit(14)
-
-  if (error) throw error
-
-  preview.askHistory = (data ?? []).map((row) => ({
-    snapshotDate: String(row.snapshot_date),
-    typicalEUR: numericOrNull(row.typical_eur),
-    lowEUR: numericOrNull(row.low_eur),
-    highEUR: numericOrNull(row.high_eur),
-    offerCount: Number(row.offer_count ?? 0),
-    computedAt: String(row.computed_at),
-  }))
 }
 
 function logHotWheelsAuditSummary(
@@ -175,33 +124,40 @@ export async function runHotWheelsAskAuditAction(input: {
   return result
 }
 
-
-export async function runHcj81MarketSignalPreviewAction(): Promise<HotWheelsMarketSignalPreview> {
+export async function runHotWheelsSharedMarketPreviewAction(input: {
+  releaseId: string
+  includeFallbackQuery?: boolean
+}): Promise<HotWheelsSharedMarketPreview> {
   await requireAdmin()
 
-  const releaseId = "f16ed92f-34fb-5fd6-bd8b-c26ff3e831ee"
+  const releaseId = input.releaseId.trim()
+  if (!releaseId) throw new Error("Release Hot Wheels mancante")
+
+  const includeFallbackQuery = input.includeFallbackQuery === true
   const audit = await runHotWheelsEbayAskAuditForRelease(releaseId, {
     perQueryLimit: 10,
-    includeFallbackQuery: false,
+    includeFallbackQuery,
     maxDetailLookups: 15,
   })
 
-  logHotWheelsAuditSummary(audit, false)
+  logHotWheelsAuditSummary(audit, includeFallbackQuery)
 
-  const preview = await buildHcj81MarketSignalPreview(audit)
-  await persistHcj81AskSnapshot(preview)
+  // Read-only preview through the exact same valuation/publication core used by
+  // Mini 4WD. Hot Wheels has its own identity/source adapters, not a parallel
+  // price engine. ASK alone cannot manufacture a Market Value.
+  const preview = buildHotWheelsSharedMarketPreview({ audit })
 
-  console.info("[hotwheels-market-signal-preview]", JSON.stringify({
+  console.info("[hotwheels-shared-market-preview]", JSON.stringify({
     releaseId: preview.releaseId,
     identifier: preview.identifier,
-    marketStatus: preview.signal.marketStatus,
+    engine: preview.engine,
     marketValueEUR: preview.signal.marketValueEUR,
-    askAnchorEUR: preview.signal.askAnchorEUR,
-    startingEffectiveCostEUR: preview.signal.startingEffectiveCostEUR,
-    sufficientForPreview: preview.readiness.sufficientForPreview,
-    sufficientForPublishedMv: preview.readiness.sufficientForPublishedMv,
-    evidenceCount: preview.evidence.length,
-    askSnapshotCount: preview.askHistory.length,
+    soldAnchorEUR: preview.signal.soldAnchorEUR,
+    activeAnchorEUR: preview.signal.activeAnchorEUR,
+    startingEffectiveCostEUR: preview.signal.startingOffer?.effectiveCostEUR ?? null,
+    confidence: preview.signal.confidenceLabel,
+    acceptedAskCount: preview.inputs.acceptedAskCount,
+    deliveredAskCount: preview.inputs.deliveredAskCount,
   }))
 
   return preview
