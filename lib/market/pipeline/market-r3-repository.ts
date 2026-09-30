@@ -13,6 +13,7 @@ import type {
   SoldMarketEvidence,
 } from "./market-model"
 import type { MarketCondition } from "./types"
+import { marketplaceRegionFromOriginalSource } from "./market-region"
 import type { ScanActivityTier, ScanQueueTarget, ScanScope } from "./scheduler"
 
 function n(value: unknown): number | null {
@@ -23,21 +24,6 @@ function n(value: unknown): number | null {
 
 function fail(error: { message?: string } | null, context: string): void {
   if (error) throw new Error(`${context}: ${error.message ?? "unknown Supabase error"}`)
-}
-
-function marketplaceRegionFromOriginalSource(value: unknown): CurrentOfferEvidence["marketRegion"] | null {
-  if (typeof value !== "string") return null
-  const source = value.toUpperCase()
-
-  // TrackDash's public acquisition reference is EU-first, not geographic-Europe-first.
-  // GB and CH are therefore extra-EU: local eBay shipping shown on those marketplaces
-  // must remain contextual/item-only rather than being treated as a European delivered cost.
-  if (["EBAY_IT", "EBAY_DE", "EBAY_FR", "EBAY_ES", "EBAY_NL", "EBAY_BE", "EBAY_IE", "EBAY_AT"].includes(source)) return "europe"
-  if (["EBAY_GB", "EBAY_CH"].includes(source)) return "global"
-  if (["EBAY_US", "EBAY_CA"].includes(source)) return "north_america"
-  if (source === "EBAY_JP") return "japan"
-  if (["EBAY_AU", "EBAY_SG"].includes(source)) return "asia_pacific"
-  return null
 }
 
 export interface AggregateObservationDraft {
