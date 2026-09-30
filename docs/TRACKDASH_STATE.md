@@ -5208,3 +5208,31 @@ Two exact, dateable HWF11 eBay completed-sale events have now been persisted in 
 Both rows use deterministic eBay-ended source keys, separate seller fingerprints and separate evidence-group keys. Shipping is explicitly unknown and is not folded into the raw completed-sale value.
 
 No `market_release_signals` row was recomputed/written as part of this ingestion. The first result must be observed through the read-only shared preview after the SOLD-read wiring reaches Production.
+
+
+## HWF11 third completed-sale observation — 2026-09-30
+
+Additional exact/dateable eBay UK completed sale persisted to the canonical SOLD evidence lane:
+
+- eBay item `227411559329`;
+- fixed-price completed sale;
+- sold on **2026-07-04**;
+- **GBP 37.60**;
+- condition **New** (brand-new, unused, unopened and undamaged);
+- exact HWF11 identity in title;
+- seller `graysdiecast2015`;
+- historical ECB reference basis uses the latest prior working day, **2026-07-03**:
+  - 1 EUR = 0.85720 GBP;
+  - FX to EUR = **1.16658889**;
+  - market raw-sale basis = **EUR 43.86**;
+- evidence grade: **verified**;
+- valuation eligible: true;
+- shipping remains unknown and is not folded into the raw completed-sale value.
+
+HWF11 canonical completed-sale set now contains **3 independent events**:
+- EUR 43.86 verified;
+- EUR 35.08 verified;
+- EUR 27.83 indicative auction.
+
+Next QA:
+rerun the read-only HWF11 Market Method v4 preview in Production with contextual query OFF and inspect the new SOLD anchor / Market Value / confidence. Do not manually override the shared algorithm.
