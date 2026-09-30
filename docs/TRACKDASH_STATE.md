@@ -5063,3 +5063,29 @@ Identity result: **PASS** without fallback query. RLC exact-release recovery is 
 The active ASK anchor remains lower than the verified delivered minimum because the shared market model may retain EU-origin item-only ASK observations when shipping is not known, while `startingEffectiveCostEUR` requires a verified delivered basis. Keep these two concepts distinct in UI/analysis; do not reinterpret the EUR 69.00 anchor as an Italy-delivered acquisition cost.
 
 Next benchmark target: `JBC35` — 2025 Super Treasure Hunt '87 Audi quattro, first run with contextual/fallback query OFF.
+
+
+## JBC35 STH ASK benchmark — 2026-09-30
+
+First run with contextual/fallback query OFF:
+- Release: JBC35 — 2025 Super Treasure Hunt '87 Audi quattro
+- unique listings: **13**
+- accepted exact-release: **4**
+- review: **9**
+- rejected: **0**
+- accepted via Mattel identifier in item details: **4**
+- review reasons: `CHASE_NOT_CONFIRMED` + `IDENTIFIER_NOT_IN_TITLE` on 9 listings
+- verified EU-delivered ASK count: **0**
+- active ASK anchor: null
+- starting effective cost: null
+- SOLD anchor: null
+- Market Value: null
+- confidence: low
+
+Interpretation:
+- the matcher successfully auto-accepts only listings whose structured details resolve to JBC35;
+- ambiguous '87 Audi quattro listings without the exact identifier remain in review rather than being promoted to the STH Release;
+- this is the desired fail-closed behavior for an STH/regular collision-risk case.
+
+Next action:
+- rerun JBC35 with contextual/fallback query ON to measure recall on explicitly STH-labelled listings while checking that regular Audi listings remain out of auto-accept.
