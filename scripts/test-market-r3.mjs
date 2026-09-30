@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import { computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
+import { marketplaceRegionFromOriginalSource } from "../lib/market/pipeline/market-region.ts"
 import {
   DEFAULT_SCAN_BATCH_LIMITS,
   nextScanSchedule,
@@ -17,6 +18,13 @@ function ok(name, fn) {
 }
 
 const asOf = "2026-09-09"
+
+ok("EU-first marketplace mapping keeps GB and CH extra-EU", () => {
+  assert.equal(marketplaceRegionFromOriginalSource("EBAY_IT"), "europe")
+  assert.equal(marketplaceRegionFromOriginalSource("EBAY_DE"), "europe")
+  assert.equal(marketplaceRegionFromOriginalSource("EBAY_GB"), "global")
+  assert.equal(marketplaceRegionFromOriginalSource("EBAY_CH"), "global")
+})
 
 ok("18069: broad eBay sold evidence defeats a one-off 300 JPY anomaly", () => {
   const signal = computeCurrentMarketSignal({
