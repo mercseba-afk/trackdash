@@ -5380,3 +5380,30 @@ Production rerun after persisting one verified HCJ81 completed-sale event:
 
 Interpretation:
 the publication guard is behaving as intended. A single verified completed sale is retained as SOLD context but is not enough to publish a Market Value. No threshold was weakened or bypassed to force a number.
+
+
+## HCN54 single-SOLD shared Market Method QA — 2026-09-30
+
+Production rerun for Team Transport #44 after persisting one verified exact HCN54 completed-sale event:
+
+- exact ASK audit, contextual query OFF:
+  - unique listings: **11**
+  - accepted exact-release: **0**
+  - review: **3**
+  - rejected: **8**
+  - verified EU-delivered ASK count: **0**
+  - active ASK anchor: null
+  - starting effective cost: null
+- canonical SOLD:
+  - sold evidence count: **1**
+  - sold units: **1**
+  - sold sources: **1**
+  - SOLD anchor: **EUR 30.66**
+- shared Market Method v4:
+  - Market Value: **null**
+  - confidence: **low**
+
+Interpretation:
+- publication guard remains correct: one verified SOLD is retained as context but does not publish Market Value;
+- HCN54 continues to demonstrate the known Team Transport identity limitation in active ASK discovery: exact Toy Number search alone recovered no auto-accepted current listing;
+- do not loosen the matcher generically. Team Transport should gain a composite/set identity rule using casting + line + subseries/collector context + transporter/set member when available.
