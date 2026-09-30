@@ -4956,3 +4956,36 @@ Remaining work is opportunistic only:
 - recover a stable exact 1992 Original hero image with a defensible discriminator;
 - gather more 2007 exact completed-sale evidence;
 - continue normal scheduled market refresh, with shared ITEM 18038 fail-closed.
+
+
+---
+
+# HOT WHEELS — SHARED MARKET ENGINE PILOT — 30/09/2026
+
+The current Master was re-checked before continuing Hot Wheels market work.
+
+Canonical decision:
+
+**Do not create a second Hot Wheels Price Engine.**
+
+TrackDash keeps one Market Method / valuation core across verticals. Hot Wheels receives its own exact-identity and source adapters, while Market Value, SOLD/ASK separation, delivered-cost handling, confidence, trends and publication gates remain shared with Mini 4WD.
+
+Implementation branch:
+`hotwheels-shared-market-engine-pilot`
+
+Current pilot behavior:
+- generic Admin preview for any verified Hot Wheels Release;
+- uses the shared Market Method v4 computation/publication code;
+- Hot Wheels semantic condition = new, unopened, original card/package;
+- internal canonical condition remains the shared `new_complete_unbuilt` lane;
+- exact eBay ASK can establish current availability/ASK context;
+- ASK cannot create Market Value;
+- no canonical Hot Wheels market writes are enabled yet.
+
+Existing Hot Wheels dataset remains the test base; do not expand catalog breadth before the price-intelligence benchmark.
+
+10-Release benchmark:
+`HCJ81`, `HCK01`, `HCN54`, `HKF21`, `HKF49`, `HPX97`, `JDJ24`, `HWR91`, `HWF11`, `JBC35`.
+
+Next decision gate:
+prove whether TrackDash can produce a more transparent and defensible price-intelligence result than current competitor surfaces before committing to Hot Wheels scale.
