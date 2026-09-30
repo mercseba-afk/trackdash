@@ -8,6 +8,7 @@ import { CatalogComingSoonScreen } from "@/components/screens/catalog-coming-soo
 import { fetchCatalogProductById } from "@/lib/actions/catalog"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
 import { getPublicOpenOffersForRelease } from "@/lib/db/queries/public-sharing"
+import { resolveReleaseImageUrl } from "@/lib/images/resolve"
 import { getPublicMarketSignalForRelease } from "@/lib/market/public"
 import type { Product, ProductRelease } from "@/lib/types"
 
@@ -80,7 +81,7 @@ export async function generateMetadata({ params }: { params: ReleasePageParams }
   const canonicalUrl = `${SITE_URL}${canonicalPath}`
   const title = `${releaseIdentity(product, release)} | Mini 4WD Release | TrackDash`
   const description = releaseDescription(product, release)
-  const image = absoluteImage(release.images?.[0] ?? product.images?.[0])
+  const image = absoluteImage(resolveReleaseImageUrl(release, product) ?? undefined)
 
   return {
     title,
@@ -156,7 +157,7 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
     .sort((a, b) => (a.releaseYear ?? Number.MAX_SAFE_INTEGER) - (b.releaseYear ?? Number.MAX_SAFE_INTEGER))
 
   const canonicalUrl = `${SITE_URL}/catalog/${product.id}/releases/${release.id}`
-  const image = absoluteImage(release.images?.[0] ?? product.images?.[0])
+  const image = absoluteImage(resolveReleaseImageUrl(release, product) ?? undefined)
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
