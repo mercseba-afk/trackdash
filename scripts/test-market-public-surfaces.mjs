@@ -260,8 +260,8 @@ const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.ts
 if (!dashboardScreen.includes("observedMarketDisplayPrice(entry.marketSignal)") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
   errors.push("Dashboard recent additions can disagree with Collection on ASK/SOLD display fallback")
 }
-if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") || !collectionScreen.includes("observedMarketDisplayKind(signal)") || !marketScreen.includes("observedMarketDisplayKind(row.signal)")) {
-  errors.push("ASK/SOLD approximation semantics are not shared across Dashboard, Collection and Market")
+if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") || !collectionScreen.includes("observedMarketDisplayKind(signal)")) {
+  errors.push("ASK/SOLD approximation semantics are not shared across Dashboard and Collection")
 }
 if (dashboardMarket.includes("askTrendWindowDays")) {
   errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
@@ -296,6 +296,9 @@ if (!wishlistScreen.includes("releaseId: canonicalRelease.id")) {
 }
 if (!marketScreen.includes("observedMarketDisplayPrice(row.signal)") || !marketScreen.includes("observedMarketDisplayLabel(row.signal, it)") || marketScreen.includes("row.signal.startingItemPriceEUR")) {
   errors.push("Market screen is not using the shared canonical display-price presentation")
+}
+if (!marketScreen.includes("observedMarketDisplayKind(row.signal)")) {
+  errors.push("Market screen does not share ASK/SOLD approximation semantics")
 }
 if (!marketScreen.includes("collectorMarketTrend(row.signal)") || !dashboardMarket.includes("collectorMarketTrend(row.signal)")) {
   errors.push("Market and dashboard trend surfaces are not aligned to the shared trend guard rails")
