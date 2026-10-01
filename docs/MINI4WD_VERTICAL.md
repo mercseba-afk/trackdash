@@ -455,23 +455,31 @@ extra-EU local shipping must not be treated as delivered-to-Europe cost. RCJAZ a
 
 ### DASH-X1 Proto-Emperor
 
-Canonical family:
+Status:
 
-**4 Releases**
+**CURRENT-METHOD REVALIDATION IN PROGRESS — 2026-10-01**
+
+Canonical family remains:
+
+**4 public Releases**
 
 - `94708` — VS, 2009
 - `18074` — Premium, 2013
 - `95450` — Premium Black Special, 2019
 - shared-item `18074` — Sanfrecce Hiroshima Special Edition, 2023
 
-Shared Item `18074` remains **fail-closed** for automatic Release inference.
+Current pass:
+- genealogy is preserved; 92063 remains body-parts-only and excluded from the complete-kit family;
+- 94708 / 95450 are globally unique and staged for current eBay Active refresh;
+- both 18074 collector Releases remain fail-closed for unattended eBay attribution;
+- image coverage remains **3/4**; 94708 has exact source-page imagery but no stable direct asset yet;
+- standard 18074 retains robust SOLD-based MV **EUR 17.49** from 19 sales / 8 sellers in the audited rolling annual window;
+- 95450 retains SOLD **EUR 12.72**, but 7 sales from one seller remain insufficient for consolidated MV;
+- all four previous ASK snapshots are legacy pre-EU-first and are being rebuilt under `v4-eu-delivered-2026-10`;
+- the old 95450 ASK trend **+327.94%** must not survive unless independently recreated by valid current-basis history;
+- 4 recomputes and 2 safe eBay jobs are staged at the front of the controlled queues.
 
-Final durable market example:
-
-- standard `18074`: robust SOLD-based Market Value supported by multi-seller evidence;
-- `95450`: no consolidated MV under seller-concentration rules; canonical current **Prezzo minimo richiesto** uses the cheapest valid effective current cost rather than the typical/average ASK anchor.
-
-That public-surface correction is global and applies to every Mini 4WD Release.
+Do not mark this family complete until the current-basis refresh, Production QA and Completion Gate are closed.
 
 ---
 
