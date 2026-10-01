@@ -260,6 +260,9 @@ const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.ts
 if (!dashboardScreen.includes("observedMarketDisplayPrice(entry.marketSignal)") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
   errors.push("Dashboard recent additions can disagree with Collection on ASK/SOLD display fallback")
 }
+if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") || !collectionScreen.includes("observedMarketDisplayKind(signal)") || !marketScreen.includes("observedMarketDisplayKind(row.signal)")) {
+  errors.push("ASK/SOLD approximation semantics are not shared across Dashboard, Collection and Market")
+}
 if (dashboardMarket.includes("askTrendWindowDays")) {
   errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
 }
