@@ -9,7 +9,6 @@ import { fetchCatalogProductById } from "@/lib/actions/catalog"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
 import { getPublicOpenOffersForRelease } from "@/lib/db/queries/public-sharing"
 import { resolveReleaseImageUrl } from "@/lib/images/resolve"
-import { getPublicMarketSignalForRelease } from "@/lib/market/public"
 import type { Product, ProductRelease } from "@/lib/types"
 
 export const revalidate = 45
@@ -118,13 +117,9 @@ export async function generateMetadata({ params }: { params: ReleasePageParams }
 export default async function ReleasePage({ params }: { params: ReleasePageParams }) {
   const { id, releaseId } = await params
 
-  const [product, marketSignal, localizedCopy, collectorOffers] = await Promise.all([
+  const [product, localizedCopy, collectorOffers] = await Promise.all([
     getProduct(id).catch((error) => {
       console.error("Failed to load product for release detail:", error)
-      return null
-    }),
-    getPublicMarketSignalForRelease(releaseId).catch((error) => {
-      console.error("Failed to load R3 market signal for release detail:", error)
       return null
     }),
     getCatalogLocalizedCopy(id).catch((error) => {
@@ -203,7 +198,6 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
           product={product}
           release={release}
           localizedDescription={localizedCopy?.releases[releaseId]}
-          marketSignal={marketSignal}
           collectorOffers={collectorOffers}
         />
         <ReleaseFamilyLinks

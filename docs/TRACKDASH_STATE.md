@@ -7,6 +7,66 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-10-01 — PUBLIC MARKET SURFACE CONSISTENCY — PREVIEW QA COMPLETE
+
+A full end-to-end audit was performed on the public market presentation path after the family revalidation cycle.
+
+### Canonical data audit
+
+Available/public Mini 4WD scope:
+- public Releases audited: **172**
+- Releases with a canonical market signal: **122**
+- canonical signals on Market Method v4 / algorithm r3: **122 / 122**
+- Releases with consolidated Market Value: **8**
+- ASK-only Releases: **42**
+- SOLD-only Releases: **27**
+- persistent collector trends: **3**
+- ASK trend rows: **8**
+
+The remaining public Releases without a canonical public signal are intentionally market-thin / under review; absence of a number is not treated as an inconsistency.
+
+### Drift risks found and corrected
+
+1. The full public market map had an independent 60-second cache while exact Release detail fetched uncached data. This could temporarily show a newer value on Release detail and an older value on Dashboard/Collection/Catalog.
+2. Dashboard recent additions used ASK-only fallback while Collection could display SOLD-only context.
+3. Market forming rows used ASK-only fallback and could hide SOLD-only context.
+4. Collection analytics duplicated the ASK price-selection chain instead of using the shared presentation selector.
+5. Dashboard market overview could attach an ASK-day window to a persistent collector trend.
+6. ASK/SOLD approximation semantics were inconsistent on a few compact surfaces.
+
+### Current invariant implemented
+
+- all collector-facing screens resolve the same canonical `ReleaseMarketSignalMap`;
+- Release detail now consumes the same shared provider as Catalog/Scanner/Collection/Dashboard/Market instead of loading a second market snapshot;
+- the independent full-map `unstable_cache` was removed;
+- canonical ASK selection is centralized through `observedMarketPrice`;
+- display fallback is centralized through `observedMarketDisplayPrice` / `observedMarketDisplayKind`;
+- SOLD-only fallback is visual context only and displays with `≈`;
+- ASK remains a seller asking price and displays without `≈`;
+- Wishlist target-price logic intentionally remains ASK-only;
+- persistent collector trend uses only `trendPercent` / `trendWindowMonths`; ASK trend remains separate;
+- regression tests now enforce these rules.
+
+### Representative canonical QA cases
+
+- Avante Mk.II 95061 Pink Special: MV **EUR 31.82**, SOLD **EUR 31.82**, ASK delivered **EUR 52.40**, collector trend **-26.46% / 12m / SOLD**.
+- Avante Mk.III 92207 Evangelion Unit-01: SOLD-only reference **EUR 36.27**, no MV/ASK.
+- Aero Manta Ray 18703: ASK-only **EUR 22.40**, 15 current offers, no MV/SOLD/trend.
+- DASH-X1 Proto-Emperor 18074 Premium: MV/SOLD **EUR 17.49**, no current ASK.
+
+Preview QA:
+- final branch preview: **READY**
+- full project build / `pnpm verify`: passed
+- public Catalog / family / Release / Market routes tested: HTTP **200**
+- authenticated Collection/Dashboard content is validated structurally by the shared provider path and regression suite; no claim is made of interactive QA against a user's signed-in session.
+
+Branch:
+- `market-surface-consistency-20261001`
+
+This checkpoint becomes authoritative only after PR merge + Production READY + `/api/version` alignment + runtime-error check.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AERO MANTA RAY COMPLETE — CURRENT-METHOD REVALIDATED / MARKET ASK-LED
 
 Aero Manta Ray has completed the current-method revalidation under Market Method v4 / algorithm r3 and ASK basis `v4-eu-delivered-2026-10`. The audited genealogy remains canonical at **7 public Releases**; no Release UUID was rebuilt.

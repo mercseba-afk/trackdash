@@ -14,7 +14,7 @@ import {
   topValued,
 } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
-import { observedMarketAskLabel } from "@/lib/market/presentation"
+import { observedMarketAskLabel, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
 import type { Product } from "@/lib/types"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -115,10 +115,10 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
                 {entry.marketValue != null ? (
                   <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
-                ) : entry.observedPrice != null ? (
+                ) : observedMarketDisplayPrice(entry.marketSignal) != null ? (
                   <div>
-                    <p className="text-[10px] text-muted-foreground">{observedMarketAskLabel(entry.marketSignal, it)}</p>
-                    <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.observedPrice)}</p>
+                    <p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(entry.marketSignal, it)}</p>
+                    <p className="text-xs font-semibold tabular-nums">{observedMarketDisplayKind(entry.marketSignal) === "sold" ? "≈ " : ""}{formatMoney(observedMarketDisplayPrice(entry.marketSignal)!)}</p>
                   </div>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>

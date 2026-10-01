@@ -233,11 +233,9 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
         {collectorMarketTrend(row.signal) != null ? (
           <div className="mt-0.5 flex flex-col items-end">
             <TrendIndicator value={collectorMarketTrend(row.signal)!} className="text-xs" />
-            {row.signal.trendPercent != null && row.signal.trendWindowMonths != null
+            {row.signal.trendWindowMonths != null
               ? <span className="text-[10px] text-muted-foreground">{it ? `trend ${row.signal.trendWindowMonths}m` : `${row.signal.trendWindowMonths}m trend`}</span>
-              : row.signal.askTrendWindowDays != null
-                ? <span className="text-[10px] text-muted-foreground">{it ? `trend ${row.signal.askTrendWindowDays}g` : `${row.signal.askTrendWindowDays}d trend`}</span>
-                : null}
+              : null}
           </div>
         ) : null}
       </div>

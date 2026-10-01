@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
 import { formatDate, formatMoney, formatPercent } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
+import { useReleaseMarketSignal } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { useStore } from "@/lib/store"
 import type { Condition, Currency, Product, ProductRelease } from "@/lib/types"
@@ -28,19 +29,18 @@ type PublicCollectorOffer = {
 export function ReleaseDetailScreen({
   product,
   release,
-  marketSignal,
   localizedDescription,
   collectorOffers,
 }: {
   product: Product
   release: ProductRelease
-  marketSignal?: ReleaseMarketSignalView | null
   localizedDescription?: { en: string | null; it: string | null }
   collectorOffers: PublicCollectorOffer[]
 }) {
   const { collection, user } = useStore()
   const { locale } = useI18n()
   const it = locale === "it"
+  const marketSignal = useReleaseMarketSignal(release.id)
   const mine = collection.filter((item) => item.productId === product.id && item.releaseId === release.id)
   const hasExactImage = (release.images?.length ?? 0) > 0
   const publicDescription = it
