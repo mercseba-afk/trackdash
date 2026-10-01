@@ -90,11 +90,14 @@ for (const file of publicSurfaces) {
 }
 
 const releasePage = fs.readFileSync("app/catalog/[id]/releases/[releaseId]/page.tsx", "utf8")
-if (!releasePage.includes("getPublicMarketSignalForRelease")) {
-  errors.push("Release page is not using the canonical public R3 market service")
+const releaseScreen = fs.readFileSync("components/screens/release-detail-screen.tsx", "utf8")
+if (releasePage.includes("getPublicMarketSignalForRelease")) {
+  errors.push("Release page is loading a separate market snapshot instead of the shared provider")
+}
+if (!releaseScreen.includes("useReleaseMarketSignal(release.id)")) {
+  errors.push("Release detail is not using the same shared market signal map as the rest of the app")
 }
 
-const releaseScreen = fs.readFileSync("components/screens/release-detail-screen.tsx", "utf8")
 const collectionItemScreen = fs.readFileSync("components/screens/collection-item-detail-screen.tsx", "utf8")
 const marketOverview = fs.readFileSync("components/release-market-overview.tsx", "utf8")
 
@@ -156,6 +159,9 @@ if (!marketPresentation.includes("signal?.soldAnchorEUR") || !marketPresentation
   errors.push("Shared market presentation does not expose SOLD anchor as a display-only fallback")
 }
 const analyticsSource = fs.readFileSync("lib/analytics.ts", "utf8")
+if (!analyticsSource.includes("observedMarketPrice(marketSignal)")) {
+  errors.push("Collection analytics duplicates ASK price-selection logic instead of using the shared presentation helper")
+}
 if (analyticsSource.includes("observedMarketDisplayPrice")) {
   errors.push("Display-only SOLD fallback leaked into portfolio or wishlist valuation logic")
 }
@@ -192,6 +198,9 @@ if (!collectionScreen.includes("Mercato osservato") || !collectionScreen.include
 }
 
 const publicMarket = fs.readFileSync("lib/market/public.ts", "utf8")
+if (publicMarket.includes("unstable_cache") || publicMarket.includes("listCachedPublicMarketBundle")) {
+  errors.push("Public market map can drift behind exact Release data because it still has an independent snapshot cache")
+}
 if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listSafeMarketContextEvidence")) {
   errors.push("Public market service is not carrying safe historical context evidence through the trusted server boundary")
 }
@@ -248,6 +257,12 @@ if (!collectionItemScreen.includes("catalogProduct") || !collectionItemScreen.in
 const dashboardPage = fs.readFileSync("app/dashboard/page.tsx", "utf8")
 const dashboardScreen = fs.readFileSync("components/screens/dashboard-screen.tsx", "utf8")
 const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.tsx", "utf8")
+if (!dashboardScreen.includes("observedMarketDisplayPrice(entry.marketSignal)") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
+  errors.push("Dashboard recent additions can disagree with Collection on ASK/SOLD display fallback")
+}
+if (dashboardMarket.includes("askTrendWindowDays")) {
+  errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
+}
 if (!dashboardPage.includes("fetchCatalogProducts") || !dashboardScreen.includes("catalogProducts")) {
   errors.push("Dashboard is not fed from the canonical catalog")
 }
@@ -276,8 +291,8 @@ if (storeSource.includes("getProductById") || storeSource.includes("primaryRelea
 if (!wishlistScreen.includes("releaseId: canonicalRelease.id")) {
   errors.push("Wishlist transfer does not pass the canonical Release id into Collection")
 }
-if (!marketScreen.includes("observedMarketPrice(row.signal)") || marketScreen.includes("row.signal.startingItemPriceEUR")) {
-  errors.push("Market screen is not using the shared canonical observed-price presentation")
+if (!marketScreen.includes("observedMarketDisplayPrice(row.signal)") || !marketScreen.includes("observedMarketDisplayLabel(row.signal, it)") || marketScreen.includes("row.signal.startingItemPriceEUR")) {
+  errors.push("Market screen is not using the shared canonical display-price presentation")
 }
 if (!marketScreen.includes("collectorMarketTrend(row.signal)") || !dashboardMarket.includes("collectorMarketTrend(row.signal)")) {
   errors.push("Market and dashboard trend surfaces are not aligned to the shared trend guard rails")
