@@ -7,7 +7,7 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — PUBLIC MARKET SURFACE CONSISTENCY — PREVIEW QA COMPLETE
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — PUBLIC MARKET SURFACE CONSISTENCY — PRODUCTION COMPLETE
 
 A full end-to-end audit was performed on the public market presentation path after the family revalidation cycle.
 
@@ -63,7 +63,17 @@ Preview QA:
 Branch:
 - `market-surface-consistency-20261001`
 
-This checkpoint becomes authoritative only after PR merge + Production READY + `/api/version` alignment + runtime-error check.
+### Production closeout
+
+- PR **#317** merged to `main`.
+- Production commit: **d6ad5d0a9252429caec9be99a6bfa62dd11ac65e**.
+- Vercel Production: **READY** and aliased to `trackdash.it`.
+- `/api/version`: **d6ad5d0a9252429caec9be99a6bfa62dd11ac65e**.
+- GitHub `main` is identical to the Production code commit.
+- `/market` and representative MV+trend / SOLD-only / ASK-only / MV-only Release routes: HTTP **200**.
+- new Production deployment runtime error/fatal logs: **0**.
+
+This market-surface consistency checkpoint is now authoritative.
 
 ---
 
