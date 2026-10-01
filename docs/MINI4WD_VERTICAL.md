@@ -486,6 +486,39 @@ Durable current state:
 
 Do not reopen the family merely because 94708 still has no persisted exact hero or because thin Releases have no public numeric signal.
 
+### Aero Manta Ray
+
+Status:
+
+**CURRENT-METHOD REVALIDATION IN PROGRESS — 2026-10-01**
+
+Canonical family remains:
+
+**7 public Releases**
+
+- `18703` — base AR — 2013
+- `94972` — White Special — 2013
+- `94989` — Black Metallic — 2013
+- `94991` — Gold Metallic — 2013
+- `95031` — Japan Cup 2014 Limited
+- `95295` — White Special reissue — 2017
+- `95419` — Black Special — 2018
+
+Current pass:
+- all 7 ITEM numbers are globally unique and safe for unattended exact-item eBay refresh;
+- genealogy remains intact; no additional complete-kit Release was verified;
+- image coverage is **4/7**; 94972 / 94989 / 94991 remain intentional placeholders pending stable exact hero assets;
+- exact source-page imagery exists for each image gap;
+- 94989 / 94991 exact identities and JANs are corroborated by specialist Japanese/retailer metadata;
+- all legacy ASK snapshots are pre-EU-first and are being rebuilt under `v4-eu-delivered-2026-10`;
+- pre-refresh ASK movements (+0.38%, -0.22%, 0% placeholders) are legacy ASK-only state and must not survive unless recreated by valid current-basis history;
+- no consolidated SOLD/MV exists before this refresh;
+- 7 recomputes + 7 eBay Active jobs are staged at priority 180.
+
+Do not mark the family complete until both eBay batches, current-basis recomputes, image/empty-market challenges, Production QA and Completion Gate are closed.
+
+---
+
 ---
 
 ## Scanner state
