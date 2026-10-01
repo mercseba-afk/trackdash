@@ -7,6 +7,146 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-10-01 — DYNA-HAWK GX RE-AUDIT — LIVE RE-SCAN / TREND REFRESH PENDING
+
+Dyna-Hawk GX has completed the new genealogy / identity / image / manual market-research preparation pass under the current TrackDash Master. The family is **not yet re-closed** because the four refreshed eBay Active jobs and canonical recomputes must run through the authorized Admin worker, after which the before/after ASK movement and trend fields must be compared.
+
+### Canonical family
+
+Canonical/public collector Releases remain **4**:
+
+1. 19201 — Dyna-Hawk GX — 1998 Original — Super X — JAN 4950344192014
+2. 94717 — Dyna-Hawk GX Super XX Special — 2010-03-13 — Super XX — JAN 4950344947171
+3. 95000 — Dyna-Hawk GX Black Special — 2013-12-21 — Super XX — JAN 4950344950003
+4. 95467 — Dyna-Hawk GX Super XX Special (2019 Reissue) — 2019-03-16 — Super XX — JAN 4950344954674
+
+No fifth autonomous full-kit Release is currently supported.
+
+### Identity / production-wave corrections
+
+19201:
+- JAN 4950344192014 is now canonical;
+- canonical collector identity remains the 1998 Super X Original;
+- HLJ records 2003-04-22 under the same ITEM/JAN and marks the item discontinued;
+- 2003 is treated as a production/reissue wave, not another Release;
+- production_status is now discontinued.
+
+94717:
+- JAN 4950344947171 is now canonical;
+- 2010-03-13 Super XX Special identity remains unchanged;
+- production_status normalized to discontinued.
+
+95000:
+- JAN 4950344950003 retained;
+- 2013-12-21 Black Special identity retained;
+- discontinued.
+
+95467:
+- JAN 4950344954674 retained;
+- distinct 2019 reissue identity retained;
+- Tamiya USA explicitly marks it discontinued.
+
+### Images
+
+Stored canonical hero coverage remains **4 / 4**.
+
+No image replacement is required at this stage.
+
+### Pre-scan market / trend baseline
+
+The point of this re-scan is to compare the current market against the already persisted Dyna history rather than treating every scan as a fresh start.
+
+19201 Original — before new scan:
+- Market Value: null
+- SOLD anchor: null
+- current starting effective cost: EUR 95.57 delivered
+- exact current offer was EBAY_IT
+- ASK history on the same listing:
+  - 2026-09-21: EUR 94.78 delivered
+  - 2026-09-25: EUR 95.66 delivered
+  - 2026-09-28: EUR 95.57 delivered
+- canonical ASK trend: **+0.83% / 7 days**
+- Market Value trend: unavailable (no consolidated monthly/value-history series)
+
+94717 Super XX Special — before new scan:
+- Market Value: null
+- current European ASK: none
+- existing exact eBay listing observed around EUR 78.19 had ended at the last worker check
+- no canonical ASK trend yet
+
+95000 Black Special — before new scan:
+- Market Value: null
+- current European starting cost: none
+- no canonical ASK trend yet
+- three new exact granular Yahoo SOLD have now been persisted:
+  - JPY 2,000 — 2026-03-16 — normalized raw sale EUR 10.95
+  - JPY 3,200 — 2026-03-30 — normalized raw sale EUR 17.47
+  - JPY 2,000 — 2026-06-28 — normalized raw sale EUR 10.85
+- all three are indicative new/unused exact-release SOLD evidence; shipping/seller limitations remain explicit
+- canonical recompute must decide SOLD anchor / confidence / Market Value; no manual average is published
+
+95467 2019 Reissue — before new scan:
+- Market Value: null
+- SOLD anchor: EUR 14.92
+- current starting effective cost: EUR 58.56 delivered
+- exact current offer: EBAY_IT
+- canonical ASK trend: **+26.32% / 9 days**
+- this is an ASK movement signal, not a claim that collector Market Value rose by 26.32%
+
+### Trend semantics
+
+TrackDash keeps two concepts separate:
+
+- ASK trend = movement in observed current asking/acquisition prices;
+- Market Value trend = movement in a consolidated value supported by sufficient historical market evidence.
+
+The new scan/recompute is allowed to update ask_trend_percent / ask_trend_window_days from persisted offer history. It must **not** fabricate a Market Value trend when market_release_monthly_signals / market_value_history do not provide a sufficient series.
+
+### Migration / queue state
+
+Applied live:
+- **0199_dyna_hawk_gx_family_reaudit.sql**
+
+Prepared queues:
+- exactly 4 Dyna recomputes are first globally at 2000-01-03;
+- exactly 4 Dyna eBay Active jobs are first globally at 2000-01-03, priority 180;
+- because eBay batch size is 4 and recompute batch size is 8, one Admin run can cover the whole family, but a second recompute pass may be needed if fresh eBay evidence is written after the parallel recompute lane has already run.
+
+### First live re-scan result
+
+The authorized Admin run processed all four Dyna eBay jobs successfully and left no family/global recompute residue.
+
+Before → after:
+- 19201: EUR 95.57 → **EUR 96.08 delivered**; ASK trend +0.83% / 7d → **+1.37% / 10d**. This is a small, real same-basis movement on the same EBAY_IT listing.
+- 94717: no current qualifying European ASK; previous exact listing remains ended.
+- 95000: new exact Yahoo SOLD evidence produces **SOLD anchor EUR 10.95**; MV remains null.
+- 95467: current ASK remains **EUR 58.56 delivered**; raw stored ASK trend still showed +26.32% / 12d.
+
+The 95467 trend was then audited and found to be method-contaminated:
+- 2026-09-19 ASK snapshot typical = EUR 46.36 (item-only);
+- from 2026-09-21 onward typical = EUR 58.56 delivered (EUR 46.36 + EUR 12.20 shipping);
+- therefore +26.32% was a change of price basis, not a real market rise.
+
+Permanent fix prepared:
+- migration **0200_ask_trend_snapshot_basis_version.sql** applied live;
+- ASK snapshots now carry `basis_version`;
+- current code basis = `v4-eu-delivered-2026-10`;
+- the incompatible 95467 snapshot from 2026-09-19 is preserved but tagged `legacy-item-only-pre-delivered`;
+- the repository will load only snapshots matching the current basis for ASK trend calculation;
+- Master now requires like-for-like ASK trend basis.
+
+### Exact next action
+
+Deploy the basis-version code to Production and verify main = Production = /api/version.
+
+Then enqueue **95467 only** for canonical recompute and run:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+one final time. The expected corrected ASK trend is approximately stable/0% because the comparable delivered snapshots from 2026-09-21 onward are all EUR 58.56. Do not write the trend manually; verify the persisted canonical result after the worker runs.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — NEO-TRIDAGGER ZMC COMPLETE — MARKET THIN / ACTIVE ORIGINAL
 
 Neo-Tridagger ZMC has completed the current TrackDash family workflow under the latest Master / Market Method v4. Genealogy, exact identity, images, production status, manual Empty Market Challenge, refreshed eBay Active scan, canonical recompute, Completion Gate and public Production QA have all been re-verified.

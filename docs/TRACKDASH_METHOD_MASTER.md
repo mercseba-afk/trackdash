@@ -621,6 +621,23 @@ Gli ASK aspirazionali non devono gonfiare il dato.
 
 ---
 
+# ASK TREND — BASE COMPARABILE
+
+Il trend dei prezzi richiesti può confrontare soltanto snapshot costruiti con la **stessa base economica e lo stesso metodo di comparabilità**.
+
+Regola permanente:
+
+- item-only e delivered cost NON sono confrontabili nello stesso trend;
+- un cambio di shipping semantics, Europe-first policy o metodologia ASK richiede una nuova `basis_version`;
+- `market_release_ask_snapshots.basis_version` identifica la base del dato;
+- il recompute deve usare per `ask_trend_percent` soltanto snapshot con la basis corrente;
+- snapshot legacy/incompatibili restano conservati come storico tecnico ma sono esclusi dalla matematica del trend;
+- non correggere un trend scrivendo manualmente la percentuale nel segnale canonico: correggere la base/evidenza e rilanciare il recompute.
+
+Un ASK trend misura il movimento dei **prezzi richiesti osservati**, non equivale automaticamente a un trend del Market Value.
+
+---
+
 # FASE 5 — RECOMPUTE
 
 Il **Recompute NON è uno scan**.

@@ -15,6 +15,7 @@ import type {
 import type { MarketCondition } from "./types"
 import { marketplaceRegionFromOriginalSource } from "./market-region"
 import type { ScanActivityTier, ScanQueueTarget, ScanScope } from "./scheduler"
+import { ASK_TREND_BASIS_VERSION } from "./ask-trend-basis"
 
 function n(value: unknown): number | null {
   if (value == null) return null
@@ -415,9 +416,10 @@ export class MarketR3Repository {
   ): Promise<AskMarketSnapshot[]> {
     const { data, error } = await this.client
       .from("market_release_ask_snapshots")
-      .select("snapshot_date,typical_eur,low_eur,high_eur,offer_count")
+      .select("snapshot_date,typical_eur,low_eur,high_eur,offer_count,basis_version")
       .eq("release_id", releaseId)
       .eq("condition", condition)
+      .eq("basis_version", ASK_TREND_BASIS_VERSION)
       .order("snapshot_date", { ascending: false })
       .limit(limit)
     fail(error, "load ask market snapshots")
@@ -448,6 +450,7 @@ export class MarketR3Repository {
           low_eur: signal.activeLowEUR,
           high_eur: signal.activeHighEUR,
           offer_count: signal.activeOfferCount,
+          basis_version: ASK_TREND_BASIS_VERSION,
           computed_at: new Date().toISOString(),
         },
         { onConflict: "release_id,condition,snapshot_date" },

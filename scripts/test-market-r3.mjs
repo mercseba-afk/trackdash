@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
 import { marketplaceRegionFromOriginalSource } from "../lib/market/pipeline/market-region.ts"
+import { ASK_TREND_BASIS_VERSION } from "../lib/market/pipeline/ask-trend-basis.ts"
 import {
   DEFAULT_SCAN_BATCH_LIMITS,
   nextScanSchedule,
@@ -18,6 +19,10 @@ function ok(name, fn) {
 }
 
 const asOf = "2026-09-09"
+
+ok("ASK trend snapshots use a versioned comparable basis", () => {
+  assert.equal(ASK_TREND_BASIS_VERSION, "v4-eu-delivered-2026-10")
+})
 
 ok("EU-first marketplace mapping keeps GB and CH extra-EU", () => {
   assert.equal(marketplaceRegionFromOriginalSource("EBAY_IT"), "europe")
