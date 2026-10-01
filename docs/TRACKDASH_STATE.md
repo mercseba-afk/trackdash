@@ -7,6 +7,60 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-10-01 — DASHBOARD MARKET HOME REFINEMENT — PREVIEW READY
+
+The signed-in Mini 4WD Dashboard/home market presentation was refined after completion of the public-family revalidation cycle. This work does **not** introduce a new price engine or a Dashboard-only market snapshot.
+
+### Presentation changes
+
+- the generic **Movers** block was replaced by **In crescita**, restricted to positive persistent collector trends only;
+- Dashboard market sections are ordered to foreground positive growth, then highest values, recent trading activity and vintage highlights;
+- collector-facing copy was simplified: **Mercato in evidenza**, **Valori più alti**, **Più scambiate di recente**, **Vintage in evidenza**;
+- technical liquidity badges were removed from Dashboard cards;
+- collector trend windows use readable labels such as **ultimi 12 mesi** instead of technical `trend 12m`;
+- collection-summary copy no longer implies a fixed 90-day window where the underlying persistent trend can use 1/3/6/12 months.
+
+### Market consistency invariant
+
+Dashboard continues to consume the canonical shared `ReleaseMarketSignalMap`.
+
+For every Dashboard market row:
+- consolidated value = canonical `valueEUR` and is shown as **Valore stimato**;
+- when MV is absent, display fallback uses the same shared `observedMarketDisplayPrice`, `observedMarketDisplayLabel` and `observedMarketDisplayKind` helpers used by the other collector surfaces;
+- ASK remains an asking price without approximation;
+- SOLD-only fallback remains display-only and uses `≈`;
+- collector trend remains `trendPercent` + `trendWindowMonths`; ASK trend is not substituted.
+
+Therefore Catalog / Release / Collection / Dashboard / Market continue to project the same canonical signal rather than recalculating values independently.
+
+### Regression guard
+
+`scripts/test-market-public-surfaces.mjs` now also fails if:
+- Dashboard highlights stop using the shared ASK/SOLD display helpers;
+- the growth section is no longer positive-trend-only;
+- legacy Dashboard copy such as **Movers** / **Valore di mercato stimato** is reintroduced.
+
+### Preview QA
+
+Branch:
+- `dashboard-market-refine-20261001`
+
+PR:
+- **#319**
+
+Head:
+- `c490c3e3c8b36f5c338bc477eeb3fcec1b27cb18`
+
+Validation:
+- Vercel Preview: **READY**
+- Vercel commit status: **success**
+- Preview `/api/version`: **c490c3e3c8b36f5c338bc477eeb3fcec1b27cb18**
+- authenticated Dashboard route reaches the normal login boundary when fetched without a user session; no claim is made of signed-in visual QA from the connector.
+
+This checkpoint becomes authoritative after merge, Production READY, version alignment and runtime-error verification.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — PUBLIC MARKET SURFACE CONSISTENCY — PRODUCTION COMPLETE
 
 A full end-to-end audit was performed on the public market presentation path after the family revalidation cycle.
