@@ -1,7 +1,7 @@
 # TrackDash — Mini 4WD Vertical
 
 > Dedicated operational record for the Tamiya Mini 4WD vertical.
-> Last updated: 2026-09-28.
+> Last updated: 2026-10-01.
 > This file records the current state, durable Mini 4WD-specific decisions, reference families and exact continuation rules.
 > It is an index/state document, not a replacement for the operational Masters.
 > `docs/TRACKDASH_STATE.md` remains the cross-project authoritative checkpoint.
@@ -400,20 +400,31 @@ Do not reopen this family without new evidence, a real identity correction or a 
 
 ### Manta Ray Mk.II
 
-Role:
+Status:
 
-**practical reference family for the current workflow**
+**COMPLETE — CURRENT-METHOD REVALIDATED 2026-10-01 — MARKET THIN**
 
-It established reusable patterns for:
+Canonical family:
 
-- Europe-first refresh policy;
-- adaptive scan cadence;
-- exact retail endpoints;
-- indicative Yahoo closed-sale evidence;
-- intentional image-gap documentation;
-- Initial Scan vs automatic refresh separation.
+**10 public Releases**
 
-When a newer Master conflicts with an older Manta implementation detail, the newer Master wins.
+Durable state:
+- exact/high-confidence image coverage **9/10**; Silver Metallic Semi-Finished 2010 remains the one intentional image gap;
+- 7 unique-ITEM eBay jobs completed successfully under current method;
+- Pink Metallic 2007, Silver Metallic 2010 and Black Metallic 2012 remain fail-closed for unattended eBay because no autonomous ITEM/JAN is verified;
+- no Release currently has a consolidated Market Value;
+- current delivered ASK references are:
+  - 18615 base **EUR 61.00**
+  - 95462 White Special 2019 **EUR 46.36**
+  - 95466 Black Special 2019 **EUR 33.90** minimum, SOLD anchor **EUR 16.13**
+  - 95690 City Circuit **EUR 24.80** minimum;
+- legacy pre-EU-first ASK trends, including the old 95690 **+89.03%**, are excluded from current-basis trend math;
+- no Manta Release currently has a confirmed persistent collector trend;
+- recompute queue, due eBay jobs, active locks, stale signals and revalidation blockers are clear;
+- public family and all 10 Release routes return HTTP 200.
+
+This family remains the practical reference for Europe-first ASK semantics, intentional image gaps, fail-closed no-ITEM event Releases and separation between collector trend and ASK movement.
+
 
 ### Dyna-Hawk GX
 
