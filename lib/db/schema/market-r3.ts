@@ -286,6 +286,8 @@ export const marketReleaseSignals = pgTable(
     shippingKnownRatio: numeric("shipping_known_ratio", { precision: 5, scale: 4 }).notNull().default("0"),
     trendPercent: numeric("trend_percent", { precision: 8, scale: 2 }),
     trendWindowMonths: integer("trend_window_months"),
+    trendBasis: text("trend_basis"),
+    trendUpdatedAt: timestamp("trend_updated_at", { withTimezone: true }),
     askTrendPercent: numeric("ask_trend_percent", { precision: 8, scale: 2 }),
     askTrendWindowDays: integer("ask_trend_window_days"),
     algorithmVersion: text("algorithm_version").notNull().default("r3"),
@@ -335,8 +337,11 @@ export const marketReleaseSignals = pgTable(
     ),
     check(
       "market_release_signals_trend_check",
-      sql`(${table.trendPercent} is null and ${table.trendWindowMonths} is null)
-        or (${table.trendPercent} is not null and ${table.trendWindowMonths} in (1, 3, 6, 12))`,
+      sql`(${table.trendPercent} is null and ${table.trendWindowMonths} is null and ${table.trendBasis} is null and ${table.trendUpdatedAt} is null)
+        or (${table.trendPercent} is not null
+          and ${table.trendWindowMonths} in (1, 3, 6, 12)
+          and ${table.trendBasis} in (\'sold\', \'market_value\')
+          and ${table.trendUpdatedAt} is not null)`,
     ),
     check(
       "market_release_signals_ask_range_check",
@@ -370,6 +375,7 @@ export const marketReleaseAskSnapshots = pgTable(
     lowEUR: numeric("low_eur", { precision: 12, scale: 2 }),
     highEUR: numeric("high_eur", { precision: 12, scale: 2 }),
     offerCount: integer("offer_count").notNull().default(0),
+    basisVersion: text("basis_version").notNull().default("v4-eu-delivered-2026-10"),
     computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

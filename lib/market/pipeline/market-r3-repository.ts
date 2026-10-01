@@ -90,6 +90,13 @@ export interface StoredOfferState extends CurrentOfferEvidence {
   changedAt: string
 }
 
+export interface StoredCollectorTrend {
+  percent: number | null
+  windowMonths: 1 | 3 | 6 | 12 | null
+  basis: "sold" | "market_value" | null
+  updatedAt: string | null
+}
+
 export interface StoredAggregateEvidence extends SoldMarketEvidence {
   releaseId: string
   itemNumber: string
@@ -184,6 +191,28 @@ function statePayload(draft: OfferStateDraft, firstSeenAt: string, changedAt: st
 
 export class MarketR3Repository {
   constructor(private readonly client: SupabaseClient = createAdminClient()) {}
+
+  async getCollectorTrend(
+    releaseId: string,
+    condition: MarketCondition,
+  ): Promise<StoredCollectorTrend | null> {
+    const { data, error } = await this.client
+      .from("market_release_signals")
+      .select("trend_percent,trend_window_months,trend_basis,trend_updated_at")
+      .eq("release_id", releaseId)
+      .eq("condition", condition)
+      .maybeSingle()
+    fail(error, "load persisted collector trend")
+    if (!data) return null
+
+    const window = data.trend_window_months
+    return {
+      percent: n(data.trend_percent),
+      windowMonths: window === 1 || window === 3 || window === 6 || window === 12 ? window : null,
+      basis: data.trend_basis === "sold" || data.trend_basis === "market_value" ? data.trend_basis : null,
+      updatedAt: data.trend_updated_at ?? null,
+    }
+  }
 
   async listCurrentOffers(releaseId: string, condition: MarketCondition): Promise<StoredOfferState[]> {
     const { data, error } = await this.client
@@ -496,6 +525,8 @@ export class MarketR3Repository {
           shipping_known_ratio: signal.shippingKnownRatio,
           trend_percent: signal.trendPercent,
           trend_window_months: signal.trendWindowMonths,
+          trend_basis: signal.trendBasis,
+          trend_updated_at: signal.trendUpdatedAt,
           ask_trend_percent: signal.askTrendPercent,
           ask_trend_window_days: signal.askTrendWindowDays,
           algorithm_version: signal.algorithmVersion,

@@ -35,6 +35,8 @@ export interface ReleaseMarketSignalView {
   recentSoldPeriodEnd: string | null
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | 6 | 12 | null
+  trendBasis: "sold" | "market_value" | null
+  trendUpdatedAt: string | null
   askTrendPercent: number | null
   askTrendWindowDays: number | null
   computedAt: string

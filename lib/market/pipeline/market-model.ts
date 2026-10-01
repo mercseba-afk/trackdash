@@ -19,6 +19,14 @@ export type ConfidenceLabel = "low" | "medium" | "high"
 export type CostBasis = "delivered" | "item_only"
 export type SoldEvidenceGrade = "verified" | "indicative"
 export type SoldEvidenceGrain = "event" | "monthly" | "rolling_window" | "full_history"
+export type CollectorTrendBasis = "sold" | "market_value"
+
+export interface PersistedCollectorTrend {
+  percent: number | null
+  windowMonths: 1 | 3 | 6 | 12 | null
+  basis: CollectorTrendBasis | null
+  updatedAt: string | null
+}
 
 export interface CurrentOfferEvidence {
   stableId: string
@@ -96,7 +104,9 @@ export interface MarketSignalDraft {
   retailShippingKnownRatio?: number
   shippingKnownRatio: number
   trendPercent: number | null
-  trendWindowMonths: 1 | 3 | null
+  trendWindowMonths: 1 | 3 | 6 | 12 | null
+  trendBasis: CollectorTrendBasis | null
+  trendUpdatedAt: string | null
   askTrendPercent: number | null
   askTrendWindowDays: number | null
   monthlyTrend: MonthlyTrendPoint[]
@@ -812,6 +822,8 @@ export function computeCurrentMarketSignal(input: {
     shippingKnownRatio,
     trendPercent: trend.percent,
     trendWindowMonths: trend.window,
+    trendBasis: trend.percent != null ? "sold" : null,
+    trendUpdatedAt: null,
     askTrendPercent: null,
     askTrendWindowDays: null,
     monthlyTrend: trend.points,
@@ -819,6 +831,87 @@ export function computeCurrentMarketSignal(input: {
   }
 }
 
+
+
+export const MATERIAL_COLLECTOR_TREND_PERCENT = 5
+
+function sameDirection(a: number, b: number): boolean {
+  return Math.sign(a) === Math.sign(b)
+}
+
+/**
+ * Collector trend is event-driven state, not scan-to-scan motion.
+ *
+ * A recompute that finds no new material directional evidence must preserve the
+ * last confirmed collector trend. Repeated equal prices therefore never reset
+ * a rising/falling state to zero. A new event replaces the state only when it
+ * is materially directional (>= threshold): an opposite move always replaces
+ * the state, while a same-direction move only replaces it when it is stronger.
+ */
+export function applyPersistentCollectorTrend(
+  signal: MarketSignalDraft,
+  previous: PersistedCollectorTrend | null | undefined,
+  confirmedAt: string,
+  materialThresholdPercent = MATERIAL_COLLECTOR_TREND_PERCENT,
+): MarketSignalDraft {
+  const candidate = signal.trendPercent
+  const hasMaterialCandidate = candidate != null && Math.abs(candidate) >= materialThresholdPercent
+  const hasPrevious = previous?.percent != null
+    && previous.windowMonths != null
+    && previous.basis != null
+    && previous.updatedAt != null
+
+  if (!hasMaterialCandidate) {
+    if (!hasPrevious) {
+      return {
+        ...signal,
+        trendPercent: null,
+        trendWindowMonths: null,
+        trendBasis: null,
+        trendUpdatedAt: null,
+      }
+    }
+
+    return {
+      ...signal,
+      trendPercent: previous!.percent,
+      trendWindowMonths: previous!.windowMonths,
+      trendBasis: previous!.basis,
+      trendUpdatedAt: previous!.updatedAt,
+    }
+  }
+
+  const nextBasis: CollectorTrendBasis = signal.trendBasis ?? "sold"
+
+  if (!hasPrevious) {
+    return {
+      ...signal,
+      trendBasis: nextBasis,
+      trendUpdatedAt: confirmedAt,
+    }
+  }
+
+  const previousPercent = previous!.percent!
+  const shouldReplace =
+    !sameDirection(candidate!, previousPercent)
+    || Math.abs(candidate!) > Math.abs(previousPercent)
+
+  if (!shouldReplace) {
+    return {
+      ...signal,
+      trendPercent: previousPercent,
+      trendWindowMonths: previous!.windowMonths,
+      trendBasis: previous!.basis,
+      trendUpdatedAt: previous!.updatedAt,
+    }
+  }
+
+  return {
+    ...signal,
+    trendBasis: nextBasis,
+    trendUpdatedAt: confirmedAt,
+  }
+}
 
 export function applyAskTrend(
   signal: MarketSignalDraft,

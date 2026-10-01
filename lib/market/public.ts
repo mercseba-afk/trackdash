@@ -269,6 +269,15 @@ export function toPublicMarketSignalView(
       signal.trendWindowMonths === 12
         ? signal.trendWindowMonths
         : null,
+    trendBasis:
+      signal.trendBasis === "sold" || signal.trendBasis === "market_value"
+        ? signal.trendBasis
+        : null,
+    trendUpdatedAt: signal.trendUpdatedAt instanceof Date
+      ? signal.trendUpdatedAt.toISOString()
+      : signal.trendUpdatedAt
+        ? String(signal.trendUpdatedAt)
+        : null,
     askTrendPercent: numberOrNull(signal.askTrendPercent),
     askTrendWindowDays:
       signal.askTrendWindowDays != null &&

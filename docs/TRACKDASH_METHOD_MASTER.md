@@ -621,6 +621,36 @@ Gli ASK aspirazionali non devono gonfiare il dato.
 
 ---
 
+# TREND COLLEZIONISTICO — STATO PERSISTENTE
+
+Il **trend collezionistico** non è la differenza fra l'ultima scansione e quella precedente.
+
+È lo stato direzionale dell'ultimo movimento di valore/SOLD sufficientemente significativo e verificato.
+
+Regola permanente:
+
+- una Release senza movimento storico significativo resta **in osservazione / trend non disponibile**;
+- NON etichettare come "stabile" una Release solo perché esiste un solo prezzo;
+- quando emerge un movimento SOLD/valore materiale, il trend diventa rising o falling;
+- una scansione successiva con lo stesso prezzo NON azzera e NON neutralizza il trend;
+- un recompute senza nuova evidenza direzionale deve preservare l'ultimo trend confermato;
+- una piccola oscillazione sotto la soglia materiale non deve cancellare un trend già valido;
+- un movimento opposto sufficientemente significativo può ribaltare la direzione;
+- un nuovo movimento nella stessa direzione aggiorna lo stato solo se è più forte del segnale già confermato;
+- il trend ASK resta separato e non deve sostituire automaticamente il trend collezionistico;
+- `trend_updated_at` indica quando il trend collezionistico è stato realmente confermato/aggiornato, non quando è avvenuto l'ultimo scan;
+- `trend_basis` indica se il trend deriva da SOLD o da Market Value consolidato.
+
+Soglia operativa corrente per considerare materiale un nuovo movimento direzionale: **5%**.
+
+Quindi:
+**SCAN INVARIATO ≠ TREND STABILE.**
+
+E:
+**NESSUN NUOVO TREND ≠ CANCELLA IL TREND PRECEDENTE.**
+
+---
+
 # ASK TREND — BASE COMPARABILE
 
 Il trend dei prezzi richiesti può confrontare soltanto snapshot costruiti con la **stessa base economica e lo stesso metodo di comparabilità**.

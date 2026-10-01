@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
+import { applyPersistentCollectorTrend, computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
 import { marketplaceRegionFromOriginalSource } from "../lib/market/pipeline/market-region.ts"
 import { ASK_TREND_BASIS_VERSION } from "../lib/market/pipeline/ask-trend-basis.ts"
 import {
@@ -22,6 +22,71 @@ const asOf = "2026-09-09"
 
 ok("ASK trend snapshots use a versioned comparable basis", () => {
   assert.equal(ASK_TREND_BASIS_VERSION, "v4-eu-delivered-2026-10")
+})
+
+ok("collector trend persists when a recompute finds no new directional event", () => {
+  const base = computeCurrentMarketSignal({ offers: [], soldEvidence: [], asOfDate: asOf })
+  const next = applyPersistentCollectorTrend(
+    base,
+    { percent: 19.86, windowMonths: 3, basis: "sold", updatedAt: "2026-09-10T19:26:52Z" },
+    "2026-10-01T08:00:00Z",
+  )
+  assert.equal(next.trendPercent, 19.86)
+  assert.equal(next.trendWindowMonths, 3)
+  assert.equal(next.trendBasis, "sold")
+  assert.equal(next.trendUpdatedAt, "2026-09-10T19:26:52Z")
+})
+
+ok("small or zero follow-up movement does not erase a confirmed collector trend", () => {
+  const base = computeCurrentMarketSignal({ offers: [], soldEvidence: [], asOfDate: asOf })
+  const small = { ...base, trendPercent: 0, trendWindowMonths: 1, trendBasis: "sold" }
+  const next = applyPersistentCollectorTrend(
+    small,
+    { percent: 19.86, windowMonths: 3, basis: "sold", updatedAt: "2026-09-10T19:26:52Z" },
+    "2026-10-01T08:00:00Z",
+  )
+  assert.equal(next.trendPercent, 19.86)
+  assert.equal(next.trendUpdatedAt, "2026-09-10T19:26:52Z")
+})
+
+ok("opposite material collector movement reverses the persistent direction", () => {
+  const base = computeCurrentMarketSignal({ offers: [], soldEvidence: [], asOfDate: asOf })
+  const falling = { ...base, trendPercent: -8, trendWindowMonths: 1, trendBasis: "sold" }
+  const next = applyPersistentCollectorTrend(
+    falling,
+    { percent: 19.86, windowMonths: 3, basis: "sold", updatedAt: "2026-09-10T19:26:52Z" },
+    "2026-10-01T08:00:00Z",
+  )
+  assert.equal(next.trendPercent, -8)
+  assert.equal(next.trendWindowMonths, 1)
+  assert.equal(next.trendUpdatedAt, "2026-10-01T08:00:00Z")
+})
+
+ok("same-direction collector trend updates only when the new move is stronger", () => {
+  const base = computeCurrentMarketSignal({ offers: [], soldEvidence: [], asOfDate: asOf })
+  const weaker = applyPersistentCollectorTrend(
+    { ...base, trendPercent: 8, trendWindowMonths: 1, trendBasis: "sold" },
+    { percent: 19.86, windowMonths: 3, basis: "sold", updatedAt: "2026-09-10T19:26:52Z" },
+    "2026-10-01T08:00:00Z",
+  )
+  assert.equal(weaker.trendPercent, 19.86)
+
+  const stronger = applyPersistentCollectorTrend(
+    { ...base, trendPercent: 25, trendWindowMonths: 1, trendBasis: "sold" },
+    { percent: 19.86, windowMonths: 3, basis: "sold", updatedAt: "2026-09-10T19:26:52Z" },
+    "2026-10-01T08:00:00Z",
+  )
+  assert.equal(stronger.trendPercent, 25)
+  assert.equal(stronger.trendUpdatedAt, "2026-10-01T08:00:00Z")
+})
+
+ok("no confirmed collector trend stays in observation instead of inventing stable", () => {
+  const base = computeCurrentMarketSignal({ offers: [], soldEvidence: [], asOfDate: asOf })
+  const next = applyPersistentCollectorTrend(base, null, "2026-10-01T08:00:00Z")
+  assert.equal(next.trendPercent, null)
+  assert.equal(next.trendWindowMonths, null)
+  assert.equal(next.trendBasis, null)
+  assert.equal(next.trendUpdatedAt, null)
 })
 
 ok("EU-first marketplace mapping keeps GB and CH extra-EU", () => {
