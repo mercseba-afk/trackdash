@@ -86,6 +86,47 @@ La visibilità di pubblicazione è distinta da `verification_status`. Non falsar
 
 Vedi `docs/RELEASE_PUBLICATION_GATE.md`.
 
+# INVARIANTE GLOBALE — COERENZA DELLE SUPERFICI MERCATO
+
+Ogni superficie TrackDash deve rappresentare **la stessa Release con lo stesso stato di mercato canonico**.
+
+Fonte di verità:
+- `market_release_signals` per il segnale canonico corrente;
+- `ReleaseMarketSignalMap` / servizio pubblico condiviso per la proiezione UI;
+- nessuna schermata deve mantenere un motore prezzi, fallback o snapshot indipendente.
+
+Superfici incluse:
+- Catalogo / righe Release;
+- dettaglio Release;
+- Scanner;
+- Collezione;
+- dettaglio copia;
+- Dashboard / home app;
+- Market;
+- Wishlist, con la sola eccezione semantica descritta sotto.
+
+Regole permanenti di presentazione:
+- **Market Value**: usare esclusivamente `valueEUR`; non sostituirlo con ASK o SOLD.
+- **Prezzo richiesto corrente (ASK)**: usare il selettore condiviso `observedMarketPrice`, con priorità canonica a starting delivered cost.
+- **Fallback visuale SOLD**: quando non esistono MV/ASK ma esiste `soldAnchorEUR`, può essere mostrato tramite `observedMarketDisplayPrice` come riferimento da vendite concluse, con semantica approssimativa `≈`.
+- Il fallback SOLD è **solo display**: non deve entrare nel valore portafoglio, performance personale o logica target-price Wishlist.
+- **Wishlist**: il confronto con target price resta ASK-only, perché rappresenta un possibile prezzo di acquisto, non un prezzo storico venduto.
+- **Collector trend**: usare soltanto `trendPercent` + `trendWindowMonths` + `trendBasis` (SOLD/MV).
+- **ASK trend**: resta separato e può essere mostrato soltanto con le guardie condivise; non usare `askTrendWindowDays` per etichettare un collector trend.
+- ASK non è SOLD; SOLD non è MV. Le tre semantiche devono rimanere visivamente e logicamente distinte.
+- ASK deve essere mostrato come prezzo richiesto, senza prefisso `≈`; SOLD come riferimento da vendite concluse con `≈`.
+
+Freschezza:
+- non introdurre cache/snapshot indipendenti per una singola superficie mercato;
+- Catalogo, Release detail, Collezione, Dashboard, Scanner e Market devono consumare la stessa snapshot pubblica condivisa;
+- un refresh/recompute di mercato non deve poter produrre per la stessa Release due numeri diversi su schermate diverse.
+
+Regression gate:
+- `scripts/test-market-public-surfaces.mjs` deve impedire la reintroduzione di motori/fallback/cache divergenti;
+- ogni modifica alle superfici mercato deve passare l'intera `pnpm verify` prima del merge.
+
+---
+
 # WORKFLOW COMPLETO
 
 L'ordine operativo corretto è sempre:
