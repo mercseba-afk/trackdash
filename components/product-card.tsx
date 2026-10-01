@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ArrowRight, Check, Heart, LockKeyhole } from "lucide-react"
-import type { Product, ReleaseType } from "@/lib/types"
+import type { EditionType, Product } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { primaryRelease } from "@/lib/data/products"
@@ -12,19 +12,22 @@ import { CatalogComingSoonDialog } from "@/components/catalog/catalog-coming-soo
 import { AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
 
-const COLLECTOR_RELEASE_TYPES = new Set<ReleaseType>([
-  "Special Edition",
-  "Limited Edition",
-  "Anniversary Edition",
-  "Japan Cup Edition",
-  "Color Special",
-  "Clear Body",
-  "Premium",
+const COLLECTOR_EDITION_TYPES = new Set<EditionType>([
+  "premium",
+  "color_special",
+  "limited",
+  "anniversary",
+  "japan_cup",
+  "special",
 ])
 
 export function getCatalogProductMeta(product: Product, it: boolean) {
   const original = primaryRelease(product)
-  const specialCount = product.releases.filter((release) => COLLECTOR_RELEASE_TYPES.has(release.releaseType)).length
+  // Count from the normalized edition classification, not the free-text
+  // releaseType label. The catalog intentionally allows richer historical
+  // labels such as "Event Limited", "Prize Limited", "Collaboration Special"
+  // and "Finished Model"; editionType is the stable cross-family taxonomy.
+  const specialCount = product.releases.filter((release) => COLLECTOR_EDITION_TYPES.has(release.editionType)).length
   const releaseCount = product.releases.length
 
   return {

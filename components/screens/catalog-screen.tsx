@@ -6,7 +6,7 @@ import { Search, LayoutGrid, List, SlidersHorizontal, X, Check, Heart, PackageSe
 import type { Product } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { ProductCard } from "@/components/product-card"
+import { ProductCard, getCatalogProductMeta } from "@/components/product-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { CatalogComingSoonDialog } from "@/components/catalog/catalog-coming-soon-dialog"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
@@ -306,6 +306,8 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
               )
             }
 
+            const meta = getCatalogProductMeta(p, it)
+
             return (
               <div key={p.id} className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3 shadow-[0_6px_20px_rgba(15,23,42,0.03)] transition-colors hover:border-brand/25 sm:gap-4 sm:p-3.5">
                 <Link href={`/catalog/${p.id}`} className="overflow-hidden rounded-xl border border-border/50 bg-muted/20"><ProductImage product={p} size="sm" className="h-16 w-20 shrink-0 sm:h-20 sm:w-28" /></Link>
@@ -320,7 +322,13 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
                     <span>·</span>
                     <span>Chassis {p.chassis ?? "—"}</span>
                     <span>·</span>
-                    <span className="font-medium text-foreground">{p.releases.length} {it ? "release" : p.releases.length === 1 ? "release" : "releases"}</span>
+                    <span className="font-medium text-foreground">{meta.releaseLabel}</span>
+                    {meta.specialLabel ? (
+                      <>
+                        <span>·</span>
+                        <span className="font-medium text-brand">{meta.specialLabel}</span>
+                      </>
+                    ) : null}
                   </div>
                 </Link>
                 <div className="flex shrink-0 items-center gap-1.5">
