@@ -15,8 +15,7 @@ import type {
 import type { MarketCondition } from "./types"
 import { marketplaceRegionFromOriginalSource } from "./market-region"
 import type { ScanActivityTier, ScanQueueTarget, ScanScope } from "./scheduler"
-
-const ASK_TREND_BASIS_VERSION = "v4-eu-delivered-2026-10"
+import { ASK_TREND_BASIS_VERSION } from "./ask-trend-basis"
 
 function n(value: unknown): number | null {
   if (value == null) return null
