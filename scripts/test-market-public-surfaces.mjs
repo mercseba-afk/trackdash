@@ -129,8 +129,8 @@ if (!marketOverview.includes("Valore stimato")) {
 if (!marketOverview.includes("observedMarketPrice") || !marketOverview.includes("soldAnchorEUR")) {
   errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
-if (!marketOverview.includes("Trend mercato") || !marketOverview.includes("observedMarketAskTrendLabel")) {
-  errors.push("Shared market overview does not distinguish Market Value trend from seller-ask trend")
+if (!marketOverview.includes("Trend collezionistico") || !marketOverview.includes("observedMarketAskTrendLabel")) {
+  errors.push("Shared market overview does not distinguish persistent collector trend from seller-ask trend")
 }
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
 for (const requiredSellerAskCopy of [

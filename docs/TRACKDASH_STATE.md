@@ -7,172 +7,150 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — DYNA-HAWK GX RE-AUDIT — LIVE RE-SCAN / TREND REFRESH PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DYNA-HAWK GX COMPLETE — MARKET THIN / PERSISTENT RISING TREND
 
-Dyna-Hawk GX has completed the new genealogy / identity / image / manual market-research preparation pass under the current TrackDash Master. The family is **not yet re-closed** because the four refreshed eBay Active jobs and canonical recomputes must run through the authorized Admin worker, after which the before/after ASK movement and trend fields must be compared.
+Dyna-Hawk GX has completed the current TrackDash family workflow under Market Method v4, including genealogy/identity re-audit, exact images, refreshed eBay Active discovery, new granular SOLD evidence, canonical recompute, persistent collector-trend correction, Completion Gate and Production QA.
 
-### Canonical family
-
-Canonical/public collector Releases remain **4**:
+### Canonical family — 4 public Releases
 
 1. 19201 — Dyna-Hawk GX — 1998 Original — Super X — JAN 4950344192014
 2. 94717 — Dyna-Hawk GX Super XX Special — 2010-03-13 — Super XX — JAN 4950344947171
 3. 95000 — Dyna-Hawk GX Black Special — 2013-12-21 — Super XX — JAN 4950344950003
 4. 95467 — Dyna-Hawk GX Super XX Special (2019 Reissue) — 2019-03-16 — Super XX — JAN 4950344954674
 
-No fifth autonomous full-kit Release is currently supported.
+No fifth autonomous full-kit Release is supported.
 
-### Identity / production-wave corrections
+Identity notes:
+- 19201 remains the canonical 1998 Original; HLJ 2003-04-22 is a later production/reissue wave under the same ITEM/JAN, not another Release.
+- all four canonical JANs are verified;
+- all four Releases are currently treated as discontinued;
+- image coverage remains 4/4.
 
-19201:
-- JAN 4950344192014 is now canonical;
-- canonical collector identity remains the 1998 Super X Original;
-- HLJ records 2003-04-22 under the same ITEM/JAN and marks the item discontinued;
-- 2003 is treated as a production/reissue wave, not another Release;
-- production_status is now discontinued.
+### Final market state
 
-94717:
-- JAN 4950344947171 is now canonical;
-- 2010-03-13 Super XX Special identity remains unchanged;
-- production_status normalized to discontinued.
-
-95000:
-- JAN 4950344950003 retained;
-- 2013-12-21 Black Special identity retained;
-- discontinued.
-
-95467:
-- JAN 4950344954674 retained;
-- distinct 2019 reissue identity retained;
-- Tamiya USA explicitly marks it discontinued.
-
-### Images
-
-Stored canonical hero coverage remains **4 / 4**.
-
-No image replacement is required at this stage.
-
-### Pre-scan market / trend baseline
-
-The point of this re-scan is to compare the current market against the already persisted Dyna history rather than treating every scan as a fresh start.
-
-19201 Original — before new scan:
+19201 Original:
 - Market Value: null
 - SOLD anchor: null
-- current starting effective cost: EUR 95.57 delivered
-- exact current offer was EBAY_IT
-- ASK history on the same listing:
-  - 2026-09-21: EUR 94.78 delivered
-  - 2026-09-25: EUR 95.66 delivered
-  - 2026-09-28: EUR 95.57 delivered
-- canonical ASK trend: **+0.83% / 7 days**
-- Market Value trend: unavailable (no consolidated monthly/value-history series)
+- current EU offer: 1
+- starting delivered cost: **EUR 96.08**
+- ASK-only movement: +1.37% / 10d
+- collector trend: **null / in observation** because no confirmed SOLD/value directional event exists.
 
-94717 Super XX Special — before new scan:
+94717 Super XX Special:
 - Market Value: null
-- current European ASK: none
-- existing exact eBay listing observed around EUR 78.19 had ended at the last worker check
-- no canonical ASK trend yet
+- current qualifying EU ASK: none
+- exact eBay IT EUR 78.19 listing is no longer current/accepted;
+- RCJaz exact evidence is out-of-stock/historical;
+- Empty Market Challenge classified: no public price is forced.
 
-95000 Black Special — before new scan:
+95000 Black Special:
+- three exact 2026 Yahoo CLOSED/awarded SOLD persisted:
+  - JPY 2,000 — 2026-03-16 — EUR 10.95 normalized raw sale
+  - JPY 3,200 — 2026-03-30 — EUR 17.47
+  - JPY 2,000 — 2026-06-28 — EUR 10.85
+- canonical SOLD anchor: **EUR 10.95**
 - Market Value: null
-- current European starting cost: none
-- no canonical ASK trend yet
-- three new exact granular Yahoo SOLD have now been persisted:
-  - JPY 2,000 — 2026-03-16 — normalized raw sale EUR 10.95
-  - JPY 3,200 — 2026-03-30 — normalized raw sale EUR 17.47
-  - JPY 2,000 — 2026-06-28 — normalized raw sale EUR 10.85
-- all three are indicative new/unused exact-release SOLD evidence; shipping/seller limitations remain explicit
-- canonical recompute must decide SOLD anchor / confidence / Market Value; no manual average is published
+- current offer context is extra-EU only and does not create a European starting cost;
+- collector trend: null / in observation because these events do not yet form an audited directional sequence.
 
-95467 2019 Reissue — before new scan:
+95467 2019 Reissue:
+- current delivered ASK: **EUR 58.56** on EBAY_IT
+- SOLD anchor: **EUR 14.92**
 - Market Value: null
-- SOLD anchor: EUR 14.92
-- current starting effective cost: EUR 58.56 delivered
-- exact current offer: EBAY_IT
-- canonical ASK trend: **+26.32% / 9 days**
-- this is an ASK movement signal, not a claim that collector Market Value rose by 26.32%
+- audited SOLD directional evidence:
+  - previous non-overlapping 3m window: 8 sales, average EUR 12.45
+  - recent non-overlapping 3m window: 5 sales, average EUR 14.92
+  - **collector trend +19.86% / rising**
+  - basis: SOLD
+  - confirmed at: 2026-09-10
+- the legacy ASK +26.32% was proven to be an item-only vs delivered-basis artifact and is no longer treated as collector trend;
+- current ASK-only calculation is 0.00% / 10d and remains a separate secondary signal.
 
-### Trend semantics
+### Persistent collector-trend invariant
 
-TrackDash keeps two concepts separate:
+The Dyna re-audit exposed and fixed a global semantic defect.
 
-- ASK trend = movement in observed current asking/acquisition prices;
-- Market Value trend = movement in a consolidated value supported by sufficient historical market evidence.
-
-The new scan/recompute is allowed to update ask_trend_percent / ask_trend_window_days from persisted offer history. It must **not** fabricate a Market Value trend when market_release_monthly_signals / market_value_history do not provide a sufficient series.
-
-### Migration / queue state
-
-Applied live:
-- **0199_dyna_hawk_gx_family_reaudit.sql**
-
-Prepared queues:
-- exactly 4 Dyna recomputes are first globally at 2000-01-03;
-- exactly 4 Dyna eBay Active jobs are first globally at 2000-01-03, priority 180;
-- because eBay batch size is 4 and recompute batch size is 8, one Admin run can cover the whole family, but a second recompute pass may be needed if fresh eBay evidence is written after the parallel recompute lane has already run.
-
-### First live re-scan result
-
-The authorized Admin run processed all four Dyna eBay jobs successfully and left no family/global recompute residue.
-
-Before → after:
-- 19201: EUR 95.57 → **EUR 96.08 delivered**; ASK trend +0.83% / 7d → **+1.37% / 10d**. This is a small, real same-basis movement on the same EBAY_IT listing.
-- 94717: no current qualifying European ASK; previous exact listing remains ended.
-- 95000: new exact Yahoo SOLD evidence produces **SOLD anchor EUR 10.95**; MV remains null.
-- 95467: current ASK remains **EUR 58.56 delivered**; raw stored ASK trend still showed +26.32% / 12d.
-
-The 95467 trend was then audited and found to be method-contaminated:
-- 2026-09-19 ASK snapshot typical = EUR 46.36 (item-only);
-- from 2026-09-21 onward typical = EUR 58.56 delivered (EUR 46.36 + EUR 12.20 shipping);
-- therefore +26.32% was a change of price basis, not a real market rise.
-
-Permanent fix prepared:
-- migration **0200_ask_trend_snapshot_basis_version.sql** applied live;
-- ASK snapshots now carry `basis_version`;
-- current code basis = `v4-eu-delivered-2026-10`;
-- the incompatible 95467 snapshot from 2026-09-19 is preserved but tagged `legacy-item-only-pre-delivered`;
-- the repository will load only snapshots matching the current basis for ASK trend calculation;
-- Master now requires like-for-like ASK trend basis.
-
-### Trend-method correction after final 95467 recompute
-
-The basis-version fix was deployed and 95467 was recomputed once more:
-- current ASK remains EUR 58.56 delivered;
-- comparable ASK-only calculation became 0.00% / 10d after excluding the legacy item-only snapshot.
-
-That result exposed a deeper semantic issue: **collector trend must not be reset to stable/zero merely because a later scan is unchanged**.
-
-Verified historical SOLD evidence already contains a real Dyna 95467 directional signal:
-- previous non-overlapping 3m window: 8 sales, average EUR 12.45;
-- recent non-overlapping 3m window: 5 sales, average EUR 14.92;
-- audited movement: **+19.86% / rising**;
-- audited on 2026-09-10.
-
-The same recompute-loss defect was found on two Avante Mk.II Releases:
-- 95061 Pink Special: -26.46% / falling;
-- 95525 Asia Challenge: +25.11% / rising.
-
-Permanent correction:
-- migration **0201_persistent_collector_trend.sql** applied live;
-- previously audited SOLD trends above restored;
-- collector trend becomes persistent event-driven state;
-- no new material directional evidence => preserve previous collector trend;
-- zero/small follow-up movement does not neutralize a previous rising/falling trend;
+Permanent rule:
+- collector trend is persistent event-driven market state, not scan-to-scan motion;
+- a routine unchanged scan/recompute cannot reset rising/falling to stable;
+- no confirmed direction = in observation, not stable;
+- no new material directional evidence preserves the last confirmed trend;
 - an opposite material movement can reverse it;
-- a same-direction movement updates it only when stronger;
+- a same-direction movement updates only when stronger;
 - material threshold currently 5%;
-- trend provenance stored in `trend_basis` and `trend_updated_at`;
-- ASK trend remains separate and cannot automatically substitute for collector trend;
-- a Release with no confirmed directional history remains **in osservazione**, not falsely "stable".
+- ASK trend remains separate and cannot substitute automatically for collector trend;
+- trend_basis stores SOLD vs Market Value provenance;
+- trend_updated_at changes only when the collector trend itself is materially confirmed/updated.
 
-Dyna 95467 canonical collector trend is therefore restored to **+19.86% / rising**, SOLD-based, confirmed 2026-09-10. The 0.00% ASK observation remains secondary only.
+Regression verification:
+- after Production deployment of the persistent-trend engine, 95467 was recomputed again with no new directional market event;
+- computed_at advanced to 2026-10-01 08:21:35 UTC;
+- collector trend remained **+19.86% / 3m / sold**;
+- trend_updated_at remained **2026-09-10 19:26:52 UTC**;
+- therefore scan/recompute frequency no longer changes the collector trend by itself.
 
-### Exact next action
+The same migration restored two previously audited Avante Mk.II trends that later recomputes had incorrectly erased:
+- 95061 Pink Special: **-26.46% falling**
+- 95525 Asia Challenge: **+25.11% rising**
 
-Deploy the persistent collector-trend code, verify Production/version and run a controlled 95467 recompute once more. Expected invariant:
-- collector trend remains +19.86% rising;
-- unchanged ASK scan/recompute cannot erase it.
+### ASK basis correction
+
+ASK snapshots now carry basis_version.
+
+Current basis:
+- `v4-eu-delivered-2026-10`
+
+Rules:
+- item-only and delivered snapshots are never compared in one ASK trend;
+- legacy incompatible snapshots remain stored for audit but do not enter current ASK trend math;
+- Dyna 95467 2026-09-19 EUR 46.36 item-only snapshot is tagged legacy-item-only-pre-delivered.
+
+### Completion Gate
+
+Final Dyna gate:
+- family recompute rows: **0**
+- recompute locks: **0**
+- scan locks: **0**
+- candidates needing revalidation: **0**
+- stale/non-v4 family signals: **0**
+- valid EU offers hidden behind empty signal: **0**
+- empty-price Release 94717: challenged/classified
+- all 4 signals: v4/r3
+
+Production QA before collector-trend UI follow-up:
+- family page: HTTP 200
+- all four Release pages: HTTP 200
+- 19201 exposes EUR 96.08
+- 95000 exposes SOLD anchor EUR 10.95
+- 95467 exposes EUR 58.56 ASK + EUR 14.92 SOLD anchor
+
+### Collector-trend UI follow-up
+
+The persistent trend exists independently of Market Value, so public UI must not hide it merely because market_value_eur is null.
+
+Branch:
+- `collector-trend-ui-20261001`
+
+UI change:
+- Release market overview shows a separate **Trend collezionistico / Collector trend** panel whenever persistent trend exists without Market Value;
+- Collection cards show persistent collector trend separately from current ASK;
+- ASK movement keeps its own label and reliability gate;
+- 95467 therefore presents EUR 58.56 current ASK separately from **+19.86% collector trend**.
+
+### Implementation lineage
+
+- 0199_dyna_hawk_gx_family_reaudit.sql
+- 0200_ask_trend_snapshot_basis_version.sql
+- 0201_persistent_collector_trend.sql
+- PR #307 — Dyna re-audit + ASK basis version
+- PR #308 — persistent collector trend engine
+
+### Next public family in chronological catalog order
+
+**Avante Mk.II — 2006 — slug avante-mk-ii-18710**
+
+Avante Mk.II already has a prior family audit, so its next pass should be a current-method revalidation rather than a genealogy rebuild unless runtime evidence has changed.
+
 
 ---
 

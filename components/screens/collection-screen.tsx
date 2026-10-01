@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketDisplayEvidenceLabel, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketDisplayEvidenceLabel, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -312,6 +312,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal?.askTrendPercent ?? null : null
   const observedDirection = observedMarketAskDirection(observedTrend, it)
+  const collectorTrend = collectorMarketTrend(signal)
 
   if (entry.marketValue != null) {
     return (
@@ -326,10 +327,16 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
             </span>
           ) : null}
         </div>
+        {collectorTrend != null ? (
+          <p className="mt-1 flex flex-wrap items-center gap-1 text-[10px] leading-tight text-muted-foreground">
+            <span>{it ? "Trend collezionistico" : "Collector trend"}</span>
+            <TrendIndicator value={collectorTrend} className="text-[10px]" />
+          </p>
+        ) : null}
         {hasObservedPrice ? (
           <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
             {observedMarketDisplayLabel(signal, it)} <strong className="font-medium tabular-nums text-foreground">{formatMoney(observedPrice)}</strong>
-            {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
+            {collectorTrend == null && observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
           </p>
         ) : null}
       </div>
@@ -342,9 +349,29 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         <p className="text-[11px] leading-tight text-muted-foreground">
           {observedMarketDisplayLabel(signal, it)} <strong className="text-sm font-semibold tabular-nums text-foreground">≈ {formatMoney(observedPrice)}</strong>
         </p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-muted-foreground">
-          {observedDirection ?? observedMarketDisplayEvidenceLabel(signal, it)}
+        <p className="mt-1 flex flex-wrap items-center gap-1 text-[10px] font-medium leading-tight text-muted-foreground">
+          {collectorTrend != null ? (
+            <>
+              <span>{it ? "Trend collezionistico" : "Collector trend"}</span>
+              <TrendIndicator value={collectorTrend} className="text-[10px]" />
+            </>
+          ) : (
+            observedDirection ?? observedMarketDisplayEvidenceLabel(signal, it)
+          )}
         </p>
+      </div>
+    )
+  }
+
+  if (collectorTrend != null) {
+    return (
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium leading-tight text-muted-foreground">
+          {it ? "Trend collezionistico" : "Collector trend"}
+        </p>
+        <div className="mt-1">
+          <TrendIndicator value={collectorTrend} className="text-[11px]" />
+        </div>
       </div>
     )
   }
