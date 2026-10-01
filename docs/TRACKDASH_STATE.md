@@ -7,6 +7,136 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AVANTE MK.III COMPLETE — CURRENT-METHOD REVALIDATED / MARKET MIXED
+
+Avante Mk.III has completed the current-method revalidation under Market Method v4 / algorithm r3, post-Sep30 EU-first ASK basis and persistent collector-trend semantics. The prior genealogy remains canonical at **24 public Releases**; no Release UUID was rebuilt or replaced.
+
+### Canonical / identity state
+
+- public Releases: **24 / 24**
+- globally unique ITEM numbers within the catalog: **24 / 24**
+- verified JANs added during this pass:
+  - 92207 → **4950344922079**
+  - 92219 → **4950344922192**
+  - 92221 → **4950344922215**
+  - 92470 → **4950344924707**
+- 95464 remains one collector Release; the official **2023-11-11** handling is a later production/on-sale wave under the same ITEM/specification, not another Release.
+- 94692 Red Special 2009 remains distinct from 95425 Red Special 2018.
+- 94772 remains the 2010 Competition Pack.
+- 92470 remains the 2026 Tamiya Korea Mini 4WD Cup Release.
+
+### Images
+
+Exact/high-confidence hero coverage: **18 / 24**.
+
+Intentional documented gaps:
+- 92207 — Evangelion Unit-01 Special
+- 92218 — Evangelion Unit-01 Awakening Special
+- 92219 — Tohoku Rakuten Golden Eagles Home Color
+- 92221 — Tohoku Rakuten Golden Eagles Mr. Carrasco
+- 92284 — STARGEK 10th Anniversary Special
+- 92470 — Korea Mini 4WD Cup 2026
+
+Exact release-specific source pages with imagery exist for the gap set, but no stable directly attributable asset was persisted. TrackDash keeps the honest placeholder rather than storing a webpage URL or borrowing a sibling image.
+
+### Final Market Method v4 state
+
+Current ASK / SOLD highlights:
+- 18626 Azure — minimum delivered ASK **EUR 22.80**, active anchor EUR 24.40, 19 current offers.
+- 18627 Nero — minimum delivered ASK **EUR 24.00**, active anchor EUR 24.88, 14 current offers.
+- 92207 Evangelion Unit-01 — SOLD anchor **EUR 36.27**.
+- 92218 Evangelion Awakening — SOLD anchor **EUR 37.62**.
+- 94741 Azure Clear Polycarbonate — SOLD anchor **EUR 22.22**.
+- 94951 Nero Clear Violet — SOLD anchor **EUR 13.56**; one current ASK at **EUR 188.87** remains contextual and does not create MV/trend.
+- 95087 Japan Cup 2015 — **Market Value / SOLD anchor EUR 34.91**; minimum current delivered ASK **EUR 54.90**, active anchor EUR 75.32, 5 offers.
+- 95425 Red 2018 — minimum current delivered ASK **EUR 27.36**, active anchor EUR 35.70, 3 offers.
+- 95464 Azure Clear 2018 — minimum current delivered ASK **EUR 25.50**, active anchor EUR 30.98, 7 offers.
+- 95469 White 2019 — one current delivered ASK **EUR 85.40**.
+- 92422 Korea 25th Anniversary — SOLD anchor **EUR 13.49**, current ASK EUR 85.40.
+- 92428 Korea 25th Anniversary Ver.2 — SOLD anchor **EUR 13.22**, current ASK EUR 85.40.
+- 92430 Plamodel Factory Hong Kong — SOLD anchor **EUR 28.33**.
+- 18662 Nero Advanced Pack — SOLD anchor **EUR 12.46**, minimum current delivered ASK **EUR 41.90**, active anchor EUR 50.99, 16 offers.
+- 92470 Korea Cup 2026 — minimum current delivered ASK **EUR 36.50**, active anchor EUR 38.75, 7 offers.
+
+Nine Releases correctly retain no numeric public market signal after the current-method challenge:
+- 92219
+- 92221
+- 92284
+- 94673
+- 94674
+- 94692
+- 94715
+- 94772
+- 94777
+
+Classification is evidence-driven:
+- 92219 + 92221 exact Mercari evidence is a two-Release lot and must not be split into invented per-Release prices.
+- 92284 has exact SOLD-state evidence but no exposed sold date, so it remains context rather than a dated valuation point.
+- the remaining thin historical Releases have current exact-item eBay refreshes but only historical/out-of-stock context or no qualifying current Europe-comparable evidence.
+
+### Trend cleanup
+
+All legacy pre-EU-first ASK movements were rebuilt/cleared under the current basis, including prior values such as:
+- 95087 +42.01%
+- 95425 -17.65%
+- 95464 +47.59%
+- 18662 -5.08%
+- 92470 +31.40%
+- older 0.00% ASK trend placeholders
+
+Final state:
+- persistent collector trends: **0**
+- current ASK trends: **0**
+
+No trend was created merely because time passed or a scan repeated the same price.
+
+### eBay refresh / queues
+
+All **24 / 24** unique-ITEM Avante Mk.III eBay Active jobs completed successfully under the current method.
+
+Final worker state:
+- due Avante eBay jobs: **0**
+- family recompute rows: **0**
+- scan/recompute errors: **0**
+- active locks: **0**
+- candidates needing revalidation/review: **0**
+
+### Completion Gate
+
+Final live gate:
+- public Releases: **24 / 24**
+- signal method: **24 / 24 v4**
+- signal algorithm: **24 / 24 r3**
+- latest ASK snapshot basis: **24 / 24 v4-eu-delivered-2026-10**
+- stale/latest non-current ASK snapshots: **0**
+- valid current offers hidden behind an empty signal: **0**
+- persistent collector trend rows: **0**
+- ASK trend rows: **0**
+- recompute rows: **0**
+- due eBay jobs: **0**
+- queue errors/locks: **0**
+
+### Public Production QA
+
+Verified against the Vercel Production deployment using live Supabase data:
+- family page: HTTP **200**
+- all **24 / 24** Release pages: HTTP **200**
+- page metadata resolves the correct ITEM/edition identities across the full family
+- intentional image gaps do not break Release pages
+- market-thin Releases remain valid public pages without fabricated values
+
+### Implementation
+
+Applied live and committed on branch:
+- **0205_avante_mkiii_current_method_rescan.sql**
+
+Repository branch:
+- `avante-mkiii-rescan-20261001`
+
+This family is complete under the current Master. Do not reopen it merely because six hero images remain unavailable or nine thin Releases have no numeric public signal; reopen only for new exact evidence, a correction, or a regression.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — MANTA RAY MK.II COMPLETE — CURRENT-METHOD RESCAN / MARKET THIN
 
 Manta Ray Mk.II has completed the current-method revalidation under the post-Sep30 EU-first engine, ASK basis versioning and persistent collector-trend semantics. The prior 10-Release genealogy remains canonical; this pass refreshed production/status evidence, image-gap confirmation, current ASK, SOLD preservation, eBay Active jobs, canonical recompute, Completion Gate and public Production QA.
