@@ -7,102 +7,178 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-09-30 — NEO-TRIDAGGER ZMC RE-AUDIT — ADMIN SCAN/RECOMPUTE PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — NEO-TRIDAGGER ZMC COMPLETE — MARKET THIN / ACTIVE ORIGINAL
 
-Neo-Tridagger ZMC has completed the new genealogy / identity / image / manual Initial Market Challenge pass under the current TrackDash Master. The family is **not yet re-closed** because refreshed eBay Active work and canonical recompute must run through the authorized Admin worker, followed by Completion Gate and Production QA.
+Neo-Tridagger ZMC has completed the current TrackDash family workflow under the latest Master / Market Method v4. Genealogy, exact identity, images, production status, manual Empty Market Challenge, refreshed eBay Active scan, canonical recompute, Completion Gate and public Production QA have all been re-verified.
 
-### Canonical family
+### Canonical family — 7 public Releases
 
-Canonical/public collector Releases remain **7**:
-
-1. 19409 — Neo-Tridagger ZMC — 1996 Original — Super 1
-2. 94647 — Neo-Tridagger ZMC Special Kit — 2008 — Super 1
+1. 19409 — Neo-Tridagger ZMC — 1996 Original — Super 1 — JAN 4950344194094
+2. 94647 — Neo-Tridagger ZMC Special Kit — February 2008 — Super 1 — JAN 4950344946471
 3. 92277 — Neo-Tridagger ZMC Next (Navy) — 2014 — Super 1
 4. 92278 — Neo-Tridagger ZMC Next (Clear Red) — 2014 — Super 1
 5. 92279 — Neo-Tridagger ZMC Next (White) — 2014 — Super 1
 6. 92280 — Neo-Tridagger ZMC Next (Smoke) — 2014 — Super 1
-7. 95508 — Neo-Tridagger ZMC Carbon Special — 2019 — Super II
+7. 95508 — Neo-Tridagger ZMC Carbon Special — 2019 — Super II — JAN 4950344955084
+
+Final publication split:
+- public: 7
+- research-only: 0
 
 No eighth autonomous full-kit Release was verified. Parts/body-only products such as 15172 / 15480 / 94213 remain excluded.
 
-### Identity corrections
+### Identity / production-wave corrections
 
 19409:
-- JAN **4950344194094** is now verified and canonical;
-- stored both in product_releases.barcode_jan and release_identifiers;
-- official Tamiya Japan still lists ITEM 19409 in the Fully Cowled / Super-1 catalog and Tamiya Tokyo handling;
-- production_status remains active/current-handled without claiming uninterrupted manufacturing since 1996.
+- JAN 4950344194094 is now verified and canonical;
+- stored in product_releases.barcode_jan and release_identifiers;
+- official Tamiya Japan still lists ITEM 19409 in the Fully Cowled / Super-1 catalog and reports Tamiya Tokyo handling;
+- TrackDash retains production_status=active/current-handled without claiming uninterrupted factory production since 1996.
 
 94647 Special Kit:
-- JAN **4950344946471** remains verified;
-- contemporary Tamiya material establishes **February 2008**;
-- reliable secondary sources disagree on exact debut day (around 2008-02-23 vs 2008-02-25), so release_date is now intentionally null under UNKNOWN > INVENTED;
-- Suruga records **2012-01-13** for a later occurrence of the same ITEM/spec;
-- 2012 is retained as a production/reissue wave, not a second collector Release;
-- status remains discontinued.
+- JAN 4950344946471 remains verified;
+- contemporary Tamiya material establishes February 2008;
+- reliable secondary sources disagree on the exact first-sale day (around 2008-02-23 vs 2008-02-25), therefore release_date is intentionally null under UNKNOWN > INVENTED;
+- exact Suruga metadata records 2012-01-13 for a later occurrence of the same ITEM/spec;
+- 2012 is a production/reissue wave of the same collector Release, not a second Release;
+- status: discontinued.
 
-2014 Next prize variants:
-- four-color genealogy remains 92277 / 92278 / 92279 / 92280;
-- JAN **4519869409009** is observed on more than one color (including Navy and White), therefore it remains an assortment/shared identifier and is not assigned as a Release-specific barcode;
-- scanner attribution remains fail-closed by exact ITEM/color.
+2014 Next:
+- four physical prize variants remain 92277 / 92278 / 92279 / 92280;
+- JAN 4519869409009 is observed on more than one color and therefore remains an assortment/shared identifier rather than a Release-specific scanner barcode;
+- all four are discontinued.
 
 95508 Carbon Special:
-- JAN **4950344955084** retained and added to release_identifiers;
-- one collector Release, initial month August 2019;
-- official 2023-08-12 on-sale event remains a later production wave under the same ITEM/spec;
-- Tamiya USA explicitly marks the item discontinued, so status remains conservative despite current Japanese catalog/Tamiya Tokyo handling.
+- one collector Release;
+- original release month: August 2019;
+- official 2023-08-12 on-sale event remains a later production wave under the same ITEM/JAN/spec;
+- Tamiya USA explicitly marks ITEM 95508 discontinued;
+- current Japan catalog presence does not create another Release or override the conservative production status.
 
 ### Images
 
-Current exact/high-confidence stored hero coverage remains **7 / 7**:
-- 19409 official Tamiya
-- 94647 exact RCJaz
-- 92277 high-confidence exact-item Mercari Shops
-- 92278 high-confidence exact-item Mercari
-- 92279 exact Suruga
-- 92280 high-confidence exact-item Mercari
-- 95508 official Tamiya
+Exact/high-confidence canonical hero coverage remains **7 / 7**:
 
-No image was replaced during this re-audit.
+- 19409 — official Tamiya
+- 94647 — exact RCJaz
+- 92277 — high-confidence exact-item Mercari Shops
+- 92278 — high-confidence exact-item Mercari
+- 92279 — exact Suruga
+- 92280 — high-confidence exact-item Mercari
+- 95508 — official Tamiya
 
-### Manual Initial Market Challenge
+No image replacement was required in this re-audit.
 
-Existing valuation-eligible granular SOLD remains:
-- 19409: JPY 3,300 on 2026-05-20 + JPY 8,220 on 2026-06-15
-- 92280 Smoke: JPY 9,000 on 2026-02-08
-- 95508: JPY 4,100 on 2026-06-07 + JPY 2,900 / 3,200 on 2026-06-16
+### Final Market Method v4 state
 
-Existing current Europe-comparable eBay market before refresh:
-- 19409: 2 EBAY_IT offers, previous starting delivered cost EUR 101.46
-- 95508: 4 EBAY_IT offers, previous starting delivered cost EUR 85.40
+19409 Original:
+- SOLD units: 2
+- SOLD anchor: EUR 31.05
+- Market Value: null
+- current offers: 3
+- European live offers: 2
+- European ASK low / starting effective cost: **EUR 101.91 delivered**
+- active ASK anchor: EUR 142.07
+- active ASK high: EUR 182.24
+- starting marketplace: EBAY_IT
+- confidence: Low 32
 
-Empty-price challenge:
-- 94647 / 92277 / 92278 / 92279: exact Japan-market used, sold-out, search-only or condition-unresolved evidence exists, but no qualifying Europe-comparable new-complete ASK was found;
-- 92280 has exact recent SOLD but no qualifying current Europe-comparable ASK;
-- no price or Market Value is forced from extra-EU/local-shipping, used, condition-unresolved or sold-out evidence.
+94647 Special Kit:
+- Market Value: null
+- current European ASK: none
+- exact RCJaz historical/out-of-stock context retained
+- no price forced after Empty Market Challenge
 
-### Migration / queue state
+92277 Next Navy:
+- Market Value: null
+- current European ASK: none
+- no valuation-eligible SOLD
+- empty market challenge passed
 
-Applied live:
-- **0198_neo_tridagger_zmc_family_reaudit.sql**
+92278 Next Clear Red:
+- Market Value: null
+- current European ASK: none
+- extra-EU/condition-unresolved exact marketplace context remains non-public pricing evidence
 
-Post-migration:
-- public Releases: 7
-- image coverage: 7/7
-- verified primary JAN identifiers added for 19409 / 94647 / 95508
-- 7 family recompute jobs queued first globally with dirty_at/available_at 2000-01-02
-- 7 unique-ITEM eBay Active jobs queued first with next_scan_at 2000-01-02 and priority 180
-- all seven eBay jobs are safe for exact-item discovery because each canonical Release has a unique ITEM number.
+92279 Next White:
+- Market Value: null
+- current European ASK: none
+- empty market challenge passed
 
-### Exact next action
+92280 Next Smoke:
+- SOLD units: 1
+- SOLD anchor: **EUR 48.58**
+- Market Value: null
+- current European ASK: none
+- exact unopened Yahoo sale: JPY 9,000 on 2026-02-08
+- confidence: Low 15
 
-Authenticated admin must run:
+95508 Carbon Special:
+- SOLD units: 3
+- SOLD anchor: **EUR 17.21**
+- Market Value: null
+- current offers: 4
+- European live offers: 4
+- European ASK low / starting effective cost: **EUR 85.40 delivered**
+- active ASK anchor: EUR 102.21
+- active ASK high: EUR 114.96
+- starting marketplace: EBAY_IT
+- confidence: Low 39
 
-**Admin → Aggiornamento mercato → Esegui ora**
+No Market Value was forced from dispersed, single-source or thin SOLD evidence.
 
-First pass should claim up to 4 Neo-Tridagger eBay jobs and all 7 family recomputes. Because the Admin action is global and lanes run in parallel, verify actual Release IDs/timestamps after the click rather than inferring completion from 4/4 or 7/7 counters.
+### Refreshed eBay / recompute result
 
-A second eBay pass will likely be necessary for the remaining 3 jobs, followed by any recompute jobs created by changed evidence.
+All seven exact unique-ITEM eBay Active jobs completed successfully on 2026-10-01:
+- 19409 — success
+- 94647 — success
+- 92277 — success
+- 92278 — success
+- 92279 — success
+- 92280 — success
+- 95508 — success
+
+The Admin button is global and the lanes ran independently; actual release timestamps were verified rather than relying on the UI counters.
+
+Canonical recompute:
+- all 7 Releases have v4/r3 signals;
+- global recompute queue: 0;
+- family recompute queue: 0;
+- recompute locks: 0.
+
+### Completion Gate
+
+Final Neo-Tridagger gate:
+- current valid EU offer hidden behind an empty public signal: **0**
+- empty-price Releases manually challenged/classified: **5 / 5**
+- candidates needing revalidation: **0**
+- stale/non-v4 family signals: **0**
+- family scan locks: **0**
+- global recompute queue: **0**
+
+Public QA:
+- family page: HTTP 200
+- all 7 Release pages: HTTP 200
+- 19409 page exposes EUR 101.91 starting price and EUR 31.05 observed-sale anchor
+- 92280 page exposes EUR 48.58 observed-sale anchor
+- 95508 page exposes EUR 85.40 starting price and EUR 17.21 observed-sale anchor
+- 94647 / 92277 / 92278 / 92279 correctly remain without invented public prices
+- all seven canonical images remain present
+
+### Implementation
+
+Database:
+- migration: **0198_neo_tridagger_zmc_family_reaudit.sql**
+
+Repository branch:
+- neo-tridagger-zmc-reaudit-20260930
+
+### Next public family in the re-audit path
+
+**Dyna-Hawk GX — 1998 — slug dyna-hawk-gx-19601**
+
+This is the next available Mini 4WD family after Neo-Tridagger ZMC in the canonical oldest-to-newest catalog order.
+
 
 ---
 
