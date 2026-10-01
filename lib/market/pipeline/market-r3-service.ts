@@ -3,6 +3,7 @@ import "server-only"
 import type { MarketCondition } from "./types"
 import {
   applyAskTrend,
+  applyPersistentCollectorTrend,
   computeCurrentMarketSignal,
   type MarketSignalDraft,
 } from "./market-model"
@@ -22,12 +23,13 @@ export async function recomputeReleaseMarketSignal(
 ): Promise<MarketSignalDraft> {
   const asOfDate = now.toISOString().slice(0, 10)
 
-  const [offers, granularExternal, aggregate, trackDashSales, askSnapshots] = await Promise.all([
+  const [offers, granularExternal, aggregate, trackDashSales, askSnapshots, persistedTrend] = await Promise.all([
     repo.listCurrentOffers(releaseId, condition),
     repo.listGranularSoldEvidence(releaseId, condition),
     repo.listAggregateSoldEvidence(releaseId, condition),
     loadConfirmedTrackDashSales(releaseId, condition),
     repo.listAskSnapshots(releaseId, condition),
+    repo.getCollectorTrend(releaseId, condition),
   ])
 
   // Confirmed bilateral TrackDash sales are first-class completed-sale evidence.
@@ -65,7 +67,8 @@ export async function recomputeReleaseMarketSignal(
   // as corroboration/fallback, and keeps active seller ASK prices separate from
   // Market Value. Confidence follows the evidence behind the published headline.
   const publishedSignal = applyPublicMarketPublicationPolicy(computedSignal, soldEvidence, asOfDate)
-  const signal = applyAskTrend(publishedSignal, askSnapshots, asOfDate)
+  const askSignal = applyAskTrend(publishedSignal, askSnapshots, asOfDate)
+  const signal = applyPersistentCollectorTrend(askSignal, persistedTrend, now.toISOString())
 
   await repo.upsertReleaseSignal(releaseId, condition, signal)
   await repo.upsertMonthlySoldSignals(releaseId, condition, signal)
