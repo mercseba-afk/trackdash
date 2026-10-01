@@ -65,9 +65,7 @@ export function enrichCollection(
       const marketSignal = marketSignals[release.id] ?? null
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
-      const observedPrice = comparableCondition
-        ? marketSignal?.startingEffectiveCostEUR ?? marketSignal?.startingItemPriceEUR ?? marketSignal?.retailAnchorEUR ?? marketSignal?.activeAnchorEUR ?? null
-        : null
+      const observedPrice = comparableCondition ? observedMarketPrice(marketSignal) : null
       const marketReferenceValue = marketValue ?? observedPrice
       const marketReferenceKind = marketValue != null ? "estimated" : observedPrice != null ? "observed" : null
       const marketTrend = comparableCondition ? collectorMarketTrend(marketSignal) : null
