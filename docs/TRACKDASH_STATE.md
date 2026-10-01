@@ -7,7 +7,7 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — DASHBOARD MARKET HOME REFINEMENT — PREVIEW READY
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DASHBOARD MARKET HOME REFINEMENT — PRODUCTION COMPLETE
 
 The signed-in Mini 4WD Dashboard/home market presentation was refined after completion of the public-family revalidation cycle. This work does **not** introduce a new price engine or a Dashboard-only market snapshot.
 
@@ -57,7 +57,16 @@ Validation:
 - Preview `/api/version`: **c490c3e3c8b36f5c338bc477eeb3fcec1b27cb18**
 - authenticated Dashboard route reaches the normal login boundary when fetched without a user session; no claim is made of signed-in visual QA from the connector.
 
-This checkpoint becomes authoritative after merge, Production READY, version alignment and runtime-error verification.
+### Production closeout
+
+- PR **#319** merged to `main`.
+- functional Production commit: **b3671e0f2683eff2eb2f0e6bf907f4d463a828ba**.
+- Vercel Production: **READY** and aliased to `trackdash.it`.
+- Production `/api/version`: **b3671e0f2683eff2eb2f0e6bf907f4d463a828ba** at closeout verification.
+- deployment-scoped Production error/fatal logs after release: **0**.
+- the only grouped runtime error seen in the wider recent window belonged to a protected Preview/login request without Production market-pipeline secrets; it was not emitted by the Production deployment.
+
+This Dashboard market-home refinement checkpoint is now authoritative.
 
 ---
 
