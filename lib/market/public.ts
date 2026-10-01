@@ -1,6 +1,5 @@
 import "server-only"
 
-import { unstable_cache } from "next/cache"
 import {
   getMarketMonthlySignalsForRelease,
   getMarketSignalForRelease,
@@ -90,17 +89,6 @@ async function listSafeMarketContextEvidence(
   return [...counts.entries()].map(([releaseId, evidenceCount]) => ({ releaseId, evidenceCount }))
 }
 
-
-const listCachedPublicMarketBundle = unstable_cache(
-  async () => Promise.all([
-    listMarketSignals(),
-    listMarketMonthlySignals(),
-    listCurrentObservedOffers(),
-    listSafeMarketContextEvidence(),
-  ]),
-  ["trackdash-public-market-signals-v7"],
-  { revalidate: 60 },
-)
 
 interface RecentSoldActivity {
   units: number
@@ -309,19 +297,16 @@ export async function getPublicMarketSignalForRelease(
 export async function getPublicMarketSignalMap(
   releaseIds?: string[],
 ): Promise<ReleaseMarketSignalMap> {
-  // The full public map is identical for every visitor and is requested by
-  // the root layout on first load. Keep that bootstrap hot for one minute
-  // instead of paying database round trips on every fresh dashboard load.
-  // Targeted release lookups remain uncached so exact-detail requests stay
-  // immediately current.
-  const [rows, monthlyRows, observedOffers, contextRows] = releaseIds?.length
-    ? await Promise.all([
-        listMarketSignals(releaseIds),
-        listMarketMonthlySignals(releaseIds),
-        listCurrentObservedOffers(releaseIds),
-        listSafeMarketContextEvidence(releaseIds),
-      ])
-    : await listCachedPublicMarketBundle()
+  // Public market surfaces must share one current canonical snapshot. Do not
+  // cache the full map independently from exact Release views: after a market
+  // recompute, Catalog, Collection, Dashboard, Scanner and Release detail must
+  // all resolve the same market_release_signals state.
+  const [rows, monthlyRows, observedOffers, contextRows] = await Promise.all([
+    listMarketSignals(releaseIds),
+    listMarketMonthlySignals(releaseIds),
+    listCurrentObservedOffers(releaseIds),
+    listSafeMarketContextEvidence(releaseIds),
+  ])
 
   const monthlyByRelease = new Map<string, MarketReleaseMonthlySignal[]>()
   for (const row of monthlyRows) {
