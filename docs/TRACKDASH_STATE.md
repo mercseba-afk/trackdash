@@ -7,6 +7,117 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AERO MANTA RAY COMPLETE — CURRENT-METHOD REVALIDATED / MARKET ASK-LED
+
+Aero Manta Ray has completed the current-method revalidation under Market Method v4 / algorithm r3 and ASK basis `v4-eu-delivered-2026-10`. The audited genealogy remains canonical at **7 public Releases**; no Release UUID was rebuilt.
+
+### Canonical family
+
+1. 18703 — Aero Manta Ray (AR Chassis) — 2013-03-02 — JAN 4950344064502
+2. 94972 — Aero Manta Ray White Special — 2013-09-28 — JAN 4950344949724
+3. 94989 — Aero Manta Ray Black Metallic — 2013 — JAN 4950344963195
+4. 94991 — Aero Manta Ray Gold Metallic — 2013 — JAN 4950344963218
+5. 95031 — Aero Manta Ray Japan Cup 2014 Limited — 2014-07-19 — JAN 4950344950317
+6. 95295 — Aero Manta Ray White Special (2017 Reissue) — 2017-01-21 — JAN 4950344952953
+7. 95419 — Aero Manta Ray Black Special — 2018-10-27 — JAN 4950344954193
+
+All seven ITEM numbers remain globally unique and safe for unattended exact-item eBay Active refresh.
+
+### Genealogy / identity
+
+- 7/7 canonical identities are preserved.
+- 94989 Black Metallic and 94991 Gold Metallic remain distinct verified 2013 collector Releases.
+- exact day remains intentionally unset for 94989 / 94991 where source agreement is insufficient at day level.
+- no additional complete-kit Aero Manta Ray Release was verified during this pass.
+
+### Images
+
+Exact/high-confidence hero coverage: **4 / 7**.
+
+Intentional documented gaps:
+- 94972 White Special
+- 94989 Black Metallic
+- 94991 Gold Metallic
+
+Exact release-specific imagery exists on audited retailer/archive pages for all three, but no stable directly attributable asset URL is persisted in `release_images`. TrackDash keeps honest placeholders rather than borrowing a sibling/base Aero Manta Ray image.
+
+### Final Market Method v4 state
+
+No consolidated SOLD-based Market Value exists for the family.
+
+Current ASK state:
+- 18703 base — minimum delivered ASK **EUR 22.40**, active anchor **EUR 23.30**, 15 comparable offers.
+- 94972 White Special — minimum / active ASK **EUR 68.53**, 1 comparable offer.
+- 94989 Black Metallic — no qualifying current public ASK; market remains in verification.
+- 94991 Gold Metallic — no qualifying current public ASK; market remains in verification.
+- 95031 Japan Cup 2014 — minimum delivered ASK **EUR 49.28**, active anchor **EUR 56.50**, 2 comparable offers.
+- 95295 White Special 2017 — minimum / active ASK **EUR 48.80**, 1 comparable offer.
+- 95419 Black Special 2018 — minimum / active ASK **EUR 79.30**, 1 comparable offer.
+
+No Release has a consolidated SOLD anchor in the current canonical signal.
+
+### Trend cleanup
+
+All legacy pre-EU-first ASK movement was cleared during current-basis recompute, including prior states such as:
+- 18703 +0.38%
+- 95031 -0.22%
+- legacy 0% ASK placeholders on single-price Releases
+
+Final state:
+- persistent collector trends: **0**
+- current ASK trends: **0**
+
+No trend was created merely because time passed or an unchanged ASK was observed again.
+
+### eBay / recompute refresh
+
+All **7 / 7** unique-item eBay Active jobs completed successfully under the current method.
+
+Final worker state:
+- due Aero Manta Ray eBay jobs: **0**
+- family recompute rows: **0**
+- queue errors/locks: **0**
+- candidate review/revalidation blockers: **0**
+
+The two market-empty Releases (94989 / 94991) produced no qualifying current candidates and therefore remain without fabricated public values.
+
+### Completion Gate
+
+Final live gate:
+- public Releases: **7 / 7**
+- exact/high-confidence images: **4 / 7**
+- canonical signal method: **7 / 7 v4**
+- canonical signal algorithm: **7 / 7 r3**
+- latest ASK basis: **7 / 7 v4-eu-delivered-2026-10**
+- stale latest ASK snapshots: **0**
+- valid current offers hidden behind empty signal: **0**
+- persistent collector trends: **0**
+- ASK trends: **0**
+- candidate review/revalidation blockers: **0**
+- recompute rows: **0**
+- due family eBay jobs: **0**
+- queue errors/locks: **0**
+
+### Public Production QA
+
+Verified against the live Vercel Production application backed by live Supabase:
+- family page: HTTP **200**
+- all **7 / 7** Release pages: HTTP **200**
+- metadata resolves the correct ITEM / edition identities
+- intentional image gaps and market-empty Releases do not break public pages
+
+### Implementation
+
+Applied live and committed on branch:
+- **0208_aero_manta_ray_current_method_rescan.sql**
+
+Repository branch:
+- `aero-manta-ray-rescan-20261001`
+
+The family is complete under the current Master. Reopen only for new exact evidence, a correction, or a regression.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DASH-X1 PROTO-EMPEROR COMPLETE — CURRENT-METHOD REVALIDATED
 
 DASH-X1 Proto-Emperor has completed the current-method revalidation under Market Method v4 / algorithm r3 and the post-Sep30 EU-first ASK basis. The existing genealogy remains canonical at **4 public Releases**; no Release UUID was rebuilt.
