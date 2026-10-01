@@ -1,15 +1,15 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-09-30  
+> **Last updated:** 2026-10-01  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — MANTA RAY MK.II CURRENT-METHOD RE-SCAN — ADMIN REFRESH PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — MANTA RAY MK.II COMPLETE — CURRENT-METHOD RESCAN / MARKET THIN
 
-Manta Ray Mk.II is being revalidated under the current post-Sep30 EU-first engine, ASK basis versioning and persistent collector-trend semantics. The previous family genealogy remains canonical at **10 public Releases**; this is a current-method market/status/image-gap refresh, not a rebuild.
+Manta Ray Mk.II has completed the current-method revalidation under the post-Sep30 EU-first engine, ASK basis versioning and persistent collector-trend semantics. The prior 10-Release genealogy remains canonical; this pass refreshed production/status evidence, image-gap confirmation, current ASK, SOLD preservation, eBay Active jobs, canonical recompute, Completion Gate and public Production QA.
 
 ### Canonical family — 10 public Releases
 
@@ -22,189 +22,161 @@ Manta Ray Mk.II is being revalidated under the current post-Sep30 EU-first engin
 7. no ITEM — Manta Ray Mk.II Black Metallic Special — 2012-07-15 — MS
 8. 95462 — Manta Ray Mk.II White Special (2019 Reissue) — 2019-02-23 — MS — JAN 4950344954629
 9. 95466 — Manta Ray Mk.II Black Special — 2019-03-02 — MS — JAN 4950344954667
-10. 95690 — Manta Ray Mk.II City Circuit Special — 2025-06-14 first City Circuit sale — MA — JAN 4950344956906
+10. 95690 — Manta Ray Mk.II City Circuit Special — 2025-06-14 — MA — JAN 4950344956906
 
 No additional autonomous collector Release has been verified.
 
-### Identity / production-wave notes
+### Identity / production-wave state
 
-18615:
-- official Tamiya Japan still maintains the product page/current handling;
-- a recent Tamiya USA MAP list still contains ITEM 18615;
-- the Tamiya USA product page explicitly marks it discontinued;
-- TrackDash therefore keeps the conservative `discontinued` production status while documenting current catalog/handling evidence.
-
-Pink Metallic 2007:
-- event-limited metallic Release remains verified by contemporary reporting;
-- no autonomous ITEM/JAN has been verified;
-- automatic marketplace attribution remains disabled.
-
-Silver Metallic Semi-Finished 2010:
-- contemporary Summer GP reporting verifies the distinct Manta Ray Mk.II Silver Metallic semi-finished Release;
-- no autonomous ITEM/JAN has been verified;
-- exact hero image remains unresolved;
-- gap > borrowed sibling image.
-
-Black Metallic 2012:
-- contemporary Japan Cup reporting explicitly identifies **Manta Ray Mk.II Black Metallic**, confirming the family attribution;
-- no autonomous ITEM/JAN has been verified;
-- automatic marketplace attribution remains disabled.
-
-95462:
-- remains the distinct 2019 White Special reissue;
-- Japan handling/catalog presence does not override the conservative discontinued status documented by Tamiya USA.
-
-95466:
-- remains **one collector Release**;
-- initial release: March 2019;
-- official 2023-08-26 on-sale/production wave uses the same ITEM/JAN/specification;
-- no physical collector discriminator supports splitting 2019 and 2023.
-
-95690:
-- remains the distinct 2025 City Circuit collaboration Release;
-- MA chassis;
-- active/current.
+- 18615 stays conservatively discontinued: Tamiya Japan/current catalog handling still exists, while Tamiya USA explicitly marks the product discontinued.
+- Pink Metallic 2007, Silver Metallic 2010 and Black Metallic 2012 remain distinct event Releases without a verified autonomous ITEM/JAN; unattended eBay attribution therefore stays fail-closed.
+- 95462 remains the distinct 2019 White Special reissue.
+- 95466 remains one collector Release: the 2023-08-26 occurrence is a later production/on-sale wave under the same ITEM/JAN/spec, not another Release.
+- 95690 remains the active/current 2025 City Circuit collaboration Release.
 
 ### Images
 
 Exact/high-confidence hero coverage: **9 / 10**.
 
-Stored exact/high-confidence images:
-- 18615 — official Tamiya
-- 94593 — official Tamiya
-- Pink Metallic 2007 — contemporary TEA-League
-- 94665 — official Tamiya
-- 94709 — official Tamiya
-- Black Metallic 2012 — contemporary TEA-League
-- 95462 — official Tamiya
-- 95466 — official Tamiya
-- 95690 — official Tamiya
-
 Intentional gap:
 - Silver Metallic Semi-Finished 2010
 
-### Market research / SOLD challenge before worker refresh
+The missing Silver image remains documented rather than borrowing a sibling/generic Manta image.
 
-No new granular SOLD was persisted during this pass beyond the already canonical 95466 Yahoo closed-sale evidence.
+### Final Market Method v4 state
 
-Reason:
-- current marketplace listings with quantity-sold counters were observed, especially for 95466;
-- those counters do not provide a sufficiently attributable completed-event date/price pair;
-- therefore sell-through context is not fabricated into SOLD evidence.
-
-Existing canonical SOLD:
-- 95466 Black Special — one unused Yahoo closed-search result, JPY 3,000 on 2026-06-04 — **SOLD anchor EUR 16.13**.
-
-The three no-ITEM metallic event Releases were manually challenged:
-- no exact current Europe-comparable new-complete ASK found under a safe autonomous identifier;
-- no sufficiently attributable recent SOLD found;
-- they remain public with empty market signal / in observation rather than receiving invented prices.
-
-### Pre-refresh Market Method v4 baseline
+No Manta Ray Mk.II Release currently has a consolidated Market Value.
 
 18615 base:
-- MV: null
+- current EU delivered ASK: **EUR 61.00**
+- active anchor: EUR 61.00
+- one canonical current offer
 - SOLD anchor: null
-- current EU ASK: **EUR 61.00 delivered**
-- one current offer
-- old ASK trend 0.00% / 10d is not authoritative because earlier snapshots are legacy pre-EU-first
-- collector trend: null / observation
+- collector trend: null / in observation
+- current-basis ASK trend: null
 
-94593 Finished:
-- MV: null
-- SOLD anchor: null
-- current ASK: none
+94593 Finished Model:
+- no publishable current ASK
+- no SOLD anchor
+- collector trend: null / observation
 
 Pink Metallic 2007:
-- no canonical market signal yet
-- manual Empty Market Challenge passed for current pre-worker state
+- no publishable current ASK
+- no SOLD anchor
+- manual Empty Market Challenge classified
+- automatic eBay disabled because no autonomous ITEM exists
 
 94665 Black Special 2008:
-- MV: null
-- SOLD anchor: null
-- current ASK: none
-
-94709 White Special 2009:
-- MV: null
-- SOLD anchor: null
-- current ASK: none
-
-Silver Metallic 2010:
-- no canonical market signal yet
-- manual Empty Market Challenge passed for current pre-worker state
-
-Black Metallic 2012:
-- no canonical market signal yet
-- manual Empty Market Challenge passed for current pre-worker state
-
-95462 White Special 2019:
-- MV: null
-- SOLD anchor: null
-- old/current observed ASK before refresh: **EUR 46.36 delivered**
-- old ASK trend 0.00% / 7d is legacy-basis and expected to reset under current method
-
-95466 Black Special 2019:
-- MV: null
-- SOLD anchor: **EUR 16.13**
-- old current-offer set included GB/US listings
-- old starting price **EUR 33.27** came from EBAY_GB and is invalid as the Europe-first starting offer
-- exact EBAY_IT delivered offers existed around EUR 33.90 / EUR 34.16 before the new scan
-- old ASK trend 0.00% / 7d is legacy-basis and expected to reset
-
-95690 City Circuit:
-- MV: null
-- SOLD anchor: null
-- old starting EU ASK: **EUR 24.80 delivered**
-- old ASK trend **+89.03% / 8d** is entirely based on pre-EU-first snapshots and is **not authoritative**
+- no publishable current ASK
+- no SOLD anchor
+- refreshed eBay job completed successfully
 - collector trend: null / observation
 
-No persistent collector trend is currently stored for any Manta Ray Mk.II Release.
+94709 White Special 2009:
+- no publishable current ASK
+- no SOLD anchor
+- refreshed eBay job completed successfully
+- collector trend: null / observation
 
-### Migration / queue state
+Silver Metallic 2010:
+- no publishable current ASK
+- no SOLD anchor
+- manual Empty Market Challenge classified
+- image gap remains intentional
+- automatic eBay disabled because no autonomous ITEM exists
+
+Black Metallic 2012:
+- no publishable current ASK
+- no SOLD anchor
+- manual Empty Market Challenge classified
+- automatic eBay disabled because no autonomous ITEM exists
+
+95462 White Special 2019:
+- current EU delivered ASK: **EUR 46.36**
+- active anchor: EUR 46.36
+- one canonical current offer
+- old pre-EU-first ASK trend is no longer used
+- collector trend: null / observation
+- current-basis ASK trend: null
+
+95466 Black Special 2019:
+- current minimum delivered ASK: **EUR 33.90**
+- active ASK anchor: **EUR 34.03**
+- SOLD anchor preserved: **EUR 16.13**
+- SOLD units: 1
+- canonical signal currently uses 10 deduplicated current offers
+- no consolidated MV
+- collector trend: null / observation
+- current-basis ASK trend: null
+- GB-only pricing no longer defines the European minimum
+
+95690 City Circuit:
+- current minimum delivered ASK: **EUR 24.80**
+- active ASK anchor: **EUR 49.20**
+- canonical signal currently uses 9 deduplicated current offers
+- SOLD anchor: null
+- no consolidated MV
+- collector trend: null / observation
+- legacy **+89.03%** ASK trend is excluded from current math
+- current-basis ASK trend: null
+
+### eBay refresh
+
+All **7 / 7** unique-ITEM Manta jobs completed successfully:
+- 18615
+- 94593
+- 94665
+- 94709
+- 95462
+- 95466
+- 95690
+
+Final worker state:
+- failures: 0
+- last errors: 0
+- active Manta scan locks: 0
+- due Manta eBay jobs: 0
+
+The three no-ITEM metallic Releases remain disabled/parked intentionally.
+
+### Completion Gate
+
+Final live Manta gate:
+- family recompute rows: **0**
+- recompute locks: **0**
+- scan locks: **0**
+- candidates needing revalidation: **0**
+- stale/non-v4 family signals: **0**
+- valid current EU offers hidden behind an empty public signal: **0**
+
+Accepted current evidence is represented by the canonical public signal. Empty-signal Releases were manually challenged/classified; no value is invented merely to remove a fallback state.
+
+### Public Production QA
+
+Verified through the Vercel-backed public route:
+- family page: HTTP **200**
+- all **10 / 10** Release pages: HTTP **200**
+- 18615 public signal carries delivered ASK **EUR 61.00**
+- 95462 public signal carries delivered ASK **EUR 46.36**
+- 95466 public signal carries minimum delivered ASK **EUR 33.90**, active anchor **EUR 34.03** and SOLD anchor **EUR 16.13**
+- 95690 public signal carries minimum delivered ASK **EUR 24.80**
+- 94593 / Pink Metallic / 94665 / 94709 / Silver Metallic / Black Metallic correctly retain the market-under-review fallback
+- the Silver Metallic 2010 Release page remains valid despite the intentional image gap.
+
+### Implementation
 
 Applied live:
 - **0204_manta_ray_mkii_current_method_rescan.sql**
 
-Recompute preparation:
-- all **10 Manta Ray Mk.II Releases** are the first due recompute rows globally;
-- dirty_at / available_at = 2000-01-07;
-- no locks/errors.
+Repository branch:
+- `manta-ray-mkii-rescan-20261001`
 
-eBay Active preparation:
-- **7 unique-ITEM Releases** are the first due eBay jobs globally at priority 180:
-  - 18615
-  - 94593
-  - 94665
-  - 94709
-  - 95462
-  - 95466
-  - 95690
+### Next public family in chronological catalog order
 
-Fail-closed/no automatic eBay:
-- Pink Metallic 2007
-- Silver Metallic 2010
-- Black Metallic 2012
+**Avante Mk.III — 2008 — slug avante-mk-iii-avante-mk3**
 
-All seven enabled ITEM numbers are unique across the current catalog.
+Avante Mk.III already has a prior deep family audit. Its next pass should be a current-method revalidation under the same EU-first / persistent-trend rules rather than a genealogy rebuild unless new identity evidence appears.
 
-### Exact next action
-
-Run once:
-
-**Admin → Aggiornamento mercato → Esegui ora**
-
-Expected worker capacity:
-- recompute lane: 8 of the 10 Manta Releases;
-- eBay lane: 4 of the 7 unique-ITEM Releases.
-
-Because the lanes run in parallel, actual Release IDs/timestamps must be inspected afterward. Do not infer family completion from Admin counters.
-
-After the first run:
-- compare current ASK values to this baseline;
-- verify that legacy ASK trends reset/rebuild only from `v4-eu-delivered-2026-10` snapshots;
-- check whether any new eBay evidence enqueued recomputes;
-- preserve collector trend semantics independently from ASK motion;
-- run further Admin cycles only for actual remaining Manta jobs.
 
 ---
 
