@@ -70,16 +70,16 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "con Valore stimato" : "with an Estimated value"}</span>} />
-        <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Rendimento EUR non disponibile" : "EUR performance unavailable"}</span>} />
+        <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati sufficienti non ancora disponibili" : "Not enough data yet"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
-        <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Trend di mercato in arrivo" : "Market trend coming soon")} />
+        <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
       </div>
 
       {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Valori e rendimenti vengono mostrati solo quando TrackDash dispone di dati di mercato affidabili e compatibili con la condizione dei tuoi pezzi."
-            : "Values and performance are shown only when TrackDash has reliable market data compatible with the condition of your items."}
+            ? "Valore e differenza dal prezzo pagato compaiono solo quando TrackDash dispone di una stima affidabile per quella Release."
+            : "Value and difference from the price paid are shown only when TrackDash has a reliable estimate for that exact Release."}
         </p>
       ) : null}
 

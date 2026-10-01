@@ -266,6 +266,15 @@ if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") |
 if (dashboardMarket.includes("askTrendWindowDays")) {
   errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
 }
+if (!dashboardMarket.includes("observedMarketDisplayPrice(row.signal)") || !dashboardMarket.includes("observedMarketDisplayLabel(row.signal, it)") || !dashboardMarket.includes("observedMarketDisplayKind(row.signal)")) {
+  errors.push("Dashboard market highlights are not using the shared ASK/SOLD display fallback")
+}
+if (!dashboardMarket.includes("const gainers") || !dashboardMarket.includes("collectorMarketTrend(row.signal) ?? 0) > 0")) {
+  errors.push("Dashboard growth highlight is not restricted to positive collector trends")
+}
+if (dashboardMarket.includes("Valore di mercato stimato") || dashboardMarket.includes("Movers")) {
+  errors.push("Dashboard market highlights still expose legacy or technical copy")
+}
 if (!dashboardPage.includes("fetchCatalogProducts") || !dashboardScreen.includes("catalogProducts")) {
   errors.push("Dashboard is not fed from the canonical catalog")
 }
