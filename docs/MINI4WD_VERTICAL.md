@@ -490,9 +490,9 @@ Do not reopen the family merely because 94708 still has no persisted exact hero 
 
 Status:
 
-**CURRENT-METHOD REVALIDATION IN PROGRESS — 2026-10-01**
+**COMPLETE — CURRENT-METHOD REVALIDATED 2026-10-01 — MARKET ASK-LED**
 
-Canonical family remains:
+Canonical family:
 
 **7 public Releases**
 
@@ -504,18 +504,26 @@ Canonical family remains:
 - `95295` — White Special reissue — 2017
 - `95419` — Black Special — 2018
 
-Current pass:
-- all 7 ITEM numbers are globally unique and safe for unattended exact-item eBay refresh;
+Durable current state:
+- all 7 ITEM numbers are globally unique and completed current eBay Active refreshes successfully;
 - genealogy remains intact; no additional complete-kit Release was verified;
-- image coverage is **4/7**; 94972 / 94989 / 94991 remain intentional placeholders pending stable exact hero assets;
-- exact source-page imagery exists for each image gap;
-- 94989 / 94991 exact identities and JANs are corroborated by specialist Japanese/retailer metadata;
-- all legacy ASK snapshots are pre-EU-first and are being rebuilt under `v4-eu-delivered-2026-10`;
-- pre-refresh ASK movements (+0.38%, -0.22%, 0% placeholders) are legacy ASK-only state and must not survive unless recreated by valid current-basis history;
-- no consolidated SOLD/MV exists before this refresh;
-- 7 recomputes + 7 eBay Active jobs are staged at priority 180.
+- exact/high-confidence image coverage is **4/7**; 94972 / 94989 / 94991 remain intentional documented placeholders;
+- all 7 canonical signals are Market Method **v4** / algorithm **r3**;
+- all 7 latest ASK snapshots use **v4-eu-delivered-2026-10**;
+- 18703 minimum delivered ASK **EUR 22.40**, active anchor EUR 23.30, 15 offers;
+- 94972 White Special ASK **EUR 68.53**, 1 offer;
+- 94989 / 94991 have no qualifying current ASK and remain market-in-verification rather than receiving invented values;
+- 95031 Japan Cup 2014 minimum delivered ASK **EUR 49.28**, active anchor EUR 56.50, 2 offers;
+- 95295 White Special 2017 ASK **EUR 48.80**;
+- 95419 Black Special 2018 ASK **EUR 79.30**;
+- no consolidated SOLD-based Market Value currently exists for the family;
+- all legacy ASK trend states (+0.38%, -0.22%, old 0% placeholders) are cleared;
+- final hard gate: current-offer/empty-signal mismatch=0, stale current-basis snapshots=0, review blockers=0, recompute=0, due family eBay=0, locks/errors=0;
+- public Production QA passed the family page and **7/7 Release pages** with HTTP 200.
 
-Do not mark the family complete until both eBay batches, current-basis recomputes, image/empty-market challenges, Production QA and Completion Gate are closed.
+Do not reopen the family merely because three exact hero assets are still unavailable or because 94989 / 94991 remain market-thin.
+
+---
 
 ---
 
