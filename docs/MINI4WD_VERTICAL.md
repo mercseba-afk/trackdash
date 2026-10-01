@@ -455,23 +455,36 @@ extra-EU local shipping must not be treated as delivered-to-Europe cost. RCJAZ a
 
 ### DASH-X1 Proto-Emperor
 
+Status:
+
+**COMPLETE — CURRENT-METHOD REVALIDATED 2026-10-01**
+
 Canonical family:
 
-**4 Releases**
+**4 public Releases**
 
 - `94708` — VS, 2009
 - `18074` — Premium, 2013
 - `95450` — Premium Black Special, 2019
 - shared-item `18074` — Sanfrecce Hiroshima Special Edition, 2023
 
-Shared Item `18074` remains **fail-closed** for automatic Release inference.
+Durable current state:
+- 92063 remains excluded because it is body-parts-only;
+- 94708 and 95450 are unique ITEM identities and completed current eBay Active refreshes;
+- both 18074 Releases remain fail-closed for unattended eBay attribution because the base ITEM is shared;
+- exact/high-confidence image coverage is **3/4**; only 94708 remains an intentional documented placeholder;
+- all 4 canonical signals are Market Method **v4** / algorithm **r3**;
+- all 4 latest ASK snapshots use **v4-eu-delivered-2026-10**;
+- standard 18074 retains Market Value / SOLD anchor **EUR 17.49**, backed by 19 sales / 8 sellers in the audited rolling annual window;
+- 95450 retains SOLD **EUR 12.72** from 7 annual sales / 1 seller, so seller concentration correctly blocks MV;
+- 95450 current minimum delivered ASK is **EUR 35.17**, active anchor EUR 60.29, 2 comparable offers;
+- the legacy 95450 ASK trend **+327.94%** is cleared and no collector trend was invented;
+- 94708 has no qualifying Europe-comparable new-complete ASK after current refresh;
+- Sanfrecce remains a distinct collector edition with edition-specific historical SOLD context, but no current publishable numeric signal;
+- final hard gate: current-offer/empty-signal mismatch=0, stale current-basis snapshots=0, review blockers=0, recompute=0, due family eBay=0, locks/errors=0;
+- public Production QA passed the family page and **4/4 Release pages** with HTTP 200.
 
-Final durable market example:
-
-- standard `18074`: robust SOLD-based Market Value supported by multi-seller evidence;
-- `95450`: no consolidated MV under seller-concentration rules; canonical current **Prezzo minimo richiesto** uses the cheapest valid effective current cost rather than the typical/average ASK anchor.
-
-That public-surface correction is global and applies to every Mini 4WD Release.
+Do not reopen the family merely because 94708 still has no persisted exact hero or because thin Releases have no public numeric signal.
 
 ---
 
