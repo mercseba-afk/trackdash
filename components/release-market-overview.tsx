@@ -126,7 +126,7 @@ export function ReleaseMarketOverview({
   const valueTrend = signal?.trendPercent != null
     ? {
         value: signal.trendPercent,
-        label: it ? "Trend mercato" : "Market trend",
+        label: it ? "Trend collezionistico" : "Collector trend",
         window: valueTrendWindow(signal.trendWindowMonths, it),
       }
     : null
@@ -166,6 +166,29 @@ export function ReleaseMarketOverview({
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               {it ? "Stima TrackDash basata sulle evidenze di mercato disponibili." : "TrackDash estimate based on available market evidence."}
+            </p>
+          </div>
+        ) : null}
+
+        {!hasValue && valueTrend ? (
+          <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4">
+            <p className="text-sm font-semibold text-brand">
+              {it ? "Trend collezionistico" : "Collector trend"}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <TrendIndicator value={valueTrend.value} className="text-base" />
+              {valueTrend.window ? (
+                <span className="text-xs text-muted-foreground">· {valueTrend.window}</span>
+              ) : null}
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {signal?.trendBasis === "sold"
+                ? (it
+                    ? "Direzione confermata dalle vendite concluse osservate. Resta valida finché nuove evidenze significative non la rafforzano o la ribaltano."
+                    : "Direction confirmed by observed completed sales. It remains valid until new material evidence strengthens or reverses it.")
+                : (it
+                    ? "Direzione confermata dal valore di mercato consolidato. Non viene azzerata da una scansione invariata."
+                    : "Direction confirmed by consolidated market value. An unchanged scan does not reset it.")}
             </p>
           </div>
         ) : null}
