@@ -7,6 +7,99 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-10-01 — AVANTE MK.III CURRENT-METHOD REVALIDATION — FIRST ADMIN REFRESH PENDING
+
+Avante Mk.III is now staged for a full current-method refresh under Market Method v4 / algorithm r3, post-Sep30 EU-first ASK basis and persistent collector-trend semantics. The prior deep genealogy remains canonical at **24 public Releases**; no Release UUID was rebuilt or replaced.
+
+### Canonical audit state before worker refresh
+
+- canonical Releases: **24**
+- globally unique ITEM numbers: **24 / 24**
+- stored exact/high-confidence hero images: **18 / 24**
+- recompute rows staged/due: **24**
+- eBay Active jobs staged/due: **24**
+- family scan/recompute locks: **0**
+- existing Market Values / SOLD evidence are preserved for recompute, not reset.
+
+Six documented image gaps remain:
+- 92207 — Evangelion Unit-01 Special
+- 92218 — Evangelion Unit-01 Awakening Special
+- 92219 — Tohoku Rakuten Golden Eagles Home Color
+- 92221 — Tohoku Rakuten Golden Eagles Mr. Carrasco
+- 92284 — STARGEK 10th Anniversary Special
+- 92470 — Korea Mini 4WD Cup 2026
+
+Exact release-specific source pages with imagery were recovered for the gap set, but no unstable webpage or sibling image is written into `release_images`. Direct stable assets can be persisted only when they are safely attributable and technically usable.
+
+### Identity/source corrections added in migration 0205
+
+Verified JANs added:
+- 92207 → **4950344922079**
+- 92219 → **4950344922192**
+- 92221 → **4950344922215**
+- 92470 → **4950344924707**
+
+95464 remains one collector Release. The current official Tamiya handling shows a later **2023-11-11** production/on-sale wave under the same ITEM/specification; it is not split into another Release.
+
+92219 + 92221 exact Mercari evidence remains a two-car lot; the JPY 22,000 total must never be split into invented single-Release values.
+
+92284 has exact SOLD-state marketplace evidence but no exposed sold date, so it remains market/identity context rather than a dated SOLD valuation point.
+
+### Pre-refresh market baseline that must be revalidated
+
+Current-basis ASK snapshots already exist for only:
+- 18626
+- 18627
+- 95464
+
+Most other numeric ASK signals/trends still derive from legacy pre-EU-first snapshots and must not be treated as authoritative until refreshed.
+
+Important preserved baseline evidence:
+- 92207 SOLD anchor EUR 36.27
+- 92218 SOLD anchor EUR 37.62
+- 94741 SOLD anchor EUR 22.22
+- 94951 SOLD anchor EUR 13.56
+- 95087 MV / SOLD anchor EUR 34.91
+- 92422 SOLD anchor EUR 13.49
+- 92428 SOLD anchor EUR 13.22
+- 92430 SOLD anchor EUR 28.33
+- 18662 SOLD anchor EUR 12.46
+
+Legacy ASK movements that specifically require current-basis rebuild include:
+- 94951 +0.65%
+- 95087 +42.01%
+- 95425 -17.65%
+- 95464 +47.59%
+- 18662 -5.08%
+- 92470 +31.40%
+- several old 0.00% ASK trends
+
+These are ASK-only legacy values; they must not be promoted into collector trend.
+
+### Implementation / queue prep
+
+Applied live and committed on branch:
+- **0205_avante_mkiii_current_method_rescan.sql**
+
+Branch:
+- `avante-mkiii-rescan-20261001`
+
+All 24 Avante Mk.III eBay jobs are enabled at priority 180 and all 24 recomputes are due at the front of the global queues. The first global due rows are Avante Mk.III, so the next Admin run is controlled for this family.
+
+### Exact next action
+
+Run once:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+Expected capacity:
+- eBay Active: **4 / 24** Avante Mk.III jobs
+- recompute: **8 / 24** Avante Mk.III rows
+
+Because the eBay and recompute lanes run in parallel, inspect exact Release IDs/timestamps after the click and expect new eBay mutations to enqueue further recomputes. Do not infer completion from the Admin counters alone.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — MANTA RAY MK.II COMPLETE — CURRENT-METHOD RESCAN / MARKET THIN
 
 Manta Ray Mk.II has completed the current-method revalidation under the post-Sep30 EU-first engine, ASK basis versioning and persistent collector-trend semantics. The prior 10-Release genealogy remains canonical; this pass refreshed production/status evidence, image-gap confirmation, current ASK, SOLD preservation, eBay Active jobs, canonical recompute, Completion Gate and public Production QA.
