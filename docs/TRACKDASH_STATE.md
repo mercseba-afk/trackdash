@@ -7,6 +7,206 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AVANTE MK.II COMPLETE — CURRENT-METHOD RESCAN / PERSISTENT TRENDS PRESERVED
+
+Avante Mk.II has completed the current-method revalidation under the post-Sep30 EU-first engine, ASK basis versioning and persistent collector-trend semantics. The existing 8-Release genealogy remains canonical; this pass refreshed status, current ASK, granular SOLD evidence, trend provenance, Completion Gate and public Production QA.
+
+### Canonical family — 8 public Releases
+
+1. 18614 — Avante Mk.II — 2006 Original — MS
+2. 94592 — Avante Mk.II Finished Model — 2007 — MS
+3. 94626 — Avante Mk.II Black Special — 2007 — MS
+4. 94716 — Avante Mk.II V Special — 2009 — MS
+5. 95061 — Avante Mk.II Pink Special (Clear Body) — 2015 — MS
+6. 95525 — Avante Mk.II Asia Challenge 2020 Special (Taiwan Final) — 2020 — MS
+7. 18614 — Avante Mk.II Gamba Osaka Special Edition — 2023 — MS
+8. 18614 — Avante Mk.II Cerezo Osaka Special Edition — 2023 — MS
+
+94585 remains excluded as a body/parts product.
+
+### Identity / status
+
+- base 18614 remains active/current-handled;
+- 94592 / 94626 / 94716 / 95061 / 95525 are discontinued;
+- Gamba / Cerezo remain discontinued;
+- shared ITEM 18614 remains fail-closed for automatic edition attribution.
+
+Base 18614 has two verified non-primary JAN aliases across production/retail waves:
+- 4950344064212 — JP lineage
+- 4950344186143 — EU retailer lineage
+
+Neither is promoted to product_releases.barcode_jan until wave provenance is sufficient to nominate one primary barcode.
+
+### Images
+
+Exact/high-confidence hero coverage remains **5 / 8**.
+
+Exact images:
+- 18614 base
+- 94592
+- 94626
+- 94716
+- 95061
+
+Documented image gaps:
+- 95525
+- Gamba Osaka 2023
+- Cerezo Osaka 2023
+
+No sibling/base image substitution is used.
+
+### ASK basis cleanup
+
+Applied live:
+- **0202_ask_snapshot_pre_eu_first_legacy.sql**
+
+All ASK snapshots computed before 2026-09-30 20:00 UTC are now marked:
+- `legacy-pre-eu-first-2026-09`
+
+This removes old GB/CH Europe semantics and possible item-only/delivered mixing from current ASK trend math while preserving the historical rows for audit.
+
+Avante old ASK trends were therefore intentionally reset:
+- base old +81.66% => null under current basis
+- Pink old -48.37% => null under current basis
+- Asia old +1.97% => null under current basis
+
+These were ASK-only movements and were not allowed to overwrite persistent collector trends.
+
+### New granular SOLD evidence
+
+18614 base:
+- exact Yahoo completed sale on 2026-06-17
+- JPY 1,000
+- normalized raw sale: **EUR 5.38**
+- supplements the existing 10-sale aggregate; does not replace the canonical MV/SOLD anchor.
+
+94716 V Special:
+- exact Yahoo completed sale on 2026-05-23
+- JPY 8,600
+- previous ECB business-day FX used for Saturday sale
+- normalized raw sale: **EUR 46.60**
+- one exact SOLD is not enough to force MV.
+
+Rejected:
+- Pink two-kit sale = lot
+- Gamba/J.League multi-model set = lot
+
+### Final Market Method v4 state
+
+18614 base:
+- Market Value: **EUR 14.71**
+- SOLD anchor: **EUR 14.71**
+- current EU starting delivered cost: **EUR 22.40**
+- collector trend: null / in observation
+- current-basis ASK trend: null
+
+94592 Finished Model:
+- Market Value: null
+- SOLD anchor: null
+- current EU ASK: none
+- collector trend: null / observation
+
+94626 Black Special:
+- Market Value: null
+- SOLD anchor: null
+- current EU ASK: none
+- collector trend: null / observation
+
+94716 V Special:
+- Market Value: null
+- SOLD anchor: **EUR 46.60**
+- current EU ASK: none
+- collector trend: null / observation
+- refreshed eBay Active job completed successfully on 2026-10-01 08:53:48 UTC.
+
+95061 Pink Special:
+- Market Value: **EUR 31.82**
+- SOLD anchor: **EUR 31.82**
+- current EU starting delivered cost: **EUR 52.40**
+- current qualifying marketplace: EBAY_IT
+- persistent collector trend: **-26.46% falling**
+- trend basis: SOLD
+- trend window: 12m
+- original trend confirmation timestamp remains 2026-09-11
+- current-basis ASK trend: null
+
+95525 Asia Challenge:
+- Market Value: null
+- SOLD anchor: **EUR 48.79**
+- current EU starting delivered cost: **EUR 75.36**
+- current qualifying marketplace: EBAY_IT
+- persistent collector trend: **+25.11% rising**
+- trend basis: SOLD
+- trend window: 12m
+- original trend confirmation timestamp remains 2026-09-11
+- current-basis ASK trend: null
+
+Gamba Osaka 2023:
+- Market Value: null
+- SOLD anchor: null
+- current EU ASK: none
+- collector trend: null / observation
+
+Cerezo Osaka 2023:
+- Market Value: null
+- SOLD anchor: **EUR 17.39**
+- current EU ASK: none
+- collector trend: null / observation
+
+### eBay refresh
+
+Unique-item jobs refreshed successfully:
+- 94592 — success
+- 94626 — success
+- 94716 — success
+- 95061 — success
+- 95525 — success
+
+Shared ITEM 18614 jobs remain disabled/parked for:
+- base
+- Gamba
+- Cerezo
+
+This is intentional fail-closed behavior.
+
+### Completion Gate
+
+Final Avante Mk.II gate:
+- family recompute rows: **0**
+- global recompute rows: **0**
+- recompute locks: **0**
+- scan locks: **0**
+- candidates needing revalidation: **0**
+- stale/non-v4 family signals: **0**
+- valid EU offers hidden behind an empty public signal: **0**
+
+### Public Production QA
+
+- family page: HTTP 200
+- all 8 Release pages: HTTP 200
+- 94716 visibly renders completed-sale price **≈ EUR 46.60**
+- 95061 visibly renders current ASK **EUR 52.40** and **Collector trend -26.5% / Falling**
+- 95525 visibly renders current ASK **EUR 75.36** and **Collector trend +25.1% / Rising**
+- 95061 / 95525 trend timestamps and SOLD provenance remained unchanged across routine recomputes.
+
+### Implementation
+
+Applied live:
+- **0202_ask_snapshot_pre_eu_first_legacy.sql**
+- **0203_avante_mkii_current_method_rescan.sql**
+
+Repository branch:
+- `avante-mkii-rescan-20261001`
+
+### Next public family in chronological catalog order
+
+**Manta Ray Mk.II — 2006 — slug manta-ray-mkii-18615**
+
+Manta Ray Mk.II already has a prior family audit and should receive the same current-method revalidation: current ASK/SOLD refresh, persistent trend check, exact-image gap review and Completion Gate.
+
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DYNA-HAWK GX COMPLETE — MARKET THIN / PERSISTENT RISING TREND
 
 Dyna-Hawk GX has completed the current TrackDash family workflow under Market Method v4, including genealogy/identity re-audit, exact images, refreshed eBay Active discovery, new granular SOLD evidence, canonical recompute, persistent collector-trend correction, Completion Gate and Production QA.
