@@ -7,11 +7,11 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — AVANTE MK.II CURRENT-METHOD RE-SCAN — ADMIN REFRESH PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AVANTE MK.II COMPLETE — CURRENT-METHOD RESCAN / PERSISTENT TRENDS PRESERVED
 
-Avante Mk.II is being revalidated under the current post-Sep30 EU-first engine and persistent collector-trend semantics. The previous 8-Release genealogy remains canonical; this is a current-method market/status refresh, not a family rebuild.
+Avante Mk.II has completed the current-method revalidation under the post-Sep30 EU-first engine, ASK basis versioning and persistent collector-trend semantics. The existing 8-Release genealogy remains canonical; this pass refreshed status, current ASK, granular SOLD evidence, trend provenance, Completion Gate and public Production QA.
 
-### Canonical family — unchanged at 8 public Releases
+### Canonical family — 8 public Releases
 
 1. 18614 — Avante Mk.II — 2006 Original — MS
 2. 94592 — Avante Mk.II Finished Model — 2007 — MS
@@ -24,21 +24,20 @@ Avante Mk.II is being revalidated under the current post-Sep30 EU-first engine a
 
 94585 remains excluded as a body/parts product.
 
-### Identity/status refresh
+### Identity / status
 
 - base 18614 remains active/current-handled;
-- 94592 / 94626 remain discontinued;
-- 94716 / 95061 / 95525 are now normalized to discontinued;
+- 94592 / 94626 / 94716 / 95061 / 95525 are discontinued;
 - Gamba / Cerezo remain discontinued;
 - shared ITEM 18614 remains fail-closed for automatic edition attribution.
 
-Base 18614 currently has two verified JAN aliases across production/retail waves:
-- 4950344064212 — JP/HLJ/Hobby Search lineage
+Base 18614 has two verified non-primary JAN aliases across production/retail waves:
+- 4950344064212 — JP lineage
 - 4950344186143 — EU retailer lineage
 
-Neither is promoted to product_releases.barcode_jan until wave provenance is strong enough to nominate one canonical primary barcode. Both are stored as non-primary verified release_identifiers.
+Neither is promoted to product_releases.barcode_jan until wave provenance is sufficient to nominate one primary barcode.
 
-### Image state
+### Images
 
 Exact/high-confidence hero coverage remains **5 / 8**.
 
@@ -49,173 +48,162 @@ Exact images:
 - 94716
 - 95061
 
-Intentional exact-image gaps:
+Documented image gaps:
 - 95525
 - Gamba Osaka 2023
 - Cerezo Osaka 2023
 
-Exact images are visible on external pages, but no stable direct asset URL was verified strongly enough for promotion during this pass. Gap > sibling/base substitution.
+No sibling/base image substitution is used.
 
-### Global ASK basis cleanup
+### ASK basis cleanup
 
 Applied live:
 - **0202_ask_snapshot_pre_eu_first_legacy.sql**
 
-All ASK snapshots computed before 2026-09-30 20:00 UTC that had been mechanically backfilled as current basis are now tagged:
+All ASK snapshots computed before 2026-09-30 20:00 UTC are now marked:
 - `legacy-pre-eu-first-2026-09`
 
-Reason:
-- those snapshots may still include pre-fix EBAY_GB/EBAY_CH Europe semantics;
-- some early rows may mix item-only and delivered semantics;
-- they remain audit history but are excluded from current `v4-eu-delivered-2026-10` ASK trend math.
+This removes old GB/CH Europe semantics and possible item-only/delivered mixing from current ASK trend math while preserving the historical rows for audit.
 
-Avante has 16 such legacy snapshots. Therefore old ASK trend values currently visible in the pre-recompute signal — e.g. base +81.66%, Pink -48.37%, Asia +1.97% — are **not authoritative current-method trends** and are expected to reset/rebuild after canonical recompute.
+Avante old ASK trends were therefore intentionally reset:
+- base old +81.66% => null under current basis
+- Pink old -48.37% => null under current basis
+- Asia old +1.97% => null under current basis
 
-Collector trend is separate and remains authoritative:
-- 95061 Pink: **-26.46% falling / SOLD / 12m**
-- 95525 Asia Challenge: **+25.11% rising / SOLD / 12m**
+These were ASK-only movements and were not allowed to overwrite persistent collector trends.
 
 ### New granular SOLD evidence
 
-Persisted through the canonical candidate/price-point model:
-
 18614 base:
-- exact Yahoo completed sale
-- 2026-06-17
+- exact Yahoo completed sale on 2026-06-17
 - JPY 1,000
-- ECB historical FX already present in project: 0.00538155 EUR/JPY
 - normalized raw sale: **EUR 5.38**
-- unopened/new-complete context
-- single new granular sale supplements, but does not replace, the existing 10-sale rolling aggregate at EUR 14.71.
+- supplements the existing 10-sale aggregate; does not replace the canonical MV/SOLD anchor.
 
 94716 V Special:
-- exact ITEM 94716 completed Yahoo-market sale
-- 2026-05-23
+- exact Yahoo completed sale on 2026-05-23
 - JPY 8,600
-- Saturday sale normalized with previous ECB business day 2026-05-22
-- ECB reference: 1 EUR = JPY 184.53
+- previous ECB business-day FX used for Saturday sale
 - normalized raw sale: **EUR 46.60**
-- unused/new-complete context
-- one sale alone must not force MV.
+- one exact SOLD is not enough to force MV.
 
-Rejected from single-release valuation:
-- observed 95061 two-kit sale = lot
-- observed Gamba/J.League multi-model set = lot
+Rejected:
+- Pink two-kit sale = lot
+- Gamba/J.League multi-model set = lot
 
-### Pre-refresh market baseline
+### Final Market Method v4 state
 
 18614 base:
-- MV EUR 14.71
-- SOLD anchor EUR 14.71
-- 14 old current offers
-- old starting delivered EUR 23.79
-- collector trend: none / observation
+- Market Value: **EUR 14.71**
+- SOLD anchor: **EUR 14.71**
+- current EU starting delivered cost: **EUR 22.40**
+- collector trend: null / in observation
+- current-basis ASK trend: null
 
-94592 Finished:
-- MV null
-- no current ASK/SOLD anchor
+94592 Finished Model:
+- Market Value: null
+- SOLD anchor: null
+- current EU ASK: none
+- collector trend: null / observation
 
-94626 Black:
-- MV null
-- no current ASK/SOLD anchor
+94626 Black Special:
+- Market Value: null
+- SOLD anchor: null
+- current EU ASK: none
+- collector trend: null / observation
 
 94716 V Special:
-- MV null
-- newly persisted raw SOLD EUR 46.60
-- no current ASK before refresh
+- Market Value: null
+- SOLD anchor: **EUR 46.60**
+- current EU ASK: none
+- collector trend: null / observation
+- refreshed eBay Active job completed successfully on 2026-10-01 08:53:48 UTC.
 
-95061 Pink:
-- MV EUR 31.82
-- SOLD anchor EUR 31.82
-- persistent collector trend **-26.46% falling**
-- old starting EUR 32.24 points to EBAY_GB and is invalid under the current EU-first engine;
-- exact EBAY_IT EUR 32.79 delivered existed before the new scan and is the likely EU candidate if still current.
+95061 Pink Special:
+- Market Value: **EUR 31.82**
+- SOLD anchor: **EUR 31.82**
+- current EU starting delivered cost: **EUR 52.40**
+- current qualifying marketplace: EBAY_IT
+- persistent collector trend: **-26.46% falling**
+- trend basis: SOLD
+- trend window: 12m
+- original trend confirmation timestamp remains 2026-09-11
+- current-basis ASK trend: null
 
 95525 Asia Challenge:
-- MV null
-- SOLD anchor EUR 48.79
-- persistent collector trend **+25.11% rising**
-- old starting EUR 74.95 delivered EBAY_IT
+- Market Value: null
+- SOLD anchor: **EUR 48.79**
+- current EU starting delivered cost: **EUR 75.36**
+- current qualifying marketplace: EBAY_IT
+- persistent collector trend: **+25.11% rising**
+- trend basis: SOLD
+- trend window: 12m
+- original trend confirmation timestamp remains 2026-09-11
+- current-basis ASK trend: null
 
-Gamba:
-- no MV / ASK / SOLD anchor
+Gamba Osaka 2023:
+- Market Value: null
+- SOLD anchor: null
+- current EU ASK: none
+- collector trend: null / observation
 
-Cerezo:
-- exact SOLD anchor EUR 17.39
-- no MV / current ASK
+Cerezo Osaka 2023:
+- Market Value: null
+- SOLD anchor: **EUR 17.39**
+- current EU ASK: none
+- collector trend: null / observation
 
-### Migration / queue state
+### eBay refresh
+
+Unique-item jobs refreshed successfully:
+- 94592 — success
+- 94626 — success
+- 94716 — success
+- 95061 — success
+- 95525 — success
+
+Shared ITEM 18614 jobs remain disabled/parked for:
+- base
+- Gamba
+- Cerezo
+
+This is intentional fail-closed behavior.
+
+### Completion Gate
+
+Final Avante Mk.II gate:
+- family recompute rows: **0**
+- global recompute rows: **0**
+- recompute locks: **0**
+- scan locks: **0**
+- candidates needing revalidation: **0**
+- stale/non-v4 family signals: **0**
+- valid EU offers hidden behind an empty public signal: **0**
+
+### Public Production QA
+
+- family page: HTTP 200
+- all 8 Release pages: HTTP 200
+- 94716 visibly renders completed-sale price **≈ EUR 46.60**
+- 95061 visibly renders current ASK **EUR 52.40** and **Collector trend -26.5% / Falling**
+- 95525 visibly renders current ASK **EUR 75.36** and **Collector trend +25.1% / Rising**
+- 95061 / 95525 trend timestamps and SOLD provenance remained unchanged across routine recomputes.
+
+### Implementation
 
 Applied live:
+- **0202_ask_snapshot_pre_eu_first_legacy.sql**
 - **0203_avante_mkii_current_method_rescan.sql**
 
-Queue preparation:
-- all 8 Avante Releases are the first recompute rows globally at 2000-01-06;
-- five unique-ITEM eBay jobs are first globally at 2000-01-06 / priority 180:
-  - 94592
-  - 94626
-  - 94716
-  - 95061
-  - 95525
-- base/Gamba/Cerezo ITEM 18614 eBay jobs remain disabled/parked because the shared item number is ambiguous.
+Repository branch:
+- `avante-mkii-rescan-20261001`
 
-### First Admin refresh result
+### Next public family in chronological catalog order
 
-The first authorized Admin refresh processed all 8 Avante recomputes and four of the five unique-item eBay jobs.
+**Manta Ray Mk.II — 2006 — slug manta-ray-mkii-18615**
 
-Processed eBay jobs:
-- 94592 Finished Model — success
-- 94626 Black Special — success
-- 95061 Pink Special — success
-- 95525 Asia Challenge — success
+Manta Ray Mk.II already has a prior family audit and should receive the same current-method revalidation: current ASK/SOLD refresh, persistent trend check, exact-image gap review and Completion Gate.
 
-Still due:
-- 94716 V Special
-
-Canonical post-first-run highlights:
-
-18614 base:
-- MV remains EUR 14.71;
-- SOLD anchor remains EUR 14.71;
-- current EU starting delivered cost is now **EUR 22.40**;
-- ASK trend reset to null because all pre-Sep30 snapshots are legacy and only one current-basis snapshot exists;
-- collector trend remains null / observation.
-
-94716 V Special:
-- new exact granular SOLD anchor: **EUR 46.60**;
-- MV remains null;
-- no current ASK before the pending refreshed eBay scan.
-
-95061 Pink:
-- MV remains EUR 31.82;
-- SOLD anchor remains EUR 31.82;
-- persistent collector trend remains **-26.46% falling / SOLD / 12m** with the original 2026-09-11 confirmation timestamp;
-- old GB-derived starting cost is gone;
-- current qualifying EU offer is EBAY_IT at EUR 32.88 + EUR 19.52 shipping = **EUR 52.40 delivered**;
-- ASK trend is null because the current-basis history has restarted from one comparable snapshot.
-
-95525 Asia Challenge:
-- MV remains null;
-- SOLD anchor remains EUR 48.79;
-- persistent collector trend remains **+25.11% rising / SOLD / 12m** with original 2026-09-11 confirmation timestamp;
-- current starting delivered cost: **EUR 75.36** on EBAY_IT;
-- ASK trend is null pending future comparable current-basis history.
-
-94592 / 94626:
-- refreshed successfully;
-- no publishable current EU ASK found;
-- no errors/failures.
-
-Recompute queue after first run:
-- Avante rows: 0.
-
-### Exact next action
-
-Run once more:
-
-**Admin → Aggiornamento mercato → Esegui ora**
-
-94716 is the only Avante eBay job still due and is ahead of normal catalog jobs. After the run, verify its actual scan timestamp/result and process any recompute generated by changed evidence before Completion Gate.
 
 ---
 
