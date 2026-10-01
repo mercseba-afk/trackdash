@@ -382,21 +382,24 @@ Do not reopen this family merely because some Releases remain market-thin.
 
 Status:
 
-**COMPLETE — MARKET THIN (post-completeness audit)**
+**CURRENT-METHOD REVALIDATION IN PROGRESS — 2026-10-01**
 
-Canonical family:
+Canonical family remains:
 
-**24 Releases**
+**24 public Releases**
 
-Key identity rules already closed:
+Current pass:
+- genealogy is preserved; no UUID rebuild;
+- all 24 ITEM numbers are globally unique and safe for exact-item eBay refresh;
+- image coverage is currently **18/24**, with 6 documented gaps under active exact-source review;
+- verified JANs added for 92207, 92219, 92221 and 92470;
+- 95464 remains one Release with a later 2023-11-11 production/on-sale wave;
+- legacy pre-EU-first ASK trends are being rebuilt under `v4-eu-delivered-2026-10`;
+- existing SOLD/MV evidence is preserved;
+- 24 eBay jobs and 24 recomputes are staged at the front of the controlled queues.
 
-- `94692` = Red Special 2009;
-- `95425` = distinct Red Special 2018 re-release;
-- `94772` = Competition Pack 2010;
-- `92470` = Korea Mini 4WD Cup 2026;
-- `95464` = one Release with later production wave, not a duplicate Release.
+Do not mark this family complete again until the current-basis refresh, residual Empty Market Challenge, Production QA and Completion Gate are closed.
 
-Do not reopen this family without new evidence, a real identity correction or a pipeline regression.
 
 ### Manta Ray Mk.II
 
