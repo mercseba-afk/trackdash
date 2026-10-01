@@ -7,80 +7,114 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — AERO MANTA RAY CURRENT-METHOD REVALIDATION — FIRST ADMIN REFRESH PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AERO MANTA RAY COMPLETE — CURRENT-METHOD REVALIDATED / MARKET ASK-LED
 
-Aero Manta Ray is staged for a current-method revalidation under Market Method v4 / algorithm r3 and ASK basis `v4-eu-delivered-2026-10`.
+Aero Manta Ray has completed the current-method revalidation under Market Method v4 / algorithm r3 and ASK basis `v4-eu-delivered-2026-10`. The audited genealogy remains canonical at **7 public Releases**; no Release UUID was rebuilt.
 
-### Canonical family preserved
-
-**7 public Releases**
+### Canonical family
 
 1. 18703 — Aero Manta Ray (AR Chassis) — 2013-03-02 — JAN 4950344064502
-2. 94972 — White Special — 2013-09-28 — JAN 4950344949724
-3. 94989 — Black Metallic — 2013 — JAN 4950344963195
-4. 94991 — Gold Metallic — 2013 — JAN 4950344963218
-5. 95031 — Japan Cup 2014 Limited — 2014-07-19 — JAN 4950344950317
-6. 95295 — White Special (2017 Reissue) — 2017-01-21 — JAN 4950344952953
-7. 95419 — Black Special — 2018-10-27 — JAN 4950344954193
+2. 94972 — Aero Manta Ray White Special — 2013-09-28 — JAN 4950344949724
+3. 94989 — Aero Manta Ray Black Metallic — 2013 — JAN 4950344963195
+4. 94991 — Aero Manta Ray Gold Metallic — 2013 — JAN 4950344963218
+5. 95031 — Aero Manta Ray Japan Cup 2014 Limited — 2014-07-19 — JAN 4950344950317
+6. 95295 — Aero Manta Ray White Special (2017 Reissue) — 2017-01-21 — JAN 4950344952953
+7. 95419 — Aero Manta Ray Black Special — 2018-10-27 — JAN 4950344954193
 
-All seven ITEM numbers are globally unique in the canonical catalog and are safe for unattended exact-item eBay Active refresh.
+All seven ITEM numbers remain globally unique and safe for unattended exact-item eBay Active refresh.
 
-### Genealogy / identity audit
+### Genealogy / identity
 
-- 7/7 genealogy remains coherent; no additional complete-kit Release was verified.
-- 94989 Black Metallic and 94991 Gold Metallic are confirmed exact collector Releases.
-- for the two metallic 2013 Releases, exact day remains intentionally unset where stronger sources establish the December 2013 period but do not provide sufficiently authoritative day-level agreement.
-- no Release UUID is being rebuilt.
+- 7/7 canonical identities are preserved.
+- 94989 Black Metallic and 94991 Gold Metallic remain distinct verified 2013 collector Releases.
+- exact day remains intentionally unset for 94989 / 94991 where source agreement is insufficient at day level.
+- no additional complete-kit Aero Manta Ray Release was verified during this pass.
 
 ### Images
 
-Current exact/high-confidence hero coverage: **4 / 7**.
+Exact/high-confidence hero coverage: **4 / 7**.
 
-Intentional current gaps:
+Intentional documented gaps:
 - 94972 White Special
 - 94989 Black Metallic
 - 94991 Gold Metallic
 
-Exact release-specific source pages expose imagery for all three gaps, but a stable directly attributable asset URL has not yet been established for `release_images`. Keep the honest placeholder rather than borrowing the base/sibling Aero Manta Ray image.
+Exact release-specific imagery exists on audited retailer/archive pages for all three, but no stable directly attributable asset URL is persisted in `release_images`. TrackDash keeps honest placeholders rather than borrowing a sibling/base Aero Manta Ray image.
 
-### Market baseline before refresh
+### Final Market Method v4 state
 
-No consolidated SOLD aggregate / Market Value exists for the family.
+No consolidated SOLD-based Market Value exists for the family.
 
-Legacy ASK state before staging:
-- 18703 — start EUR 22.28 / active EUR 26.08 / 13 offers / old ASK trend +0.38%
-- 94972 — start/active EUR 67.47 / 1 offer / old ASK trend 0%
-- 95031 — start EUR 44.88 / active EUR 49.28 / 3 offers / old ASK trend -0.22%
-- 95295 — start/active EUR 48.80 / 1 offer / old ASK trend 0%
-- 95419 — start/active EUR 79.30 / 1 offer / old ASK trend 0%
-- 94989 / 94991 had no canonical v4 signal yet despite recent exact-item eBay scans.
+Current ASK state:
+- 18703 base — minimum delivered ASK **EUR 22.40**, active anchor **EUR 23.30**, 15 comparable offers.
+- 94972 White Special — minimum / active ASK **EUR 68.53**, 1 comparable offer.
+- 94989 Black Metallic — no qualifying current public ASK; market remains in verification.
+- 94991 Gold Metallic — no qualifying current public ASK; market remains in verification.
+- 95031 Japan Cup 2014 — minimum delivered ASK **EUR 49.28**, active anchor **EUR 56.50**, 2 comparable offers.
+- 95295 White Special 2017 — minimum / active ASK **EUR 48.80**, 1 comparable offer.
+- 95419 Black Special 2018 — minimum / active ASK **EUR 79.30**, 1 comparable offer.
 
-All existing ASK snapshots were still `legacy-pre-eu-first-2026-09`; they must be rebuilt on the current basis. ASK-only movement must not become collector trend.
+No Release has a consolidated SOLD anchor in the current canonical signal.
 
-### Queue staging
+### Trend cleanup
+
+All legacy pre-EU-first ASK movement was cleared during current-basis recompute, including prior states such as:
+- 18703 +0.38%
+- 95031 -0.22%
+- legacy 0% ASK placeholders on single-price Releases
+
+Final state:
+- persistent collector trends: **0**
+- current ASK trends: **0**
+
+No trend was created merely because time passed or an unchanged ASK was observed again.
+
+### eBay / recompute refresh
+
+All **7 / 7** unique-item eBay Active jobs completed successfully under the current method.
+
+Final worker state:
+- due Aero Manta Ray eBay jobs: **0**
+- family recompute rows: **0**
+- queue errors/locks: **0**
+- candidate review/revalidation blockers: **0**
+
+The two market-empty Releases (94989 / 94991) produced no qualifying current candidates and therefore remain without fabricated public values.
+
+### Completion Gate
+
+Final live gate:
+- public Releases: **7 / 7**
+- exact/high-confidence images: **4 / 7**
+- canonical signal method: **7 / 7 v4**
+- canonical signal algorithm: **7 / 7 r3**
+- latest ASK basis: **7 / 7 v4-eu-delivered-2026-10**
+- stale latest ASK snapshots: **0**
+- valid current offers hidden behind empty signal: **0**
+- persistent collector trends: **0**
+- ASK trends: **0**
+- candidate review/revalidation blockers: **0**
+- recompute rows: **0**
+- due family eBay jobs: **0**
+- queue errors/locks: **0**
+
+### Public Production QA
+
+Verified against the live Vercel Production application backed by live Supabase:
+- family page: HTTP **200**
+- all **7 / 7** Release pages: HTTP **200**
+- metadata resolves the correct ITEM / edition identities
+- intentional image gaps and market-empty Releases do not break public pages
+
+### Implementation
 
 Applied live and committed on branch:
 - **0208_aero_manta_ray_current_method_rescan.sql**
 
-Branch:
+Repository branch:
 - `aero-manta-ray-rescan-20261001`
 
-Current staged state:
-- family recompute rows: **7**
-- family eBay Active jobs due: **7**
-- priority: **180**
-- family queue errors/locks: **0**
-- global eBay queue head is controlled by all 7 Aero Manta Ray jobs.
-
-Because eBay Active processes at most 4 Releases per Admin run, at least **2 Admin refreshes** are expected.
-
-### Exact next action
-
-Run once:
-
-**Admin → Aggiornamento mercato → Esegui ora**
-
-Then inspect the exact four eBay Releases processed, current-basis ASK snapshots, recompute residuals, and whether all legacy ASK trends are cleared.
+The family is complete under the current Master. Reopen only for new exact evidence, a correction, or a regression.
 
 ---
 
