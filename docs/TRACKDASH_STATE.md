@@ -7,66 +7,126 @@
 
 ---
 
-## CURRENT WORKING CHECKPOINT — 2026-10-01 — DASH-X1 PROTO-EMPEROR CURRENT-METHOD REVALIDATION — ADMIN REFRESH PENDING
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DASH-X1 PROTO-EMPEROR COMPLETE — CURRENT-METHOD REVALIDATED
 
-DASH-X1 Proto-Emperor is staged for a current-method refresh under Market Method v4 / algorithm r3 and the post-Sep30 EU-first ASK basis. The existing family genealogy remains canonical at **4 public Releases**; no Release UUID is being rebuilt.
+DASH-X1 Proto-Emperor has completed the current-method revalidation under Market Method v4 / algorithm r3 and the post-Sep30 EU-first ASK basis. The existing genealogy remains canonical at **4 public Releases**; no Release UUID was rebuilt.
 
-### Canonical family preserved
+### Canonical family
 
-1. 94708 — DASH-X1 Proto-Emperor — VS — 2009-11-28 — JAN 4950344947089
-2. 18074 — Dash-X1 Proto-Emperor Premium — Super II — 2013-01-12 — JAN 4950344180745
-3. 95450 — Premium Black Special — Super II — 2019-01-12 — JAN 4950344954506
-4. shared-item 18074 — Sanfrecce Hiroshima Special Edition — Super II — 2023-07-08
+1. 94708 — DASH-X1 Proto-Emperor (VS Chassis) — 2009-11-28 — VS — JAN 4950344947089
+2. 18074 — Dash-X1 Proto-Emperor Premium — 2013-01-12 — Super II — JAN 4950344180745
+3. 95450 — Dash-X1 Proto-Emperor Premium Black Special — 2019-01-12 — Super II — JAN 4950344954506
+4. shared-item 18074 — Sanfrecce Hiroshima Special Edition — 2023-07-08 — Super II
 
-92063 remains excluded from the complete-kit family because it is a body-parts set, not a complete Mini 4WD Release.
+92063 remains excluded because it is a body-parts set rather than a complete Mini 4WD Release.
 
-### Identity / images
+### Identity / shared ITEM behavior
 
-- ITEM 94708 and 95450 are globally unique and safe for unattended exact-item eBay Active refresh.
-- ITEM 18074 is shared by the standard Premium and the Sanfrecce collector edition; both remain fail-closed for unattended eBay attribution.
-- image coverage is **3 / 4**.
-- 94708 is the one intentional image gap. Exact imagery is visible on current exact-product HSTamTam / RCJAZ / eBay pages, but no stable directly attributable asset URL has been established; keep the placeholder rather than borrowing 18074/95450 imagery.
+- 94708 and 95450 are globally unique ITEM identities and completed unattended exact-item eBay Active refreshes successfully.
+- ITEM 18074 is shared by standard Premium and the Sanfrecce collector edition.
+- both 18074 eBay Active jobs remain disabled/parked at 2099 to prevent cross-attribution.
+- exact edition-specific SOLD evidence remains stored separately from shared-item automatic matching.
 
-### Preserved market evidence before refresh
+### Images
 
-- standard 18074: Market Value / SOLD anchor **EUR 17.49**, supported by an audited rolling annual window of **19 sales / 8 sellers**; full-history exact sample 60 sales / 17 sellers.
-- 95450 Black Special: SOLD anchor **EUR 12.72** from the latest audited annual exact window of **7 sales / 1 seller**; seller concentration correctly blocks consolidated MV.
-- Sanfrecce: exact edition-specific SOLD history is retained separately from standard 18074; shared ITEM prevents unattended eBay attribution.
-- 94708: no qualifying current Europe-comparable new-complete signal; exact RCJAZ evidence is historical/out of stock and the observed eBay listing has a condition conflict.
+Exact/high-confidence hero coverage: **3 / 4**.
 
-### Legacy ASK issue being rebuilt
+Intentional documented gap:
+- 94708 — DASH-X1 Proto-Emperor (VS Chassis)
 
-All four latest ASK snapshots were still on `legacy-pre-eu-first-2026-09` before staging.
+Exact 94708 imagery is visible on release-specific HSTamTam, RCJAZ and marketplace pages, but no stable directly attributable asset URL has been established for `release_images`. TrackDash therefore keeps the honest placeholder rather than borrowing 18074/95450 imagery.
 
-Most important regression candidate:
-- 95450 old ASK trend: **+327.94%**
+### Final Market Method v4 state
 
-This is ASK-only legacy state and must not become collector trend. The current refresh must rebuild it on `v4-eu-delivered-2026-10` and preserve collector trend semantics.
+94708:
+- no consolidated MV
+- no SOLD anchor
+- no publishable current Europe-comparable ASK
+- exact historical RCJAZ evidence is out of stock
+- prior exact USD 100 eBay listing remains audit context only because platform condition is Used while seller text says unused/unassembled and Europe landed cost is unknown
+- collector trend: null
+- ASK trend: null
 
-### Queue staging
+18074 Premium:
+- Market Value / SOLD anchor: **EUR 17.49**
+- audited rolling annual SOLD window: **19 sales / 8 sellers**
+- full-history exact SOLD context: 60 sales / 17 sellers
+- current extra-EU retail item-only evidence does not define a European minimum because landed cost is unknown
+- collector trend: null
+- ASK trend: null
+
+95450 Premium Black Special:
+- SOLD anchor: **EUR 12.72**
+- latest audited annual SOLD window: **7 sales / 1 seller**
+- seller concentration correctly prevents consolidated MV
+- current minimum delivered ASK: **EUR 35.17**
+- current active ASK anchor: **EUR 60.29**
+- current comparable offer count: **2**
+- previous pre-EU-first ASK trend **+327.94%** has been removed
+- collector trend: null
+- current-basis ASK trend: null
+
+Sanfrecce Hiroshima 2023:
+- distinct collector edition remains canonical
+- official 2023-07-08 collaboration-sale identity remains preserved
+- exact edition-specific SOLD history remains stored as context
+- current signal has no MV / public ASK / SOLD anchor because the current rolling evidence is insufficient for publication
+- shared ITEM 18074 remains fail-closed
+- collector trend: null
+- ASK trend: null
+
+### eBay / recompute refresh
+
+Current-method refresh completed:
+- 94708 eBay Active: success, no qualifying new-complete European offer
+- 95450 eBay Active: success; refreshed exact current listings
+- standard 18074: unattended eBay remains disabled
+- Sanfrecce 18074: unattended eBay remains disabled
+- family recompute rows: **0**
+- due family eBay jobs: **0**
+- family scan/recompute errors: **0**
+- active locks: **0**
+
+### Completion Gate
+
+Final live gate:
+- public Releases: **4 / 4**
+- exact/high-confidence images: **3 / 4**
+- canonical signal method: **4 / 4 v4**
+- canonical signal algorithm: **4 / 4 r3**
+- latest ASK basis: **4 / 4 v4-eu-delivered-2026-10**
+- stale latest ASK snapshots: **0**
+- valid current offers hidden behind empty signal: **0**
+- persistent collector trends: **0**
+- ASK trends: **0**
+- candidate review/revalidation blockers: **0**
+- recompute rows: **0**
+- due eBay jobs: **0**
+- queue errors/locks: **0**
+
+### Public Production QA
+
+Verified against the live Vercel Production application backed by live Supabase:
+- family page: HTTP **200**
+- 94708 page: HTTP **200**
+- 18074 Premium page: HTTP **200**
+- 95450 page: HTTP **200**
+- Sanfrecce page: HTTP **200**
+- metadata resolves the correct ITEM / edition identities
+- the intentional 94708 image gap does not break the public Release page
+
+### Implementation
 
 Applied live and committed on branch:
 - **0206_dash_x1_proto_emperor_current_method_rescan.sql**
+- **0207_dash_x1_proto_emperor_postscan_completion.sql**
 
-Branch:
+Repository branch:
 - `dash-x1-proto-emperor-rescan-20261001`
 
-Staged now:
-- family recompute rows: **4**
-- unique eBay Active jobs due at priority 180: **2** — 94708, 95450
-- shared 18074 eBay jobs: disabled / parked at 2099
-- family queue errors/locks: **0**
+The family is complete under the current Master. Reopen only for new exact evidence, a correction, or a regression.
 
-The global eBay queue head is controlled: 94708 and 95450 are first. One Admin refresh has enough capacity for both eBay jobs and all four recomputes, but exact run results must be inspected afterward because worker lanes execute independently.
-
-### Exact next action
-
-Run once:
-
-**Admin → Aggiornamento mercato → Esegui ora**
-
-After the click, verify exact processed Release IDs, current-basis ASK snapshots, preserved SOLD/MV, removal of the legacy +327.94% ASK trend, residual market/image gaps, Production QA and Completion Gate before merge.
-
+---
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — AVANTE MK.III COMPLETE — CURRENT-METHOD REVALIDATED / MARKET MIXED
 
