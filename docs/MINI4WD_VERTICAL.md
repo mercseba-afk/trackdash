@@ -457,9 +457,9 @@ extra-EU local shipping must not be treated as delivered-to-Europe cost. RCJAZ a
 
 Status:
 
-**CURRENT-METHOD REVALIDATION IN PROGRESS — 2026-10-01**
+**COMPLETE — CURRENT-METHOD REVALIDATED 2026-10-01**
 
-Canonical family remains:
+Canonical family:
 
 **4 public Releases**
 
@@ -468,18 +468,23 @@ Canonical family remains:
 - `95450` — Premium Black Special, 2019
 - shared-item `18074` — Sanfrecce Hiroshima Special Edition, 2023
 
-Current pass:
-- genealogy is preserved; 92063 remains body-parts-only and excluded from the complete-kit family;
-- 94708 / 95450 are globally unique and staged for current eBay Active refresh;
-- both 18074 collector Releases remain fail-closed for unattended eBay attribution;
-- image coverage remains **3/4**; 94708 has exact source-page imagery but no stable direct asset yet;
-- standard 18074 retains robust SOLD-based MV **EUR 17.49** from 19 sales / 8 sellers in the audited rolling annual window;
-- 95450 retains SOLD **EUR 12.72**, but 7 sales from one seller remain insufficient for consolidated MV;
-- all four previous ASK snapshots are legacy pre-EU-first and are being rebuilt under `v4-eu-delivered-2026-10`;
-- the old 95450 ASK trend **+327.94%** must not survive unless independently recreated by valid current-basis history;
-- 4 recomputes and 2 safe eBay jobs are staged at the front of the controlled queues.
+Durable current state:
+- 92063 remains excluded because it is body-parts-only;
+- 94708 and 95450 are unique ITEM identities and completed current eBay Active refreshes;
+- both 18074 Releases remain fail-closed for unattended eBay attribution because the base ITEM is shared;
+- exact/high-confidence image coverage is **3/4**; only 94708 remains an intentional documented placeholder;
+- all 4 canonical signals are Market Method **v4** / algorithm **r3**;
+- all 4 latest ASK snapshots use **v4-eu-delivered-2026-10**;
+- standard 18074 retains Market Value / SOLD anchor **EUR 17.49**, backed by 19 sales / 8 sellers in the audited rolling annual window;
+- 95450 retains SOLD **EUR 12.72** from 7 annual sales / 1 seller, so seller concentration correctly blocks MV;
+- 95450 current minimum delivered ASK is **EUR 35.17**, active anchor EUR 60.29, 2 comparable offers;
+- the legacy 95450 ASK trend **+327.94%** is cleared and no collector trend was invented;
+- 94708 has no qualifying Europe-comparable new-complete ASK after current refresh;
+- Sanfrecce remains a distinct collector edition with edition-specific historical SOLD context, but no current publishable numeric signal;
+- final hard gate: current-offer/empty-signal mismatch=0, stale current-basis snapshots=0, review blockers=0, recompute=0, due family eBay=0, locks/errors=0;
+- public Production QA passed the family page and **4/4 Release pages** with HTTP 200.
 
-Do not mark this family complete until the current-basis refresh, Production QA and Completion Gate are closed.
+Do not reopen the family merely because 94708 still has no persisted exact hero or because thin Releases have no public numeric signal.
 
 ---
 
