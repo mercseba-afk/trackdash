@@ -7,6 +7,170 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-10-01 — AVANTE MK.II CURRENT-METHOD RE-SCAN — ADMIN REFRESH PENDING
+
+Avante Mk.II is being revalidated under the current post-Sep30 EU-first engine and persistent collector-trend semantics. The previous 8-Release genealogy remains canonical; this is a current-method market/status refresh, not a family rebuild.
+
+### Canonical family — unchanged at 8 public Releases
+
+1. 18614 — Avante Mk.II — 2006 Original — MS
+2. 94592 — Avante Mk.II Finished Model — 2007 — MS
+3. 94626 — Avante Mk.II Black Special — 2007 — MS
+4. 94716 — Avante Mk.II V Special — 2009 — MS
+5. 95061 — Avante Mk.II Pink Special (Clear Body) — 2015 — MS
+6. 95525 — Avante Mk.II Asia Challenge 2020 Special (Taiwan Final) — 2020 — MS
+7. 18614 — Avante Mk.II Gamba Osaka Special Edition — 2023 — MS
+8. 18614 — Avante Mk.II Cerezo Osaka Special Edition — 2023 — MS
+
+94585 remains excluded as a body/parts product.
+
+### Identity/status refresh
+
+- base 18614 remains active/current-handled;
+- 94592 / 94626 remain discontinued;
+- 94716 / 95061 / 95525 are now normalized to discontinued;
+- Gamba / Cerezo remain discontinued;
+- shared ITEM 18614 remains fail-closed for automatic edition attribution.
+
+Base 18614 currently has two verified JAN aliases across production/retail waves:
+- 4950344064212 — JP/HLJ/Hobby Search lineage
+- 4950344186143 — EU retailer lineage
+
+Neither is promoted to product_releases.barcode_jan until wave provenance is strong enough to nominate one canonical primary barcode. Both are stored as non-primary verified release_identifiers.
+
+### Image state
+
+Exact/high-confidence hero coverage remains **5 / 8**.
+
+Exact images:
+- 18614 base
+- 94592
+- 94626
+- 94716
+- 95061
+
+Intentional exact-image gaps:
+- 95525
+- Gamba Osaka 2023
+- Cerezo Osaka 2023
+
+Exact images are visible on external pages, but no stable direct asset URL was verified strongly enough for promotion during this pass. Gap > sibling/base substitution.
+
+### Global ASK basis cleanup
+
+Applied live:
+- **0202_ask_snapshot_pre_eu_first_legacy.sql**
+
+All ASK snapshots computed before 2026-09-30 20:00 UTC that had been mechanically backfilled as current basis are now tagged:
+- `legacy-pre-eu-first-2026-09`
+
+Reason:
+- those snapshots may still include pre-fix EBAY_GB/EBAY_CH Europe semantics;
+- some early rows may mix item-only and delivered semantics;
+- they remain audit history but are excluded from current `v4-eu-delivered-2026-10` ASK trend math.
+
+Avante has 16 such legacy snapshots. Therefore old ASK trend values currently visible in the pre-recompute signal — e.g. base +81.66%, Pink -48.37%, Asia +1.97% — are **not authoritative current-method trends** and are expected to reset/rebuild after canonical recompute.
+
+Collector trend is separate and remains authoritative:
+- 95061 Pink: **-26.46% falling / SOLD / 12m**
+- 95525 Asia Challenge: **+25.11% rising / SOLD / 12m**
+
+### New granular SOLD evidence
+
+Persisted through the canonical candidate/price-point model:
+
+18614 base:
+- exact Yahoo completed sale
+- 2026-06-17
+- JPY 1,000
+- ECB historical FX already present in project: 0.00538155 EUR/JPY
+- normalized raw sale: **EUR 5.38**
+- unopened/new-complete context
+- single new granular sale supplements, but does not replace, the existing 10-sale rolling aggregate at EUR 14.71.
+
+94716 V Special:
+- exact ITEM 94716 completed Yahoo-market sale
+- 2026-05-23
+- JPY 8,600
+- Saturday sale normalized with previous ECB business day 2026-05-22
+- ECB reference: 1 EUR = JPY 184.53
+- normalized raw sale: **EUR 46.60**
+- unused/new-complete context
+- one sale alone must not force MV.
+
+Rejected from single-release valuation:
+- observed 95061 two-kit sale = lot
+- observed Gamba/J.League multi-model set = lot
+
+### Pre-refresh market baseline
+
+18614 base:
+- MV EUR 14.71
+- SOLD anchor EUR 14.71
+- 14 old current offers
+- old starting delivered EUR 23.79
+- collector trend: none / observation
+
+94592 Finished:
+- MV null
+- no current ASK/SOLD anchor
+
+94626 Black:
+- MV null
+- no current ASK/SOLD anchor
+
+94716 V Special:
+- MV null
+- newly persisted raw SOLD EUR 46.60
+- no current ASK before refresh
+
+95061 Pink:
+- MV EUR 31.82
+- SOLD anchor EUR 31.82
+- persistent collector trend **-26.46% falling**
+- old starting EUR 32.24 points to EBAY_GB and is invalid under the current EU-first engine;
+- exact EBAY_IT EUR 32.79 delivered existed before the new scan and is the likely EU candidate if still current.
+
+95525 Asia Challenge:
+- MV null
+- SOLD anchor EUR 48.79
+- persistent collector trend **+25.11% rising**
+- old starting EUR 74.95 delivered EBAY_IT
+
+Gamba:
+- no MV / ASK / SOLD anchor
+
+Cerezo:
+- exact SOLD anchor EUR 17.39
+- no MV / current ASK
+
+### Migration / queue state
+
+Applied live:
+- **0203_avante_mkii_current_method_rescan.sql**
+
+Queue preparation:
+- all 8 Avante Releases are the first recompute rows globally at 2000-01-06;
+- five unique-ITEM eBay jobs are first globally at 2000-01-06 / priority 180:
+  - 94592
+  - 94626
+  - 94716
+  - 95061
+  - 95525
+- base/Gamba/Cerezo ITEM 18614 eBay jobs remain disabled/parked because the shared item number is ambiguous.
+
+### Exact next action
+
+Run once:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+Because eBay Active batch size is 4, this first run should refresh four of the five unique-item jobs while the recompute lane can process all 8 Releases. The lanes are parallel, so actual Release IDs/timestamps must be inspected afterward. Do not assume the family is complete from UI counters alone.
+
+A second eBay pass will probably be needed for the fifth job, followed by any recomputes generated by changed evidence.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DYNA-HAWK GX COMPLETE — MARKET THIN / PERSISTENT RISING TREND
 
 Dyna-Hawk GX has completed the current TrackDash family workflow under Market Method v4, including genealogy/identity re-audit, exact images, refreshed eBay Active discovery, new granular SOLD evidence, canonical recompute, persistent collector-trend correction, Completion Gate and Production QA.
