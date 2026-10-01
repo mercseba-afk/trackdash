@@ -135,15 +135,44 @@ Permanent fix prepared:
 - the repository will load only snapshots matching the current basis for ASK trend calculation;
 - Master now requires like-for-like ASK trend basis.
 
+### Trend-method correction after final 95467 recompute
+
+The basis-version fix was deployed and 95467 was recomputed once more:
+- current ASK remains EUR 58.56 delivered;
+- comparable ASK-only calculation became 0.00% / 10d after excluding the legacy item-only snapshot.
+
+That result exposed a deeper semantic issue: **collector trend must not be reset to stable/zero merely because a later scan is unchanged**.
+
+Verified historical SOLD evidence already contains a real Dyna 95467 directional signal:
+- previous non-overlapping 3m window: 8 sales, average EUR 12.45;
+- recent non-overlapping 3m window: 5 sales, average EUR 14.92;
+- audited movement: **+19.86% / rising**;
+- audited on 2026-09-10.
+
+The same recompute-loss defect was found on two Avante Mk.II Releases:
+- 95061 Pink Special: -26.46% / falling;
+- 95525 Asia Challenge: +25.11% / rising.
+
+Permanent correction:
+- migration **0201_persistent_collector_trend.sql** applied live;
+- previously audited SOLD trends above restored;
+- collector trend becomes persistent event-driven state;
+- no new material directional evidence => preserve previous collector trend;
+- zero/small follow-up movement does not neutralize a previous rising/falling trend;
+- an opposite material movement can reverse it;
+- a same-direction movement updates it only when stronger;
+- material threshold currently 5%;
+- trend provenance stored in `trend_basis` and `trend_updated_at`;
+- ASK trend remains separate and cannot automatically substitute for collector trend;
+- a Release with no confirmed directional history remains **in osservazione**, not falsely "stable".
+
+Dyna 95467 canonical collector trend is therefore restored to **+19.86% / rising**, SOLD-based, confirmed 2026-09-10. The 0.00% ASK observation remains secondary only.
+
 ### Exact next action
 
-Deploy the basis-version code to Production and verify main = Production = /api/version.
-
-Then enqueue **95467 only** for canonical recompute and run:
-
-**Admin → Aggiornamento mercato → Esegui ora**
-
-one final time. The expected corrected ASK trend is approximately stable/0% because the comparable delivered snapshots from 2026-09-21 onward are all EUR 58.56. Do not write the trend manually; verify the persisted canonical result after the worker runs.
+Deploy the persistent collector-trend code, verify Production/version and run a controlled 95467 recompute once more. Expected invariant:
+- collector trend remains +19.86% rising;
+- unchanged ASK scan/recompute cannot erase it.
 
 ---
 
