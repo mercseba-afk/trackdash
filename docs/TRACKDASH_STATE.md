@@ -124,18 +124,27 @@ Production QA before collector-trend UI follow-up:
 - 95000 exposes SOLD anchor EUR 10.95
 - 95467 exposes EUR 58.56 ASK + EUR 14.92 SOLD anchor
 
-### Collector-trend UI follow-up
+### Collector-trend UI — COMPLETE
 
-The persistent trend exists independently of Market Value, so public UI must not hide it merely because market_value_eur is null.
+The persistent trend exists independently of Market Value, so public UI no longer hides it merely because market_value_eur is null.
 
-Branch:
-- `collector-trend-ui-20261001`
-
-UI change:
+Implementation:
 - Release market overview shows a separate **Trend collezionistico / Collector trend** panel whenever persistent trend exists without Market Value;
 - Collection cards show persistent collector trend separately from current ASK;
 - ASK movement keeps its own label and reliability gate;
 - 95467 therefore presents EUR 58.56 current ASK separately from **+19.86% collector trend**.
+
+Production QA after PR #309:
+- Production implementation commit: `4efc8b127c3cf4eb1403940853397e7a898090bc`;
+- `/api/version` matched the same commit at QA time;
+- Production deployment READY;
+- runtime error/fatal logs: 0;
+- public 95467 Release page: HTTP 200;
+- server-rendered public page contains **Collector trend**;
+- rendered direction: **Rising +19.9%**;
+- rendered window: **last 3 months**;
+- current ASK EUR 58.56 and SOLD anchor EUR 14.92 remain separately visible;
+- the public signal payload carries trendPercent=19.86, trendWindowMonths=3, trendBasis=sold and the original 2026-09-10 trend_updated_at.
 
 ### Implementation lineage
 
@@ -144,6 +153,7 @@ UI change:
 - 0201_persistent_collector_trend.sql
 - PR #307 — Dyna re-audit + ASK basis version
 - PR #308 — persistent collector trend engine
+- PR #309 — persistent collector trend public UI
 
 ### Next public family in chronological catalog order
 
