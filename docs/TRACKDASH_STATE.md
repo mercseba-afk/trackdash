@@ -7,6 +7,83 @@
 
 ---
 
+## CURRENT WORKING CHECKPOINT — 2026-10-01 — AERO MANTA RAY CURRENT-METHOD REVALIDATION — FIRST ADMIN REFRESH PENDING
+
+Aero Manta Ray is staged for a current-method revalidation under Market Method v4 / algorithm r3 and ASK basis `v4-eu-delivered-2026-10`.
+
+### Canonical family preserved
+
+**7 public Releases**
+
+1. 18703 — Aero Manta Ray (AR Chassis) — 2013-03-02 — JAN 4950344064502
+2. 94972 — White Special — 2013-09-28 — JAN 4950344949724
+3. 94989 — Black Metallic — 2013 — JAN 4950344963195
+4. 94991 — Gold Metallic — 2013 — JAN 4950344963218
+5. 95031 — Japan Cup 2014 Limited — 2014-07-19 — JAN 4950344950317
+6. 95295 — White Special (2017 Reissue) — 2017-01-21 — JAN 4950344952953
+7. 95419 — Black Special — 2018-10-27 — JAN 4950344954193
+
+All seven ITEM numbers are globally unique in the canonical catalog and are safe for unattended exact-item eBay Active refresh.
+
+### Genealogy / identity audit
+
+- 7/7 genealogy remains coherent; no additional complete-kit Release was verified.
+- 94989 Black Metallic and 94991 Gold Metallic are confirmed exact collector Releases.
+- for the two metallic 2013 Releases, exact day remains intentionally unset where stronger sources establish the December 2013 period but do not provide sufficiently authoritative day-level agreement.
+- no Release UUID is being rebuilt.
+
+### Images
+
+Current exact/high-confidence hero coverage: **4 / 7**.
+
+Intentional current gaps:
+- 94972 White Special
+- 94989 Black Metallic
+- 94991 Gold Metallic
+
+Exact release-specific source pages expose imagery for all three gaps, but a stable directly attributable asset URL has not yet been established for `release_images`. Keep the honest placeholder rather than borrowing the base/sibling Aero Manta Ray image.
+
+### Market baseline before refresh
+
+No consolidated SOLD aggregate / Market Value exists for the family.
+
+Legacy ASK state before staging:
+- 18703 — start EUR 22.28 / active EUR 26.08 / 13 offers / old ASK trend +0.38%
+- 94972 — start/active EUR 67.47 / 1 offer / old ASK trend 0%
+- 95031 — start EUR 44.88 / active EUR 49.28 / 3 offers / old ASK trend -0.22%
+- 95295 — start/active EUR 48.80 / 1 offer / old ASK trend 0%
+- 95419 — start/active EUR 79.30 / 1 offer / old ASK trend 0%
+- 94989 / 94991 had no canonical v4 signal yet despite recent exact-item eBay scans.
+
+All existing ASK snapshots were still `legacy-pre-eu-first-2026-09`; they must be rebuilt on the current basis. ASK-only movement must not become collector trend.
+
+### Queue staging
+
+Applied live and committed on branch:
+- **0208_aero_manta_ray_current_method_rescan.sql**
+
+Branch:
+- `aero-manta-ray-rescan-20261001`
+
+Current staged state:
+- family recompute rows: **7**
+- family eBay Active jobs due: **7**
+- priority: **180**
+- family queue errors/locks: **0**
+- global eBay queue head is controlled by all 7 Aero Manta Ray jobs.
+
+Because eBay Active processes at most 4 Releases per Admin run, at least **2 Admin refreshes** are expected.
+
+### Exact next action
+
+Run once:
+
+**Admin → Aggiornamento mercato → Esegui ora**
+
+Then inspect the exact four eBay Releases processed, current-basis ASK snapshots, recompute residuals, and whether all legacy ASK trends are cleared.
+
+---
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-01 — DASH-X1 PROTO-EMPEROR COMPLETE — CURRENT-METHOD REVALIDATED
 
 DASH-X1 Proto-Emperor has completed the current-method revalidation under Market Method v4 / algorithm r3 and the post-Sep30 EU-first ASK basis. The existing genealogy remains canonical at **4 public Releases**; no Release UUID was rebuilt.
