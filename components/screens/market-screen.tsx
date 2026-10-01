@@ -19,7 +19,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
 import type { Product, ProductRelease } from "@/lib/types"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -307,6 +307,7 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
   const { locale } = useI18n(); const it = locale === "it"
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const observedPrice = observedMarketDisplayPrice(row.signal)
+  const observedKind = observedMarketDisplayKind(row.signal)
   const trend = collectorMarketTrend(row.signal)
   return (
     <Link href={href} className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-[#f4f8fd]">
@@ -315,11 +316,11 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
       <div className="max-w-40 text-right">
         {forming
           ? observedPrice != null
-            ? <><p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(row.signal, it)}</p><p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(observedPrice)}</p></>
+            ? <><p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(row.signal, it)}</p><p className="text-sm font-semibold tabular-nums text-navy">{observedKind === "sold" ? "≈ " : ""}{formatMoney(observedPrice)}</p></>
             : <p className="text-xs font-medium text-[#6f7f91]">{it ? "Dati in verifica" : "Data under review"}</p>
           : <p className="text-sm font-semibold tabular-nums text-navy">{formatMoney(row.signal.valueEUR!)}</p>}
         {trend != null ? <TrendIndicator value={trend} className="justify-end text-xs" /> : null}
-        {!forming && observedPrice != null ? <p className="text-[11px] text-muted-foreground">{observedMarketDisplayLabel(row.signal, it)} {formatMoney(observedPrice)}</p> : null}
+        {!forming && observedPrice != null ? <p className="text-[11px] text-muted-foreground">{observedMarketDisplayLabel(row.signal, it)} {observedKind === "sold" ? "≈ " : ""}{formatMoney(observedPrice)}</p> : null}
       </div>
     </Link>
   )
