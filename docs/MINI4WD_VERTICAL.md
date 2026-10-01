@@ -382,23 +382,32 @@ Do not reopen this family merely because some Releases remain market-thin.
 
 Status:
 
-**CURRENT-METHOD REVALIDATION IN PROGRESS — 2026-10-01**
+**COMPLETE — CURRENT-METHOD REVALIDATED 2026-10-01 — MARKET MIXED / SIX DOCUMENTED IMAGE GAPS**
 
-Canonical family remains:
+Canonical family:
 
 **24 public Releases**
 
-Current pass:
-- genealogy is preserved; no UUID rebuild;
-- all 24 ITEM numbers are globally unique and safe for exact-item eBay refresh;
-- image coverage is currently **18/24**, with 6 documented gaps under active exact-source review;
+Durable state:
+- genealogy remains the audited 24-Release family; no UUID rebuild;
+- all 24 ITEM numbers are globally unique and all 24 unattended exact-item eBay jobs completed successfully;
 - verified JANs added for 92207, 92219, 92221 and 92470;
 - 95464 remains one Release with a later 2023-11-11 production/on-sale wave;
-- legacy pre-EU-first ASK trends are being rebuilt under `v4-eu-delivered-2026-10`;
-- existing SOLD/MV evidence is preserved;
-- 24 eBay jobs and 24 recomputes are staged at the front of the controlled queues.
+- exact/high-confidence image coverage is **18/24**;
+- intentional image gaps: 92207, 92218, 92219, 92221, 92284, 92470;
+- all 24 canonical signals are Market Method **v4** / algorithm **r3**;
+- all 24 latest ASK snapshots use **v4-eu-delivered-2026-10**;
+- old pre-EU-first ASK trends were cleared and no false stable/collector trend was created;
+- 95087 Japan Cup 2015 is the only current consolidated MV in the family: **EUR 34.91**;
+- notable current minimum delivered ASK: 18626 EUR 22.80, 18627 EUR 24.00, 95425 EUR 27.36, 95464 EUR 25.50, 18662 EUR 41.90, 92470 EUR 36.50;
+- preserved SOLD anchors include 92207 EUR 36.27, 92218 EUR 37.62, 94741 EUR 22.22, 94951 EUR 13.56, 92422 EUR 13.49, 92428 EUR 13.22, 92430 EUR 28.33 and 18662 EUR 12.46;
+- nine thin Releases correctly retain no numeric public signal after challenge rather than receiving invented values;
+- 92219 + 92221 Mercari evidence is a multi-Release lot and must never be split into fake single-Release prices;
+- 92284 SOLD-state evidence has no exposed completed date and therefore remains context only;
+- final hard gate: current-offer/empty-signal mismatch=0, stale current-basis snapshots=0, recompute=0, due eBay=0, locks/errors=0, review blockers=0;
+- public Production QA passed the family page and **24/24 Release pages** with HTTP 200.
 
-Do not mark this family complete again until the current-basis refresh, residual Empty Market Challenge, Production QA and Completion Gate are closed.
+Do not reopen this family merely because six exact hero images remain unavailable or because thin historical Releases have no numeric European signal.
 
 
 ### Manta Ray Mk.II
