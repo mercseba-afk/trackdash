@@ -277,11 +277,11 @@ where id in (
 
 select public.trackdash_enroll_release_market_scans(r.id)
 from public.product_releases r
-where r.product_id='2ca2b9ef-347a-5cc9-a109-72cd7ec51327'::uuid;
+where r.product_id='6dcb6511-5277-561f-a880-95ef828ce44f'::uuid;
 
 select public.trackdash_enqueue_market_recompute(r.id,'new_complete_unbuilt')
 from public.product_releases r
-where r.product_id='2ca2b9ef-347a-5cc9-a109-72cd7ec51327'::uuid;
+where r.product_id='6dcb6511-5277-561f-a880-95ef828ce44f'::uuid;
 
 update public.market_recompute_queue q
 set dirty_at='2000-01-06 00:00:00+00',
@@ -292,7 +292,7 @@ set dirty_at='2000-01-06 00:00:00+00',
     updated_at=now()
 where q.release_id in (
   select id from public.product_releases
-  where product_id='2ca2b9ef-347a-5cc9-a109-72cd7ec51327'::uuid
+  where product_id='6dcb6511-5277-561f-a880-95ef828ce44f'::uuid
 )
 and q.condition='new_complete_unbuilt';
 
