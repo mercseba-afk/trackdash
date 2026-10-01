@@ -67,9 +67,10 @@ export function hasReliableObservedPriceTrend(
 export function collectorMarketTrend(
   signal?: ReleaseMarketSignalView | null,
 ): number | null {
-  if (signal?.trendPercent != null) return signal.trendPercent
-  if (hasReliableObservedPriceTrend(signal)) return signal!.askTrendPercent
-  return null
+  // Main collector trend is persistent value/SOLD direction only.
+  // ASK movement is intentionally separate and may be shown only as
+  // "Trend prezzi richiesti" when enough current listings support it.
+  return signal?.trendPercent ?? null
 }
 
 
