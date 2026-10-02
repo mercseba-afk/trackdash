@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Check, ChevronDown, Handshake, Heart, LockKeyhole, Plus, UsersRound } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
@@ -21,6 +22,7 @@ import { RarityBadge } from "@/components/market-bits"
 import { MarketSignalInline } from "@/components/market-signal-inline"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
+import { productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
 
 type CommunityCount = { collectors: number; openToOffers: number }
 
@@ -35,6 +37,8 @@ export function ProductDetailScreen({
 }) {
   const { collection, isInWishlist, user } = useStore()
   const { locale, t } = useI18n()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const marketSignals = useMarketSignals()
   const [communityByRelease, setCommunityByRelease] = React.useState<Map<string, CommunityCount>>(new Map())
 
@@ -44,8 +48,19 @@ export function ProductDetailScreen({
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
   const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
-  const productPath = `/catalog/${product.id}`
-  const loginHref = `/login?next=${encodeURIComponent(productPath)}`
+  const productPath = productPublicPath(product)
+  const intent = searchParams.get("intent")
+  const openCollectionFromIntent = Boolean(user && intent === "collection")
+  const openWishlistFromIntent = Boolean(user && intent === "wishlist")
+  const collectionNext = withCollectionIntent(productPath, "collection")
+  const wishlistNext = withCollectionIntent(productPath, "wishlist")
+  const collectionSignupHref = `/signup?next=${encodeURIComponent(collectionNext)}`
+  const wishlistSignupHref = `/signup?next=${encodeURIComponent(wishlistNext)}`
+
+  React.useEffect(() => {
+    if (!user || (intent !== "collection" && intent !== "wishlist")) return
+    router.replace(productPath, { scroll: false })
+  }, [intent, productPath, router, user])
 
   React.useEffect(() => {
     let cancelled = false
@@ -89,15 +104,15 @@ export function ProductDetailScreen({
           <div className="flex flex-wrap gap-2">
             {user ? (
               <>
-                <AddToCollectionDialog product={product}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
-                <AddToWishlistDialog product={product}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
+                <AddToCollectionDialog product={product} defaultOpen={openCollectionFromIntent}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
+                <AddToWishlistDialog product={product} defaultOpen={openWishlistFromIntent}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
               </>
             ) : (
               <>
-                <Button render={<Link href={loginHref} />} className="gap-1.5">
-                  <LockKeyhole className="size-4" /> {locale === "it" ? "Accedi e aggiungi alla collezione" : "Sign in and add to collection"}
+                <Button render={<Link href={collectionSignupHref} />} className="gap-1.5">
+                  <LockKeyhole className="size-4" /> {locale === "it" ? "Aggiungi alla collezione" : "Add to collection"}
                 </Button>
-                <Button variant="outline" render={<Link href={loginHref} />} className="gap-1.5">
+                <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
                   <LockKeyhole className="size-4" /> Wishlist
                 </Button>
               </>
@@ -185,9 +200,9 @@ function ReleaseRow({
 }) {
   const { locale, t } = useI18n()
   const marketSignal = marketSignals[release.id] ?? null
-  const releaseHref = `/catalog/${product.id}/releases/${release.id}`
+  const releaseHref = releasePublicPath(product, release)
   const collectorsHref = `${releaseHref}#collectors`
-  const loginHref = `/login?next=${encodeURIComponent(releaseHref)}`
+  const collectionSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(releaseHref, "collection"))}`
   const owned = ownedCount > 0
   const ownershipLabel = locale === "it"
     ? (ownedCount === 1 ? "1 copia tua" : `${ownedCount} copie tue`)
@@ -259,8 +274,8 @@ function ReleaseRow({
                 <Button size="sm" variant={owned ? "outline" : "default"} className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none">{owned ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
               </AddToCollectionDialog>
             ) : (
-              <Button size="sm" className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none" render={<Link href={loginHref} />}>
-                <LockKeyhole className="size-3.5" /> {locale === "it" ? "Accedi per aggiungere" : "Sign in to add"}
+              <Button size="sm" className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none" render={<Link href={collectionSignupHref} />}>
+                <LockKeyhole className="size-3.5" /> {locale === "it" ? "Aggiungi alla collezione" : "Add to collection"}
               </Button>
             )}
           </div>

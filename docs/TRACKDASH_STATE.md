@@ -6987,3 +6987,96 @@ Operational invariant verified:
 Do not hard-code the exact alignment SHA into this checkpoint: updating this document itself creates a new main commit and therefore advances the version. The exact current SHA must be checked operationally through GitHub/Vercel and `/api/version`.
 
 The reusable SOLD downstream pipeline is live in Production. Automated completed-sale acquisition remains intentionally disabled until a real SOLD-capable source passes the approved/runtime-verified/license-ready gate.
+
+
+---
+
+## SEO DISCOVERY + SIGNUP INTENT ROLLOUT — 2026-10-02
+
+Status: **PREVIEW READY — PR #320 OPEN**.
+
+Strategic priority after the 20-family current-method audit and Dashboard/home cleanup:
+1. make the existing public catalog discoverable before broad catalog expansion;
+2. convert high-intent public visitors into real collectors/accounts;
+3. expand the catalog only after discovery/conversion instrumentation is in place.
+
+### Public URL cleanup
+
+The public Mini 4WD catalog now uses readable SEO routes derived from canonical display identity instead of UUIDs.
+
+Examples:
+- family: `/catalog/avante-mk-iii`
+- exact Release: `/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure`
+
+The database Product/Release UUIDs and existing stored DB slugs are **not mutated**.
+
+Legacy UUID and stored-slug routes remain resolvable and permanently redirect to the readable canonical route. Canonical metadata, Open Graph, Twitter metadata, Breadcrumb structured data, family Release ItemList and sitemap all use the readable public paths.
+
+Coming-soon families remain excluded from the sitemap and retain `noindex, follow`.
+
+Preview sitemap QA:
+- URLs: **195**
+- UUID URLs: **0**
+- representative Avante Mk.III family + 18626 Release present under readable paths.
+
+### Public internal-link cleanup
+
+Readable routes are now used from:
+- Home market highlights;
+- Catalog grid/list;
+- Market rows;
+- family Release rows;
+- sibling Release navigation;
+- family breadcrumbs/structured data.
+
+### Signup intent preservation
+
+Public catalog data remains open without authentication.
+
+Account gating is moved to high-intent actions:
+- Add to Collection;
+- Wishlist.
+
+For logged-out visitors these actions now lead to signup while preserving the exact family/Release and intended action through `next` + `intent`.
+
+After signup/login and the existing onboarding flow, the visitor returns to the originating public page and the intended Collection/Wishlist dialog opens automatically. The intent query is then removed from the visible URL.
+
+This is the first conversion-funnel correction toward the product KPI:
+
+**public discovery → exact Release → account → first saved/owned Release**
+
+### QA
+
+Branch:
+`seo-discovery-slugs-conversion-20261002`
+
+PR:
+**#320**
+
+Preview head:
+`da065b3f65dfe9ce2fc36795e7f7b1b69b9a2e72`
+
+Vercel Preview:
+**READY**
+
+Representative Preview QA:
+- `/catalog/avante-mk-iii`: 200, readable canonical;
+- `/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure`: 200, readable canonical;
+- legacy UUID family/Release requests resolve to the same readable canonical identity;
+- `/sitemap.xml`: 195 URLs, 0 UUID URLs;
+- Preview `/api/version` matches the branch head.
+
+### Search Console blocker
+
+The connected Google Search Console account currently does **not** contain a verified TrackDash property. GSC Wizard currently exposes other properties only, and registration of `https://trackdash.it/` fails because Google Search Console does not yet know/verify that site for the connected account.
+
+Required external step before real indexing/coverage analysis:
+- add and verify `trackdash.it` in Google Search Console (domain property preferred, or URL-prefix `https://trackdash.it/`).
+
+After verification:
+- register it in GSC Wizard;
+- submit/re-submit `https://trackdash.it/sitemap.xml`;
+- inspect representative Home/Catalog/Market/family/Release URLs;
+- read coverage, canonical, crawl and Search Analytics data.
+
+Do not infer Google indexing state until that property is connected.

@@ -2,15 +2,14 @@
 
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
-import type { ProductRelease } from "@/lib/types"
+import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
+import type { Product, ProductRelease } from "@/lib/types"
 
 export function ReleaseFamilyLinks({
-  productId,
-  productName,
+  product,
   releases,
 }: {
-  productId: string
-  productName: string
+  product: Product
   releases: ProductRelease[]
 }) {
   const { locale } = useI18n()
@@ -29,7 +28,7 @@ export function ReleaseFamilyLinks({
       <div className="mt-1 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 id="related-releases-title" className="text-xl font-semibold tracking-tight text-foreground">
-            {it ? `Altre release di ${productName}` : `Other ${productName} releases`}
+            {it ? `Altre release di ${product.name}` : `Other ${product.name} releases`}
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
             {it
@@ -37,8 +36,8 @@ export function ReleaseFamilyLinks({
               : "Compare originals, reissues and special editions without mixing different years or Item Numbers."}
           </p>
         </div>
-        <Link href={`/catalog/${productId}`} className="text-sm font-semibold text-brand hover:underline">
-          {it ? `Vedi il modello ${productName}` : `View ${productName} model`} →
+        <Link href={productPublicPath(product)} className="text-sm font-semibold text-brand hover:underline">
+          {it ? `Vedi il modello ${product.name}` : `View ${product.name} model`} →
         </Link>
       </div>
 
@@ -46,7 +45,7 @@ export function ReleaseFamilyLinks({
         {releases.map((release) => (
           <Link
             key={release.id}
-            href={`/catalog/${productId}/releases/${release.id}`}
+            href={releasePublicPath(product, release)}
             className="group rounded-2xl border border-border/70 bg-muted/15 p-3.5 transition-colors hover:border-brand/30 hover:bg-brand/5"
           >
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">

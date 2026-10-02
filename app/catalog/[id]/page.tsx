@@ -1,17 +1,18 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import { cache } from "react"
 import { PublicShell } from "@/components/public-shell"
 import { ProductDetailScreen } from "@/components/screens/product-detail-screen"
 import { CatalogComingSoonScreen } from "@/components/screens/catalog-coming-soon-screen"
-import { fetchCatalogProductById, fetchCatalogProducts } from "@/lib/actions/catalog"
+import { fetchCatalogProductByRouteKey, fetchCatalogProducts } from "@/lib/actions/catalog"
 import { getRelatedProducts } from "@/lib/data/products"
 import { getCatalogLocalizedCopy } from "@/lib/db/queries/catalog-copy"
+import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 
 export const revalidate = 45
 
 const SITE_URL = "https://trackdash.it"
-const getProduct = cache(fetchCatalogProductById)
+const getProduct = cache(fetchCatalogProductByRouteKey)
 type ProductPageParams = Promise<{ id: string }>
 
 function absoluteImage(url?: string) {
@@ -34,7 +35,9 @@ export async function generateMetadata({ params }: { params: ProductPageParams }
     }
   }
 
-  const canonicalUrl = `${SITE_URL}/catalog/${product.id}`
+  const canonicalPath = productPublicPath(product)
+  const canonicalUrl = `${SITE_URL}${canonicalPath}`
+
   if (product.catalogLaunchStatus === "coming_soon") {
     return {
       title: `Tamiya ${product.name} Mini 4WD — Coming Soon | TrackDash`,
@@ -43,8 +46,9 @@ export async function generateMetadata({ params }: { params: ProductPageParams }
       robots: { index: false, follow: true },
     }
   }
-  const title = `Tamiya ${product.name} Mini 4WD — Releases & Market Value | TrackDash`
-  const description = `Explore Tamiya ${product.name} Mini 4WD releases by year, item number, chassis and edition, with public TrackDash Market Value data for exact Releases.`
+
+  const title = `Tamiya ${product.name} Mini 4WD — Releases, Variants & Market Value | TrackDash`
+  const description = `Explore verified Tamiya ${product.name} Mini 4WD releases and variants by Item Number, year, chassis and edition, with Market Value, sold and asking data where available.`
   const image = absoluteImage(product.images?.[0])
 
   return {
@@ -81,18 +85,19 @@ export async function generateMetadata({ params }: { params: ProductPageParams }
 
 export default async function ProductPage({ params }: { params: ProductPageParams }) {
   const { id } = await params
-
-  const [product, localizedCopy] = await Promise.all([
-    getProduct(id).catch((error) => {
-      console.error("Failed to load product from the database:", error)
-      return null
-    }),
-    getCatalogLocalizedCopy(id).catch((error) => {
-      console.error("Failed to load localized catalog copy:", error)
-      return null
-    }),
-  ])
+  const product = await getProduct(id).catch((error) => {
+    console.error("Failed to load product from the database:", error)
+    return null
+  })
   if (!product) return notFound()
+
+  const canonicalPath = productPublicPath(product)
+  if (`/catalog/${id}` !== canonicalPath) permanentRedirect(canonicalPath)
+
+  const localizedCopy = await getCatalogLocalizedCopy(product.id).catch((error) => {
+    console.error("Failed to load localized catalog copy:", error)
+    return null
+  })
 
   if (product.catalogLaunchStatus === "coming_soon") {
     return (
@@ -109,7 +114,7 @@ export default async function ProductPage({ params }: { params: ProductPageParam
     return []
   })
   const related = getRelatedProducts(product, 4, allProducts)
-  const canonicalUrl = `${SITE_URL}/catalog/${product.id}`
+  const canonicalUrl = `${SITE_URL}${canonicalPath}`
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -118,7 +123,7 @@ export default async function ProductPage({ params }: { params: ProductPageParam
         "@id": `${canonicalUrl}#webpage`,
         url: canonicalUrl,
         name: `Tamiya ${product.name} Mini 4WD`,
-        description: `Tamiya ${product.name} Mini 4WD model page with exact Releases, item numbers, years, chassis and market data.`,
+        description: `Tamiya ${product.name} Mini 4WD model page with verified Releases, Item Numbers, years, chassis, variants and market data.`,
         about: {
           "@type": "Thing",
           name: `Tamiya ${product.name} Mini 4WD`,
@@ -132,6 +137,18 @@ export default async function ProductPage({ params }: { params: ProductPageParam
           { "@type": "ListItem", position: 2, name: "Catalog", item: `${SITE_URL}/catalog` },
           { "@type": "ListItem", position: 3, name: product.name, item: canonicalUrl },
         ],
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${canonicalUrl}#releases`,
+        name: `${product.name} Mini 4WD releases`,
+        numberOfItems: product.releases.length,
+        itemListElement: product.releases.map((release, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: release.editionName,
+          url: `${SITE_URL}${releasePublicPath(product, release)}`,
+        })),
       },
     ],
   }

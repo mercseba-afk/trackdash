@@ -1,8 +1,9 @@
 import "server-only"
 
-import { getProductById as getProductByIdQuery, listProductsForVertical as listProductsForVerticalQuery, listProductsByIds as listProductsByIdsQuery } from "@/lib/db/queries/catalog"
+import { getProductById as getProductByIdQuery, getProductBySlug as getProductBySlugQuery, listProductsForVertical as listProductsForVerticalQuery, listProductsByIds as listProductsByIdsQuery } from "@/lib/db/queries/catalog"
 import type { CollectibleVertical } from "@/lib/verticals"
 import { mapProductRow } from "./mappers"
+import { productPublicSlug } from "@/lib/seo/catalog-paths"
 
 // Not "use server" — these are read-only fetchers called from Server
 // Components (app/catalog/page.tsx, app/catalog/[id]/page.tsx), not
@@ -22,6 +23,10 @@ function withPublicCatalogReleases<
     ...row,
     releases: row.releases.filter((release) => release.catalogVisibility !== "research_only"),
   }
+}
+
+function looksLikeUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }
 
 function withProgressivePublicProjection(product: ReturnType<typeof mapProductRow>) {
@@ -65,6 +70,33 @@ export async function fetchCatalogProductById(id: string) {
   const row = await getProductByIdQuery(id)
   if (!row) return null
   const publicRow = withPublicCatalogReleases(row)
+  if (publicRow.releases.length === 0) return null
+  return withProgressivePublicProjection(mapProductRow(publicRow))
+}
+
+
+export async function fetchCatalogProductByRouteKey(routeKey: string) {
+  if (looksLikeUuid(routeKey)) {
+    const directById = await getProductByIdQuery(routeKey)
+    if (directById) {
+      const publicRow = withPublicCatalogReleases(directById)
+      if (publicRow.releases.length === 0) return null
+      return withProgressivePublicProjection(mapProductRow(publicRow))
+    }
+  }
+
+  const directByStoredSlug = await getProductBySlugQuery(routeKey)
+  if (directByStoredSlug) {
+    const publicRow = withPublicCatalogReleases(directByStoredSlug)
+    if (publicRow.releases.length === 0) return null
+    return withProgressivePublicProjection(mapProductRow(publicRow))
+  }
+
+  const rows = await listProductsForVerticalQuery("mini4wd", 500)
+  const match = rows.find((row) => productPublicSlug({ name: row.name }) === routeKey)
+  if (!match) return null
+
+  const publicRow = withPublicCatalogReleases(match)
   if (publicRow.releases.length === 0) return null
   return withProgressivePublicProjection(mapProductRow(publicRow))
 }

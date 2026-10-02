@@ -177,17 +177,19 @@ async function compressPhoto(file: File) {
 export function AddToCollectionDialog({
   product,
   defaultReleaseId,
+  defaultOpen = false,
   children,
 }: {
   product: Product
   defaultReleaseId?: string
+  defaultOpen?: boolean
   children: React.ReactNode
 }) {
   const { addToCollection, collection, user } = useStore()
   const marketSignals = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(defaultOpen)
   const [pending, setPending] = React.useState(false)
   const photoInputRef = React.useRef<HTMLInputElement>(null)
 
@@ -222,6 +224,10 @@ export function AddToCollectionDialog({
   const personalGainPercent = canShowPerformance && personalGain != null && paidEUR != null
     ? (personalGain / paidEUR) * 100
     : null
+
+  React.useEffect(() => {
+    if (defaultOpen) setOpen(true)
+  }, [defaultOpen])
 
   React.useEffect(() => {
     if (!open) return
@@ -639,17 +645,19 @@ export function AddToCollectionDialog({
 export function AddToWishlistDialog({
   product,
   defaultReleaseId,
+  defaultOpen = false,
   children,
 }: {
   product: Product
   defaultReleaseId?: string
+  defaultOpen?: boolean
   children: React.ReactNode
 }) {
   const { addToWishlist } = useStore()
   const marketSignals = useMarketSignals()
   const { locale } = useI18n()
   const it = locale === "it"
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(defaultOpen)
   const [pending, setPending] = React.useState(false)
 
   const [releaseId, setReleaseId] = React.useState(defaultReleaseId ?? "any")
@@ -660,6 +668,10 @@ export function AddToWishlistDialog({
   const selectedRelease =
     releaseId && releaseId !== "any" ? resolveRelease(product, releaseId) : primaryRelease(product)
   const selectedSignal = releaseId && releaseId !== "any" ? marketSignals[selectedRelease.id] : null
+
+  React.useEffect(() => {
+    if (defaultOpen) setOpen(true)
+  }, [defaultOpen])
 
   React.useEffect(() => {
     if (!open) return
