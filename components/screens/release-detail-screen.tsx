@@ -51,8 +51,8 @@ export function ReleaseDetailScreen({
   const publicDescription = it
     ? localizedDescription?.it ?? localizedDescription?.en ?? product.description
     : localizedDescription?.en ?? product.description
-  const releasePath = releasePublicPath(product, release)
-  const productPath = productPublicPath(product)
+  const releasePath = releasePublicPath(product, release, locale)
+  const productPath = productPublicPath(product, locale)
   const intent = searchParams.get("intent")
   const openCollectionFromIntent = Boolean(user && intent === "collection")
   const openWishlistFromIntent = Boolean(user && intent === "wishlist")
