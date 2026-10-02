@@ -48,6 +48,9 @@ export const metadata: Metadata = {
   generator: "TrackDash",
   applicationName: "TrackDash",
   manifest: "/manifest.webmanifest",
+  verification: {
+    google: "3z2DJkcQQWjzi6miIPmzV0FkuQUMHzXcFnAN5PgS1sc",
+  },
   icons: {
     icon: [
       { url: "/pwa/icon-v6-192.png", type: "image/png", sizes: "192x192" },
