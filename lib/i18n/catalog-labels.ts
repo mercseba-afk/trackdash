@@ -175,6 +175,35 @@ function replaceCommonItalianTerms(value: string): string {
     .replace(/\bhard\b/gi, "hard")
 }
 
+function feminineDescriptor(value: string): string {
+  return value
+    .replace(/\bnero\b/g, "nera")
+    .replace(/\bbianco\b/g, "bianca")
+    .replace(/\brosso\b/g, "rossa")
+    .replace(/\bgrigio\b/g, "grigia")
+    .replace(/\bgiallo\b/g, "gialla")
+    .replace(/\brinforzato\b/g, "rinforzata")
+    .replace(/\bmetallizzato\b/g, "metallizzata")
+    .replace(/\bplaccato\b/g, "placcata")
+    .replace(/\bperlato\b/g, "perlata")
+}
+
+function pluralDescriptor(value: string): string {
+  return value
+    .replace(/\bnero\b/g, "neri")
+    .replace(/\bbianco\b/g, "bianchi")
+    .replace(/\brosso\b/g, "rossi")
+    .replace(/\bgrigio\b/g, "grigi")
+    .replace(/\bgiallo\b/g, "gialli")
+    .replace(/\bverde\b/g, "verdi")
+    .replace(/\barancione\b/g, "arancioni")
+    .replace(/\brinforzato\b/g, "rinforzati")
+    .replace(/\bmetallizzato\b/g, "metallizzati")
+    .replace(/\bplaccato\b/g, "placcati")
+    .replace(/\bperlato\b/g, "perlati")
+    .replace(/\bfluorescente\b/g, "fluorescenti")
+}
+
 function translateColorSegment(segment: string): string {
   const value = segment.trim()
   if (!value) return value
@@ -209,19 +238,19 @@ function translateColorSegment(segment: string): string {
   if (body) {
     const descriptor = body[1].trim()
     const exact = BODY_ADJECTIVES[descriptor.toLowerCase()]
-    return `Carrozzeria ${exact ?? replaceCommonItalianTerms(descriptor)}`
+    return `Carrozzeria ${exact ?? feminineDescriptor(replaceCommonItalianTerms(descriptor))}`
   }
 
   const polyBody = value.match(/^(.+?) polycarbonate body$/i)
   if (polyBody) {
-    return `Carrozzeria in policarbonato ${replaceCommonItalianTerms(polyBody[1])}`
+    return `Carrozzeria in policarbonato ${feminineDescriptor(replaceCommonItalianTerms(polyBody[1]))}`
   }
 
   const wheels = value.match(/^(.+?) wheels$/i)
-  if (wheels) return `Cerchi ${replaceCommonItalianTerms(wheels[1])}`
+  if (wheels) return `Cerchi ${pluralDescriptor(replaceCommonItalianTerms(wheels[1]))}`
 
   const tires = value.match(/^(.+?) tires$/i)
-  if (tires) return `Pneumatici ${replaceCommonItalianTerms(tires[1])}`
+  if (tires) return `Pneumatici ${pluralDescriptor(replaceCommonItalianTerms(tires[1]))}`
 
   const chassis = value.match(/^(.+?) chassis$/i)
   if (chassis) {
