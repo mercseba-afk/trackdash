@@ -22,7 +22,7 @@ import { RarityBadge } from "@/components/market-bits"
 import { MarketSignalInline } from "@/components/market-signal-inline"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
-import { productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
+import { localizePublicPath, productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
 
 type CommunityCount = { collectors: number; openToOffers: number }
 
@@ -48,7 +48,7 @@ export function ProductDetailScreen({
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
   const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
-  const productPath = productPublicPath(product)
+  const productPath = productPublicPath(product, locale)
   const intent = searchParams.get("intent")
   const openCollectionFromIntent = Boolean(user && intent === "collection")
   const openWishlistFromIntent = Boolean(user && intent === "wishlist")
@@ -75,7 +75,7 @@ export function ProductDetailScreen({
 
   return (
     <div className="flex flex-col gap-6">
-      <Button variant="ghost" size="sm" render={<Link href="/catalog" />} className="-ml-2 w-fit text-muted-foreground">
+      <Button variant="ghost" size="sm" render={<Link href={localizePublicPath("/catalog", locale)} />} className="-ml-2 w-fit text-muted-foreground">
         <ArrowLeft data-icon="inline-start" /> {t("product.back")}
       </Button>
 
@@ -200,7 +200,7 @@ function ReleaseRow({
 }) {
   const { locale, t } = useI18n()
   const marketSignal = marketSignals[release.id] ?? null
-  const releaseHref = releasePublicPath(product, release)
+  const releaseHref = releasePublicPath(product, release, locale)
   const collectorsHref = `${releaseHref}#collectors`
   const collectionSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(releaseHref, "collection"))}`
   const owned = ownedCount > 0
