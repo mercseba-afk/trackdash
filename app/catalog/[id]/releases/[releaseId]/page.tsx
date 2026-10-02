@@ -18,6 +18,7 @@ import {
   type PublicLocale,
 } from "@/lib/seo/catalog-paths"
 import type { Product, ProductRelease } from "@/lib/types"
+import { releaseTypeLabel } from "@/lib/i18n/catalog-labels"
 
 export const revalidate = 45
 
@@ -43,14 +44,15 @@ function releaseIdentity(product: Product, release: ProductRelease) {
 }
 
 function releaseDescription(product: Product, release: ProductRelease, locale: PublicLocale) {
+  const it = locale === "it"
   const details = [
     release.releaseYear ? String(release.releaseYear) : null,
-    release.chassis ? `${release.chassis} chassis` : null,
-    release.releaseType,
+    release.chassis ? (it ? `chassis ${release.chassis}` : `${release.chassis} chassis`) : null,
+    release.releaseType ? releaseTypeLabel(release.releaseType, it) : null,
   ].filter(Boolean)
 
   const detailText = details.length > 0 ? ` ${details.join(" · ")}.` : ""
-  return locale === "it"
+  return it
     ? `${releaseIdentity(product, release)} — Release Tamiya Mini 4WD esatta.${detailText} Market Value, vendite concluse, ASK attivi, disponibilità tra collezionisti e dettagli della Release su TrackDash.`
     : `${releaseIdentity(product, release)} — exact Tamiya Mini 4WD release.${detailText} Market Value, completed sales, active asking prices, collector availability and release details on TrackDash.`
 }
