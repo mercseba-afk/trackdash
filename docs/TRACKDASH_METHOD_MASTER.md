@@ -1233,3 +1233,94 @@ Do not use a DB child-image trigger solely to touch `product_releases.updated_at
 
 This rule is global for every current and future public Release.
 
+
+
+---
+
+# PUBLIC SEO LOCALE CONTRACT — 2026-10-02
+
+This contract is global for every current and future public TrackDash Mini 4WD family and Release.
+
+## One canonical catalog, multiple language projections
+
+Language localization must **never** duplicate canonical Product or ProductRelease records.
+
+Italian and English public pages must read the same DB-backed:
+- Product identity;
+- ProductRelease identity;
+- Item Number;
+- release year/date;
+- chassis;
+- images;
+- publication visibility;
+- market evidence;
+- Market Value / SOLD / ASK;
+- Collection/Wishlist references.
+
+A language version is a presentation and SEO projection, not a separate catalog.
+
+## Public URL architecture
+
+Italian is the default public language and owns the existing unprefixed readable URL set:
+- `/`
+- `/catalog`
+- `/market`
+- `/catalog/<family>`
+- `/catalog/<family>/releases/<release>`
+
+English is published under the `/en` prefix:
+- `/en`
+- `/en/catalog`
+- `/en/market`
+- `/en/catalog/<family>`
+- `/en/catalog/<family>/releases/<release>`
+
+Do not migrate the Italian URLs to `/it` unless there is a separately approved migration plan based on real Search Console evidence.
+
+## Search-engine contract
+
+For every public language pair:
+- server-render the correct language on first response;
+- set the correct HTML `lang`;
+- self-canonicalize each language URL;
+- emit reciprocal `hreflang="it"` and `hreflang="en"`;
+- emit `x-default` to the unprefixed Italian/default URL;
+- keep metadata, Open Graph, Twitter and structured-data wording aligned with route language;
+- keep public internal links inside the active locale;
+- include both language variants in the public sitemap;
+- keep UUID routes out of the sitemap.
+
+## Translation fallback rule
+
+Italian public pages must **never** fall back to an English descriptive paragraph.
+
+When dedicated Italian editorial copy exists, use it.
+
+When Italian editorial copy is absent:
+- generate only a short factual Italian fallback from canonical fields already known for that Product/Release;
+- do not invent historical claims;
+- do not translate by mutating canonical identity fields;
+- do not alter official/canonical edition names merely to make them look Italian.
+
+Display labels may be localized independently from canonical values.
+
+Examples of display-only localization:
+- Wishlist → Desideri
+- Reissue (generic type/label) → Ristampa
+- JAN barcode → Codice JAN
+- MSRP → Prezzo di listino
+- Market Value → Valore di mercato
+
+Canonical names such as `Black Special`, `Finished Model`, event names, collaboration names and edition titles remain unchanged when they identify the exact Release.
+
+## Regression gate
+
+Any change affecting public localization must preserve:
+- one canonical Product/ProductRelease graph;
+- identical Release identity/data across IT and EN;
+- locale-aware public path tests;
+- localization regression tests;
+- full repository `pnpm verify` gate;
+- Preview QA before Production merge.
+
+The locale system must never become a second source of catalog truth.
