@@ -1,1 +1,2 @@
-export { default, generateMetadata, revalidate } from "../../../../../catalog/[id]/releases/[releaseId]/page"
+export { default, generateMetadata } from "../../../../../catalog/[id]/releases/[releaseId]/page"
+export const revalidate = 45
