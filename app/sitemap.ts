@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { listMarketSignals } from "@/lib/db/queries/market"
+import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 
 const SITE_URL = "https://trackdash.it"
 
@@ -71,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const productRoutes: MetadataRoute.Sitemap = availableProducts.map((product) => {
     const lastModified = productLastModified(product)
     return {
-      url: `${SITE_URL}/catalog/${product.id}`,
+      url: `${SITE_URL}${productPublicPath(product)}`,
       ...(lastModified ? { lastModified } : {}),
       changeFrequency: "weekly",
       priority: 0.8,
@@ -82,7 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     product.releases.map((release) => {
       const lastModified = releaseLastModified(release)
       return {
-        url: `${SITE_URL}/catalog/${product.id}/releases/${release.id}`,
+        url: `${SITE_URL}${releasePublicPath(product, release)}`,
         ...(lastModified ? { lastModified } : {}),
         changeFrequency: "weekly" as const,
         priority: 0.9,
