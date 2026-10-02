@@ -25,7 +25,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import { formatMoney } from "@/lib/format"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
-import { releasePublicPath } from "@/lib/seo/catalog-paths"
+import { localizePublicPath, releasePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
 
 type ReleaseEntry = {
   product: Product
@@ -33,8 +33,8 @@ type ReleaseEntry = {
   signal: ReleaseMarketSignalView | null
 }
 
-function releaseHref(product: Product, release: ProductRelease) {
-  return releasePublicPath(product, release)
+function releaseHref(product: Product, release: ProductRelease, locale: PublicLocale) {
+  return releasePublicPath(product, release, locale)
 }
 
 function marketScore(entry: ReleaseEntry) {
@@ -205,10 +205,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   : "Identify the exact Release, discover what it is worth, add it to your collection, watch the market and connect with other collectors to buy or sell."}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link href="/catalog" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                <Link href={localizePublicPath("/catalog", locale)} className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
                   {it ? "Esplora il catalogo" : "Explore the catalog"} <ArrowRight className="size-4" />
                 </Link>
-                <Link href="/market" className="inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy transition hover:bg-brand-muted">
+                <Link href={localizePublicPath("/market", locale)} className="inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy transition hover:bg-brand-muted">
                   {it ? "Scopri i valori di mercato" : "Explore market values"}
                 </Link>
                 <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-md bg-navy px-5 text-sm font-semibold text-white transition hover:bg-[#102c55]">
@@ -303,7 +303,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {watchList.map((entry) => (
-                <WatchCard key={entry.release.id} entry={entry} it={it} />
+                <WatchCard key={entry.release.id} entry={entry} it={it} locale={locale} />
               ))}
             </div>
           </div>
@@ -330,7 +330,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   : "Search by name, year, chassis or item number. Open the correct Release and see the available data and market value."
               }
               tone="light"
-              href="/catalog"
+              href={localizePublicPath("/catalog", locale)}
               linkLabel={it ? "Vai al catalogo" : "Open catalog"}
             />
             <FeatureCard
@@ -343,7 +343,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   : "Market Value, completed sales and ASK remain distinct, so you can understand a Release without confusing an asking price with one actually paid."
               }
               tone="dark"
-              href="/market"
+              href={localizePublicPath("/market", locale)}
               linkLabel={it ? "Scopri i valori" : "Explore values"}
             />
             <FeatureCard
@@ -369,7 +369,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   : "Follow completed sales, ASK, availability and trends when enough data is available, so you can see how each Release is really moving."
               }
               tone="soft"
-              href="/market"
+              href={localizePublicPath("/market", locale)}
               linkLabel={it ? "Controlla il mercato" : "Watch the market"}
             />
             <div className="md:col-span-2">
@@ -420,7 +420,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 {familyProduct.releases.slice(0, 4).map((release) => (
                   <Link
                     key={release.id}
-                    href={releaseHref(familyProduct, release)}
+                    href={releaseHref(familyProduct, release, locale)}
                     className="grid grid-cols-[72px_1fr_auto] items-center gap-3 border-b border-line bg-white px-3 py-3 last:border-b-0 hover:bg-brand-muted/60"
                   >
                     <div className="font-mono text-xs font-semibold text-brand">{release.releaseYear ?? "—"}</div>
@@ -435,7 +435,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 ))}
               </div>
 
-              <Link href="/catalog" className="mt-6 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">
+              <Link href={localizePublicPath("/catalog", locale)} className="mt-6 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">
                 {it ? "Trova il tuo modello nel catalogo" : "Find your model in the catalog"} <ArrowRight className="size-4" />
               </Link>
             </div>
@@ -457,7 +457,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 ? "TrackDash confronta vendite concluse, prezzi nei negozi e ASK — i prezzi richiesti negli annunci attivi — e pubblica una stima solo quando i dati sono sufficienti. Il trend compare quando esiste abbastanza storico."
                 : "TrackDash compares completed sales, store prices and ASK — prices requested in active listings — and only publishes an estimate when the data is sufficient."}
             </p>
-            <Link href="/market" className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-white underline decoration-brand-red decoration-2 underline-offset-4">
+            <Link href={localizePublicPath("/market", locale)} className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-white underline decoration-brand-red decoration-2 underline-offset-4">
               {it ? "Scopri i valori di mercato" : "Explore market values"} <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -671,7 +671,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               <Link href="/signup?next=%2Fcollection" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
                 {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
               </Link>
-              <Link href="/market" className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
+              <Link href={localizePublicPath("/market", locale)} className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
                 {it ? "Tieni d’occhio il mercato" : "Watch the market"}
               </Link>
             </div>
@@ -683,12 +683,12 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 }
 
 
-function WatchCard({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
+function WatchCard({ entry, it, locale }: { entry: ReleaseEntry; it: boolean; locale: PublicLocale }) {
   const { product, release, signal } = entry
 
   return (
     <Link
-      href={releaseHref(product, release)}
+      href={releaseHref(product, release, locale)}
       className="group min-w-[82%] snap-start overflow-hidden border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-navy/10 sm:min-w-[46%] lg:min-w-[31%]"
     >
       <div className="relative aspect-[4/3] bg-brand-muted p-4">
