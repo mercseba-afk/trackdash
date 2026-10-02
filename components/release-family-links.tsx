@@ -33,7 +33,7 @@ export function ReleaseFamilyLinks({
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
             {it
-              ? "Confronta originali, reissue ed edizioni speciali senza mescolare anni o Item Number diversi."
+              ? "Confronta originali, ristampe ed edizioni speciali senza mescolare anni o Item Number diversi."
               : "Compare originals, reissues and special editions without mixing different years or Item Numbers."}
           </p>
         </div>

@@ -42,7 +42,7 @@ export function CatalogAreaNav() {
       </div>
 
       <Button variant="outline" size="sm" render={<Link href="/wishlist" />}>
-        <Heart /> {it ? "Wishlist" : "Wishlist"}
+        <Heart /> {it ? "Desideri" : "Wishlist"}
       </Button>
     </div>
   )
