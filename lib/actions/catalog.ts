@@ -25,6 +25,10 @@ function withPublicCatalogReleases<
   }
 }
 
+function looksLikeUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
 function withProgressivePublicProjection(product: ReturnType<typeof mapProductRow>) {
   if (product.catalogLaunchStatus !== "coming_soon") return product
   return {
@@ -72,11 +76,13 @@ export async function fetchCatalogProductById(id: string) {
 
 
 export async function fetchCatalogProductByRouteKey(routeKey: string) {
-  const directById = await getProductByIdQuery(routeKey)
-  if (directById) {
-    const publicRow = withPublicCatalogReleases(directById)
-    if (publicRow.releases.length === 0) return null
-    return withProgressivePublicProjection(mapProductRow(publicRow))
+  if (looksLikeUuid(routeKey)) {
+    const directById = await getProductByIdQuery(routeKey)
+    if (directById) {
+      const publicRow = withPublicCatalogReleases(directById)
+      if (publicRow.releases.length === 0) return null
+      return withProgressivePublicProjection(mapProductRow(publicRow))
+    }
   }
 
   const directByStoredSlug = await getProductBySlugQuery(routeKey)
