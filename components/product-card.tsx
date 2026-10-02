@@ -50,7 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
   const comingSoon = product.catalogLaunchStatus === "coming_soon"
-  const href = productPublicPath(product)
+  const href = productPublicPath(product, locale)
   const wishlistSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(href, "wishlist"))}`
 
   if (comingSoon) {
