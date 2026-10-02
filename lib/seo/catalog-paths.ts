@@ -1,6 +1,7 @@
 import type { Product, ProductRelease } from "@/lib/types"
 
 export type CollectionIntent = "collection" | "wishlist"
+export type PublicLocale = "it" | "en"
 
 export function slugifyPublicSegment(value: string): string {
   return value
@@ -11,6 +12,22 @@ export function slugifyPublicSegment(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-+/g, "-")
+}
+
+export function publicLocalePrefix(locale: PublicLocale): string {
+  return locale === "en" ? "/en" : ""
+}
+
+export function localizePublicPath(path: string, locale: PublicLocale): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`
+  if (locale === "it") {
+    if (normalized === "/en") return "/"
+    return normalized.startsWith("/en/") ? normalized.slice(3) || "/" : normalized
+  }
+
+  if (normalized === "/") return "/en"
+  if (normalized === "/en" || normalized.startsWith("/en/")) return normalized
+  return `/en${normalized}`
 }
 
 export function productPublicSlug(product: Pick<Product, "name">): string {
@@ -28,15 +45,20 @@ export function releasePublicSlug(
   return edition
 }
 
-export function productPublicPath(product: Pick<Product, "name">): string {
-  return `/catalog/${productPublicSlug(product)}`
+export function productPublicPath(
+  product: Pick<Product, "name">,
+  locale: PublicLocale = "it",
+): string {
+  return localizePublicPath(`/catalog/${productPublicSlug(product)}`, locale)
 }
 
 export function releasePublicPath(
   product: Pick<Product, "name">,
   release: Pick<ProductRelease, "itemNumber" | "editionName" | "releaseYear">,
+  locale: PublicLocale = "it",
 ): string {
-  return `${productPublicPath(product)}/releases/${releasePublicSlug(release)}`
+  const productPath = productPublicPath(product, locale)
+  return `${productPath}/releases/${releasePublicSlug(release)}`
 }
 
 export function withCollectionIntent(path: string, intent: CollectionIntent): string {
