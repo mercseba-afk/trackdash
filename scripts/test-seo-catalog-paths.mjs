@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 
 const {
+  localizePublicPath,
   productPublicPath,
   productPublicSlug,
   releasePublicPath,
@@ -22,10 +23,18 @@ const azure = {
 
 assert.equal(productPublicSlug(avante), "avante-mk-iii")
 assert.equal(productPublicPath(avante), "/catalog/avante-mk-iii")
+assert.equal(productPublicPath(avante, "en"), "/en/catalog/avante-mk-iii")
+assert.equal(localizePublicPath("/", "en"), "/en")
+assert.equal(localizePublicPath("/catalog", "en"), "/en/catalog")
+assert.equal(localizePublicPath("/en/catalog", "it"), "/catalog")
 assert.equal(releasePublicSlug(azure), "18626-avante-mk-iii-azure")
 assert.equal(
   releasePublicPath(avante, azure),
   "/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure",
+)
+assert.equal(
+  releasePublicPath(avante, azure, "en"),
+  "/en/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure",
 )
 assert.equal(
   withCollectionIntent("/catalog/avante-mk-iii", "collection"),
