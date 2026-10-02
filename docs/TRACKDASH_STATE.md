@@ -7080,3 +7080,72 @@ After verification:
 - read coverage, canonical, crawl and Search Analytics data.
 
 Do not infer Google indexing state until that property is connected.
+
+
+---
+
+## GOOGLE SEARCH CONSOLE — LIVE VERIFICATION + INITIAL INDEXING AUDIT — 2026-10-02
+
+Status: **CONNECTED / VERIFIED / SITEMAP SUBMITTED**.
+
+### Property
+- GSC property registered in GSC Wizard: `https://trackdash.it/`
+- Google permission level: `siteOwner`
+- dashboard visibility: active
+- Search Console verification meta already live in Production via PR #321 / main `4f995dd87cb8edcc6672238c035022e639570d95`
+
+### Sitemap
+Submitted to Google Search Console:
+- `https://trackdash.it/sitemap.xml`
+- submission accepted: yes
+- confirmed by GSC: yes
+- pending download/processing: yes
+- warnings at submission: 0
+- errors at submission: 0
+
+Submission timestamp:
+- 2026-10-02T18:42:34Z
+
+The sitemap submission only queues Google to fetch it; it does not itself guarantee indexing.
+
+### Search Analytics baseline
+Initial 28-day read immediately after property connection:
+- clicks: 0
+- impressions: 0
+- CTR: 0
+- top queries: none
+- top pages: none
+- country rows: none
+- device rows: none
+
+This is the baseline of a newly connected/undiscovered property and must not be interpreted as a ranking failure yet.
+
+### URL Inspection baseline
+Representative URLs inspected through Google's URL Inspection API:
+
+1. `https://trackdash.it/`
+2. `https://trackdash.it/catalog/avante-mk-iii`
+3. `https://trackdash.it/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure`
+
+All three returned:
+- verdict: `NEUTRAL`
+- coverage: `URL is unknown to Google`
+- no last crawl time yet
+- no explicit indexing block reported
+
+Interpretation:
+Google has not yet crawled/discovered these representative public URLs. At this checkpoint there is **no evidence of exclusion, canonical conflict or indexing penalty**; discovery is simply not underway yet.
+
+### Immediate operational priority
+Do **not** change the readable URL structure again.
+Do **not** expand the public catalog purely to chase SEO volume yet.
+
+Next checks:
+1. wait for GSC to download/process the sitemap;
+2. re-check sitemap submitted/indexed counts and warnings/errors;
+3. re-inspect representative Home/Catalog/Market/family/Release URLs after Google begins crawling;
+4. read first impressions/query/page data as soon as it appears;
+5. only then decide the next SEO intervention (language architecture, landing-page copy, internal linking refinements, etc.).
+
+Current SEO funnel priority remains:
+**Google discovery → family → exact Release → signup → first saved/owned Release**
