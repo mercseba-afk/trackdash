@@ -64,7 +64,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
 
   const copy = it
     ? {
-        kicker: "PRICE INTELLIGENCE",
+        kicker: "ANALISI DI MERCATO",
         titleA: "Capisci quanto vale una Release",
         titleB: "con dati reali.",
         intro: "Ogni modello può avere più Release — originali, ristampe o edizioni speciali — e ognuna può avere un valore diverso. TrackDash confronta i dati di mercato disponibili per stimare quanto vale oggi.",
@@ -80,8 +80,8 @@ export function MarketScreen({ products }: { products: Product[] }) {
         asks: "ASK · Annunci attivi",
         asksBody: "ASK significa prezzo richiesto dal venditore. Mostra a quanto viene proposta oggi una Release e quanto è facile trovarla, ma non equivale a un prezzo realmente pagato.",
         resultKicker: "IL RISULTATO",
-        resultTitle: "Market Value: la stima TrackDash del valore attuale.",
-        resultBody: "Quando ci sono abbastanza dati, il Market Value mostra una stima e una fascia indicativa. Quando i dati non bastano, TrackDash lo segnala senza inventare un prezzo.",
+        resultTitle: "Valore di mercato: la stima TrackDash del valore attuale.",
+        resultBody: "Quando ci sono abbastanza dati, il valore di mercato mostra una stima e una fascia indicativa. Quando i dati non bastano, TrackDash lo segnala senza inventare un prezzo.",
         confidence: "Affidabilità della stima",
         confidenceBody: "Indica quanto possiamo fidarci della stima in base alla quantità e alla qualità dei dati disponibili per quella specifica Release.",
         limitedKicker: "QUANDO I DATI SONO LIMITATI",
@@ -198,7 +198,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
         <div className="rounded-2xl border border-[#ead8b7] bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b7a42]">Market Value</span>
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b7a42]">{it ? "Valore di mercato" : "Market Value"}</span>
             <Badge variant="outline" className="border-[#e8d8ba] bg-[#fffaf1] text-[#785c30]">{it ? "Dati limitati" : "Limited data"}</Badge>
           </div>
           <p className="mt-6 text-2xl font-semibold tracking-tight text-[#513712]">{it ? "Mercato in osservazione" : "Market under observation"}</p>
