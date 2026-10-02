@@ -21,6 +21,7 @@ import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
 import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
 import type { Product, ProductRelease } from "@/lib/types"
+import { releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
@@ -305,7 +306,7 @@ function MarketListCard({ title, rows, forming = false }: { title: string; rows:
 
 function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
   const { locale } = useI18n(); const it = locale === "it"
-  const href = `/catalog/${row.product.id}/releases/${row.release.id}`
+  const href = releasePublicPath(row.product, row.release)
   const observedPrice = observedMarketDisplayPrice(row.signal)
   const observedKind = observedMarketDisplayKind(row.signal)
   const trend = collectorMarketTrend(row.signal)
