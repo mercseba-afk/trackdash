@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+import * as React from "react"
 import { ArrowLeft, Check, Heart, LockKeyhole, Plus, Tag } from "lucide-react"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -16,6 +18,7 @@ import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { useStore } from "@/lib/store"
 import type { Condition, Currency, Product, ProductRelease } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
 
 type PublicCollectorOffer = {
   id: string
@@ -39,6 +42,8 @@ export function ReleaseDetailScreen({
 }) {
   const { collection, user } = useStore()
   const { locale } = useI18n()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const it = locale === "it"
   const marketSignal = useReleaseMarketSignal(release.id)
   const mine = collection.filter((item) => item.productId === product.id && item.releaseId === release.id)
@@ -46,15 +51,25 @@ export function ReleaseDetailScreen({
   const publicDescription = it
     ? localizedDescription?.it ?? localizedDescription?.en ?? product.description
     : localizedDescription?.en ?? product.description
-  const releasePath = `/catalog/${product.id}/releases/${release.id}`
-  const loginHref = `/login?next=${encodeURIComponent(releasePath)}`
+  const releasePath = releasePublicPath(product, release)
+  const productPath = productPublicPath(product)
+  const intent = searchParams.get("intent")
+  const openCollectionFromIntent = Boolean(user && intent === "collection")
+  const openWishlistFromIntent = Boolean(user && intent === "wishlist")
+  const collectionSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(releasePath, "collection"))}`
+  const wishlistSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(releasePath, "wishlist"))}`
+
+  React.useEffect(() => {
+    if (!user || (intent !== "collection" && intent !== "wishlist")) return
+    router.replace(releasePath, { scroll: false })
+  }, [intent, releasePath, router, user])
 
   return (
     <div className="flex flex-col gap-7 pb-8">
       <Button
         variant="ghost"
         size="sm"
-        render={<Link href={`/catalog/${product.id}`} />}
+        render={<Link href={productPath} />}
         className="-ml-2 w-fit text-[#607089] hover:text-[#0f4bb4]"
       >
         <ArrowLeft data-icon="inline-start" /> {it ? `Torna a ${product.name}` : `Back to ${product.name}`}
@@ -102,19 +117,19 @@ export function ReleaseDetailScreen({
           <div className="flex flex-wrap gap-2">
             {user ? (
               <>
-                <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+                <AddToCollectionDialog product={product} defaultReleaseId={release.id} defaultOpen={openCollectionFromIntent}>
                   <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
                 </AddToCollectionDialog>
-                <AddToWishlistDialog product={product} defaultReleaseId={release.id}>
+                <AddToWishlistDialog product={product} defaultReleaseId={release.id} defaultOpen={openWishlistFromIntent}>
                   <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> Wishlist</Button>
                 </AddToWishlistDialog>
               </>
             ) : (
               <>
-                <Button render={<Link href={loginHref} />} className="gap-1.5">
-                  <LockKeyhole className="size-4" /> {it ? "Accedi e aggiungi alla collezione" : "Sign in and add to collection"}
+                <Button render={<Link href={collectionSignupHref} />} className="gap-1.5">
+                  <LockKeyhole className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}
                 </Button>
-                <Button variant="outline" render={<Link href={loginHref} />} className="gap-1.5">
+                <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
                   <Heart className="size-4" /> Wishlist
                 </Button>
               </>
