@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
+import { releaseTypeLabel } from "@/lib/i18n/catalog-labels"
 import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { Product, ProductRelease } from "@/lib/types"
 
@@ -55,7 +56,7 @@ export function ReleaseFamilyLinks({
               {release.editionName}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              {[release.releaseYear, release.chassis, release.releaseType].filter(Boolean).join(" · ")}
+              {[release.releaseYear, release.chassis, releaseTypeLabel(release.releaseType, it)].filter(Boolean).join(" · ")}
             </p>
           </Link>
         ))}
