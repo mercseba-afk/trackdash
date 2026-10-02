@@ -12,6 +12,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
+import { localizePublicPath } from "@/lib/seo/catalog-paths"
 
 const PUBLIC_NAV = [
   { href: "/catalog", key: "catalog" as const },
@@ -31,6 +32,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = React.useState(false)
   const currentPath = pathname || "/"
+  const publicHref = (path: string) => localizePublicPath(path, locale)
   const loginHref = `/login?next=${encodeURIComponent(currentPath)}`
   const signupHref = currentPath === "/" ? "/signup" : `/signup?next=${encodeURIComponent(currentPath)}`
   const scannerHref = user ? "/scanner" : "/login?next=%2Fscanner"
@@ -104,17 +106,18 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-svh bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-5 px-4 md:h-[72px] md:px-6 lg:px-8">
-          <Link href="/" aria-label="TrackDash home" className={BRAND_HOME_LINK_CLASS}>
+          <Link href={publicHref("/")} aria-label="TrackDash home" className={BRAND_HOME_LINK_CLASS}>
             <BrandMark />
           </Link>
 
           <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
             {PUBLIC_NAV.map((item) => {
-              const active = currentPath === item.href || currentPath.startsWith(`${item.href}/`)
+              const href = publicHref(item.href)
+              const active = currentPath === href || currentPath.startsWith(`${href}/`)
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative py-2 transition-colors hover:text-navy",
@@ -128,10 +131,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="py-2 transition-colors hover:text-navy">
               {copy.scanner}
             </Link>
-            <Link href="/#community" className="py-2 transition-colors hover:text-navy">
+            <Link href={`${publicHref("/")}#community`} className="py-2 transition-colors hover:text-navy">
               {copy.community}
             </Link>
-            <Link href="/#how-it-works" className="py-2 transition-colors hover:text-navy">
+            <Link href={`${publicHref("/")}#how-it-works`} className="py-2 transition-colors hover:text-navy">
               {copy.how}
             </Link>
           </nav>
@@ -217,8 +220,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-2 gap-6 text-sm sm:grid-cols-3">
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.explore}</span>
-              <Link href="/catalog" className={FOOTER_LINK_CLASS}>{copy.catalog}</Link>
-              <Link href="/market" className={FOOTER_LINK_CLASS}>{copy.price}</Link>
+              <Link href={publicHref("/catalog")} className={FOOTER_LINK_CLASS}>{copy.catalog}</Link>
+              <Link href={publicHref("/market")} className={FOOTER_LINK_CLASS}>{copy.price}</Link>
               <Link href={scannerHref} className={FOOTER_LINK_CLASS}>{copy.scanner}</Link>
             </div>
             <div className="flex flex-col gap-1">
