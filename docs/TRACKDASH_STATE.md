@@ -7211,3 +7211,165 @@ Therefore this is still the low-risk window to establish the language architectu
 
 Next work unit:
 implement and QA the Italian-default + `/en` public routing/metadata/hreflang contract before further catalog expansion.
+
+
+---
+
+## SEO LOCALES + GSC — AUTHORITATIVE CHECKPOINT — 2026-10-02
+
+Status: **PRODUCTION COMPLETE / LIVE VERIFIED**.
+
+This checkpoint supersedes the earlier “PUBLIC LANGUAGE SEO AUDIT — IMPLEMENTATION NOT YET APPLIED”.
+
+### Production code
+PR #322 merged:
+- merge commit: `66118e2e10deddb16908dd70f43cd8179fcd99f1`
+- public Italian/default + English `/en` architecture implemented.
+
+PR #323 merged:
+- merge commit: `f27d91111889ba3f44ebd97525be0c6e9dcc8bd8`
+- remaining Italian public UI copy cleaned up.
+
+Final Production for PR #323:
+- Vercel: **READY**
+- custom domain `trackdash.it`: assigned
+- no alias error.
+
+### Public locale contract now live
+Italian/default keeps the readable unprefixed URLs:
+- `/`
+- `/catalog`
+- `/market`
+- `/catalog/<family-slug>`
+- `/catalog/<family-slug>/releases/<release-slug>`
+
+English uses:
+- `/en`
+- `/en/catalog`
+- `/en/market`
+- `/en/catalog/<family-slug>`
+- `/en/catalog/<family-slug>/releases/<release-slug>`
+
+SEO behavior:
+- Italian pages render server-side with `<html lang="it">`;
+- English pages render server-side with `<html lang="en">`;
+- each language is self-canonical;
+- reciprocal `hreflang="it"` / `hreflang="en"`;
+- `x-default` points to the unprefixed Italian/default URL;
+- public language switch changes the real public URL;
+- public internal links remain inside the active locale;
+- route language controls metadata / OG / Twitter / structured-data wording.
+
+### Canonical data safety
+This work did **not** create separate IT/EN catalog records.
+
+The runtime still has one canonical Product/ProductRelease graph feeding:
+- public website;
+- PWA/app;
+- Catalog;
+- family pages;
+- exact Release pages;
+- Collection;
+- Market;
+- Scanner.
+
+No Product/Release identity, Item Number, year, chassis, image, market value, trend, ASK/SOLD evidence, Collection row, Supabase migration, Price Engine worker or publication gate was changed by the locale work.
+
+The two languages are presentation/SEO projections of the same canonical records.
+
+### Public catalog counts at this checkpoint
+Mini 4WD public catalog:
+- **20 available families**
+- **172 public Releases**
+
+Per language:
+- 3 static public SEO routes (Home / Catalog / Market)
+- 20 family URLs
+- 172 exact Release URLs
+- total: **195 URLs per language**
+
+Live sitemap:
+- **390 total URLs**
+- **195 IT**
+- **195 EN**
+- **0 UUID sitemap URLs**
+
+### Italian copy hardening
+A production audit found that some Italian pages could previously fall back to English descriptive copy.
+
+DB audit at the time of correction:
+- 20 public Mini 4WD families
+- 6 public families had no dedicated `description_it`
+- 172 public Releases
+- 23 public Releases had no dedicated `description_it`
+
+Important:
+these missing DB translations were **not** filled by mutating canonical catalog data during this SEO work.
+
+Instead, the Italian presentation layer now:
+- never falls back to an English family/Release description;
+- uses existing Italian editorial copy when present;
+- otherwise generates a short factual Italian description only from the same canonical Release identity fields (Item Number, year, chassis, release type);
+- localizes display-only release type, rarity, condition, market/country and color/spec wording;
+- preserves official/canonical edition names such as “Black Special”, “Finished Model” or “2019 Reissue” when they are part of Release identity.
+
+Italian UI cleanup also replaced display-only remnants such as:
+- Wishlist → Desideri
+- reissue (generic explanatory copy) → ristampe
+- JAN barcode → Codice JAN
+- MSRP → Prezzo di listino
+- Market Value → Valore di mercato
+- PRICE INTELLIGENCE → ANALISI DI MERCATO
+
+English routes retain the English terminology.
+
+Regression coverage:
+- locale-aware SEO path tests are in the verify suite;
+- public localization regression tests are in the verify suite.
+
+### Live QA
+Verified directly on Production after PR #323:
+- `https://trackdash.it/`: 200, `lang=it`, Italian public copy
+- `https://trackdash.it/market`: 200, Italian market terminology
+- `https://trackdash.it/catalog/dyna-hawk-gx`: 200, Italian family copy
+- `https://trackdash.it/catalog/dyna-hawk-gx/releases/94717-dyna-hawk-gx-super-xx-special`: 200, factual Italian fallback, Codice JAN / Prezzo di listino
+- `https://trackdash.it/en/market`: 200, `lang=en`, English copy retained
+- English Dyna-Hawk GX 94717 Release route: 200, English labels retained
+- sitemap: 390 URLs, 0 UUID URLs.
+
+### Google Search Console
+Property:
+- `https://trackdash.it/`
+- permission: `siteOwner`
+
+The bilingual sitemap was re-submitted after Production locale rollout:
+- `https://trackdash.it/sitemap.xml`
+- accepted: yes
+- confirmed: yes
+- submission timestamp: **2026-10-02T19:58:13.694Z**
+- current status at checkpoint: **pending Google download/processing**
+- warnings: **0**
+- errors: **0**
+
+Initial Search Analytics baseline remains:
+- 0 clicks
+- 0 impressions
+- no query/page rows yet.
+
+Representative URL Inspection baseline from before the locale rollout was:
+- `URL is unknown to Google`
+
+Do not interpret this as an indexing defect while the sitemap is still pending.
+
+### Next SEO action
+Do **not** change public URL architecture again.
+
+Next action is Search Console observation:
+1. confirm Google downloads/processes the 390-URL sitemap;
+2. read submitted/discovered/indexed counts and any warnings/errors;
+3. re-inspect representative IT and EN URLs after crawling begins;
+4. read first impressions, pages and queries;
+5. only then choose the next SEO content/internal-linking intervention.
+
+Current acquisition/conversion funnel remains:
+**Google discovery → family → exact Release → signup → first saved/owned Release**.
