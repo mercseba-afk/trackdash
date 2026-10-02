@@ -25,6 +25,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import { formatMoney } from "@/lib/format"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
+import { releasePublicPath } from "@/lib/seo/catalog-paths"
 
 type ReleaseEntry = {
   product: Product
@@ -33,7 +34,7 @@ type ReleaseEntry = {
 }
 
 function releaseHref(product: Product, release: ProductRelease) {
-  return `/catalog/${product.id}/releases/${release.id}`
+  return releasePublicPath(product, release)
 }
 
 function marketScore(entry: ReleaseEntry) {
