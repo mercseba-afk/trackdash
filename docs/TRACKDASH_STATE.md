@@ -7373,3 +7373,39 @@ Next action is Search Console observation:
 
 Current acquisition/conversion funnel remains:
 **Google discovery → family → exact Release → signup → first saved/owned Release**.
+
+
+---
+
+## HOMEPAGE DESKTOP HERO REFINEMENT — 2026-10-02
+
+Status: **LIVE / PRODUCTION VERIFIED**.
+
+PR:
+- **#325**
+
+Runtime merge:
+- `e25b96b4ce6a2180fc74ae05eb45ecf4741f3211`
+
+Scope:
+- desktop Homepage Hero only;
+- no Product, ProductRelease, Collection, Scanner, Market, Supabase, Price Engine or canonical catalog data changed.
+
+Desktop Hero changes:
+- reduced headline size so the value proposition occupies fewer lines;
+- reduced vertical spacing and removed the previous 500px desktop artwork minimum-height constraint;
+- enlarged the existing Mini 4WD artwork on the right;
+- removed the visual impression of a separate image panel;
+- unified the Hero with one continuous light blue/grey background and a subtle radial highlight behind the cars;
+- kept the cars on the right and added a soft left-edge blend into the common Hero surface;
+- search panel pulled closer to the main Hero content and given a light translucent treatment.
+
+Mobile behavior remains based on the existing responsive layout; the refinement is primarily desktop-scoped.
+
+Verification:
+- Vercel Preview: **READY**;
+- full `pnpm verify` passed because `pnpm build` runs the complete verification gate before Next build;
+- Production: **READY**;
+- `trackdash.it` assigned with no alias error;
+- live IT and EN Home routes both contain the new Hero layout;
+- diff touched only `components/screens/public-home-screen.tsx`.
