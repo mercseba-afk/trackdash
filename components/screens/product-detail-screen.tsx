@@ -114,7 +114,7 @@ export function ProductDetailScreen({
                   <LockKeyhole className="size-4" /> {locale === "it" ? "Aggiungi alla collezione" : "Add to collection"}
                 </Button>
                 <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
-                  <LockKeyhole className="size-4" /> {it ? "Desideri" : "Wishlist"}
+                  <LockKeyhole className="size-4" /> {locale === "it" ? "Desideri" : "Wishlist"}
                 </Button>
               </>
             )}
