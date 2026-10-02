@@ -217,7 +217,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               </div>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 {it
-                  ? "Catalogo e valori sono consultabili da tutti. Crea un account per Collection, Wishlist, Scanner, messaggi e offerte tra collezionisti."
+                  ? "Catalogo e valori sono consultabili da tutti. Crea un account per Collezione, Desideri, Scanner, messaggi e offerte tra collezionisti."
                   : "Catalog and market values are open to everyone. Create an account for Collection, Wishlist, Scanner, messages and collector offers."}
               </p>
             </div>
@@ -339,7 +339,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               title={it ? "Scopri quanto vale oggi." : "See what it is worth today."}
               text={
                 it
-                  ? "Market Value, vendite concluse e ASK restano distinti. Così puoi capire meglio il valore della tua Release senza confondere un prezzo richiesto con uno realmente pagato."
+                  ? "Valore di mercato, vendite concluse e ASK restano distinti. Così puoi capire meglio il valore della tua Release senza confondere un prezzo richiesto con uno realmente pagato."
                   : "Market Value, completed sales and ASK remain distinct, so you can understand a Release without confusing an asking price with one actually paid."
               }
               tone="dark"
@@ -446,7 +446,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       <section className="bg-navy text-white">
         <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-16">
           <div className="flex flex-col justify-center">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/65">PRICE INTELLIGENCE</p>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/65">{it ? "ANALISI DI MERCATO" : "PRICE INTELLIGENCE"}</p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.96] tracking-[-0.06em] md:text-6xl">
               {marketDemo?.signal?.trendPercent != null
                 ? (it ? "Capisci quanto vale oggi. E come si sta muovendo." : "Understand what it is worth today. And how it is moving.")
@@ -484,7 +484,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               <CollectionPoint icon={Boxes} title={it ? "Release esatte" : "Exact Releases"} text={it ? "Sai quale versione possiedi davvero." : "Know exactly which version you own."} />
               <CollectionPoint icon={Copy} title={it ? "Più copie" : "Multiple copies"} text={it ? "Gestisci più esemplari della stessa Release." : "Manage multiple copies of the same Release."} />
               <CollectionPoint icon={TrendingUp} title={it ? "Valore stimato" : "Estimated value"} text={it ? "Vedi quanto vale oggi la raccolta." : "See what your collection is worth today."} />
-              <CollectionPoint icon={Heart} title="Wishlist" text={it ? "Tieni separato ciò che hai da ciò che stai cercando." : "Keep what you own separate from what you want."} />
+              <CollectionPoint icon={Heart} title={it ? "Desideri" : "Wishlist"} text={it ? "Tieni separato ciò che hai da ciò che stai cercando." : "Keep what you own separate from what you want."} />
             </div>
             <Link href="/login?next=%2Fcollection" className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">
               {it ? "Apri la tua collezione" : "Open your collection"} <ArrowRight className="size-4" />
@@ -498,7 +498,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-ink">{it ? "Dalla tua Release alla prossima." : "From your Release to the next one."}</p>
               </div>
               <div className="mt-4 grid gap-3">
-                <FlowStep number="01" icon={ShieldCheck} title={it ? "Scopri quanto vale" : "Discover what it is worth"} text={it ? "Apri la Release esatta e consulta Market Value, vendite e ASK disponibili." : "Open the exact Release and check available Market Value, sales and ASK."} />
+                <FlowStep number="01" icon={ShieldCheck} title={it ? "Scopri quanto vale" : "Discover what it is worth"} text={it ? "Apri la Release esatta e consulta valore di mercato, vendite e ASK disponibili." : "Open the exact Release and check available Market Value, sales and ASK."} />
                 <FlowStep number="02" icon={Boxes} title={it ? "Registra la tua collezione" : "Build your collection"} text={it ? "Aggiungi le Release che possiedi e tieni ogni copia collegata alla versione corretta." : "Add the Releases you own and keep every copy tied to the correct version."} />
                 <FlowStep number="03" icon={TrendingUp} title={it ? "Controlla il mercato" : "Watch the market"} text={it ? "Segui prezzi, disponibilità, vendite e trend per capire quando il mercato si muove." : "Follow prices, availability, sales and trends to see when the market moves."} />
                 <FlowStep number="04" icon={Handshake} title={it ? "Compra e vendi altre Release" : "Buy and sell other Releases"} text={it ? "Trova copie offerte da altri collezionisti oppure apri le tue alle offerte e tratta direttamente con loro." : "Find copies offered by other collectors or open yours to offers and negotiate directly with them."} />
@@ -703,7 +703,7 @@ function WatchCard({ entry, it, locale }: { entry: ReleaseEntry; it: boolean; lo
         <p className="mt-1 text-xs text-muted-foreground">{release.releaseYear ?? "—"} · {release.chassis ?? product.chassis ?? "—"}</p>
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Market Value</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it ? "Valore di mercato" : "Market Value"}</p>
             <p className="mt-0.5 text-lg font-semibold text-navy">{signal?.valueEUR != null ? formatMoney(signal.valueEUR) : (it ? "Dati in arrivo" : "Data coming soon")}</p>
           </div>
           {signal?.trendPercent != null ? (
@@ -792,7 +792,7 @@ function MarketPreview({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
           <ProductImage product={product} release={release} className="h-[220px] w-full border-0 bg-transparent object-contain" />
         </div>
         <div className="p-5 sm:p-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Market Value</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{it ? "Valore di mercato" : "Market Value"}</p>
           <div className="mt-2 flex items-end gap-3">
             <p className="text-4xl font-semibold tracking-[-0.06em] text-navy">{signal.valueEUR != null ? formatMoney(signal.valueEUR) : "—"}</p>
             {signal.trendPercent != null ? <span className="pb-1 text-sm font-semibold text-emerald-700">{trendText(signal, it)}</span> : null}
