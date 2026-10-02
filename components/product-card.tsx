@@ -11,6 +11,7 @@ import { ProductImage } from "@/components/catalog/product-image"
 import { CatalogComingSoonDialog } from "@/components/catalog/catalog-coming-soon-dialog"
 import { AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
+import { productPublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
 
 const COLLECTOR_EDITION_TYPES = new Set<EditionType>([
   "premium",
@@ -49,8 +50,8 @@ export function ProductCard({ product }: { product: Product }) {
   const owned = isInCollection(product.id)
   const wished = isInWishlist(product.id)
   const comingSoon = product.catalogLaunchStatus === "coming_soon"
-  const href = `/catalog/${product.id}`
-  const loginHref = `/login?next=${encodeURIComponent(href)}`
+  const href = productPublicPath(product)
+  const wishlistSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(href, "wishlist"))}`
 
   if (comingSoon) {
     return (
@@ -165,7 +166,7 @@ export function ProductCard({ product }: { product: Product }) {
               size="icon-sm"
               aria-label={it ? "Accedi per aggiungere ai desideri" : "Sign in to add to wishlist"}
               className="shrink-0 rounded-xl bg-white"
-              render={<Link href={loginHref} />}
+              render={<Link href={wishlistSignupHref} />}
             >
               <LockKeyhole />
             </Button>
