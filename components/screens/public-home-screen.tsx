@@ -187,24 +187,25 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
   return (
     <div className="overflow-hidden bg-background">
-      <section className="relative border-b border-line bg-[#f1f5f9]">
+      <section className="relative overflow-hidden border-b border-line bg-[#eef3f7]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_35%,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.42)_24%,rgba(238,243,247,0)_55%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand" />
-        <div className="mx-auto w-full max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-12 lg:pt-20">
-          <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-            <div className="max-w-3xl">
+        <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-10 lg:pt-14">
+          <div className="grid gap-8 lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:gap-2 xl:gap-0">
+            <div className="relative z-10 max-w-[46rem]">
               <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
                 {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
               </p>
-              <h1 className="mt-5 text-[clamp(3.2rem,13vw,5.6rem)] font-semibold leading-[.88] tracking-[-0.075em] text-ink lg:text-[clamp(4.7rem,6.6vw,6.25rem)]">
+              <h1 className="mt-5 text-[clamp(3.2rem,13vw,5.6rem)] font-semibold leading-[.88] tracking-[-0.075em] text-ink lg:max-w-[46rem] lg:text-[3.95rem] lg:leading-[.92] xl:text-[4.35rem]">
                 {it ? "Trova la versione esatta." : "Find the exact version."}
                 <span className="block text-brand">{it ? "Segui il suo valore." : "Track its value."}</span>
               </h1>
-              <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+              <p className="mt-6 max-w-[42rem] text-base leading-7 text-muted-foreground md:text-lg lg:mt-5">
                 {it
                   ? "Identifica la Release esatta, scopri quanto vale, registrala nella tua collezione, controlla il mercato e entra in contatto con altri collezionisti per comprare o vendere."
                   : "Identify the exact Release, discover what it is worth, add it to your collection, watch the market and connect with other collectors to buy or sell."}
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:mt-6">
                 <Link href={localizePublicPath("/catalog", locale)} className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
                   {it ? "Esplora il catalogo" : "Explore the catalog"} <ArrowRight className="size-4" />
                 </Link>
@@ -215,18 +216,19 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                   {it ? "Crea account gratuito" : "Create free account"}
                 </Link>
               </div>
-              <p className="mt-4 text-xs leading-5 text-muted-foreground">
+              <p className="mt-4 max-w-[43rem] text-xs leading-5 text-muted-foreground">
                 {it
                   ? "Catalogo e valori sono consultabili da tutti. Crea un account per Collezione, Desideri, Scanner, messaggi e offerte tra collezionisti."
                   : "Catalog and market values are open to everyone. Create an account for Collection, Wishlist, Scanner, messages and collector offers."}
               </p>
             </div>
 
-            <div className="relative flex min-h-[300px] items-center justify-center overflow-hidden bg-[#f1f5f9] sm:min-h-[390px] lg:min-h-[500px]">
+            <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[390px] lg:min-h-[390px] lg:justify-end lg:overflow-visible">
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-20 bg-gradient-to-r from-[#eef3f7] to-transparent lg:block" />
               <img
                 src="/trackdash-hero-mini4wd.webp"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
-                className="h-auto max-h-[500px] w-full object-contain mix-blend-multiply"
+                className="h-auto max-h-[500px] w-full object-contain mix-blend-multiply sm:max-h-[430px] lg:max-h-none lg:w-[124%] lg:max-w-none lg:translate-x-[6%] xl:w-[132%] xl:translate-x-[9%]"
                 width={800}
                 height={450}
                 loading="eager"
@@ -235,7 +237,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             </div>
           </div>
 
-          <div className="mt-10 border border-line bg-[#f8fafc] p-4 sm:p-5">
+          <div className="mt-8 border border-line bg-white/80 p-4 shadow-[0_12px_34px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-5 lg:mt-7">
             <div className="mb-3">
               <p className="text-sm font-semibold text-ink">{it ? "Trova subito la tua Mini 4WD" : "Find your Mini 4WD now"}</p>
               <p className="mt-1 text-xs text-muted-foreground">
