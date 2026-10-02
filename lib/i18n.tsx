@@ -464,9 +464,15 @@ function translate(locale: AppLocale, key: string, vars?: Vars) {
   return message
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
+export function I18nProvider({
+  children,
+  initialLocale = "en",
+}: {
+  children: React.ReactNode
+  initialLocale?: AppLocale
+}) {
   const { user } = useStore()
-  const [locale, setLocaleState] = React.useState<AppLocale>("en")
+  const [locale, setLocaleState] = React.useState<AppLocale>(initialLocale)
 
   const setLocale = React.useCallback((next: AppLocale) => {
     setLocaleState(next)

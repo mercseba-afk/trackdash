@@ -96,7 +96,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <StoreProvider>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
-              <I18nProvider>
+              <I18nProvider initialLocale={initialLocale}>
                 <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
                   <TooltipProvider>{children}</TooltipProvider>
                   <PageViewTracker />

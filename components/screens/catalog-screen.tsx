@@ -311,8 +311,8 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
 
             return (
               <div key={p.id} className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3 shadow-[0_6px_20px_rgba(15,23,42,0.03)] transition-colors hover:border-brand/25 sm:gap-4 sm:p-3.5">
-                <Link href={productPublicPath(p)} className="overflow-hidden rounded-xl border border-border/50 bg-muted/20"><ProductImage product={p} size="sm" className="h-16 w-20 shrink-0 sm:h-20 sm:w-28" /></Link>
-                <Link href={productPublicPath(p)} className="min-w-0 flex-1">
+                <Link href={productPublicPath(p, locale)} className="overflow-hidden rounded-xl border border-border/50 bg-muted/20"><ProductImage product={p} size="sm" className="h-16 w-20 shrink-0 sm:h-20 sm:w-28" /></Link>
+                <Link href={productPublicPath(p, locale)} className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">{p.series}</p>
                   <div className="mt-0.5 flex flex-wrap items-start gap-1.5 sm:gap-2">
                     <p className="line-clamp-2 text-sm font-semibold leading-tight text-foreground transition-colors group-hover:text-brand sm:text-base">{p.name}</p>

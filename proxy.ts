@@ -7,6 +7,8 @@ import { updateSession } from "@/lib/supabase/proxy"
 const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/", "/privacy", "/terms"]
 const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/hotwheels"]
+const PUBLIC_LOCALE_COOKIE = "trackdash.locale"
+const PUBLIC_LOCALE_MAX_AGE = 60 * 60 * 24 * 365
 
 // Server-to-server, bootstrap, diagnostics and crawler discovery routes authenticate/guard
 // themselves where required and must not depend on a browser Supabase session.
@@ -32,6 +34,22 @@ function matchesPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`)
 }
 
+function publicSeoLocale(pathname: string): "it" | "en" | null {
+  if (
+    pathname === "/en" ||
+    matchesPrefix(pathname, "/en/catalog") ||
+    matchesPrefix(pathname, "/en/market")
+  ) return "en"
+
+  if (
+    pathname === "/" ||
+    matchesPrefix(pathname, "/catalog") ||
+    matchesPrefix(pathname, "/market")
+  ) return "it"
+
+  return null
+}
+
 function safeInternalNext(value: string | null): string | null {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return null
   if (SIGNED_OUT_AUTH_PATHS.some((path) => matchesPrefix(value.split("?", 1)[0], path))) return null
@@ -39,11 +57,25 @@ function safeInternalNext(value: string | null): string | null {
 }
 
 export async function proxy(request: NextRequest) {
-  const { response, user, aal } = await updateSession(request)
   const { pathname, search } = request.nextUrl
+  const routeLocale = publicSeoLocale(pathname)
+
+  // Public SEO routes bind locale to the URL before Server Components render.
+  // This makes SSR HTML, <html lang> and client hydration agree on first paint.
+  if (routeLocale) request.cookies.set(PUBLIC_LOCALE_COOKIE, routeLocale)
+
+  const { response, user, aal } = await updateSession(request)
+  if (routeLocale) {
+    response.cookies.set(PUBLIC_LOCALE_COOKIE, routeLocale, {
+      path: "/",
+      maxAge: PUBLIC_LOCALE_MAX_AGE,
+      sameSite: "lax",
+    })
+  }
 
   const isAuthPath = SIGNED_OUT_AUTH_PATHS.includes(pathname)
   const isPublicContent =
+    routeLocale !== null ||
     PUBLIC_CONTENT_PATHS.includes(pathname) ||
     PUBLIC_CONTENT_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix))
   const isUngated = UNGATED_PREFIXES.some((prefix) => pathname.startsWith(prefix))

@@ -1,36 +1,42 @@
 import type { Metadata } from "next"
+import { cookies } from "next/headers"
 import { PublicShell } from "@/components/public-shell"
 import { CatalogAreaNav } from "@/components/catalog-area-nav"
 import { CatalogScreen } from "@/components/screens/catalog-screen"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import type { Product } from "@/lib/types"
+import { publicAbsoluteUrl, publicLanguageAlternates, type PublicLocale } from "@/lib/seo/catalog-paths"
 
 export const revalidate = 45
 
-const title = "Tamiya Mini 4WD Catalog — Models & Releases | TrackDash"
-const description = "Explore Tamiya Mini 4WD models and exact Releases by Item Number, year, chassis and edition, with market values where data is available."
+async function requestLocale(): Promise<PublicLocale> {
+  const cookieStore = await cookies()
+  return cookieStore.get("trackdash.locale")?.value === "en" ? "en" : "it"
+}
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: "https://trackdash.it/catalog" },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
-  },
-  openGraph: {
-    type: "website",
-    url: "https://trackdash.it/catalog",
-    siteName: "TrackDash",
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await requestLocale()
+  const it = locale === "it"
+  const title = it
+    ? "Catalogo Tamiya Mini 4WD — Modelli e Release | TrackDash"
+    : "Tamiya Mini 4WD Catalog — Models & Releases | TrackDash"
+  const description = it
+    ? "Esplora modelli Tamiya Mini 4WD e Release esatte per Item Number, anno, chassis ed edizione, con valori di mercato quando disponibili."
+    : "Explore Tamiya Mini 4WD models and exact Releases by Item Number, year, chassis and edition, with market values where data is available."
+  const canonical = publicAbsoluteUrl("/catalog", locale)
+
+  return {
     title,
     description,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title,
-    description,
-  },
+    alternates: { canonical, languages: publicLanguageAlternates("/catalog") },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+    },
+    openGraph: { type: "website", url: canonical, siteName: "TrackDash", title, description },
+    twitter: { card: "summary_large_image", title, description },
+  }
 }
 
 export default async function CatalogPage({

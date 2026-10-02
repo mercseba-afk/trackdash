@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
+import { releaseTypeLabel } from "@/lib/i18n/catalog-labels"
 import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { Product, ProductRelease } from "@/lib/types"
 
@@ -36,7 +37,7 @@ export function ReleaseFamilyLinks({
               : "Compare originals, reissues and special editions without mixing different years or Item Numbers."}
           </p>
         </div>
-        <Link href={productPublicPath(product)} className="text-sm font-semibold text-brand hover:underline">
+        <Link href={productPublicPath(product, locale)} className="text-sm font-semibold text-brand hover:underline">
           {it ? `Vedi il modello ${product.name}` : `View ${product.name} model`} →
         </Link>
       </div>
@@ -45,7 +46,7 @@ export function ReleaseFamilyLinks({
         {releases.map((release) => (
           <Link
             key={release.id}
-            href={releasePublicPath(product, release)}
+            href={releasePublicPath(product, release, locale)}
             className="group rounded-2xl border border-border/70 bg-muted/15 p-3.5 transition-colors hover:border-brand/30 hover:bg-brand/5"
           >
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">
@@ -55,7 +56,7 @@ export function ReleaseFamilyLinks({
               {release.editionName}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              {[release.releaseYear, release.chassis, release.releaseType].filter(Boolean).join(" · ")}
+              {[release.releaseYear, release.chassis, releaseTypeLabel(release.releaseType, it)].filter(Boolean).join(" · ")}
             </p>
           </Link>
         ))}

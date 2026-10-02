@@ -21,7 +21,7 @@ import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
 import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
 import type { Product, ProductRelease } from "@/lib/types"
-import { releasePublicPath } from "@/lib/seo/catalog-paths"
+import { localizePublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
@@ -41,7 +41,8 @@ export function MarketScreen({ products }: { products: Product[] }) {
   const { user } = useStore()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
-  const liveLoginHref = `/login?next=${encodeURIComponent("/market#live-market")}`
+  const marketPath = localizePublicPath("/market", locale)
+  const liveLoginHref = `/login?next=${encodeURIComponent(`${marketPath}#live-market`)}`
 
   const rows = React.useMemo<Row[]>(() => products.flatMap((product) =>
     product.releases.flatMap((release) => {
@@ -141,7 +142,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
                   <LockKeyhole className="size-4" /> {it ? "Accedi alla panoramica mercato" : "Sign in for market overview"} <ArrowRight className="size-4" />
                 </Link>
               )}
-              <Link href="/catalog" className="inline-flex h-11 items-center rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
+              <Link href={localizePublicPath("/catalog", locale)} className="inline-flex h-11 items-center rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
                 {copy.catalog}
               </Link>
             </div>
@@ -306,7 +307,7 @@ function MarketListCard({ title, rows, forming = false }: { title: string; rows:
 
 function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
   const { locale } = useI18n(); const it = locale === "it"
-  const href = releasePublicPath(row.product, row.release)
+  const href = releasePublicPath(row.product, row.release, locale)
   const observedPrice = observedMarketDisplayPrice(row.signal)
   const observedKind = observedMarketDisplayKind(row.signal)
   const trend = collectorMarketTrend(row.signal)

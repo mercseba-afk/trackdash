@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react"
 import type { MarketEstimate, Rarity } from "@/lib/types"
+import { rarityLabel } from "@/lib/i18n/catalog-labels"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { useI18n } from "@/lib/i18n"
 import { hasReliableObservedPriceTrend, observedMarketAskLabel, observedMarketPrice } from "@/lib/market/presentation"
@@ -10,18 +11,6 @@ import { cn } from "@/lib/utils"
 import { RARITY_STYLE, formatMoney, formatPercent } from "@/lib/format"
 
 const STABLE_TREND_THRESHOLD_PERCENT = 1
-
-function rarityLabel(rarity: Rarity, it: boolean): string {
-  if (!it) return rarity
-  const labels: Record<Rarity, string> = {
-    Common: "Comune",
-    Uncommon: "Non comune",
-    Rare: "Raro",
-    "Very Rare": "Molto raro",
-    Grail: "Grail",
-  }
-  return labels[rarity]
-}
 
 export function RarityBadge({ rarity, className }: { rarity: Rarity; className?: string }) {
   const { locale } = useI18n()

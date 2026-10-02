@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound, permanentRedirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { cache } from "react"
 import { PublicShell } from "@/components/public-shell"
 import { ReleaseFamilyLinks } from "@/components/release-family-links"
@@ -11,10 +12,13 @@ import { getPublicOpenOffersForRelease } from "@/lib/db/queries/public-sharing"
 import { resolveReleaseImageUrl } from "@/lib/images/resolve"
 import {
   productPublicPath,
+  publicLanguageAlternates,
   releasePublicPath,
   releasePublicSlug,
+  type PublicLocale,
 } from "@/lib/seo/catalog-paths"
 import type { Product, ProductRelease } from "@/lib/types"
+import { releaseTypeLabel } from "@/lib/i18n/catalog-labels"
 
 export const revalidate = 45
 
@@ -22,6 +26,11 @@ const SITE_URL = "https://trackdash.it"
 const getProduct = cache(fetchCatalogProductByRouteKey)
 
 type ReleasePageParams = Promise<{ id: string; releaseId: string }>
+
+async function requestLocale(): Promise<PublicLocale> {
+  const cookieStore = await cookies()
+  return cookieStore.get("trackdash.locale")?.value === "en" ? "en" : "it"
+}
 
 function releaseIdentity(product: Product, release: ProductRelease) {
   const editionIncludesProduct = release.editionName.toLowerCase().includes(product.name.toLowerCase())
@@ -34,15 +43,18 @@ function releaseIdentity(product: Product, release: ProductRelease) {
   return `Tamiya${itemNumber} ${edition}${year}`.replace(/\s+/g, " ").trim()
 }
 
-function releaseDescription(product: Product, release: ProductRelease) {
+function releaseDescription(product: Product, release: ProductRelease, locale: PublicLocale) {
+  const it = locale === "it"
   const details = [
     release.releaseYear ? String(release.releaseYear) : null,
-    release.chassis ? `${release.chassis} chassis` : null,
-    release.releaseType,
+    release.chassis ? (it ? `chassis ${release.chassis}` : `${release.chassis} chassis`) : null,
+    release.releaseType ? releaseTypeLabel(release.releaseType, it) : null,
   ].filter(Boolean)
 
   const detailText = details.length > 0 ? ` ${details.join(" · ")}.` : ""
-  return `${releaseIdentity(product, release)} — exact Tamiya Mini 4WD release.${detailText} Market Value, completed sales, active asking prices, collector availability and release details on TrackDash.`
+  return it
+    ? `${releaseIdentity(product, release)} — Release Tamiya Mini 4WD esatta.${detailText} Market Value, vendite concluse, ASK attivi, disponibilità tra collezionisti e dettagli della Release su TrackDash.`
+    : `${releaseIdentity(product, release)} — exact Tamiya Mini 4WD release.${detailText} Market Value, completed sales, active asking prices, collector availability and release details on TrackDash.`
 }
 
 function absoluteImage(url?: string) {
@@ -62,20 +74,29 @@ function resolveRelease(product: Product, routeKey: string) {
 
 export async function generateMetadata({ params }: { params: ReleasePageParams }): Promise<Metadata> {
   const { id, releaseId } = await params
+  const locale = await requestLocale()
+  const it = locale === "it"
   const product = await getProduct(id).catch(() => null)
 
   if (!product) {
     return {
-      title: "Release not found | TrackDash",
+      title: it ? "Release non trovata | TrackDash" : "Release not found | TrackDash",
       robots: { index: false, follow: false },
     }
   }
 
   if (product.catalogLaunchStatus === "coming_soon") {
     return {
-      title: `Tamiya ${product.name} Mini 4WD — Coming Soon | TrackDash`,
-      description: `${product.name} is being verified for the TrackDash catalog. Exact release details are coming soon.`,
-      alternates: { canonical: `${SITE_URL}${productPublicPath(product)}` },
+      title: it
+        ? `Tamiya ${product.name} Mini 4WD — In arrivo | TrackDash`
+        : `Tamiya ${product.name} Mini 4WD — Coming Soon | TrackDash`,
+      description: it
+        ? `${product.name} è in fase di verifica per il catalogo TrackDash. I dettagli delle Release saranno pubblicati appena verificati.`
+        : `${product.name} is being verified for the TrackDash catalog. Exact release details are coming soon.`,
+      alternates: {
+        canonical: `${SITE_URL}${productPublicPath(product, locale)}`,
+        languages: publicLanguageAlternates(productPublicPath(product, "it")),
+      },
       robots: { index: false, follow: true },
     }
   }
@@ -83,21 +104,24 @@ export async function generateMetadata({ params }: { params: ReleasePageParams }
   const release = resolveRelease(product, releaseId)
   if (!release) {
     return {
-      title: "Release not found | TrackDash",
+      title: it ? "Release non trovata | TrackDash" : "Release not found | TrackDash",
       robots: { index: false, follow: false },
     }
   }
 
-  const canonicalPath = releasePublicPath(product, release)
+  const canonicalPath = releasePublicPath(product, release, locale)
   const canonicalUrl = `${SITE_URL}${canonicalPath}`
-  const title = `${releaseIdentity(product, release)} | Mini 4WD Release | TrackDash`
-  const description = releaseDescription(product, release)
+  const basePath = releasePublicPath(product, release, "it")
+  const title = it
+    ? `${releaseIdentity(product, release)} | Release Mini 4WD | TrackDash`
+    : `${releaseIdentity(product, release)} | Mini 4WD Release | TrackDash`
+  const description = releaseDescription(product, release, locale)
   const image = absoluteImage(resolveReleaseImageUrl(release, product) ?? undefined)
 
   return {
     title,
     description,
-    alternates: { canonical: canonicalUrl },
+    alternates: { canonical: canonicalUrl, languages: publicLanguageAlternates(basePath) },
     robots: {
       index: true,
       follow: true,
@@ -128,6 +152,8 @@ export async function generateMetadata({ params }: { params: ReleasePageParams }
 
 export default async function ReleasePage({ params }: { params: ReleasePageParams }) {
   const { id, releaseId } = await params
+  const locale = await requestLocale()
+  const it = locale === "it"
 
   const product = await getProduct(id).catch((error) => {
     console.error("Failed to load product for release detail:", error)
@@ -136,8 +162,9 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
   if (!product) return notFound()
 
   if (product.catalogLaunchStatus === "coming_soon") {
-    const canonicalFamilyPath = productPublicPath(product)
-    if (`/catalog/${id}` !== canonicalFamilyPath) permanentRedirect(canonicalFamilyPath)
+    const canonicalFamilyPath = productPublicPath(product, locale)
+    const requestedFamilyPath = locale === "en" ? `/en/catalog/${id}` : `/catalog/${id}`
+    if (requestedFamilyPath !== canonicalFamilyPath) permanentRedirect(canonicalFamilyPath)
 
     return (
       <PublicShell>
@@ -151,8 +178,11 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
   const release = resolveRelease(product, releaseId)
   if (!release) return notFound()
 
-  const canonicalPath = releasePublicPath(product, release)
-  if (`/catalog/${id}/releases/${releaseId}` !== canonicalPath) permanentRedirect(canonicalPath)
+  const canonicalPath = releasePublicPath(product, release, locale)
+  const requestedPath = locale === "en"
+    ? `/en/catalog/${id}/releases/${releaseId}`
+    : `/catalog/${id}/releases/${releaseId}`
+  if (requestedPath !== canonicalPath) permanentRedirect(canonicalPath)
 
   const [localizedCopy, collectorOffers] = await Promise.all([
     getCatalogLocalizedCopy(product.id).catch((error) => {
@@ -178,7 +208,7 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
         "@type": "Product",
         "@id": `${canonicalUrl}#product`,
         name: release.editionName,
-        description: releaseDescription(product, release),
+        description: releaseDescription(product, release, locale),
         url: canonicalUrl,
         ...(image ? { image: [image] } : {}),
         brand: { "@type": "Brand", name: "Tamiya" },
@@ -186,10 +216,10 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
         ...(release.itemNumber ? { sku: release.itemNumber, mpn: release.itemNumber } : {}),
         model: product.name,
         additionalProperty: [
-          ...(release.releaseYear ? [{ "@type": "PropertyValue", name: "Release year", value: String(release.releaseYear) }] : []),
+          ...(release.releaseYear ? [{ "@type": "PropertyValue", name: it ? "Anno di uscita" : "Release year", value: String(release.releaseYear) }] : []),
           ...(release.chassis ? [{ "@type": "PropertyValue", name: "Chassis", value: release.chassis }] : []),
-          { "@type": "PropertyValue", name: "Release type", value: release.releaseType },
-          { "@type": "PropertyValue", name: "Edition", value: release.editionName },
+          { "@type": "PropertyValue", name: it ? "Tipo di Release" : "Release type", value: release.releaseType },
+          { "@type": "PropertyValue", name: it ? "Edizione" : "Edition", value: release.editionName },
         ],
       },
       {
@@ -197,8 +227,8 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
         "@id": `${canonicalUrl}#breadcrumb`,
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "TrackDash", item: SITE_URL },
-          { "@type": "ListItem", position: 2, name: "Catalog", item: `${SITE_URL}/catalog` },
-          { "@type": "ListItem", position: 3, name: product.name, item: `${SITE_URL}${productPublicPath(product)}` },
+          { "@type": "ListItem", position: 2, name: it ? "Catalogo" : "Catalog", item: `${SITE_URL}${locale === "en" ? "/en/catalog" : "/catalog"}` },
+          { "@type": "ListItem", position: 3, name: product.name, item: `${SITE_URL}${productPublicPath(product, locale)}` },
           { "@type": "ListItem", position: 4, name: release.editionName, item: canonicalUrl },
         ],
       },

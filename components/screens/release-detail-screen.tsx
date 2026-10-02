@@ -13,6 +13,14 @@ import { Button } from "@/components/ui/button"
 import { conditionUsesNewUnbuiltReference } from "@/lib/analytics"
 import { formatDate, formatMoney, formatPercent } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
+import {
+  colorLabel,
+  conditionLabel,
+  countryMarketLabel,
+  rarityLabel,
+  releaseDescriptionForLocale,
+  releaseTypeLabel,
+} from "@/lib/i18n/catalog-labels"
 import { useReleaseMarketSignal } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { useStore } from "@/lib/store"
@@ -48,11 +56,9 @@ export function ReleaseDetailScreen({
   const marketSignal = useReleaseMarketSignal(release.id)
   const mine = collection.filter((item) => item.productId === product.id && item.releaseId === release.id)
   const hasExactImage = (release.images?.length ?? 0) > 0
-  const publicDescription = it
-    ? localizedDescription?.it ?? localizedDescription?.en ?? product.description
-    : localizedDescription?.en ?? product.description
-  const releasePath = releasePublicPath(product, release)
-  const productPath = productPublicPath(product)
+  const publicDescription = releaseDescriptionForLocale(product, release, localizedDescription, it)
+  const releasePath = releasePublicPath(product, release, locale)
+  const productPath = productPublicPath(product, locale)
   const intent = searchParams.get("intent")
   const openCollectionFromIntent = Boolean(user && intent === "collection")
   const openWishlistFromIntent = Boolean(user && intent === "wishlist")
@@ -152,12 +158,12 @@ export function ReleaseDetailScreen({
           <Spec label={it ? "Data di uscita" : "Release date"} value={release.releaseDate ? formatDate(release.releaseDate) : release.releaseYear ? String(release.releaseYear) : "—"} />
           <Spec label="Chassis" value={release.chassis ?? "—"} />
           <Spec label={it ? "Colore" : "Color"} value={colorLabel(release.color, it)} />
-          <Spec label={it ? "Mercato" : "Market"} value={marketLabel(release.countryMarket, it)} />
+          <Spec label={it ? "Mercato" : "Market"} value={countryMarketLabel(release.countryMarket, it)} />
           <Spec label={it ? "Tipo edizione" : "Edition type"} value={editionTypeLabel(release.editionType, it)} />
           <Spec label={it ? "Produzione" : "Production"} value={productionStatusLabel(release.productionStatus, it)} />
           <Spec label="JAN barcode" value={release.barcodeJAN ?? "—"} />
           <Spec label="MSRP" value={formatReleaseMsrp(release)} />
-          <Spec label={it ? "Rarità" : "Rarity"} value={release.rarity ?? "—"} />
+          <Spec label={it ? "Rarità" : "Rarity"} value={release.rarity ? rarityLabel(release.rarity, it) : "—"} />
         </div>
       </section>
     </div>
@@ -247,18 +253,6 @@ function OwnedCopiesCard({
   )
 }
 
-function conditionLabel(value: Condition, it: boolean) {
-  if (!it) return value
-  const labels: Record<Condition, string> = {
-    Sealed: "Sigillato",
-    "New / Opened": "Nuovo / Aperto",
-    Built: "Montato",
-    Used: "Usato",
-    Incomplete: "Incompleto",
-  }
-  return labels[value]
-}
-
 function ProductionBadge({ status, it }: { status: ProductRelease["productionStatus"]; it: boolean }) {
   if (status === "unknown") return null
   if (status === "discontinued") return <Badge variant="secondary">{it ? "Fuori produzione" : "Discontinued"}</Badge>
@@ -268,24 +262,6 @@ function ProductionBadge({ status, it }: { status: ProductRelease["productionSta
 
 function Spec({ label, value }: { label: string; value: string }) {
   return <div className="flex flex-col gap-1"><span className="text-xs text-[#7a8aa0]">{label}</span><span className="font-medium text-[#1b2f4d]">{value}</span></div>
-}
-
-function releaseTypeLabel(value: ProductRelease["releaseType"], it: boolean): string {
-  if (!it) return value
-  const labels: Record<ProductRelease["releaseType"], string> = {
-    Original: "Originale",
-    Reissue: "Riedizione",
-    "Special Edition": "Edizione speciale",
-    "Limited Edition": "Edizione limitata",
-    "Anniversary Edition": "Edizione anniversario",
-    "Japan Cup Edition": "Edizione Japan Cup",
-    "Color Special": "Edizione colore speciale",
-    "Clear Body": "Carrozzeria trasparente",
-    Premium: "Premium",
-    "Chassis Variant": "Variante chassis",
-    Other: "Altro",
-  }
-  return labels[value]
 }
 
 function editionTypeLabel(value: ProductRelease["editionType"], it: boolean): string {
@@ -309,40 +285,6 @@ function productionStatusLabel(value: ProductRelease["productionStatus"], it: bo
     ? { announced: "Annunciata", active: "In produzione", discontinued: "Fuori produzione", unknown: "Da verificare" }
     : { announced: "Announced", active: "In production", discontinued: "Discontinued", unknown: "Status to verify" }
   return labels[value]
-}
-
-function colorLabel(value: string | undefined, it: boolean): string {
-  if (!value) return "—"
-  if (!it) return value
-  const labels: Record<string, string> = {
-    Black: "Nero",
-    White: "Bianco",
-    Red: "Rosso",
-    Blue: "Blu",
-    Yellow: "Giallo",
-    Green: "Verde",
-    Purple: "Viola",
-    Orange: "Arancione",
-    Pink: "Rosa",
-    Silver: "Argento",
-    Gold: "Oro",
-    Clear: "Trasparente",
-    "Smoke Black": "Nero smoke",
-    "Silver Plated": "Cromato argento",
-  }
-  return labels[value] ?? value
-}
-
-function marketLabel(value: string | undefined, it: boolean): string {
-  if (!value) return "—"
-  if (!it) return value
-  const labels: Record<string, string> = {
-    Japan: "Giappone",
-    Europe: "Europa",
-    Global: "Globale",
-    USA: "USA",
-  }
-  return labels[value] ?? value
 }
 
 function humanize(value: string): string {

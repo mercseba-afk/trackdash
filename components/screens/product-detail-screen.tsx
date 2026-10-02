@@ -8,6 +8,7 @@ import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
+import { conditionLabel, productDescriptionForLocale } from "@/lib/i18n/catalog-labels"
 import { useMarketSignals } from "@/lib/market/context"
 import { conditionUsesNewUnbuiltReference, enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatMoney, formatDate } from "@/lib/format"
@@ -22,7 +23,7 @@ import { RarityBadge } from "@/components/market-bits"
 import { MarketSignalInline } from "@/components/market-signal-inline"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
-import { productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
+import { localizePublicPath, productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
 
 type CommunityCount = { collectors: number; openToOffers: number }
 
@@ -47,8 +48,8 @@ export function ProductDetailScreen({
   const owned = enrichCollection(collection, marketSignals)
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
-  const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
-  const productPath = productPublicPath(product)
+  const publicDescription = productDescriptionForLocale(product, descriptionIt, locale === "it")
+  const productPath = productPublicPath(product, locale)
   const intent = searchParams.get("intent")
   const openCollectionFromIntent = Boolean(user && intent === "collection")
   const openWishlistFromIntent = Boolean(user && intent === "wishlist")
@@ -75,7 +76,7 @@ export function ProductDetailScreen({
 
   return (
     <div className="flex flex-col gap-6">
-      <Button variant="ghost" size="sm" render={<Link href="/catalog" />} className="-ml-2 w-fit text-muted-foreground">
+      <Button variant="ghost" size="sm" render={<Link href={localizePublicPath("/catalog", locale)} />} className="-ml-2 w-fit text-muted-foreground">
         <ArrowLeft data-icon="inline-start" /> {t("product.back")}
       </Button>
 
@@ -154,7 +155,7 @@ export function ProductDetailScreen({
           <CardContent className="flex flex-col gap-2">
             {mine.map((entry) => (
               <div key={entry.item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{entry.item.condition} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(entry.item.acquisitionDate)}</p></div></div>
+                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{conditionLabel(entry.item.condition, locale === "it")} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(entry.item.acquisitionDate)}</p></div></div>
                 <CollectionMarketValue entry={entry} it={locale === "it"} />
               </div>
             ))}
@@ -200,7 +201,7 @@ function ReleaseRow({
 }) {
   const { locale, t } = useI18n()
   const marketSignal = marketSignals[release.id] ?? null
-  const releaseHref = releasePublicPath(product, release)
+  const releaseHref = releasePublicPath(product, release, locale)
   const collectorsHref = `${releaseHref}#collectors`
   const collectionSignupHref = `/signup?next=${encodeURIComponent(withCollectionIntent(releaseHref, "collection"))}`
   const owned = ownedCount > 0
