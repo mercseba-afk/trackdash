@@ -127,7 +127,7 @@ export function ReleaseDetailScreen({
                   <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
                 </AddToCollectionDialog>
                 <AddToWishlistDialog product={product} defaultReleaseId={release.id} defaultOpen={openWishlistFromIntent}>
-                  <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> Wishlist</Button>
+                  <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> {it ? "Desideri" : "Wishlist"}</Button>
                 </AddToWishlistDialog>
               </>
             ) : (
@@ -136,7 +136,7 @@ export function ReleaseDetailScreen({
                   <LockKeyhole className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}
                 </Button>
                 <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
-                  <Heart className="size-4" /> Wishlist
+                  <Heart className="size-4" /> {it ? "Desideri" : "Wishlist"}
                 </Button>
               </>
             )}
@@ -161,8 +161,8 @@ export function ReleaseDetailScreen({
           <Spec label={it ? "Mercato" : "Market"} value={countryMarketLabel(release.countryMarket, it)} />
           <Spec label={it ? "Tipo edizione" : "Edition type"} value={editionTypeLabel(release.editionType, it)} />
           <Spec label={it ? "Produzione" : "Production"} value={productionStatusLabel(release.productionStatus, it)} />
-          <Spec label="JAN barcode" value={release.barcodeJAN ?? "—"} />
-          <Spec label="MSRP" value={formatReleaseMsrp(release)} />
+          <Spec label={it ? "Codice JAN" : "JAN barcode"} value={release.barcodeJAN ?? "—"} />
+          <Spec label={it ? "Prezzo di listino" : "MSRP"} value={formatReleaseMsrp(release)} />
           <Spec label={it ? "Rarità" : "Rarity"} value={release.rarity ? rarityLabel(release.rarity, it) : "—"} />
         </div>
       </section>
