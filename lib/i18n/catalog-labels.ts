@@ -152,22 +152,22 @@ function replaceCommonItalianTerms(value: string): string {
     .replace(/\bNavy Blue\b/gi, "blu navy")
     .replace(/\bDark Blue\b/gi, "blu scuro")
     .replace(/\bGun Metal\b/gi, "canna di fucile")
-    .replace(/\bBlack\b/g, "nero")
-    .replace(/\bWhite\b/g, "bianco")
-    .replace(/\bRed\b/g, "rosso")
-    .replace(/\bBlue\b/g, "blu")
-    .replace(/\bGreen\b/g, "verde")
-    .replace(/\bPurple\b/g, "viola")
-    .replace(/\bOrange\b/g, "arancione")
-    .replace(/\bPink\b/g, "rosa")
-    .replace(/\bSilver\b/g, "argento")
-    .replace(/\bGold\b/g, "oro")
-    .replace(/\bGray\b/g, "grigio")
-    .replace(/\bClear\b/g, "trasparente")
-    .replace(/\bSmoke\b/g, "fumé")
-    .replace(/\bPearl\b/g, "perlato")
-    .replace(/\bMetallic\b/g, "metallizzato")
-    .replace(/\bPlated\b/g, "placcato")
+    .replace(/\bBlack\b/gi, "nero")
+    .replace(/\bWhite\b/gi, "bianco")
+    .replace(/\bRed\b/gi, "rosso")
+    .replace(/\bBlue\b/gi, "blu")
+    .replace(/\bGreen\b/gi, "verde")
+    .replace(/\bPurple\b/gi, "viola")
+    .replace(/\bOrange\b/gi, "arancione")
+    .replace(/\bPink\b/gi, "rosa")
+    .replace(/\bSilver\b/gi, "argento")
+    .replace(/\bGold\b/gi, "oro")
+    .replace(/\bGray\b/gi, "grigio")
+    .replace(/\bClear\b/gi, "trasparente")
+    .replace(/\bSmoke\b/gi, "fumé")
+    .replace(/\bPearl\b/gi, "perlato")
+    .replace(/\bMetallic\b/gi, "metallizzato")
+    .replace(/\bPlated\b/gi, "placcato")
     .replace(/\breinforced\b/gi, "rinforzato")
     .replace(/\blarge-diameter\b/gi, "di grande diametro")
     .replace(/\blarge\b/gi, "grandi")
@@ -234,16 +234,16 @@ function translateColorSegment(segment: string): string {
     return `Pilota ${replaceCommonItalianTerms(value.replace(/ driver$/i, ""))}`
   }
 
+  const polyBody = value.match(/^(.+?) polycarbonate body$/i)
+  if (polyBody) {
+    return `Carrozzeria in policarbonato ${feminineDescriptor(replaceCommonItalianTerms(polyBody[1]))}`
+  }
+
   const body = value.match(/^(.+?) body$/i)
   if (body) {
     const descriptor = body[1].trim()
     const exact = BODY_ADJECTIVES[descriptor.toLowerCase()]
     return `Carrozzeria ${exact ?? feminineDescriptor(replaceCommonItalianTerms(descriptor))}`
-  }
-
-  const polyBody = value.match(/^(.+?) polycarbonate body$/i)
-  if (polyBody) {
-    return `Carrozzeria in policarbonato ${feminineDescriptor(replaceCommonItalianTerms(polyBody[1]))}`
   }
 
   const wheels = value.match(/^(.+?) wheels$/i)
@@ -361,4 +361,9 @@ export function normalizeItalianEditorialText(value: string): string {
     .replace(/\bBlue Plated\b/g, "blu placcata")
     .replace(/\bBlack Metallic\b/g, "nero metallizzato")
     .replace(/\bPink Metallic\b/g, "rosa metallizzato")
+    .replace(/\bpremio amusement\b/gi, "premio arcade")
+    .replace(/\blimited\b/gi, "limitata")
+    .replace(/\bwave produttive\b/gi, "serie produttive")
+    .replace(/\bwave\b/gi, "serie produttiva")
+    .replace(/\bredesign\b/gi, "reinterpretazione")
 }
