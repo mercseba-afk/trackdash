@@ -1,6 +1,8 @@
 "use client"
 
+import { usePathname, useRouter } from "next/navigation"
 import { useI18n, type AppLocale } from "@/lib/i18n"
+import { localizePublicPath } from "@/lib/seo/catalog-paths"
 import { cn } from "@/lib/utils"
 
 export function LanguageSwitch({
@@ -10,10 +12,33 @@ export function LanguageSwitch({
   compact?: boolean
 }) {
   const { locale, setLocale } = useI18n()
+  const pathname = usePathname()
+  const router = useRouter()
   const label = locale === "it" ? "Cambia lingua" : "Change language"
 
   const selectLocale = (next: AppLocale) => {
-    if (next !== locale) setLocale(next)
+    if (next === locale) return
+
+    const currentPath = pathname || "/"
+    const isPublicSeoRoute =
+      currentPath === "/" ||
+      currentPath === "/en" ||
+      currentPath === "/catalog" ||
+      currentPath.startsWith("/catalog/") ||
+      currentPath === "/en/catalog" ||
+      currentPath.startsWith("/en/catalog/") ||
+      currentPath === "/market" ||
+      currentPath.startsWith("/market/") ||
+      currentPath === "/en/market" ||
+      currentPath.startsWith("/en/market/")
+
+    setLocale(next)
+
+    if (isPublicSeoRoute) {
+      const nextPath = localizePublicPath(currentPath, next)
+      const suffix = typeof window === "undefined" ? "" : `${window.location.search}${window.location.hash}`
+      router.push(`${nextPath}${suffix}`)
+    }
   }
 
   return (
