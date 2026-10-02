@@ -8,6 +8,7 @@ import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
+import { conditionLabel, productDescriptionForLocale } from "@/lib/i18n/catalog-labels"
 import { useMarketSignals } from "@/lib/market/context"
 import { conditionUsesNewUnbuiltReference, enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatMoney, formatDate } from "@/lib/format"
@@ -47,7 +48,7 @@ export function ProductDetailScreen({
   const owned = enrichCollection(collection, marketSignals)
   const mine = itemsForProduct(owned, product.id)
   const wished = isInWishlist(product.id)
-  const publicDescription = locale === "it" && descriptionIt ? descriptionIt : product.description
+  const publicDescription = productDescriptionForLocale(product, descriptionIt, locale === "it")
   const productPath = productPublicPath(product, locale)
   const intent = searchParams.get("intent")
   const openCollectionFromIntent = Boolean(user && intent === "collection")
@@ -154,7 +155,7 @@ export function ProductDetailScreen({
           <CardContent className="flex flex-col gap-2">
             {mine.map((entry) => (
               <div key={entry.item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{entry.item.condition} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(entry.item.acquisitionDate)}</p></div></div>
+                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{conditionLabel(entry.item.condition, locale === "it")} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(entry.item.acquisitionDate)}</p></div></div>
                 <CollectionMarketValue entry={entry} it={locale === "it"} />
               </div>
             ))}
