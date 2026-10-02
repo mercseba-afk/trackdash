@@ -7149,3 +7149,65 @@ Next checks:
 
 Current SEO funnel priority remains:
 **Google discovery → family → exact Release → signup → first saved/owned Release**
+
+
+---
+
+## PUBLIC LANGUAGE SEO AUDIT — 2026-10-02
+
+Status: **AUDIT COMPLETE — IMPLEMENTATION NOT YET APPLIED**.
+
+### Current runtime behavior
+TrackDash currently has a functional IT/EN interface switch, but the public website does **not** expose separate search-engine-addressable language versions.
+
+Verified in current `main`:
+- `app/layout.tsx` reads `trackdash.locale` from cookies, but defaults new/no-cookie requests to `en`;
+- `lib/i18n.tsx` initializes the React locale state to `en`;
+- `components/i18n-bootstrap.tsx` reconciles cookie/localStorage after bootstrap;
+- `components/language-switch.tsx` changes locale state on the **same URL**;
+- public Catalog / Market / family / Release metadata are currently English;
+- no reciprocal `hreflang` language alternates are emitted;
+- there are no dedicated public IT/EN URL variants.
+
+Consequence:
+For a fresh crawler request with no TrackDash locale cookie, public SEO content is effectively English-first. The Italian interface is primarily a client/user preference, not a distinct indexable language version.
+
+### Recommended public SEO architecture
+Keep the newly-published readable unprefixed URLs as the Italian/default public canonical set.
+
+Examples:
+- Italian/default: `/catalog/avante-mk-iii`
+- English: `/en/catalog/avante-mk-iii`
+- Italian/default Release: `/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure`
+- English Release: `/en/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure`
+
+Rationale:
+- preserves the 195 readable URLs already submitted to Google;
+- aligns the first acquisition focus with Italy while keeping English fully indexable;
+- avoids an unnecessary second migration to `/it/...`;
+- remains extensible later to `/de`, `/fr`, etc.;
+- gives each language a stable URL, self-canonical metadata and reciprocal hreflang.
+
+### Intended SEO contract for implementation
+Public SEO routes:
+- unprefixed route = Italian;
+- `/en` route = English;
+- each version self-canonical;
+- reciprocal `hreflang="it"` and `hreflang="en"`;
+- `x-default` points to the unprefixed/default version;
+- language switch navigates between real public URLs instead of only changing local state;
+- sitemap publishes both language variants after implementation;
+- structured data and metadata descriptions follow the route language.
+
+Authenticated/non-indexable app surfaces may continue using the existing cookie/profile preference model without language-prefixed URLs.
+
+### Important timing note
+At the time of this audit:
+- the submitted sitemap is still pending processing;
+- Search Analytics remains at 0 impressions / 0 clicks;
+- representative URLs are still unknown to Google.
+
+Therefore this is still the low-risk window to establish the language architecture before Google consolidates the public catalog.
+
+Next work unit:
+implement and QA the Italian-default + `/en` public routing/metadata/hreflang contract before further catalog expansion.
