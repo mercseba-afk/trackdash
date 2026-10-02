@@ -2,6 +2,7 @@ import type { Product, ProductRelease } from "@/lib/types"
 
 export type CollectionIntent = "collection" | "wishlist"
 export type PublicLocale = "it" | "en"
+export const PUBLIC_SITE_URL = "https://trackdash.it"
 
 export function slugifyPublicSegment(value: string): string {
   return value
@@ -28,6 +29,19 @@ export function localizePublicPath(path: string, locale: PublicLocale): string {
   if (normalized === "/") return "/en"
   if (normalized === "/en" || normalized.startsWith("/en/")) return normalized
   return `/en${normalized}`
+}
+
+export function publicAbsoluteUrl(path: string, locale: PublicLocale): string {
+  return `${PUBLIC_SITE_URL}${localizePublicPath(path, locale)}`
+}
+
+export function publicLanguageAlternates(path: string): Record<string, string> {
+  const it = publicAbsoluteUrl(path, "it")
+  return {
+    it,
+    en: publicAbsoluteUrl(path, "en"),
+    "x-default": it,
+  }
 }
 
 export function productPublicSlug(product: Pick<Product, "name">): string {
