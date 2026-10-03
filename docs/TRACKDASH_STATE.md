@@ -7409,3 +7409,40 @@ Verification:
 - `trackdash.it` assigned with no alias error;
 - live IT and EN Home routes both contain the new Hero layout;
 - diff touched only `components/screens/public-home-screen.tsx`.
+
+
+---
+
+## HOMEPAGE SEO TITLE + DESCRIPTION — 2026-10-03
+
+Status: **LIVE / PRODUCTION VERIFIED**.
+
+PR:
+- **#328**
+
+Runtime merge:
+- `4ec6f1accd9cd46808b980a75abbc046e9a48095`
+
+Scope:
+- Home SEO metadata + global fallback metadata only;
+- no URL, sitemap, hreflang, Product, ProductRelease, Collection, Market, Supabase or Price Engine change.
+
+Italian Home metadata now live:
+- title: `TrackDash — Collezione Mini 4WD e valori di mercato`
+- description: `Identifica la Release Mini 4WD esatta, consulta valori di mercato e vendite concluse, organizza la collezione e scopri modelli, varianti e disponibilità.`
+
+English Home metadata now live:
+- title: `TrackDash — Mini 4WD Collection & Market Values`
+- description: `Identify the exact Mini 4WD Release, check market values and completed sales, organize your collection and discover models, variants and availability.`
+
+Rationale:
+- removed “Tamiya” from generic Home/fallback branding;
+- kept the Home focused on the broader Mini 4WD collector use case;
+- Tamiya wording remains available where it is useful for exact family/Release specificity.
+
+Verification:
+- Preview: READY;
+- Production: READY;
+- `trackdash.it` assigned;
+- IT and EN Home source verified live with the new title/description;
+- no legacy “Collezione Tamiya Mini 4WD” / “Tamiya Mini 4WD Collection” Home title remains.
