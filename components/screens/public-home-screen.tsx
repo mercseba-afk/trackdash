@@ -224,9 +224,9 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
             <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[390px] lg:hidden">
               <img
-                src="/trackdash-hero-mini4wd.webp"
+                src="/trackdash-hero-mini4wd-transparent.svg"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
-                className="h-auto max-h-[430px] w-full object-contain mix-blend-multiply"
+                className="h-auto max-h-[430px] w-full object-contain"
                 width={800}
                 height={450}
                 loading="eager"
@@ -236,15 +236,9 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
             <div className="relative hidden min-h-[360px] overflow-hidden lg:block xl:min-h-[390px]">
               <img
-                src="/trackdash-hero-mini4wd.webp"
+                src="/trackdash-hero-mini4wd-transparent.svg"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
-                className="absolute right-[-5%] top-1/2 h-auto w-[112%] max-w-none -translate-y-1/2 object-contain mix-blend-multiply xl:right-[-3%] xl:w-[116%]"
-                style={{
-                  WebkitMaskImage:
-                    "radial-gradient(ellipse 78% 84% at 58% 50%, #000 58%, rgba(0,0,0,.92) 72%, transparent 100%)",
-                  maskImage:
-                    "radial-gradient(ellipse 78% 84% at 58% 50%, #000 58%, rgba(0,0,0,.92) 72%, transparent 100%)",
-                }}
+                className="absolute right-[-5%] top-1/2 h-auto w-[112%] max-w-none -translate-y-1/2 object-contain xl:right-[-3%] xl:w-[116%]"
                 width={800}
                 height={450}
                 loading="eager"
