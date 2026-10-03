@@ -7446,3 +7446,93 @@ Verification:
 - `trackdash.it` assigned;
 - IT and EN Home source verified live with the new title/description;
 - no legacy “Collezione Tamiya Mini 4WD” / “Tamiya Mini 4WD Collection” Home title remains.
+
+
+---
+
+## GSC INDEXING MILESTONE — 2026-10-03
+
+Status: **GOOGLE DISCOVERY / INDEXING HAS STARTED**.
+
+### Sitemap resubmission after Home SEO metadata update
+Property:
+- `https://trackdash.it/`
+
+Sitemap:
+- `https://trackdash.it/sitemap.xml`
+- re-submitted: **2026-10-03T12:15:11.434Z**
+- accepted: yes
+- confirmed: yes
+- warnings: **0**
+- errors: **0**
+- status immediately after resubmission: **pending**
+- last downloaded before this resubmission: **2026-10-02T19:58:14.892Z**
+- submitted URLs reported by sitemap: **390**
+
+Important:
+the sitemap report still showed `indexed: 0` immediately after the new submission, but direct URL Inspection already proves that Google has indexed some TrackDash URLs. Treat the sitemap indexed count as stale/pending until Google downloads and refreshes the report.
+
+### Direct URL Inspection sample
+12 representative IT/EN URLs inspected on 2026-10-03.
+
+Indexed:
+- `https://trackdash.it/`
+  - PASS
+  - Submitted and indexed
+  - last crawl: 2026-10-02T19:57:51Z
+- `https://trackdash.it/en`
+  - PASS
+  - Submitted and indexed
+  - last crawl: 2026-10-03T12:09:13Z
+- `https://trackdash.it/catalog`
+  - PASS
+  - Submitted and indexed
+  - last crawl: 2026-10-03T11:24:22Z
+- `https://trackdash.it/en/market`
+  - PASS
+  - Submitted and indexed
+  - last crawl: 2026-10-03T09:57:33Z
+- `https://trackdash.it/catalog/dyna-hawk-gx/releases/94717-dyna-hawk-gx-super-xx-special`
+  - PASS
+  - Submitted and indexed
+  - last crawl: 2026-10-02T21:40:12Z
+
+Discovered but not yet indexed:
+- `https://trackdash.it/market`
+- `https://trackdash.it/catalog/avante-mk-iii`
+
+Unknown to Google at this inspection:
+- `https://trackdash.it/catalog/avante-mk-iii/releases/18626-avante-mk-iii-azure`
+- `https://trackdash.it/en/catalog`
+- `https://trackdash.it/en/catalog/avante-mk-iii`
+- `https://trackdash.it/catalog/dyna-hawk-gx`
+- `https://trackdash.it/en/catalog/dyna-hawk-gx/releases/94717-dyna-hawk-gx-super-xx-special`
+
+Sample result:
+- **5 / 12 indexed**
+- **2 / 12 discovered but not yet indexed**
+- **5 / 12 still unknown**
+
+This is only a representative sample, not a count of the full 390-URL sitemap.
+
+### Search Analytics timing
+Search Analytics still reports:
+- 0 clicks
+- 0 impressions
+- no page/query rows
+
+But the API is only settled through **2026-09-29** at this checkpoint, while direct crawls/indexing began on **2026-10-02 / 2026-10-03**.
+
+Therefore the zero Search Analytics values do **not** contradict the new indexing results. Wait for the reporting lag to catch up before judging search visibility.
+
+### Immediate interpretation
+Google discovery is now underway.
+
+Do not change public URL architecture again.
+
+Next SEO monitoring actions:
+1. wait for the re-submitted sitemap to be downloaded and leave pending state;
+2. re-check sitemap indexed/discovered counts;
+3. re-inspect representative family + exact Release URLs;
+4. watch for the first Search Analytics impressions once settled data reaches 2026-10-02+;
+5. use those real impressions/queries to choose the next content/internal-linking SEO work.
