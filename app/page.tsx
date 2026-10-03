@@ -18,11 +18,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await requestLocale()
   const it = locale === "it"
   const title = it
-    ? "TrackDash — Collezione Tamiya Mini 4WD, valori di mercato e scambi"
-    : "TrackDash — Tamiya Mini 4WD Collection, Market Value & Trading"
+    ? "TrackDash — Collezione Mini 4WD e valori di mercato"
+    : "TrackDash — Mini 4WD Collection & Market Values"
   const description = it
-    ? "Identifica le Release Tamiya Mini 4WD esatte, scopri il valore di mercato, costruisci la tua collezione e segui annunci e vendite tra collezionisti."
-    : "Identify exact Tamiya Mini 4WD Releases, discover market value, build your collection, watch the market and buy or sell with other collectors on TrackDash."
+    ? "Identifica la Release Mini 4WD esatta, consulta valori di mercato e vendite concluse, organizza la collezione e scopri modelli, varianti e disponibilità."
+    : "Identify the exact Mini 4WD Release, check market values and completed sales, organize your collection and discover models, variants and availability."
   const canonical = publicAbsoluteUrl("/", locale)
 
   return {
