@@ -188,15 +188,14 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
   return (
     <div className="overflow-hidden bg-background">
       <section className="relative overflow-hidden border-b border-line bg-[#eef3f7]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_35%,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.42)_24%,rgba(238,243,247,0)_55%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand" />
-        <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-10 lg:pt-14">
-          <div className="grid gap-8 lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:gap-2 xl:gap-0">
+        <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-9 lg:pt-12">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(500px,.92fr)] lg:items-center lg:gap-8 xl:grid-cols-[minmax(0,1.04fr)_minmax(560px,.96fr)] xl:gap-10">
             <div className="relative z-10 max-w-[46rem]">
               <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
                 {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
               </p>
-              <h1 className="mt-5 text-[clamp(3.2rem,13vw,5.6rem)] font-semibold leading-[.88] tracking-[-0.075em] text-ink lg:max-w-[46rem] lg:text-[3.95rem] lg:leading-[.92] xl:text-[4.35rem]">
+              <h1 className="mt-5 text-[clamp(3.2rem,13vw,5.6rem)] font-semibold leading-[.88] tracking-[-0.075em] text-ink lg:max-w-[44rem] lg:text-[3.75rem] lg:leading-[.94] xl:text-[4.1rem]">
                 {it ? "Trova la versione esatta." : "Find the exact version."}
                 <span className="block text-brand">{it ? "Segui il suo valore." : "Track its value."}</span>
               </h1>
@@ -223,12 +222,29 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               </p>
             </div>
 
-            <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[390px] lg:min-h-[390px] lg:justify-end lg:overflow-visible">
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-20 bg-gradient-to-r from-[#eef3f7] to-transparent lg:block" />
+            <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[390px] lg:hidden">
               <img
                 src="/trackdash-hero-mini4wd.webp"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
-                className="h-auto max-h-[500px] w-full object-contain mix-blend-multiply sm:max-h-[430px] lg:max-h-none lg:w-[124%] lg:max-w-none lg:translate-x-[6%] xl:w-[132%] xl:translate-x-[9%]"
+                className="h-auto max-h-[430px] w-full object-contain mix-blend-multiply"
+                width={800}
+                height={450}
+                loading="eager"
+                fetchPriority="high"
+              />
+            </div>
+
+            <div className="relative hidden min-h-[360px] overflow-hidden lg:block xl:min-h-[390px]">
+              <img
+                src="/trackdash-hero-mini4wd.webp"
+                alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
+                className="absolute right-[-5%] top-1/2 h-auto w-[112%] max-w-none -translate-y-1/2 object-contain mix-blend-multiply xl:right-[-3%] xl:w-[116%]"
+                style={{
+                  WebkitMaskImage:
+                    "radial-gradient(ellipse 78% 84% at 58% 50%, #000 58%, rgba(0,0,0,.92) 72%, transparent 100%)",
+                  maskImage:
+                    "radial-gradient(ellipse 78% 84% at 58% 50%, #000 58%, rgba(0,0,0,.92) 72%, transparent 100%)",
+                }}
                 width={800}
                 height={450}
                 loading="eager"
@@ -237,7 +253,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             </div>
           </div>
 
-          <div className="mt-8 border border-line bg-white/80 p-4 shadow-[0_12px_34px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-5 lg:mt-7">
+          <div className="mt-7 border border-line bg-white/80 p-4 shadow-[0_12px_34px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-5 lg:mt-5">
             <div className="mb-3">
               <p className="text-sm font-semibold text-ink">{it ? "Trova subito la tua Mini 4WD" : "Find your Mini 4WD now"}</p>
               <p className="mt-1 text-xs text-muted-foreground">
