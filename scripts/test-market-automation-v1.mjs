@@ -8,7 +8,7 @@ import {
   sourcePolicyForSlug,
   summarizeSourceCoverage,
 } from "../lib/market/automation/policy.ts"
-import { ebayCollectorScanIntervalHours, marketActivityMateriallyChanged } from "../lib/market/automation/market-activity.ts"
+import { collectorScanIntervalHours, ebayCollectorScanIntervalHours, marketActivityMateriallyChanged, materialPriceChange } from "../lib/market/automation/market-activity.ts"
 import { isObservedRetailSellThrough } from "../lib/market/automation/retail-sell-through.ts"
 
 let passed = 0
@@ -149,6 +149,18 @@ ok("eBay collector cadence stays sparse even for materially active Releases", ()
   assert.equal(ebayCollectorScanIntervalHours("normal"), 42 * 24)
   assert.equal(ebayCollectorScanIntervalHours("cold"), 84 * 24)
   assert.equal(ebayCollectorScanIntervalHours("unknown"), 42 * 24)
+})
+
+ok("exact retail uses the same sparse collector cadence", () => {
+  assert.equal(collectorScanIntervalHours("hot"), 28 * 24)
+  assert.equal(collectorScanIntervalHours("normal"), 42 * 24)
+  assert.equal(collectorScanIntervalHours("cold"), 84 * 24)
+})
+
+ok("retail price cadence ignores sub-5-percent noise", () => {
+  assert.equal(materialPriceChange(20, 20.99), false)
+  assert.equal(materialPriceChange(20, 21), true)
+  assert.equal(materialPriceChange(20, 19), true)
 })
 
 ok("retail sell-through requires an observed available-to-unavailable transition", () => {
