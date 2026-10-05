@@ -284,6 +284,25 @@ Important:
 - a shipping amount becomes Italy-delivered evidence only when eBay explicitly reports an IT shipping estimate; otherwise shipping remains unknown;
 - unsupported/ambiguous cases fail closed rather than contaminating canonical signals.
 
+## Automatic enrollment of new Releases
+
+The first `market_release_signals` row remains the durable boundary for entering **TrackDash Market Watch**. A catalog Release that is only `coming_soon` is not scanned merely because it exists.
+
+When a Release enters Price Intelligence:
+
+- unique Item Number → eBay Active enrollment is automatic;
+- shared Item Number + globally unique non-empty JAN → eBay Active enrollment is automatic;
+- shared Item Number + missing or non-unique JAN → eBay Active remains parked/fail-closed;
+- the eBay worker must still confirm the target JAN from structured item details before accepting a shared-ITEM listing.
+
+Identity enrollment is dynamic. The `product_releases` trigger watches both `item_number` and `barcode_jan`:
+
+- adding a unique JAN to an already parked shared-ITEM Release can activate its job automatically;
+- removing a JAN or making that JAN non-unique parks the affected shared-ITEM job automatically;
+- JAN uniqueness is global across the catalog, not only inside the Item Number family.
+
+Newly activated eBay jobs start at **NORMAL / 42 days**. Existing active jobs preserve their distributed next-scan date and adaptive HOT/NORMAL/COLD tier.
+
 ## Slow collector cadence
 
 The recurring eBay Active and exact-retail workers use a slow collector cadence. eBay distinguishes **offer-state churn** from a **material canonical market change**; exact retail treats availability changes and price moves of at least 5% as cadence-material.
