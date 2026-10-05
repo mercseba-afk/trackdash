@@ -8,7 +8,7 @@ import {
   sourcePolicyForSlug,
   summarizeSourceCoverage,
 } from "../lib/market/automation/policy.ts"
-import { marketActivityMateriallyChanged } from "../lib/market/automation/market-activity.ts"
+import { ebayCollectorScanIntervalHours, marketActivityMateriallyChanged } from "../lib/market/automation/market-activity.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -141,6 +141,13 @@ ok("collector-market cadence reacts to meaningful ASK moves and market availabil
   assert.equal(marketActivityMateriallyChanged(base, { ...base, activeAnchorEUR: 41 }), false)
   assert.equal(marketActivityMateriallyChanged(base, { ...base, activeAnchorEUR: 42 }), true)
   assert.equal(marketActivityMateriallyChanged(base, { ...base, currentOfferCount: 0 }), true)
+})
+
+ok("eBay collector cadence stays sparse even for materially active Releases", () => {
+  assert.equal(ebayCollectorScanIntervalHours("hot"), 28 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("normal"), 42 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("cold"), 84 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("unknown"), 42 * 24)
 })
 
 console.log(`${passed} passed, 0 failed`)
