@@ -40,15 +40,19 @@ export function marketActivityMateriallyChanged(
 }
 
 
-export const EBAY_COLLECTOR_SCAN_INTERVAL_HOURS = {
+export const COLLECTOR_SCAN_INTERVAL_HOURS = {
   hot: 28 * 24,
   normal: 42 * 24,
   cold: 84 * 24,
 } as const
 
-export type MarketActivityTier = keyof typeof EBAY_COLLECTOR_SCAN_INTERVAL_HOURS
+export type MarketActivityTier = keyof typeof COLLECTOR_SCAN_INTERVAL_HOURS
 
-export function ebayCollectorScanIntervalHours(tier: string): number {
-  return EBAY_COLLECTOR_SCAN_INTERVAL_HOURS[tier as MarketActivityTier]
-    ?? EBAY_COLLECTOR_SCAN_INTERVAL_HOURS.normal
+export function collectorScanIntervalHours(tier: string): number {
+  return COLLECTOR_SCAN_INTERVAL_HOURS[tier as MarketActivityTier]
+    ?? COLLECTOR_SCAN_INTERVAL_HOURS.normal
 }
+
+// Backward-compatible lane alias. Both eBay Active and exact retail use the
+// same slow collector-market cadence; the cron remains a dispatcher only.
+export const ebayCollectorScanIntervalHours = collectorScanIntervalHours
