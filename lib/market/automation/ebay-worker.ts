@@ -11,7 +11,9 @@ import {
   ebayBrowseConfigured,
   ebayMarketWritesAllowed,
   ebayScheduledMarketWritesAllowed,
+  fetchEbayActiveItemDetails,
   fetchEbayActiveListingByLegacyId,
+  refineMini4wdSharedItemListingWithItemDetails,
   searchEbayActiveListings,
   type EbayBrowseListing,
   type EbayMarketplaceId,
@@ -37,6 +39,9 @@ interface ReleaseContext {
   itemNumber: string
   editionName: string
   releaseYear: number | null
+  barcodeJan: string | null
+  janIsUnique: boolean
+  siblingJans: string[]
   sharedReleaseIds: string[]
 }
 
@@ -133,24 +138,34 @@ function shortError(error: unknown): string {
 async function loadReleaseContext(client: SupabaseClient, releaseId: string): Promise<ReleaseContext> {
   const { data: release, error } = await client
     .from("product_releases")
-    .select("id,item_number,edition_name,release_year")
+    .select("id,item_number,edition_name,release_year,barcode_jan")
     .eq("id", releaseId)
     .single()
   fail(error, "load eBay Release")
   if (!release?.item_number) throw new Error("RELEASE_ITEM_NUMBER_MISSING")
 
-  const { data: siblings, error: siblingsError } = await client
-    .from("product_releases")
-    .select("id")
-    .eq("item_number", release.item_number)
+  const [{ data: siblings, error: siblingsError }, janLookup] = await Promise.all([
+    client
+      .from("product_releases")
+      .select("id,barcode_jan")
+      .eq("item_number", release.item_number),
+    release.barcode_jan
+      ? client.from("product_releases").select("id").eq("barcode_jan", release.barcode_jan)
+      : Promise.resolve({ data: [], error: null }),
+  ])
   fail(siblingsError, "load same-item-number Releases")
+  fail(janLookup.error, "load same-JAN Releases")
 
+  const siblingRows = siblings ?? []
   return {
     id: release.id,
     itemNumber: release.item_number,
     editionName: release.edition_name,
     releaseYear: release.release_year,
-    sharedReleaseIds: (siblings ?? []).map((row: any) => row.id),
+    barcodeJan: release.barcode_jan ?? null,
+    janIsUnique: Boolean(release.barcode_jan && (janLookup.data ?? []).length === 1),
+    siblingJans: siblingRows.flatMap((row: any) => row.barcode_jan ? [String(row.barcode_jan)] : []),
+    sharedReleaseIds: siblingRows.map((row: any) => row.id),
   }
 }
 
@@ -593,7 +608,26 @@ async function scanJob(
       continue
     }
 
-    const classification = classifyEbayActiveListing(listing, input, new Date(observedAt))
+    let classification = classifyEbayActiveListing(listing, input, new Date(observedAt))
+    if (
+      classification.decision === "needs_review"
+      && classification.reasonCodes.includes("SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW")
+      && release.barcodeJan
+      && release.janIsUnique
+    ) {
+      try {
+        const details = await fetchEbayActiveItemDetails(listing.itemId, listing.marketplace)
+        if (details) {
+          classification = refineMini4wdSharedItemListingWithItemDetails(classification, details, {
+            jan: release.barcodeJan,
+            janIsUnique: release.janIsUnique,
+            siblingJans: release.siblingJans,
+          })
+        }
+      } catch (error) {
+        sourceErrors.push(`ITEM_DETAILS_${listing.itemId}:${shortError(error)}`)
+      }
+    }
     const previous = await loadExistingOffer(client, job.source_id, key)
 
     if (classification.decision !== "accepted") {

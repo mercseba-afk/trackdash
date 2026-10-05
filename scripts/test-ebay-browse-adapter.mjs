@@ -3,6 +3,7 @@ import {
   buildEbayBrowseQuery,
   classifyEbayActiveListing,
   dedupeEbayListings,
+  refineMini4wdSharedItemListingWithItemDetails,
 } from "../lib/market/automation/ebay-browse-adapter.ts"
 import { ebaySourceRecordKey, planMissingEbayOffers } from "../lib/market/automation/ebay-lifecycle.ts"
 
@@ -135,6 +136,115 @@ ok("shared item number stays quarantined even with an exact number", () => {
   })
   assert.equal(result.decision, "needs_review")
   assert.equal(result.reasonCodes.includes("SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW"), true)
+})
+
+ok("shared ITEM is accepted only when structured item details confirm a unique target JAN", () => {
+  const initial = {
+    decision: "needs_review",
+    reasonCodes: ["SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW"],
+  }
+  const result = refineMini4wdSharedItemListingWithItemDetails(initial, {
+    itemId: "v1|123|0",
+    legacyItemId: "123",
+    title: "Tamiya 18074 Dash-X1 Proto Emperor Premium",
+    gtin: "4950344180745",
+    brand: "Tamiya",
+    mpn: "18074",
+    localizedAspects: [],
+  }, {
+    jan: "4950344180745",
+    janIsUnique: true,
+    siblingJans: ["4950344180745"],
+  })
+  assert.equal(result.decision, "accepted")
+  assert.deepEqual(result.reasonCodes, ["JAN_ITEM_DETAILS_EXACT"])
+})
+
+ok("structured sibling JAN rejects cross-attribution on a shared ITEM", () => {
+  const initial = {
+    decision: "needs_review",
+    reasonCodes: ["SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW"],
+  }
+  const result = refineMini4wdSharedItemListingWithItemDetails(initial, {
+    itemId: "v1|456|0",
+    legacyItemId: "456",
+    title: "Tamiya shared ITEM",
+    gtin: "4950344061310",
+    brand: "Tamiya",
+    mpn: "19401",
+    localizedAspects: [],
+  }, {
+    jan: "4950344194018",
+    janIsUnique: true,
+    siblingJans: ["4950344194018", "4950344061310"],
+  })
+  assert.equal(result.decision, "rejected")
+  assert.deepEqual(result.reasonCodes, ["SIBLING_JAN_ITEM_DETAILS"])
+})
+
+ok("non-unique JAN remains fail-closed", () => {
+  const initial = {
+    decision: "needs_review",
+    reasonCodes: ["SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW"],
+  }
+  const result = refineMini4wdSharedItemListingWithItemDetails(initial, {
+    itemId: "v1|789|0",
+    legacyItemId: "789",
+    title: "Tamiya 18019 Dash-3 Shooting Star",
+    gtin: "4950344180196",
+    brand: "Tamiya",
+    mpn: "18019",
+    localizedAspects: [],
+  }, {
+    jan: "4950344180196",
+    janIsUnique: false,
+    siblingJans: ["4950344180196", "4950344180196"],
+  })
+  assert.equal(result.decision, "needs_review")
+})
+
+ok("missing structured JAN confirmation remains needs_review", () => {
+  const initial = {
+    decision: "needs_review",
+    reasonCodes: ["SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW"],
+  }
+  const result = refineMini4wdSharedItemListingWithItemDetails(initial, {
+    itemId: "v1|999|0",
+    legacyItemId: "999",
+    title: "Tamiya 18038 Proto Emperor ZX 2007",
+    gtin: null,
+    brand: "Tamiya",
+    mpn: "18038",
+    localizedAspects: [{ name: "Year", value: "2007" }],
+  }, {
+    jan: "4950344997107",
+    janIsUnique: true,
+    siblingJans: ["4950344997107"],
+  })
+  assert.equal(result.decision, "needs_review")
+  assert.equal(result.reasonCodes.includes("JAN_NOT_CONFIRMED_ITEM_DETAILS"), true)
+})
+
+ok("structured JAN refinement never overrides an independent review reason", () => {
+  const initial = {
+    decision: "needs_review",
+    reasonCodes: ["BUNDLE_QUANTITY_REQUIRES_REVIEW"],
+  }
+  const result = refineMini4wdSharedItemListingWithItemDetails(initial, {
+    itemId: "v1|111|0",
+    legacyItemId: "111",
+    title: "Tamiya bundle",
+    gtin: "4950344180745",
+    brand: "Tamiya",
+    mpn: "18074",
+    localizedAspects: [],
+  }, {
+    jan: "4950344180745",
+    janIsUnique: true,
+    siblingJans: ["4950344180745"],
+  })
+  assert.equal(result.decision, "needs_review")
+  assert.deepEqual(result.reasonCodes, ["BUNDLE_QUANTITY_REQUIRES_REVIEW"])
 })
 
 ok("ended listing is rejected from active asks", () => {
