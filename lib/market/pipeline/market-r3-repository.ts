@@ -13,7 +13,7 @@ import type {
   SoldMarketEvidence,
 } from "./market-model"
 import type { MarketCondition } from "./types"
-import { marketplaceRegionFromOriginalSource } from "./market-region"
+import { marketplaceRegionFromCandidateContext } from "./market-region"
 import type { ScanActivityTier, ScanQueueTarget, ScanScope } from "./scheduler"
 import { ASK_TREND_BASIS_VERSION } from "./ask-trend-basis"
 
@@ -231,7 +231,7 @@ export class MarketR3Repository {
         .select("id,market_region,merchant_key")
         .in("id", sourceIds),
       candidateIds.length
-        ? this.client.from("market_candidates").select("id,original_source").in("id", candidateIds)
+        ? this.client.from("market_candidates").select("id,original_source,raw_payload").in("id", candidateIds)
         : Promise.resolve({ data: [], error: null }),
     ])
     fail(sourceError, "load current market offer source metadata")
@@ -243,7 +243,11 @@ export class MarketR3Repository {
       const offer = mapOffer(row)
       const meta: any = sourceMeta.get(row.source_id)
       const candidate: any = candidateMeta.get(row.candidate_id)
-      const listingRegion = marketplaceRegionFromOriginalSource(candidate?.original_source)
+      const listingRegion = marketplaceRegionFromCandidateContext({
+        originalSource: candidate?.original_source,
+        rawPayload: candidate?.raw_payload,
+        shippingKnownToItaly: offer.shippingEUR != null,
+      })
       return {
         ...offer,
         marketRegion: listingRegion ?? meta?.market_region ?? "global",
