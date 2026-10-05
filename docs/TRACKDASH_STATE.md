@@ -125,6 +125,38 @@ Exact-retail cadence PR **#335**
 - Vercel Production: READY
 - `trackdash.it/api/version`: **cb73ca99a94cbc11e06f8df6a17e737bfc44f44b**
 
+
+### Live controlled smoke test — 2026-10-05
+
+After the production cadence rollout, a two-stage manual smoke test was executed from Admin with queues deliberately isolated to one claimable job at a time.
+
+Retail test — Avante Jr. 18014 (2024 Reissue) / Modellismo Gandolfi:
+- exactly 1 retail job claimable; eBay 0; recompute 0;
+- HTTP 200, exact ITEM observed, EUR 15, in_stock, structured extraction, no warnings;
+- candidate remained accepted/exact;
+- unchanged price/availability did not create a new history transition;
+- last_material_change_at did not move;
+- canonical signal remained retail-driven with retail anchor EUR 15, no fabricated MV/trend;
+- successful NORMAL cadence rescheduled to 42 days;
+- Production runtime errors: 0.
+
+Marketplace test — Manta Ray Mk.II Black Special 95466:
+- exactly 1 eBay Active job claimable; retail 0; recompute 0;
+- run completed successfully: 1/1 target, 27 candidates found, 11 accepted, 16 rejected, no run error;
+- canonical ASK anchor moved EUR 34.03 → EUR 30.34 (-10.84%), exceeding the 5% materiality threshold;
+- SOLD anchor remained EUR 16.13 and collector trend remained null;
+- ASK trend became -10.84% / 4 days without being promoted into collector trend;
+- job correctly promoted NORMAL → HOT and rescheduled to 28 days;
+- family page, exact Release page and /market all exposed EUR 30.34 and no longer exposed EUR 34.03;
+- public fresh-offer count (11) may exceed canonical-calculation offer count (9) because fresh observed ASK context is broader than valuation-eligible/canonical calculation inputs; extreme ASK context does not set the anchor;
+- Production runtime errors: 0.
+
+Operational queue cleanup performed before the smoke test:
+- all 162 enabled Mini 4WD eBay Active jobs were initialized NORMAL / 42 days and distributed from 2026-10-06 through 2026-11-17;
+- due eBay backlog immediately after redistribution: 0.
+
+The controlled retail + eBay smoke test passed end to end.
+
 ### Cost posture
 
 This automation work introduces no paid service or paid add-on. TrackDash Supabase is on the **Free** tier, and the cadence changes reduce scheduled market workload rather than increase it. No licensed automatic SOLD source has been activated.
