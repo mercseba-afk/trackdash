@@ -275,6 +275,9 @@ Do not add unsupported marketplace identifiers merely because a seller lists in 
 Important:
 
 - ITEM/release identity first;
+- a shared Item Number remains fail-closed unless eBay structured item details confirm the target Release's globally unique JAN;
+- a structured sibling JAN rejects the candidate; missing or non-unique JAN remains `needs_review`;
+- structured JAN refinement may resolve identity uncertainty only and must never override condition, lot/bundle, counterfeit, parts-only or other independent guard failures;
 - duplicate listings are deduplicated;
 - explicit multi-item lots are rejected; ambiguous bundle quantity is quarantined for review;
 - scheduled Browse discovery requests delivery context for Italy;
