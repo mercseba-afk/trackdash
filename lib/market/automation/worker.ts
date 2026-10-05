@@ -15,6 +15,7 @@ import {
 } from "./exact-page-adapter"
 import { guardAutomatedPrice } from "./price-guard"
 import { isObservedRetailSellThrough } from "./retail-sell-through"
+import { collectorScanIntervalHours, materialPriceChange } from "./market-activity"
 
 const SUPPORTED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
 const USER_AGENT = "TrackDashMarketBot/1.0 (+https://trackdash-dusky.vercel.app)"
@@ -374,6 +375,27 @@ async function finishJob(
     p_error: errorMessage,
   })
   fail(error, "finish market scan job")
+
+  if (!success) return
+
+  const { data: queue, error: queueError } = await client
+    .from("market_scan_queue")
+    .select("activity_tier")
+    .eq("id", jobId)
+    .single()
+  fail(queueError, "load finished retail scan cadence")
+  if (!queue) throw new Error("RETAIL_SCAN_CADENCE_JOB_NOT_FOUND")
+
+  const intervalHours = collectorScanIntervalHours(queue.activity_tier)
+  const { error: cadenceError } = await client
+    .from("market_scan_queue")
+    .update({
+      scan_interval_hours: intervalHours,
+      next_scan_at: new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", jobId)
+  fail(cadenceError, "apply slow retail collector cadence")
 }
 
 async function scanClaimedJob(
@@ -539,7 +561,7 @@ async function scanClaimedJob(
 
   const materialChange = !previousAccepted ||
     previousAccepted.availability !== snapshot.availability ||
-    Math.abs(previousAccepted.item_price_eur - eur.amountEUR) >= 0.01
+    materialPriceChange(previousAccepted.item_price_eur, eur.amountEUR)
 
   await recomputeReleaseMarketSignal(job.release_id, "new_complete_unbuilt", new Date(observedAt), repo)
   await endpointTelemetry(client, job.endpoint_id, { httpStatus: fetched.status, snapshot, error: null, success: true })
