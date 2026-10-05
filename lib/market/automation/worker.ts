@@ -14,6 +14,7 @@ import {
   type ParsedAvailability,
 } from "./exact-page-adapter"
 import { guardAutomatedPrice } from "./price-guard"
+import { isObservedRetailSellThrough } from "./retail-sell-through"
 
 const SUPPORTED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
 const USER_AGENT = "TrackDashMarketBot/1.0 (+https://trackdash-dusky.vercel.app)"
@@ -504,12 +505,17 @@ async function scanClaimedJob(
     }
   }
 
+  const sellThroughObserved = isObservedRetailSellThrough(previous?.availability ?? null, snapshot.availability)
+  const evidenceReasons = sellThroughObserved
+    ? [...new Set([...snapshot.warnings, "RETAIL_SELL_THROUGH_OBSERVED"])]
+    : snapshot.warnings
+
   const candidateId = await upsertCandidate(client, {
     job,
     release,
     snapshot,
     decision: "accepted",
-    reasonCodes: snapshot.warnings,
+    reasonCodes: evidenceReasons,
     observedAt,
   })
   const previousAccepted = previous ?? await loadPreviousOffer(client, candidateId)
@@ -548,7 +554,7 @@ async function scanClaimedJob(
     availability: snapshot.availability,
     priceEUR: eur.amountEUR,
     materialChange,
-    reasonCodes: snapshot.warnings,
+    reasonCodes: evidenceReasons,
   }
 }
 
