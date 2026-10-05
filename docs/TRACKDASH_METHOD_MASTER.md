@@ -126,7 +126,8 @@ Cadence mercato collezionistico:
 - non aumentare la frequenza solo perché una coda contiene più Release: distribuire i job nel tempo;
 - il ricambio di singoli annunci, a segnale canonico sostanzialmente invariato, non rende una Release HOT;
 - per l'eBay Active lane, il cambio di cadenza usa il segnale canonico dopo recompute e considera materiale una variazione di prezzo pari o superiore al 5%, oppure l'ingresso/uscita completa dal mercato corrente;
-- la cadenza eBay Active corrente è HOT 28 giorni / NORMAL 42 giorni / COLD 84 giorni;
+- per gli exact-retail endpoint, una variazione prezzo inferiore al 5% non rende il job HOT; i cambi di disponibilità restano materiali;
+- la cadenza ricorrente corrente per eBay Active ed exact retail è HOT 28 giorni / NORMAL 42 giorni / COLD 84 giorni;
 - ogni cambiamento di offer state può comunque causare recompute: **recompute necessario** e **mercato materialmente cambiato** sono concetti distinti.
 
 Regression gate:
