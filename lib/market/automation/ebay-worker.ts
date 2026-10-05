@@ -464,6 +464,7 @@ async function finishJob(client: SupabaseClient, jobId: string, success: boolean
     .eq("id", jobId)
     .single()
   fail(queueError, "load finished eBay scan cadence")
+  if (!queue) throw new Error("EBAY_SCAN_CADENCE_JOB_NOT_FOUND")
 
   const intervalHours = ebayCollectorScanIntervalHours(queue.activity_tier)
   const nextScanAt = new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString()
