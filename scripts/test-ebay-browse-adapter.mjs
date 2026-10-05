@@ -73,6 +73,44 @@ ok("parts and body-only listings are rejected", () => {
   assert.equal(result.reasonCodes.includes("PART_OR_BODY_ONLY"), true)
 })
 
+ok("explicit multi-item lots are rejected before they can feed ASK", () => {
+  for (const title of [
+    "Tamiya 95467 Dyna-Hawk GX lot of 2 kits",
+    "Tamiya 95467 Dyna-Hawk GX 2 pcs",
+    "2x Tamiya 95467 Dyna-Hawk GX",
+  ]) {
+    const result = classifyEbayActiveListing({
+      title,
+      condition: "New",
+      conditionId: "1000",
+      itemEndDate: null,
+    }, unique)
+    assert.equal(result.decision, "rejected")
+    assert.equal(result.reasonCodes.includes("MULTI_ITEM_NOT_COMPARABLE"), true)
+  }
+})
+
+ok("ambiguous bundle wording is quarantined instead of guessed", () => {
+  const result = classifyEbayActiveListing({
+    title: "Tamiya 95467 Dyna-Hawk GX collector bundle",
+    condition: "New",
+    conditionId: "1000",
+    itemEndDate: null,
+  }, unique)
+  assert.equal(result.decision, "needs_review")
+  assert.equal(result.reasonCodes.includes("BUNDLE_QUANTITY_REQUIRES_REVIEW"), true)
+})
+
+ok("scale notation does not trigger the multi-item guard", () => {
+  const result = classifyEbayActiveListing({
+    title: "Tamiya 95467 Dyna-Hawk GX Mini 4WD 1/32",
+    condition: "New",
+    conditionId: "1000",
+    itemEndDate: null,
+  }, unique)
+  assert.equal(result.decision, "accepted")
+})
+
 ok("item number absent from title is rejected", () => {
   const result = classifyEbayActiveListing({
     title: "Tamiya Dyna-Hawk GX Super XX Special",

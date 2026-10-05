@@ -8,6 +8,7 @@ import {
   sourcePolicyForSlug,
   summarizeSourceCoverage,
 } from "../lib/market/automation/policy.ts"
+import { ebayCollectorScanIntervalHours, marketActivityMateriallyChanged } from "../lib/market/automation/market-activity.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -115,6 +116,38 @@ ok("default pilot plan always includes RCJAZ and excludes internal TrackDash sca
   assert.equal(slugs.includes("rcjaz_public"), true)
   assert.equal(slugs.includes("trackdash_confirmed_sales"), false)
   assert.equal(slugs.includes("mercari_jp_public"), true)
+})
+
+ok("collector-market cadence ignores listing-count churn when availability remains present", () => {
+  const before = {
+    marketValueEUR: null,
+    soldAnchorEUR: null,
+    activeAnchorEUR: 40,
+    startingEffectiveCostEUR: 45,
+    currentOfferCount: 2,
+  }
+  const after = { ...before, currentOfferCount: 5 }
+  assert.equal(marketActivityMateriallyChanged(before, after), false)
+})
+
+ok("collector-market cadence reacts to meaningful ASK moves and market availability", () => {
+  const base = {
+    marketValueEUR: null,
+    soldAnchorEUR: null,
+    activeAnchorEUR: 40,
+    startingEffectiveCostEUR: 45,
+    currentOfferCount: 2,
+  }
+  assert.equal(marketActivityMateriallyChanged(base, { ...base, activeAnchorEUR: 41 }), false)
+  assert.equal(marketActivityMateriallyChanged(base, { ...base, activeAnchorEUR: 42 }), true)
+  assert.equal(marketActivityMateriallyChanged(base, { ...base, currentOfferCount: 0 }), true)
+})
+
+ok("eBay collector cadence stays sparse even for materially active Releases", () => {
+  assert.equal(ebayCollectorScanIntervalHours("hot"), 28 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("normal"), 42 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("cold"), 84 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("unknown"), 42 * 24)
 })
 
 console.log(`${passed} passed, 0 failed`)

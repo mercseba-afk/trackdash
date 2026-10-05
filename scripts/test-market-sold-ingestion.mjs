@@ -208,6 +208,9 @@ await test("fixed-price exact SOLD is normalized, persisted and queues recompute
   assert.equal(point.marketPriceBasis, "raw_sale")
   assert.equal(point.fxRateToEUR, 0.8)
   assert.equal(point.valuationEligible, true)
+  assert.equal(point.evidenceGroupKey, "ebay_us:123:2026-09-01")
+  const candidate = [...store.candidates.values()][0]
+  assert.equal(candidate.evidenceGroupKey, point.evidenceGroupKey)
 })
 
 await test("same source record is idempotent", async () => {

@@ -121,6 +121,14 @@ Freschezza:
 - Catalogo, Release detail, Collezione, Dashboard, Scanner e Market devono consumare la stessa snapshot pubblica condivisa;
 - un refresh/recompute di mercato non deve poter produrre per la stessa Release due numeri diversi su schermate diverse.
 
+Cadence mercato collezionistico:
+- il cron ricorrente è un dispatcher, non una scansione quotidiana di ogni Release;
+- non aumentare la frequenza solo perché una coda contiene più Release: distribuire i job nel tempo;
+- il ricambio di singoli annunci, a segnale canonico sostanzialmente invariato, non rende una Release HOT;
+- per l'eBay Active lane, il cambio di cadenza usa il segnale canonico dopo recompute e considera materiale una variazione di prezzo pari o superiore al 5%, oppure l'ingresso/uscita completa dal mercato corrente;
+- la cadenza eBay Active corrente è HOT 28 giorni / NORMAL 42 giorni / COLD 84 giorni;
+- ogni cambiamento di offer state può comunque causare recompute: **recompute necessario** e **mercato materialmente cambiato** sono concetti distinti.
+
 Regression gate:
 - `scripts/test-market-public-surfaces.mjs` deve impedire la reintroduzione di motori/fallback/cache divergenti;
 - ogni modifica alle superfici mercato deve passare l'intera `pnpm verify` prima del merge.

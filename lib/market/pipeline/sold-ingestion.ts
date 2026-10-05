@@ -219,6 +219,25 @@ function validIsoDate(value: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
 }
 
+function evidenceKeyPart(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._|-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+export function buildSoldEvidenceGroupKey(input: Pick<
+  SoldObservationInput,
+  "sourceSlug" | "sourceRecordKey" | "originalSource" | "originalRecordId" | "soldOn"
+>): string {
+  const hasOriginalIdentity = Boolean(input.originalSource?.trim() && input.originalRecordId?.trim())
+  const source = evidenceKeyPart(hasOriginalIdentity ? input.originalSource! : input.sourceSlug)
+  const record = evidenceKeyPart(hasOriginalIdentity ? input.originalRecordId! : input.sourceRecordKey)
+  return `${source}:${record}:${input.soldOn}`
+}
+
 function canonicalEvidence(values: MatchEvidence[]): MatchEvidence[] {
   return uniq(values.filter((value) => EVIDENCE_CODES.has(value)))
 }
@@ -388,6 +407,7 @@ export async function ingestSoldObservationWithStore(
 
   const normalized = await normalizeSoldObservation(input, options.fxResolver)
   const observedAt = input.observedAt ?? (options.now ?? new Date()).toISOString()
+  const evidenceGroupKey = buildSoldEvidenceGroupKey(input)
   const previous = await store.findCandidate(source.id, input.sourceRecordKey)
 
   let decision: SoldIngestionCandidateDraft["decision"] = normalized.decision
@@ -435,7 +455,7 @@ export async function ingestSoldObservationWithStore(
     matchConfidence: normalized.matchConfidence,
     matchEvidence: normalized.matchEvidence,
     sellerFingerprint: input.sellerFingerprint ?? null,
-    evidenceGroupKey: null,
+    evidenceGroupKey,
     soldOn: input.soldOn,
     observedAt,
     decision,
@@ -497,7 +517,7 @@ export async function ingestSoldObservationWithStore(
     quantity: normalized.quantity,
     matchConfidence: "exact",
     matchEvidence: normalized.matchEvidence,
-    evidenceGroupKey: null,
+    evidenceGroupKey,
     valuationEligible: true,
     needsRevalidation: false,
     soldOn: input.soldOn,

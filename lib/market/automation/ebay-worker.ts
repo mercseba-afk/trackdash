@@ -17,6 +17,7 @@ import {
   type EbayMarketplaceId,
 } from "./ebay-browse-adapter"
 import { guardAutomatedPrice } from "./price-guard"
+import { ebayCollectorScanIntervalHours, marketActivityMateriallyChanged, type MarketActivityFingerprint } from "./market-activity"
 import { ebaySourceRecordKey, planMissingEbayOffers, type EbayMarketplaceFetchState, type ExistingEbayOfferIdentity } from "./ebay-lifecycle"
 
 const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US"]
@@ -277,6 +278,31 @@ async function loadReleaseEbayOffers(
   })
 }
 
+async function loadMarketActivityFingerprint(
+  client: SupabaseClient,
+  releaseId: string,
+): Promise<MarketActivityFingerprint> {
+  const { data, error } = await client
+    .from("market_release_signals")
+    .select("market_value_eur,sold_anchor_eur,active_anchor_eur,starting_effective_cost_eur,current_offer_count")
+    .eq("release_id", releaseId)
+    .eq("condition", "new_complete_unbuilt")
+    .maybeSingle()
+  fail(error, "load market activity fingerprint")
+
+  return {
+    marketValueEUR: n(data?.market_value_eur),
+    soldAnchorEUR: n(data?.sold_anchor_eur),
+    activeAnchorEUR: n(data?.active_anchor_eur),
+    startingEffectiveCostEUR: n(data?.starting_effective_cost_eur),
+    currentOfferCount: Math.max(0, Number(data?.current_offer_count ?? 0) || 0),
+  }
+}
+
+function shippingToItaly(listing: EbayBrowseListing): number | null {
+  return listing.shippingEstimateCountry === "IT" ? listing.shipping : null
+}
+
 async function independentReferences(client: SupabaseClient, releaseId: string, currentSourceId: string) {
   const [{ data: signal, error: signalError }, { data: offers, error: offersError }] = await Promise.all([
     client
@@ -371,8 +397,8 @@ async function upsertCandidate(
         : null,
     price: input.listing.price,
     currency: input.listing.currency,
-    shipping_cost: input.listing.shipping,
-    shipping_basis: input.listing.shipping == null ? "unknown" : input.listing.shipping === 0 ? "included_exact" : "buyer_paid",
+    shipping_cost: shippingToItaly(input.listing),
+    shipping_basis: shippingToItaly(input.listing) == null ? "unknown" : shippingToItaly(input.listing) === 0 ? "included_exact" : "buyer_paid",
     observation_type: "active_listing",
     condition_raw: input.listing.condition,
     condition: "new_complete_unbuilt",
@@ -398,6 +424,9 @@ async function upsertCandidate(
       adapter: "ebay-browse-v1",
       marketplace: input.listing.marketplace,
       itemEndDate: input.listing.itemEndDate,
+      itemLocationCountry: input.listing.itemLocationCountry,
+      shippingEstimateCountry: input.listing.shippingEstimateCountry,
+      shippingObserved: input.listing.shipping,
     },
     first_observed_at: existing?.first_observed_at ?? input.observedAt,
     last_observed_at: input.observedAt,
@@ -422,6 +451,32 @@ async function finishJob(client: SupabaseClient, jobId: string, success: boolean
     p_error: errorMessage,
   })
   fail(error, "finish eBay scan job")
+
+  if (!success) return
+
+  // eBay ASK is a slow collector-market lane. The daily cron is only a
+  // dispatcher: each Release gets a sparse 4/6/12-week cadence according to
+  // its adaptive activity tier after the generic queue function has promoted
+  // or demoted the job.
+  const { data: queue, error: queueError } = await client
+    .from("market_scan_queue")
+    .select("activity_tier")
+    .eq("id", jobId)
+    .single()
+  fail(queueError, "load finished eBay scan cadence")
+  if (!queue) throw new Error("EBAY_SCAN_CADENCE_JOB_NOT_FOUND")
+
+  const intervalHours = ebayCollectorScanIntervalHours(queue.activity_tier)
+  const nextScanAt = new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString()
+  const { error: cadenceError } = await client
+    .from("market_scan_queue")
+    .update({
+      scan_interval_hours: intervalHours,
+      next_scan_at: nextScanAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", jobId)
+  fail(cadenceError, "apply slow eBay collector cadence")
 }
 
 async function neutralizePrevious(repo: MarketR3Repository, job: ClaimedEbayJob, previous: ExistingOffer | null, observedAt: string) {
@@ -454,6 +509,7 @@ async function scanJob(
 ): Promise<EbayJobResult> {
   const observedAt = new Date().toISOString()
   const release = await loadReleaseContext(client, job.release_id)
+  const activityBefore = options.dryRun ? null : await loadMarketActivityFingerprint(client, job.release_id)
   const input = {
     itemNumber: release.itemNumber,
     editionName: release.editionName,
@@ -491,7 +547,7 @@ async function scanJob(
 
   for (const marketplace of MARKETPLACES) {
     try {
-      const rows = await searchEbayActiveListings(input, marketplace, marketplaceLimit)
+      const rows = await searchEbayActiveListings(input, marketplace, marketplaceLimit, { deliveryCountry: "IT" })
       rawByMarketplace[marketplace] = (rawByMarketplace[marketplace] ?? 0) + rows.length
       fetched.push(...rows)
       fetchStates.push({
@@ -516,6 +572,7 @@ async function scanJob(
   let accepted = 0
   let review = 0
   let rejected = 0
+  let stateChanged = false
   let materialChange = false
   const selectedListings: EbaySelectedListing[] = []
   const maxAcceptedListings = options.maxAcceptedListings ?? Number.POSITIVE_INFINITY
@@ -552,10 +609,10 @@ async function scanJob(
       }
       if (classification.decision === "needs_review") {
         review += 1
-        if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+        if (!options.dryRun) stateChanged = (await neutralizePrevious(repo, job, previous, observedAt)) || stateChanged
       } else {
         rejected += 1
-        if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+        if (!options.dryRun) stateChanged = (await neutralizePrevious(repo, job, previous, observedAt)) || stateChanged
       }
       continue
     }
@@ -566,20 +623,21 @@ async function scanJob(
         await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["UNSUPPORTED_CURRENCY"], observedAt })
       }
       review += 1
-      if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+      if (!options.dryRun) stateChanged = (await neutralizePrevious(repo, job, previous, observedAt)) || stateChanged
       continue
     }
 
     const itemFx = await resolveMarketEurBasis(listing.price, currency, observedAt.slice(0, 10))
-    const shippingFx = listing.shipping == null
+    const italyShipping = shippingToItaly(listing)
+    const shippingFx = italyShipping == null
       ? null
-      : await resolveMarketEurBasis(listing.shipping || 0.000001, currency, observedAt.slice(0, 10))
+      : await resolveMarketEurBasis(italyShipping || 0.000001, currency, observedAt.slice(0, 10))
     if (itemFx.amountEUR == null) {
       if (persistNonAccepted) {
         await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: ["FX_RATE_UNAVAILABLE"], observedAt })
       }
       review += 1
-      if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+      if (!options.dryRun) stateChanged = (await neutralizePrevious(repo, job, previous, observedAt)) || stateChanged
       continue
     }
 
@@ -597,7 +655,7 @@ async function scanJob(
         await upsertCandidate(client, { job, release, listing, decision: "needs_review", reasonCodes: guard.reasonCodes, observedAt })
       }
       review += 1
-      if (!options.dryRun) materialChange = (await neutralizePrevious(repo, job, previous, observedAt)) || materialChange
+      if (!options.dryRun) stateChanged = (await neutralizePrevious(repo, job, previous, observedAt)) || stateChanged
       continue
     }
 
@@ -610,7 +668,7 @@ async function scanJob(
       marketplace: listing.marketplace,
       price: listing.price,
       currency: listing.currency,
-      shipping: listing.shipping,
+      shipping: italyShipping,
       conditionId: listing.conditionId,
       condition: listing.condition,
       sellerFingerprint: listing.seller ? `ebay:${listing.seller}` : null,
@@ -620,7 +678,7 @@ async function scanJob(
     if (options.dryRun) continue
 
     const candidateId = await upsertCandidate(client, { job, release, listing, decision: "accepted", reasonCodes: guard.reasonCodes, observedAt })
-    const shippingEUR = listing.shipping == null ? null : listing.shipping === 0 ? 0 : shippingFx?.amountEUR ?? null
+    const shippingEUR = italyShipping == null ? null : italyShipping === 0 ? 0 : shippingFx?.amountEUR ?? null
     await repo.upsertOfferState({
       candidateId,
       releaseId: job.release_id,
@@ -630,7 +688,7 @@ async function scanJob(
       availability: "in_stock",
       sellerFingerprint: listing.seller ? `ebay:${listing.seller}` : null,
       itemPrice: listing.price,
-      shippingPrice: listing.shipping,
+      shippingPrice: italyShipping,
       currency,
       itemPriceEUR: itemFx.amountEUR,
       shippingEUR,
@@ -640,7 +698,7 @@ async function scanJob(
     })
     accepted += 1
     if (!previous || Math.abs(previous.itemPriceEUR - itemFx.amountEUR) >= 0.01 || previous.availability !== "in_stock") {
-      materialChange = true
+      stateChanged = true
     }
   }
 
@@ -652,13 +710,15 @@ async function scanJob(
       if (!missingCandidateIds.has(offer.candidateId)) continue
       if (await neutralizePrevious(repo, job, offer, observedAt)) {
         lifecycleNeutralized += 1
-        materialChange = true
+        stateChanged = true
       }
     }
   }
 
-  if (!options.dryRun && (materialChange || accepted > 0)) {
+  if (!options.dryRun && (stateChanged || accepted > 0)) {
     await recomputeReleaseMarketSignal(job.release_id, "new_complete_unbuilt", new Date(observedAt), repo)
+    const activityAfter = await loadMarketActivityFingerprint(client, job.release_id)
+    materialChange = activityBefore != null && marketActivityMateriallyChanged(activityBefore, activityAfter)
   }
   if (!options.dryRun) await finishJob(client, job.job_id, true, materialChange, null)
 

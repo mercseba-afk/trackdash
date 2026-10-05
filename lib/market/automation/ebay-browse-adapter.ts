@@ -76,6 +76,21 @@ const PART_ONLY_TERMS = [
   "tyre set",
 ]
 
+function explicitMultiItemTitle(title: string): boolean {
+  const normalized = normalizeText(title)
+  return (
+    /\b(?:lot|pack)\s+(?:of\s+)?(?:2|3|4|5|6|7|8|9|10)\b/.test(normalized) ||
+    /\b(?:2|3|4|5|6|7|8|9|10)\s+(?:pcs?|pieces?|units?|kits?)\b/.test(normalized) ||
+    /\b(?:2|3|4|5|6|7|8|9|10)\s*x\s+(?:tamiya|mini|kit)\b/.test(normalized) ||
+    /\bx\s*(?:2|3|4|5|6|7|8|9|10)\b/i.test(title) ||
+    /\bpair\s+of\b/.test(normalized)
+  )
+}
+
+function ambiguousBundleTitle(title: string): boolean {
+  return /\bbundle\b/.test(normalizeText(title))
+}
+
 function normalizeText(value: string): string {
   return value
     .toLowerCase()
@@ -126,6 +141,14 @@ export function classifyEbayActiveListing(
 
   if (PART_ONLY_TERMS.some((term) => normalized.includes(term))) {
     return { decision: "rejected", reasonCodes: ["PART_OR_BODY_ONLY"] }
+  }
+
+  if (explicitMultiItemTitle(listing.title)) {
+    return { decision: "rejected", reasonCodes: ["MULTI_ITEM_NOT_COMPARABLE"] }
+  }
+
+  if (ambiguousBundleTitle(listing.title)) {
+    return { decision: "needs_review", reasonCodes: ["BUNDLE_QUANTITY_REQUIRES_REVIEW"] }
   }
 
   // eBay's human-readable condition is localized (for example "Neuf"), so it
@@ -403,8 +426,9 @@ export async function searchEbayActiveListings(
   input: EbayReleaseSearchInput,
   marketplace: EbayMarketplaceId,
   limit = 50,
+  options: EbayBrowseSearchOptions = {},
 ): Promise<EbayBrowseListing[]> {
-  return searchEbayActiveListingsByQuery(buildEbayBrowseQuery(input), marketplace, limit)
+  return searchEbayActiveListingsByQuery(buildEbayBrowseQuery(input), marketplace, limit, options)
 }
 
 function dedupeIdentity(itemId: string): string {

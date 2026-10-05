@@ -276,8 +276,34 @@ Important:
 
 - ITEM/release identity first;
 - duplicate listings are deduplicated;
-- shipping and cost basis stay explicit;
+- explicit multi-item lots are rejected; ambiguous bundle quantity is quarantined for review;
+- scheduled Browse discovery requests delivery context for Italy;
+- a shipping amount becomes Italy-delivered evidence only when eBay explicitly reports an IT shipping estimate; otherwise shipping remains unknown;
 - unsupported/ambiguous cases fail closed rather than contaminating canonical signals.
+
+## Slow collector cadence
+
+The eBay worker distinguishes **offer-state churn** from a **material canonical market change**.
+
+Any accepted offer/lifecycle change may trigger recompute so the canonical signal stays fresh, but it must not automatically make the Release HOT.
+
+Cadence escalation is based on the recomputed canonical market fingerprint:
+
+- Market Value;
+- SOLD anchor;
+- active ASK anchor;
+- starting effective cost;
+- transition between no current offers and at least one current offer.
+
+A price move is cadence-material at **5% or more**. Listing-count churn alone is not material.
+
+After a successful eBay scan, the adaptive tier is scheduled sparsely:
+
+- HOT: **28 days**;
+- NORMAL: **42 days**;
+- COLD: **84 days**.
+
+The batch remains **4 jobs per dispatcher run**. Do not increase cron frequency to compensate for a slow market; let the queue spread work over time.
 
 ---
 
