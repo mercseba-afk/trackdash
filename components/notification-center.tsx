@@ -106,10 +106,10 @@ function copyFor(notification: AppNotification, it: boolean) {
     case "catalog_family_available": {
       const productName = asText(notification.metadata.product_name) ?? (it ? "Nuova famiglia" : "New family")
       return {
-        title: it ? `${productName} ora disponibile` : `${productName} now available`,
+        title: it ? `Nuova famiglia: ${productName}` : `New family: ${productName}`,
         body: it
-          ? "Release, immagini e dati di mercato sono stati verificati. La famiglia è ora consultabile nel catalogo."
-          : "Releases, images and market data have been verified. The family is now available in the catalog.",
+          ? `${productName} è stata aggiunta al catalogo TrackDash con Release e identità verificate.`
+          : `${productName} has been added to the TrackDash catalog with verified Releases and identities.`,
         icon: PackagePlus,
       }
     }
@@ -161,6 +161,11 @@ function NotificationRow({
           {!notification.readAt ? <span className="size-1.5 shrink-0 rounded-full bg-brand" /> : null}
         </span>
         <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">{copy.body}</span>
+        {notification.type === "catalog_family_available" && notification.href ? (
+          <span className="mt-1.5 inline-flex items-center rounded-md bg-brand/10 px-2 py-1 text-[11px] font-semibold text-brand">
+            {it ? "Vai alla famiglia →" : "Open family →"}
+          </span>
+        ) : null}
         <span className="mt-1 block text-[10px] text-muted-foreground">
           {date.toLocaleString(it ? "it-IT" : "en-US", { dateStyle: "short", timeStyle: "short" })}
         </span>
