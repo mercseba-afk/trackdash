@@ -7,7 +7,7 @@
 
 ---
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-05 — MARKET AUTOMATION FOUNDATION + SHARED ITEM/JAN RECOVERY — PRODUCTION COMPLETE
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-05 — MARKET AUTOMATION FOUNDATION + SHARED ITEM/JAN + RETAIL CADENCE — PRODUCTION COMPLETE
 
 The Mini 4WD market automation pipeline was audited and hardened with the existing Market Method v4 / algorithm r3 preserved. No second Price Engine was introduced.
 
@@ -15,13 +15,18 @@ The Mini 4WD market automation pipeline was audited and hardened with the existi
 
 The recurring cron remains a dispatcher only; it does **not** imply a daily scan per Release.
 
-For the eBay Active lane:
+For recurring eBay Active and exact-retail jobs:
 - HOT: **28 days**
 - NORMAL: **42 days**
 - COLD: **84 days**
-- batch remains **4 due jobs** per dispatcher run.
+- eBay batch remains **4 due jobs** per dispatcher run.
 
-Offer-state churn and material market change are now distinct. Offer/lifecycle changes may trigger recompute, but cadence escalation requires a material canonical signal change: at least **5%** price movement on MV / SOLD anchor / active ASK anchor / starting effective cost, or a transition between zero and non-zero current offers. Listing-count churn alone does not make a Release HOT.
+Offer-state churn and material market change are distinct. Cadence escalation requires meaningful market evidence rather than routine listing churn:
+- eBay canonical price/signal movement is material from **5%**;
+- exact-retail price movement is material from **5%**;
+- exact-retail availability changes are material;
+- a directly observed retail IN STOCK/LOW STOCK → OUT OF STOCK/DISCONTINUED transition is material;
+- listing-count churn alone does not make a Release HOT.
 
 ### eBay guard / Europe-first hardening
 
@@ -33,7 +38,7 @@ Offer-state churn and material market change are now distinct. Offer/lifecycle c
 
 ### SOLD ingestion correction
 
-Automated SOLD ingestion now assigns a deterministic non-null evidence-group key before a valuation-eligible point can be written. This aligns runtime ingestion with the live `price_points` constraint and preserves original-event grouping.
+Automated SOLD ingestion assigns a deterministic non-null evidence-group key before a valuation-eligible point can be written. This aligns runtime ingestion with the live `price_points` constraint and preserves original-event grouping.
 
 ### Shared Item Number recovery
 
@@ -44,40 +49,89 @@ Shared Item Numbers remain fail-closed by default. A shared-item listing may be 
 
 A structured sibling JAN rejects cross-attribution. Missing or non-unique JAN remains `needs_review`. Independent guard failures are never overridden by JAN refinement.
 
-Live eligibility after deployment:
+Live eligibility:
 - shared ITEM + globally unique JAN: **20 Releases enabled**;
 - shared ITEM + non-unique JAN: **0 enabled**;
 - shared ITEM without JAN: **0 enabled**.
 
-The 20 newly eligible jobs were deliberately distributed from **2026-10-06 through 2026-11-15**, all initially NORMAL / 42-day cadence, instead of being made due together.
+The 20 newly eligible jobs are deliberately distributed from **2026-10-06 through 2026-11-15**, initially NORMAL / 42-day cadence.
 
 Representative fail-closed benchmark:
 - 18074 Premium and 18038 2007 Reissue can qualify via unique structured JAN;
-- 18019 original/reissue share the same JAN and therefore remain blocked;
+- 18019 original/reissue share the same JAN and remain blocked;
 - 19401 Magnum Saber variants use sibling-JAN rejection protection.
+
+### Observed retail sell-through
+
+`market_offer_history` is the canonical availability timeline for retail evidence.
+
+A sell-through event is recognized only when TrackDash itself observes:
+- previous state `in_stock` or `low_stock`;
+- next state `out_of_stock` or `discontinued`.
+
+First-seen sold-out rows, unknown → sold-out, sold-out → sold-out and preorder → sold-out are **not** treated as observed sell-through.
+
+Observed sell-through:
+- is tagged with `RETAIL_SELL_THROUGH_OBSERVED`;
+- may affect activity cadence as a material availability change;
+- does **not** fabricate a SOLD price point;
+- does **not** fabricate quantity sold;
+- does **not** create MV by itself.
+
+At implementation audit there were **0 historical true observed sell-through transitions** in live data; existing sold-out rows had been first observed already sold out.
+
+### Exact-retail live cadence closeout
+
+Before the cadence correction, the live exact-retail queue contained **56** enabled + exact-release-verified Mini 4WD jobs, mostly scheduled every **7–14 days**, with **48** already due/overdue.
+
+After Production deployment:
+- exact-retail jobs: **56**
+- activity tier: **56 / 56 NORMAL**
+- interval: **56 / 56 = 1008 hours / 42 days**
+- due immediately after redistribution: **0**
+- first next scan: **2026-10-06 12:05 UTC**
+- last next scan: **2026-11-17 12:05 UTC**
+
+The queue was intentionally spread across ~42 days rather than drained immediately. This matches the slow collector-market model and reduces unnecessary API/runtime use.
 
 ### Validation / Production
 
-Foundation PR: **#331**
+Foundation PR **#331**
 - Production commit: **38cf09445e44c707bbbe9848cef60a731afd964f**
 - Typecheck: PASS
 - `pnpm verify`: PASS
 - Vercel Preview: READY
 
-Shared ITEM/JAN PR: **#332**
+Shared ITEM/JAN PR **#332**
 - Production commit: **55fc7dd818af30b00a7bd7deaa3160cba8be1dc5**
 - Typecheck: PASS
 - `pnpm verify`: PASS
 - Vercel Preview: READY
 
-Production:
-- Vercel deployment for `55fc7dd8…`: **READY**
-- `trackdash.it/api/version`: **55fc7dd818af30b00a7bd7deaa3160cba8be1dc5**
-- public `/market`: HTTP **200**
+Checkpoint PR **#333**
+- Production commit: **2ee5051e6915bfae62d04f7c0ff6149f39cb78c3**
 
-### Retail sell-through audit
+Retail sell-through PR **#334**
+- Production commit: **b639e97be0f9db7ed9eccea2dc26ed1658550170**
+- Typecheck: PASS
+- `pnpm verify`: PASS
+- Vercel Production: READY
 
-`market_offer_history` already preserves retail availability transitions. At this checkpoint there are **no** observed IN STOCK/LOW STOCK → OUT OF STOCK/DISCONTINUED transitions in live history; existing sold-out retail rows were first observed already sold out and therefore are **not** treated as sell-through or SOLD evidence.
+Exact-retail cadence PR **#335**
+- Production commit: **cb73ca99a94cbc11e06f8df6a17e737bfc44f44b**
+- Typecheck: PASS
+- `pnpm verify`: PASS
+- Vercel Preview: READY
+- Vercel Production: READY
+- `trackdash.it/api/version`: **cb73ca99a94cbc11e06f8df6a17e737bfc44f44b**
+
+### Cost posture
+
+This automation work introduces no paid service or paid add-on. TrackDash Supabase is on the **Free** tier, and the cadence changes reduce scheduled market workload rather than increase it. No licensed automatic SOLD source has been activated.
+
+### Remaining boundary
+
+The supported ASK/lifecycle/recompute/identity path is now highly automated. Fully automatic trustworthy SOLD coverage is still constrained by source licensing/access; eBay Product Research remains manual-only and there is no supported automatic eBay SOLD API in the current implementation.
 
 This checkpoint is now authoritative.
 
