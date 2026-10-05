@@ -61,6 +61,32 @@ Representative fail-closed benchmark:
 - 18019 original/reissue share the same JAN and remain blocked;
 - 19401 Magnum Saber variants use sibling-JAN rejection protection.
 
+### Automatic Market Watch enrollment for future Releases
+
+Migration `0209_market_shared_item_unique_jan_auto_enrollment.sql` extends automatic eBay enrollment to shared Item Numbers when the target Release has a globally unique JAN.
+
+Rules now enforced live:
+- unique ITEM → eligible;
+- shared ITEM + globally unique JAN → eligible;
+- shared ITEM + missing/non-unique JAN → parked;
+- structured eBay item details must still confirm the target JAN before a shared-ITEM listing is accepted.
+
+The identity trigger now watches both `item_number` and `barcode_jan`. If JAN identity later becomes ambiguous, affected shared-ITEM jobs are parked automatically; if a safe unique JAN is later added, an existing parked job can be activated automatically.
+
+New eBay enrollments use **NORMAL / 42 days (1008h)** instead of the legacy 7-day default. Existing active jobs preserve their distributed schedule/tier.
+
+Live post-migration audit:
+- shared ITEM + globally unique JAN: **20 / 20 enabled**;
+- shared ITEM unsafe (JAN missing/non-unique): **0 / 33 enabled**;
+- eBay source policy default interval: **1008h**.
+
+Transactional rollback tests passed:
+1. 18074 Premium recreated from no queue row → auto-enrolled NORMAL / 42 days; Sanfrecce sibling without JAN stayed blocked.
+2. 18019 shared non-unique JAN → forced unsafe state was automatically parked.
+3. Artificial global duplication of JAN 4950344180745 → shared 18074 Premium was automatically parked by the barcode trigger; transaction rolled back.
+
+Supabase advisors after the change reported no new finding tied to these Market Watch enrollment functions. Existing advisor findings belong to pre-existing tables/functions outside this change.
+
 ### Observed retail sell-through
 
 `market_offer_history` is the canonical availability timeline for retail evidence.
