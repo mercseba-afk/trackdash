@@ -106,15 +106,36 @@ Never display SOLD 0 as a statement that no sales occurred.
 
 ## Refresh
 
-Marketplace: HOT 72h / NORMAL 7d / COLD 14d.
-Retail: HOT 7d / NORMAL 14d / COLD 30d.
-SOLD research: HOT 14d / NORMAL 30d / COLD 60d.
+The daily cron is a dispatcher only; it does not imply daily Release scans.
+
+Recurring eBay Active and exact-retail Market Watch cadence:
+- HOT: **28 days**
+- NORMAL: **42 days**
+- COLD: **84 days**
+
+Cadence escalates only on material evidence (for example a >=5% canonical/retail price move or a meaningful availability change), not routine listing-count churn.
+
+Automatic SOLD research remains source-constrained: do not invent a recurring SOLD cadence unless a supported/licensed trustworthy source is actually enabled.
 
 Only due + READY jobs are automatically claimed. Failed jobs are not marked successful.
 
 ## Completion
 
 A family is complete only after every Release has been audited through the workflow. Honest documented gaps are allowed (for example exact image not found or genuinely thin market); unperformed work is not.
+
+### Sonic Saber — completion 2026-10-05
+
+Canonical family after current-method re-audit:
+- 19402 Sonic Saber Original — 1994 / Super 1 / JAN 4950344194025;
+- 19402 Sonic Saber Reissue — 2003 generation / Super 1 / JAN 4950344061327, later production waves kept on the same collector Release;
+- 19432 Sonic Saber Premium — 2011 / Super II / historical primary JAN 4950344194322 with later channel JAN aliases.
+
+Publication-gate outcome:
+- 1994 Original: documented exact-image gap + exact historical retail context only; no current ASK/MV fabricated;
+- 2003 Reissue: exact/current-generation image; market remains under observation;
+- 2011 Premium: exact image + active marketplace context; extra-EU eBay item-only listings remain context unless Italy/EU comparability is proven.
+
+The family may move `coming_soon → available` only after the completion migration is applied and Production QA confirms the public family/release routes.
 
 
 ## Public ASK terminology — 2026-09-23 invariant
