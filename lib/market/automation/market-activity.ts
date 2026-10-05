@@ -38,3 +38,17 @@ export function marketActivityMateriallyChanged(
   // equivalent offers is not.
   return (before.currentOfferCount === 0) !== (after.currentOfferCount === 0)
 }
+
+
+export const EBAY_COLLECTOR_SCAN_INTERVAL_HOURS = {
+  hot: 28 * 24,
+  normal: 42 * 24,
+  cold: 84 * 24,
+} as const
+
+export type MarketActivityTier = keyof typeof EBAY_COLLECTOR_SCAN_INTERVAL_HOURS
+
+export function ebayCollectorScanIntervalHours(tier: string): number {
+  return EBAY_COLLECTOR_SCAN_INTERVAL_HOURS[tier as MarketActivityTier]
+    ?? EBAY_COLLECTOR_SCAN_INTERVAL_HOURS.normal
+}
