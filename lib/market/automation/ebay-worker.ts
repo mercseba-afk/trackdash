@@ -17,7 +17,7 @@ import {
   type EbayMarketplaceId,
 } from "./ebay-browse-adapter"
 import { guardAutomatedPrice } from "./price-guard"
-import { marketActivityMateriallyChanged, type MarketActivityFingerprint } from "./market-activity"
+import { ebayCollectorScanIntervalHours, marketActivityMateriallyChanged, type MarketActivityFingerprint } from "./market-activity"
 import { ebaySourceRecordKey, planMissingEbayOffers, type EbayMarketplaceFetchState, type ExistingEbayOfferIdentity } from "./ebay-lifecycle"
 
 const MARKETPLACES: EbayMarketplaceId[] = ["EBAY_IT", "EBAY_DE", "EBAY_GB", "EBAY_US"]
@@ -451,6 +451,31 @@ async function finishJob(client: SupabaseClient, jobId: string, success: boolean
     p_error: errorMessage,
   })
   fail(error, "finish eBay scan job")
+
+  if (!success) return
+
+  // eBay ASK is a slow collector-market lane. The daily cron is only a
+  // dispatcher: each Release gets a sparse 4/6/12-week cadence according to
+  // its adaptive activity tier after the generic queue function has promoted
+  // or demoted the job.
+  const { data: queue, error: queueError } = await client
+    .from("market_scan_queue")
+    .select("activity_tier")
+    .eq("id", jobId)
+    .single()
+  fail(queueError, "load finished eBay scan cadence")
+
+  const intervalHours = ebayCollectorScanIntervalHours(queue.activity_tier)
+  const nextScanAt = new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString()
+  const { error: cadenceError } = await client
+    .from("market_scan_queue")
+    .update({
+      scan_interval_hours: intervalHours,
+      next_scan_at: nextScanAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", jobId)
+  fail(cadenceError, "apply slow eBay collector cadence")
 }
 
 async function neutralizePrevious(repo: MarketR3Repository, job: ClaimedEbayJob, previous: ExistingOffer | null, observedAt: string) {
