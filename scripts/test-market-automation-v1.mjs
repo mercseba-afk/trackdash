@@ -9,6 +9,7 @@ import {
   summarizeSourceCoverage,
 } from "../lib/market/automation/policy.ts"
 import { ebayCollectorScanIntervalHours, marketActivityMateriallyChanged } from "../lib/market/automation/market-activity.ts"
+import { isObservedRetailSellThrough } from "../lib/market/automation/retail-sell-through.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -148,6 +149,15 @@ ok("eBay collector cadence stays sparse even for materially active Releases", ()
   assert.equal(ebayCollectorScanIntervalHours("normal"), 42 * 24)
   assert.equal(ebayCollectorScanIntervalHours("cold"), 84 * 24)
   assert.equal(ebayCollectorScanIntervalHours("unknown"), 42 * 24)
+})
+
+ok("retail sell-through requires an observed available-to-unavailable transition", () => {
+  assert.equal(isObservedRetailSellThrough("in_stock", "out_of_stock"), true)
+  assert.equal(isObservedRetailSellThrough("low_stock", "discontinued"), true)
+  assert.equal(isObservedRetailSellThrough(null, "out_of_stock"), false)
+  assert.equal(isObservedRetailSellThrough("unknown", "out_of_stock"), false)
+  assert.equal(isObservedRetailSellThrough("out_of_stock", "out_of_stock"), false)
+  assert.equal(isObservedRetailSellThrough("preorder", "out_of_stock"), false)
 })
 
 console.log(`${passed} passed, 0 failed`)
