@@ -48,6 +48,12 @@ export interface EbayBrowseItemDetails {
   localizedAspects: EbayLocalizedAspect[]
 }
 
+export interface Mini4wdSharedReleaseIdentity {
+  jan: string | null
+  janIsUnique: boolean
+  siblingJans: string[]
+}
+
 const NON_GENUINE_TERMS = [
   "replica",
   "knockoff",
@@ -176,6 +182,62 @@ export function classifyEbayActiveListing(
   }
 
   return { decision: "accepted", reasonCodes: reasons }
+}
+
+function normalizeIdentifier(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "")
+}
+
+function structuredIdentityValues(details: EbayBrowseItemDetails): string[] {
+  return [
+    details.gtin,
+    details.mpn,
+    ...details.localizedAspects.map((aspect) => aspect.value),
+  ].flatMap((value) => value?.trim() ? [value] : [])
+}
+
+function structuredValuesContain(values: string[], identifier: string): boolean {
+  const target = normalizeIdentifier(identifier)
+  return Boolean(target) && values.some((value) => normalizeIdentifier(value).includes(target))
+}
+
+export function refineMini4wdSharedItemListingWithItemDetails(
+  initial: EbayListingDecision,
+  details: EbayBrowseItemDetails,
+  identity: Mini4wdSharedReleaseIdentity,
+): EbayListingDecision {
+  if (initial.decision !== "needs_review") return initial
+  if (!initial.reasonCodes.includes("SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW")) return initial
+
+  const jan = identity.jan?.trim() || null
+  if (!jan || !identity.janIsUnique) {
+    return initial
+  }
+
+  const values = structuredIdentityValues(details)
+  for (const siblingJan of identity.siblingJans) {
+    if (siblingJan !== jan && structuredValuesContain(values, siblingJan)) {
+      return {
+        decision: "rejected",
+        reasonCodes: ["SIBLING_JAN_ITEM_DETAILS"],
+      }
+    }
+  }
+
+  if (structuredValuesContain(values, jan)) {
+    return {
+      decision: "accepted",
+      reasonCodes: ["JAN_ITEM_DETAILS_EXACT"],
+    }
+  }
+
+  return {
+    decision: "needs_review",
+    reasonCodes: [
+      "SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW",
+      "JAN_NOT_CONFIRMED_ITEM_DETAILS",
+    ],
+  }
 }
 
 interface EbayTokenResponse {
