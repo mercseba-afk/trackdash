@@ -286,7 +286,7 @@ Important:
 
 ## Slow collector cadence
 
-The eBay worker distinguishes **offer-state churn** from a **material canonical market change**.
+The recurring eBay Active and exact-retail workers use a slow collector cadence. eBay distinguishes **offer-state churn** from a **material canonical market change**; exact retail treats availability changes and price moves of at least 5% as cadence-material.
 
 Any accepted offer/lifecycle change may trigger recompute so the canonical signal stays fresh, but it must not automatically make the Release HOT.
 
@@ -300,13 +300,13 @@ Cadence escalation is based on the recomputed canonical market fingerprint:
 
 A price move is cadence-material at **5% or more**. Listing-count churn alone is not material.
 
-After a successful eBay scan, the adaptive tier is scheduled sparsely:
+After a successful eBay Active **or exact-retail** scan, the adaptive tier is scheduled sparsely:
 
 - HOT: **28 days**;
 - NORMAL: **42 days**;
 - COLD: **84 days**.
 
-The batch remains **4 jobs per dispatcher run**. Do not increase cron frequency to compensate for a slow market; let the queue spread work over time.
+The eBay and exact-page batches remain small dispatcher batches. Do not increase cron frequency to compensate for a slow market; let the queue spread work over time.
 
 ---
 
