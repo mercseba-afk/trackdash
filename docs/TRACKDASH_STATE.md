@@ -1,9 +1,85 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-10-01  
+> **Last updated:** 2026-10-05  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
+
+---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-05 — MARKET AUTOMATION FOUNDATION + SHARED ITEM/JAN RECOVERY — PRODUCTION COMPLETE
+
+The Mini 4WD market automation pipeline was audited and hardened with the existing Market Method v4 / algorithm r3 preserved. No second Price Engine was introduced.
+
+### Slow collector cadence
+
+The recurring cron remains a dispatcher only; it does **not** imply a daily scan per Release.
+
+For the eBay Active lane:
+- HOT: **28 days**
+- NORMAL: **42 days**
+- COLD: **84 days**
+- batch remains **4 due jobs** per dispatcher run.
+
+Offer-state churn and material market change are now distinct. Offer/lifecycle changes may trigger recompute, but cadence escalation requires a material canonical signal change: at least **5%** price movement on MV / SOLD anchor / active ASK anchor / starting effective cost, or a transition between zero and non-zero current offers. Listing-count churn alone does not make a Release HOT.
+
+### eBay guard / Europe-first hardening
+
+- scheduled Browse discovery requests delivery context for Italy;
+- shipping is persisted as known for Italy only when eBay explicitly returns an IT shipping estimate;
+- explicit multi-item lots are rejected;
+- ambiguous bundle quantity is quarantined for review;
+- exact ITEM identity remains mandatory and all unsupported cases fail closed.
+
+### SOLD ingestion correction
+
+Automated SOLD ingestion now assigns a deterministic non-null evidence-group key before a valuation-eligible point can be written. This aligns runtime ingestion with the live `price_points` constraint and preserves original-event grouping.
+
+### Shared Item Number recovery
+
+Shared Item Numbers remain fail-closed by default. A shared-item listing may be resolved automatically only when:
+1. the target Release has a JAN;
+2. that JAN is globally unique in the TrackDash catalog;
+3. eBay structured item details confirm that JAN.
+
+A structured sibling JAN rejects cross-attribution. Missing or non-unique JAN remains `needs_review`. Independent guard failures are never overridden by JAN refinement.
+
+Live eligibility after deployment:
+- shared ITEM + globally unique JAN: **20 Releases enabled**;
+- shared ITEM + non-unique JAN: **0 enabled**;
+- shared ITEM without JAN: **0 enabled**.
+
+The 20 newly eligible jobs were deliberately distributed from **2026-10-06 through 2026-11-15**, all initially NORMAL / 42-day cadence, instead of being made due together.
+
+Representative fail-closed benchmark:
+- 18074 Premium and 18038 2007 Reissue can qualify via unique structured JAN;
+- 18019 original/reissue share the same JAN and therefore remain blocked;
+- 19401 Magnum Saber variants use sibling-JAN rejection protection.
+
+### Validation / Production
+
+Foundation PR: **#331**
+- Production commit: **38cf09445e44c707bbbe9848cef60a731afd964f**
+- Typecheck: PASS
+- `pnpm verify`: PASS
+- Vercel Preview: READY
+
+Shared ITEM/JAN PR: **#332**
+- Production commit: **55fc7dd818af30b00a7bd7deaa3160cba8be1dc5**
+- Typecheck: PASS
+- `pnpm verify`: PASS
+- Vercel Preview: READY
+
+Production:
+- Vercel deployment for `55fc7dd8…`: **READY**
+- `trackdash.it/api/version`: **55fc7dd818af30b00a7bd7deaa3160cba8be1dc5**
+- public `/market`: HTTP **200**
+
+### Retail sell-through audit
+
+`market_offer_history` already preserves retail availability transitions. At this checkpoint there are **no** observed IN STOCK/LOW STOCK → OUT OF STOCK/DISCONTINUED transitions in live history; existing sold-out retail rows were first observed already sold out and therefore are **not** treated as sell-through or SOLD evidence.
+
+This checkpoint is now authoritative.
 
 ---
 
