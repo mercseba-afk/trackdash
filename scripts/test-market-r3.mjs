@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { applyPersistentCollectorTrend, computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
-import { marketplaceRegionFromOriginalSource } from "../lib/market/pipeline/market-region.ts"
+import { marketplaceRegionFromCandidateContext, marketplaceRegionFromOriginalSource } from "../lib/market/pipeline/market-region.ts"
 import { ASK_TREND_BASIS_VERSION } from "../lib/market/pipeline/ask-trend-basis.ts"
 import {
   DEFAULT_SCAN_BATCH_LIMITS,
@@ -94,6 +94,79 @@ ok("EU-first marketplace mapping keeps GB and CH extra-EU", () => {
   assert.equal(marketplaceRegionFromOriginalSource("EBAY_DE"), "europe")
   assert.equal(marketplaceRegionFromOriginalSource("EBAY_GB"), "global")
   assert.equal(marketplaceRegionFromOriginalSource("EBAY_CH"), "global")
+})
+
+ok("eBay marketplace domain does not override a Japan physical item location", () => {
+  const region = marketplaceRegionFromCandidateContext({
+    originalSource: "EBAY_IT",
+    rawPayload: { itemLocationCountry: "JP", shippingEstimateCountry: null },
+    shippingKnownToItaly: false,
+  })
+  assert.equal(region, "japan")
+
+  const signal = computeCurrentMarketSignal({
+    offers: [{
+      stableId: "ebay-it-jp",
+      sourceId: "ebay",
+      channel: "marketplace",
+      sellerFingerprint: "seller-jp",
+      marketRegion: region,
+      availability: "in_stock",
+      itemPriceEUR: 11.33,
+      shippingEUR: null,
+      observedAt: "2026-10-05T15:05:00Z",
+    }],
+    soldEvidence: [],
+    asOfDate: "2026-10-05",
+  })
+
+  assert.equal(signal.activeAnchorEUR, null)
+  assert.equal(signal.startingOffer, null)
+  assert.equal(signal.marketValueEUR, null)
+})
+
+ok("eBay.it listing physically in Hong Kong stays extra-EU without Italy delivery evidence", () => {
+  assert.equal(
+    marketplaceRegionFromCandidateContext({
+      originalSource: "EBAY_IT",
+      rawPayload: { itemLocationCountry: "HK", shippingEstimateCountry: null },
+      shippingKnownToItaly: false,
+    }),
+    "asia_pacific",
+  )
+})
+
+ok("eBay item with explicit Italy shipping estimate is Europe-comparable", () => {
+  assert.equal(
+    marketplaceRegionFromCandidateContext({
+      originalSource: "EBAY_IT",
+      rawPayload: { itemLocationCountry: "JP", shippingEstimateCountry: "IT" },
+      shippingKnownToItaly: true,
+    }),
+    "europe",
+  )
+})
+
+ok("eBay item physically in Italy is Europe-comparable even when shipping is unknown", () => {
+  assert.equal(
+    marketplaceRegionFromCandidateContext({
+      originalSource: "EBAY_IT",
+      rawPayload: { itemLocationCountry: "IT", shippingEstimateCountry: null },
+      shippingKnownToItaly: false,
+    }),
+    "europe",
+  )
+})
+
+ok("eBay candidate with no location fails closed instead of inheriting eBay.it region", () => {
+  assert.equal(
+    marketplaceRegionFromCandidateContext({
+      originalSource: "EBAY_IT",
+      rawPayload: {},
+      shippingKnownToItaly: false,
+    }),
+    "global",
+  )
 })
 
 ok("18069: broad eBay sold evidence defeats a one-off 300 JPY anomaly", () => {
