@@ -36,6 +36,17 @@ interface Row {
   signal: ReleaseMarketSignalView
 }
 
+function hasMarketEvidence(signal: ReleaseMarketSignalView): boolean {
+  return (
+    (signal.valueEUR != null && signal.valueEUR > 0) ||
+    observedMarketDisplayPrice(signal) != null ||
+    signal.currentOfferCount > 0 ||
+    signal.soldUnits > 0 ||
+    signal.retailSourceCount > 0 ||
+    collectorMarketTrend(signal) != null
+  )
+}
+
 export function MarketScreen({ products }: { products: Product[] }) {
   const { locale } = useI18n()
   const { user } = useStore()
@@ -47,7 +58,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
   const rows = React.useMemo<Row[]>(() => products.flatMap((product) =>
     product.releases.flatMap((release) => {
       const signal = marketSignals[release.id]
-      return signal ? [{ product, release, signal }] : []
+      return signal && hasMarketEvidence(signal) ? [{ product, release, signal }] : []
     }),
   ), [marketSignals, products])
 
@@ -89,7 +100,9 @@ export function MarketScreen({ products }: { products: Product[] }) {
         limitedBody: "Alcune Release sono rare o si muovono poco. In questi casi TrackDash mostra ciò che è disponibile e aspetta dati migliori prima di pubblicare una stima.",
         liveKicker: "DATI DISPONIBILI",
         liveTitle: "Valori e trend, Release per Release.",
-        liveBody: "Qui trovi le Release per cui TrackDash ha già dati di mercato. Apri una scheda per vedere valore stimato, disponibilità e andamento quando presenti.",
+        liveBody: "Qui trovi solo le Release per cui TrackDash ha già almeno un'evidenza di mercato reale. Apri una scheda per vedere valore stimato, disponibilità e andamento quando presenti.",
+        betaTitle: "Beta mercato · Pro in arrivo",
+        betaBody: "Per ora valori, segnali e trend attuali sono disponibili con l'account Free. TrackDash Pro aggiungerà soprattutto storico e grafici 30/90 giorni, alert, analisi della collezione e strumenti avanzati.",
       }
     : {
         kicker: "PRICE INTELLIGENCE",
@@ -117,7 +130,9 @@ export function MarketScreen({ products }: { products: Product[] }) {
         limitedBody: "Some Releases are rare or rarely traded. In those cases TrackDash shows what is available and waits for better data before publishing an estimate.",
         liveKicker: "AVAILABLE DATA",
         liveTitle: "Values and trends, Release by Release.",
-        liveBody: "Here you can find Releases for which TrackDash already has market data. Open a Release to see its estimated value, availability and trend when available.",
+        liveBody: "Here you can find only Releases for which TrackDash already has real market evidence. Open a Release to see estimated value, availability and trend when available.",
+        betaTitle: "Market beta · Pro coming later",
+        betaBody: "For now, current values, signals and trends are available with a Free account. TrackDash Pro will mainly add 30/90-day history and charts, alerts, collection analytics and advanced tools.",
       }
 
   return (
@@ -217,14 +232,19 @@ export function MarketScreen({ products }: { products: Product[] }) {
 
         {user ? (
           <>
-            <Alert className="mb-5 bg-white"><Info /><AlertTitle>{it ? "Come leggere questi dati" : "How to read this data"}</AlertTitle><AlertDescription>{it ? "Le richieste dei venditori negli annunci aiutano a leggere il mercato corrente, mentre il Valore stimato dà più peso alle vendite concluse. I trend compaiono solo quando c'è abbastanza storico comparabile." : "Seller asks in listings help describe the current market, while Estimated value gives more weight to completed sales. Trends appear only when there is enough comparable history."}</AlertDescription></Alert>
+            <Alert className="mb-3 bg-white"><Info /><AlertTitle>{it ? "Come leggere questi dati" : "How to read this data"}</AlertTitle><AlertDescription>{it ? "Le richieste dei venditori negli annunci aiutano a leggere il mercato corrente, mentre il Valore stimato dà più peso alle vendite concluse. I trend compaiono solo quando c'è abbastanza storico comparabile." : "Seller asks in listings help describe the current market, while Estimated value gives more weight to completed sales. Trends appear only when there is enough comparable history."}</AlertDescription></Alert>
+            <Alert className="mb-5 border-brand/20 bg-brand-muted/40">
+              <TrendingUp />
+              <AlertTitle className="flex items-center gap-2">{copy.betaTitle}<Badge variant="outline" className="border-brand/25 bg-white text-brand">{it ? "Free durante la beta" : "Free during beta"}</Badge></AlertTitle>
+              <AlertDescription>{copy.betaBody}</AlertDescription>
+            </Alert>
 
             <Tabs defaultValue="values">
               <TabsList className="bg-white"><TabsTrigger value="values"><Activity data-icon="inline-start" />{it ? "Valori" : "Values"}</TabsTrigger><TabsTrigger value="trends"><TrendingUp data-icon="inline-start" />{it ? "Trend" : "Trends"}</TabsTrigger></TabsList>
               <TabsContent value="values" className="mt-4">
                 <div className="grid gap-4 lg:grid-cols-2">
                   <MarketListCard title={it ? "Valori disponibili" : "Available values"} rows={valued} />
-                  <MarketListCard title={it ? "Dati in arrivo" : "Data coming soon"} rows={forming} forming />
+                  <MarketListCard title={it ? "Mercato osservato" : "Observed market"} rows={forming} forming />
                 </div>
               </TabsContent>
               <TabsContent value="trends" className="mt-4">
@@ -311,9 +331,22 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
   const observedPrice = observedMarketDisplayPrice(row.signal)
   const observedKind = observedMarketDisplayKind(row.signal)
   const trend = collectorMarketTrend(row.signal)
+  const hasExactReleaseImage = Boolean(row.release.images?.length)
   return (
     <Link href={href} className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-[#f4f8fd]">
-      <ProductImage product={row.product} release={row.release} size="sm" className="h-12 w-16 shrink-0 rounded-lg border border-border bg-white" />
+      <div className="relative h-12 w-16 shrink-0">
+        <ProductImage
+          product={row.product}
+          release={hasExactReleaseImage ? row.release : undefined}
+          size="sm"
+          className="h-12 w-16 rounded-lg border border-border bg-white"
+        />
+        {!hasExactReleaseImage ? (
+          <span className="absolute bottom-0.5 left-0.5 rounded bg-white/90 px-1 py-0.5 text-[8px] font-semibold uppercase tracking-[0.06em] text-[#6f7f91] shadow-sm">
+            {it ? "Famiglia" : "Family"}
+          </span>
+        ) : null}
+      </div>
       <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-navy group-hover:text-brand">{row.release.editionName}</p><div className="mt-0.5 flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted-foreground">#{row.release.itemNumber ?? "—"}</span>{row.release.rarity ? <RarityBadge rarity={row.release.rarity} /> : null}</div></div>
       <div className="max-w-40 text-right">
         {forming
