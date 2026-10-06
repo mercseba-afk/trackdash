@@ -7,6 +7,31 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-06 — MARKET PAGE CLEANUP + FREE/PRO BETA POSITIONING
+
+Market page policy:
+- `/market` must show only Releases with at least one real market evidence lane (MV, current ASK/retail, SOLD reference, source count or collector trend), not every empty materialized signal row;
+- exact Release images remain preferred;
+- when an exact Release image is unavailable but a representative family image exists, `/market` may use it only with an explicit **Family / Famiglia** label so it cannot be mistaken for exact Release evidence;
+- Releases with no market evidence remain in Catalog/Release surfaces with the normal “market under observation” semantics and do not inflate the Market overview.
+
+Current beta entitlement/product positioning:
+- public/no-login: exact Release pages and public Market Value/current public value presentation remain accessible;
+- Free account: Market overview, current ASK/SOLD/retail context and current collector trends remain available during beta;
+- Free Collection cap remains **50 Releases**;
+- Pro is not active/billable yet and must not create dead/false paywalls;
+- future Pro value is primarily depth/history: unlimited Collection, unlimited scanner, 30/90-day history and charts, Collection value evolution, paid-vs-market / gain-loss analytics, Wishlist/price alerts, movers/monitoring and Deal Radar/advanced tools;
+- core current values/trends should not be removed from beta users merely to simulate Pro before the historical/advanced features are mature.
+
+Live audit before UI cleanup:
+- Mini 4WD Releases with real market evidence: **80**;
+- Market Values: **8**;
+- current observed offers: **263**;
+- collector trends: **3**;
+- evidence rows with exact Release image: **66**;
+- evidence rows missing exact image but with representative family image available: **14**;
+- evidence rows with no image anywhere in family: **0**.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-06 — PRICE GUARD OFFER-EXPIRY RECOMPUTE + QUEUE HYGIENE
 
 TrackDash Price Guard surfaced a real lifecycle gap: a current offer can age past the public freshness TTL without any new write/event, while an older `market_release_signals` row remains materialized.
