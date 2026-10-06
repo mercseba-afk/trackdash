@@ -7,6 +7,32 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-06 — PRICE GUARD OFFER-EXPIRY RECOMPUTE + QUEUE HYGIENE
+
+TrackDash Price Guard surfaced a real lifecycle gap: a current offer can age past the public freshness TTL without any new write/event, while an older `market_release_signals` row remains materialized.
+
+Correction in progress on PR for this checkpoint:
+- marketplace publication TTL remains **360h / 15 days**;
+- retail publication TTL remains **744h / 31 days**;
+- these TTLs are separate from the slower Market Watch scan cadence (28/42/84 days);
+- before claiming recompute work, the recompute worker now detects offers whose TTL crossed after the signal was computed and enqueues the Release through the canonical recompute queue;
+- already-recomputed expiries and already-queued Releases are not re-enqueued;
+- stale-state expiry remains history only and does not fabricate a SOLD event or material market movement.
+
+18025 — Dash-1 Emperor 2026 Reissue:
+- Joshin last observed 2026-09-10 07:22 UTC → canonical retail expiry 2026-10-11 07:22 UTC;
+- Tamiya Shop last observed 2026-09-09 19:54 UTC → canonical retail expiry 2026-10-10 19:54 UTC;
+- therefore the Health Watch alert correctly identified the missing time-driven recompute mechanism, but was **early** in calling 18025 already stale on 2026-10-06;
+- do not force-remove its current retail-derived signal before the canonical expiry boundary.
+
+Live queue audit also found non-runnable legacy backlog:
+- `manual`: 1,047 enabled automatic jobs, 1,044 overdue;
+- `planned`: 568 enabled automatic jobs, 527 overdue;
+- these jobs cannot be claimed by the ready-only workers.
+Migration `0212_market_offer_expiry_queue_hygiene.sql` disables automatic enrollment/queue rows for non-ready source policies while preserving their stored research/context evidence.
+
+At pre-deploy audit, **2** materialized signals had genuinely crossed an offer-expiry boundary and were eligible for automatic expiry recompute: 94704 Dash-1 Emperor Black Special and 18069 Dash-1 Emperor Premium.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-05 — SONIC SABER FAMILY COMPLETE + FAMILY-LAUNCH NOTIFICATION CTA
 
 Sonic Saber has completed the current Mini 4WD family workflow and is now `available`.
