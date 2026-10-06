@@ -7,6 +7,35 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-05 — SONIC SABER FAMILY COMPLETE + FAMILY-LAUNCH NOTIFICATION CTA
+
+Sonic Saber has completed the current Mini 4WD family workflow and is now `available`.
+
+Canonical family:
+- 19402 Sonic Saber Original — 1994 / Super 1 / JAN 4950344194025;
+- 19402 Sonic Saber Reissue — 2003 generation / Super 1 / JAN 4950344061327;
+- 19432 Sonic Saber Premium — 2011 / Super II / primary historical JAN 4950344194322 plus later channel JAN aliases.
+
+Publication-gate result:
+- 1994 Original: documented exact-image gap, but exact historical AmiAmi retail context tied to its JAN; no current ASK/MV fabricated;
+- 2003 Reissue: exact/current-generation image, market still under observation;
+- 2011 Premium: exact image and 11 active marketplace observations, all currently extra-EU/non-comparable for EU public ASK because Italy delivery is not proven.
+
+Europe-first hardening PR #340:
+- eBay marketplace domain is no longer used as geographic comparability;
+- item physical location and explicit Italy shipping context determine EU comparability;
+- eBay.it + JP/HK/US item without Italy delivery remains extra-EU context;
+- Production commit: 751c57bfa54ceb131a6fca7a848d4324f202c6c3.
+
+Sonic completion + notification PR #341:
+- family promoted `coming_soon → available`;
+- family launch notification now renders “Nuova famiglia: <name>” with visible CTA “Vai alla famiglia →”;
+- notification href points directly to the family page;
+- live Sonic launch generated 3 rows for 3 profiles, with 0 duplicate rows;
+- FAMILY_COMPLETION_MASTER cadence corrected to the live Market Watch 28/42/84-day model;
+- Production commit: 2cdfd364469f123c4504219adb9e1b0c6c308236;
+- Production READY, public family page operational, runtime errors 0.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-05 — MARKET AUTOMATION FOUNDATION + SHARED ITEM/JAN + RETAIL CADENCE — PRODUCTION COMPLETE
 
 The Mini 4WD market automation pipeline was audited and hardened with the existing Market Method v4 / algorithm r3 preserved. No second Price Engine was introduced.
