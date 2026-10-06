@@ -7,26 +7,49 @@ import type {
 const HOUR_MS = 3_600_000
 const DAY_MS = 86_400_000
 
-// Freshness follows the slow Mini 4WD refresh policy. A COLD observation must
-// remain visible until its next scheduled refresh, with a small operational
-// grace period. Recency weighting still happens separately in the market model.
-export const MARKETPLACE_OFFER_MAX_AGE_HOURS = 360 // 14d cadence + 1d grace
-export const RETAIL_OFFER_MAX_AGE_HOURS = 744 // 30d cadence + 1d grace
+// Publication freshness is deliberately separate from scan cadence.
+//
+// Market Watch may rescan a slow collector-market Release every 28/42/84 days,
+// but an old listing must not remain publicly "current" merely because its next
+// scan is scheduled later. These TTLs define how long persisted availability can
+// support a current ASK/retail anchor without revalidation.
+export const MARKETPLACE_OFFER_MAX_AGE_HOURS = 360 // 15 days
+export const RETAIL_OFFER_MAX_AGE_HOURS = 744 // 31 days
+
+export function currentOfferMaxAgeHours(
+  channel: CurrentOfferEvidence["channel"],
+): number {
+  return channel === "marketplace"
+    ? MARKETPLACE_OFFER_MAX_AGE_HOURS
+    : RETAIL_OFFER_MAX_AGE_HOURS
+}
+
+export function currentOfferExpiryAtMs(
+  offer: Pick<CurrentOfferEvidence, "channel" | "observedAt">,
+): number | null {
+  const checkedAt = Date.parse(offer.observedAt)
+  if (!Number.isFinite(checkedAt)) return null
+  return checkedAt + currentOfferMaxAgeHours(offer.channel) * HOUR_MS
+}
+
+export function didOfferExpireSinceSignalComputed(
+  offer: Pick<CurrentOfferEvidence, "channel" | "observedAt">,
+  signalComputedAt: string,
+  now: Date,
+): boolean {
+  const expiryAt = currentOfferExpiryAtMs(offer)
+  const computedAt = Date.parse(signalComputedAt)
+  if (expiryAt == null || !Number.isFinite(computedAt)) return false
+  return computedAt < expiryAt && expiryAt <= now.getTime()
+}
 
 export function filterFreshCurrentOffers(
   offers: CurrentOfferEvidence[],
   now: Date,
 ): CurrentOfferEvidence[] {
   return offers.filter((offer) => {
-    const checkedAt = Date.parse(offer.observedAt)
-    if (!Number.isFinite(checkedAt)) return false
-
-    const ageMs = Math.max(0, now.getTime() - checkedAt)
-    const maxAgeHours = offer.channel === "marketplace"
-      ? MARKETPLACE_OFFER_MAX_AGE_HOURS
-      : RETAIL_OFFER_MAX_AGE_HOURS
-
-    return ageMs <= maxAgeHours * HOUR_MS
+    const expiryAt = currentOfferExpiryAtMs(offer)
+    return expiryAt != null && now.getTime() <= expiryAt
   })
 }
 
