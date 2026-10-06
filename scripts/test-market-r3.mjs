@@ -93,7 +93,7 @@ ok("offer expiry enqueues recompute only when freshness decays after signal mate
   assert.equal(
     didOfferExpireSinceSignalComputed(
       { channel: "retail", observedAt: "2026-09-05T09:59:59Z" },
-      "2026-10-06T09:00:00Z",
+      "2026-10-06T10:00:00Z",
       now,
     ),
     false,
