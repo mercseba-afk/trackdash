@@ -90,6 +90,30 @@ Repository/service layer:
 
 `MarketR3Repository`
 
+## Time-driven offer expiry maintenance
+
+Before claiming normal recompute jobs, `runMarketRecomputeBatch(...)` now checks whether a persisted current offer crossed the canonical publication freshness boundary **after** its Release signal was last materialized.
+
+Canonical publication TTLs remain:
+- marketplace current offer: **360 hours / 15 days**;
+- retail current offer: **744 hours / 31 days**.
+
+These TTLs are intentionally separate from the slower 28/42/84-day scan cadence. A Release may therefore temporarily return to “market under observation” while waiting for its next scheduled scan rather than continuing to expose an unverified old offer.
+
+When a qualifying expiry is detected:
+- the Release is enqueued through the normal `trackdash_enqueue_market_recompute` path;
+- the same Admin/cron recompute lane can clear stale `starting_offer_candidate_id`, ASK/retail anchors and current-offer counts;
+- an expiry already reflected by a later recompute is not enqueued again;
+- a Release already present in the recompute queue is not re-enqueued/reset.
+
+This is a recompute event, **not** a scan and not automatically a HOT/material market move.
+
+## Runnable-source queue hygiene
+
+Only sources with `adapter_status = 'ready'` belong in enabled automatic scan queues.
+
+Sources marked `manual` or `planned` may still provide valid stored context/research evidence, but their automatic queue/target rows must remain disabled until an executable adapter is promoted to `ready`. `include_by_default` is therefore disabled for non-ready source policies.
+
 ## Recompute is NOT a scan
 
 It does not search the web.
