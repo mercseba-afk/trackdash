@@ -9,6 +9,12 @@ import {
   shouldEscalateHot,
 } from "../lib/market/pipeline/scheduler.ts"
 import { selectCurrentSoldEvidence } from "../lib/market/pipeline/sold-selection.ts"
+import {
+  MARKETPLACE_OFFER_MAX_AGE_HOURS,
+  RETAIL_OFFER_MAX_AGE_HOURS,
+  didOfferExpireSinceSignalComputed,
+  filterFreshCurrentOffers,
+} from "../lib/market/pipeline/market-publication-policy.ts"
 
 let passed = 0
 
@@ -22,6 +28,87 @@ const asOf = "2026-09-09"
 
 ok("ASK trend snapshots use a versioned comparable basis", () => {
   assert.equal(ASK_TREND_BASIS_VERSION, "v4-eu-delivered-2026-10")
+})
+
+ok("current offer freshness TTLs stay separate from slow scan cadence", () => {
+  assert.equal(MARKETPLACE_OFFER_MAX_AGE_HOURS, 360)
+  assert.equal(RETAIL_OFFER_MAX_AGE_HOURS, 744)
+
+  const now = new Date("2026-10-06T10:00:00Z")
+  const offers = [
+    {
+      stableId: "fresh-marketplace",
+      sourceId: "ebay",
+      channel: "marketplace",
+      availability: "in_stock",
+      itemPriceEUR: 20,
+      observedAt: "2026-09-21T10:00:00Z",
+    },
+    {
+      stableId: "stale-marketplace",
+      sourceId: "ebay",
+      channel: "marketplace",
+      availability: "in_stock",
+      itemPriceEUR: 19,
+      observedAt: "2026-09-21T09:59:59Z",
+    },
+    {
+      stableId: "fresh-retail",
+      sourceId: "shop",
+      channel: "retail",
+      availability: "in_stock",
+      itemPriceEUR: 15,
+      observedAt: "2026-09-05T10:00:00Z",
+    },
+    {
+      stableId: "stale-retail",
+      sourceId: "shop",
+      channel: "retail",
+      availability: "in_stock",
+      itemPriceEUR: 14,
+      observedAt: "2026-09-05T09:59:59Z",
+    },
+  ]
+
+  assert.deepEqual(
+    filterFreshCurrentOffers(offers, now).map((offer) => offer.stableId),
+    ["fresh-marketplace", "fresh-retail"],
+  )
+})
+
+ok("offer expiry enqueues recompute only when freshness decays after signal materialization", () => {
+  const now = new Date("2026-10-06T10:00:00Z")
+
+  assert.equal(
+    didOfferExpireSinceSignalComputed(
+      { channel: "retail", observedAt: "2026-09-05T09:59:59Z" },
+      "2026-09-20T00:00:00Z",
+      now,
+    ),
+    true,
+  )
+
+  // If the signal was already recomputed after the expiry boundary, time decay
+  // has already been accounted for and must not enqueue the same Release again.
+  assert.equal(
+    didOfferExpireSinceSignalComputed(
+      { channel: "retail", observedAt: "2026-09-05T09:59:59Z" },
+      "2026-10-06T10:00:00Z",
+      now,
+    ),
+    false,
+  )
+
+  // 18025's 10 Sep Joshin observation is not yet beyond the canonical 31-day
+  // retail TTL on 6 Oct; the Health Watch alert was early on the age threshold.
+  assert.equal(
+    didOfferExpireSinceSignalComputed(
+      { channel: "retail", observedAt: "2026-09-10T07:22:38Z" },
+      "2026-09-22T03:33:19Z",
+      now,
+    ),
+    false,
+  )
 })
 
 ok("collector trend persists when a recompute finds no new directional event", () => {
