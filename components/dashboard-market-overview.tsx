@@ -22,7 +22,8 @@ interface MarketRow {
 }
 
 function hasMeaningfulActivity(signal: ReleaseMarketSignalView): boolean {
-  if (collectorMarketTrend(signal) != null) return true
+  const trend = collectorMarketTrend(signal)
+  if (trend != null) return trend > 0
   return signal.recentSoldUnits3m != null && signal.recentSoldUnits3m >= 2
 }
 
