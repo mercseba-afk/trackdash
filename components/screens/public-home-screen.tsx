@@ -197,11 +197,11 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
   return (
     <div className="overflow-hidden bg-background">
-      <section className="relative overflow-hidden border-b border-line bg-[#eef3f7]">
+      <section data-reveal="hero" className="relative overflow-hidden border-b border-line bg-[#eef3f7]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand" />
         <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-10 pt-12 sm:px-6 lg:px-8 lg:pb-9 lg:pt-12">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(500px,.92fr)] lg:items-center lg:gap-8 xl:grid-cols-[minmax(0,1.04fr)_minmax(560px,.96fr)] xl:gap-10">
-            <div className="relative z-10 max-w-[46rem]">
+            <div className="td-hero-copy relative z-10 max-w-[46rem]">
               <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
                 {it ? "LA CASA DIGITALE DEI COLLEZIONISTI MINI 4WD" : "THE DIGITAL HOME FOR MINI 4WD COLLECTORS"}
               </p>
@@ -232,7 +232,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               </p>
             </div>
 
-            <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[390px] lg:hidden">
+            <div className="td-hero-art relative flex min-h-[300px] items-center justify-center sm:min-h-[390px] lg:hidden">
               <img
                 src="/trackdash-hero-mini4wd-transparent.svg"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
@@ -244,7 +244,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               />
             </div>
 
-            <div className="relative hidden min-h-[360px] overflow-hidden lg:block xl:min-h-[390px]">
+            <div className="td-hero-art relative hidden min-h-[360px] overflow-hidden lg:block xl:min-h-[390px]">
               <img
                 src="/trackdash-hero-mini4wd-transparent.svg"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
@@ -284,7 +284,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       </section>
 
       {watchList.length > 0 ? (
-        <section className="bg-white">
+        <section data-reveal className="bg-white">
           <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
             <div className="flex items-end justify-between gap-5">
               <div>
@@ -332,7 +332,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         </section>
       ) : null}
 
-      <section id="how-it-works" className="bg-[#eef4fb]">
+      <section data-reveal id="how-it-works" className="bg-[#eef4fb]">
         <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             {it ? "COSA PUOI FARE CON TRACKDASH" : "WHAT YOU CAN DO WITH TRACKDASH"}
@@ -414,7 +414,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       </section>
 
       {familyProduct && familyPreviewRelease ? (
-        <section className="border-y border-line bg-white">
+        <section data-reveal className="border-y border-line bg-white">
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-16">
             <div className="flex min-h-[340px] items-center justify-center bg-brand-muted p-6 sm:p-8">
               <ProductImage
@@ -465,7 +465,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         </section>
       ) : null}
 
-      <section className="bg-navy text-white">
+      <section data-reveal className="bg-navy text-white">
         <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-16">
           <div className="flex flex-col justify-center">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/65">{it ? "ANALISI DI MERCATO" : "PRICE INTELLIGENCE"}</p>
@@ -488,7 +488,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section data-reveal className="bg-white">
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:px-8 lg:py-16">
           <div className="flex flex-col justify-center">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
@@ -534,7 +534,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       </section>
 
 
-      <section id="community" className="border-y border-line bg-[#f8fafc]">
+      <section data-reveal id="community" className="border-y border-line bg-[#f8fafc]">
         <div className="mx-auto grid w-full max-w-7xl gap-9 px-4 py-14 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:px-8 lg:py-16">
           <div className="flex flex-col justify-center">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
@@ -627,7 +627,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       </section>
 
       {scannerExample ? (
-        <section className="border-y border-line bg-[#eef4fb]">
+        <section data-reveal className="border-y border-line bg-[#eef4fb]">
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8 lg:py-16">
             <div className="relative overflow-hidden bg-navy p-5 text-white sm:p-7">
               <div className="mx-auto max-w-md rounded-[28px] border border-white/15 bg-[#07162f] p-3 shadow-2xl">
@@ -675,7 +675,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         </section>
       ) : null}
 
-      <section className="bg-white">
+      <section data-reveal className="bg-white">
         <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
           <div className="grid gap-7 border border-line bg-[#f8fafc] p-7 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>

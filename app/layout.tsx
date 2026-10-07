@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { I18nBootstrap } from "@/components/i18n-bootstrap"
 import { PwaInstallManager } from "@/components/pwa-install-manager"
 import { PageViewTracker } from "@/components/page-view-tracker"
+import { ScrollRevealController } from "@/components/scroll-reveal-controller"
 import { StoreProvider } from "@/lib/store"
 import { I18nProvider, type AppLocale } from "@/lib/i18n"
 import { MarketSignalsProvider } from "@/lib/market/context"
@@ -100,6 +101,7 @@ export default async function RootLayout({
                 <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
                   <TooltipProvider>{children}</TooltipProvider>
                   <PageViewTracker />
+                  <ScrollRevealController />
                   <PwaInstallManager />
                   <Toaster position="top-center" />
                 </I18nBootstrap>
