@@ -138,3 +138,68 @@
     opacity: 0;
   }
 }
+
+
+/* TrackDash motion language: subtle, one-shot entrance animations. */
+.td-reveal-pending {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  will-change: opacity, transform;
+}
+
+.td-reveal-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.td-reveal-pending[data-reveal="hero"] {
+  transform: translate3d(0, 12px, 0);
+}
+
+.td-reveal-visible[data-reveal="hero"] .td-hero-copy {
+  animation: td-hero-copy-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.td-reveal-visible[data-reveal="hero"] .td-hero-art {
+  animation: td-hero-art-in 920ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+}
+
+@keyframes td-hero-copy-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes td-hero-art-in {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 0, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .td-reveal-pending,
+  .td-reveal-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+
+  .td-reveal-visible[data-reveal="hero"] .td-hero-copy,
+  .td-reveal-visible[data-reveal="hero"] .td-hero-art {
+    animation: none;
+  }
+}
