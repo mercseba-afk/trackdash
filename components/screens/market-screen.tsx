@@ -24,6 +24,7 @@ import type { Product, ProductRelease } from "@/lib/types"
 import { localizePublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { ProductImage } from "@/components/catalog/product-image"
+import { PwaInstallSettingsButton } from "@/components/pwa-install-menu-item"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -54,6 +55,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
   const marketSignals = useMarketSignals()
   const marketPath = localizePublicPath("/market", locale)
   const liveLoginHref = `/login?next=${encodeURIComponent(`${marketPath}#live-market`)}`
+  const liveSignupHref = `/signup?next=${encodeURIComponent(`${marketPath}#live-market`)}`
 
   const rows = React.useMemo<Row[]>(() => products.flatMap((product) =>
     product.releases.flatMap((release) => {
@@ -83,9 +85,9 @@ export function MarketScreen({ products }: { products: Product[] }) {
   const copy = it
     ? {
         kicker: "ANALISI DI MERCATO",
-        titleA: "Capisci quanto vale una Release",
-        titleB: "con dati reali.",
-        intro: "Ogni modello può avere più Release — originali, ristampe o edizioni speciali — e ognuna può avere un valore diverso. TrackDash confronta i dati di mercato disponibili per stimare quanto vale oggi.",
+        titleA: "Scopri quanto vale davvero",
+        titleB: "il mercato Mini 4WD.",
+        intro: "TrackDash monitora prezzi, annunci e vendite per aiutarti a seguire il valore delle singole Release e della tua collezione, senza confondere prezzi richiesti e vendite reali.",
         explore: "Guarda i valori disponibili",
         catalog: "Vai al catalogo",
         signalsKicker: "COME LEGGIAMO IL MERCATO",
@@ -113,9 +115,9 @@ export function MarketScreen({ products }: { products: Product[] }) {
       }
     : {
         kicker: "PRICE INTELLIGENCE",
-        titleA: "Understand what a Release is worth",
-        titleB: "with real market data.",
-        intro: "One model can have multiple Releases — originals, reissues or special editions — and each can have a different value. TrackDash compares available market data to estimate what each Release is worth today.",
+        titleA: "See what the Mini 4WD market",
+        titleB: "is really worth.",
+        intro: "TrackDash monitors prices, listings and completed sales to help you follow individual Release values and your collection without confusing asking prices with real sales.",
         explore: "View available values",
         catalog: "Browse catalog",
         signalsKicker: "HOW WE READ THE MARKET",
@@ -160,8 +162,8 @@ export function MarketScreen({ products }: { products: Product[] }) {
                   {copy.explore} <ArrowRight className="size-4" />
                 </a>
               ) : (
-                <Link href={liveLoginHref} className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-                  <LockKeyhole className="size-4" /> {it ? "Accedi alla panoramica mercato" : "Sign in for market overview"} <ArrowRight className="size-4" />
+                <Link href={liveSignupHref} className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                  {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
                 </Link>
               )}
               <Link href={localizePublicPath("/catalog", locale)} className="inline-flex h-11 items-center rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
@@ -170,11 +172,24 @@ export function MarketScreen({ products }: { products: Product[] }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <MiniStat label={it ? "Release con dati" : "Releases with data"} value={String(rows.length)} />
-            <MiniStat label={it ? "Valori disponibili" : "Available values"} value={String(valued.length)} />
-            <MiniStat label={it ? "Annunci osservati" : "Observed listings"} value={String(currentOffers)} />
-            <MiniStat label={it ? "Trend disponibili" : "Available trends"} value={String(trends.length)} />
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <MiniStat label={it ? "Release monitorate" : "Monitored Releases"} value={String(rows.length)} />
+              <MiniStat label={it ? "Annunci osservati" : "Observed listings"} value={String(currentOffers)} />
+              <MiniStat label={it ? "Prezzi aggiornati" : "Updated prices"} value={it ? "Mercato reale" : "Real market"} />
+              <MiniStat label={it ? "La tua collezione" : "Your collection"} value={it ? "Sempre allineata" : "Always aligned"} />
+            </div>
+            <div className="rounded-2xl border border-[#d6e3f2] bg-white/75 p-4 shadow-sm backdrop-blur">
+              <p className="text-sm font-semibold text-navy">{it ? "TrackDash sempre con te" : "TrackDash always with you"}</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {it
+                  ? "Crea il tuo account e installa l’app per controllare catalogo, mercato e collezione direttamente dalla schermata Home."
+                  : "Create your account and install the app to keep catalog, market and collection directly on your Home Screen."}
+              </p>
+              <div className="mt-3">
+                <PwaInstallSettingsButton />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -274,9 +289,14 @@ export function MarketScreen({ products }: { products: Product[] }) {
                 ? "I valori nelle singole schede restano pubblici. Accedi per esplorare questa panoramica completa del mercato e dei trend disponibili."
                 : "Values on individual Release pages remain public. Sign in to explore this complete market overview and available trends."}
             </p>
-            <Link href={liveLoginHref} className="mt-5 inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-              <LockKeyhole className="size-4" /> {it ? "Accedi" : "Sign in"}
-            </Link>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              <Link href={liveSignupHref} className="inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
+              </Link>
+              <Link href={liveLoginHref} className="inline-flex h-10 items-center gap-2 rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
+                <LockKeyhole className="size-4" /> {it ? "Ho già un account" : "I already have an account"}
+              </Link>
+            </div>
           </div>
         )}
       </section>
