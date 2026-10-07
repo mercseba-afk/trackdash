@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { collectorMarketTrend, hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketDisplayEvidenceLabel, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { hasReliableObservedPriceTrend, observedMarketAskDirection, observedMarketDisplayEvidenceLabel, observedMarketDisplayKind, observedMarketDisplayLabel } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
