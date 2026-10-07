@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HOMEPAGE MARKET WATCHLIST QUALITY GATE
+
+Homepage market curation:
+- **Release da tenere d’occhio** now shows only complete, presentation-ready Releases;
+- eligibility requires an exact Release image, a current publishable Market Value and a positive collector-facing trend;
+- the homepage no longer fills the carousel with incomplete fallback Releases just to reach four cards;
+- if only two or three Releases meet the quality bar, only those are shown;
+- homepage trend display now uses the canonical collector-facing trend helper instead of raw signal.trendPercent;
+- a Release cannot show “Dati in arrivo” alongside a positive percentage in this promotional block;
+- no market calculation or underlying Release data was changed: this checkpoint only tightens homepage selection/presentation rules.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SIGNUP COPY REFRESH
 
 Signup editorial direction:
