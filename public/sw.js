@@ -1,4 +1,4 @@
-const CACHE_VERSION = "trackdash-shell-v7"
+const CACHE_VERSION = "trackdash-shell-v8"
 const OFFLINE_URL = "/offline.html"
 
 self.addEventListener("install", (event) => {
@@ -12,12 +12,18 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      caches
-        .keys()
-        .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key)))),
-    ]),
+    (async () => {
+      await self.clients.claim()
+      const keys = await caches.keys()
+      await Promise.all(keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key)))
+
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
+      await Promise.all(
+        windows.map((client) =>
+          client.navigate(client.url).catch(() => undefined),
+        ),
+      )
+    })(),
   )
 })
 
