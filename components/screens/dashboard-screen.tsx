@@ -75,7 +75,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
       </div>
 
-      {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
+      {summary.marketValueCount < summary.sealedCount || summary.sealedCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
             ? "La stima della collezione usa solo copie Sigillate con un Market Value canonico disponibile. Copie aperte, montate, usate o incomplete restano escluse dal totale finché non esistono evidenze specifiche per condizione."
