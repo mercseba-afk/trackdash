@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — OFFICIAL LOGO MOBILE FULL-LOCKUP FIX
+
+Brand rendering:
+- the approved official TrackDash PNG remains the only brand lockup;
+- BrandMark now owns an explicit responsive brand box and fits the PNG with full-size object containment;
+- this prevents the lower half/payoff from being clipped in the authenticated mobile/PWA header;
+- the full `COLLECT • TRACK • TRADE` payoff remains part of the same raster asset;
+- no alternate logo, SVG redraw or CSS-composed wordmark was reintroduced;
+- no catalog, market, auth, Collection, Scanner, PWA installability or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — OFFICIAL LOGO VERTICAL CLIPPING FIX
 
 Brand rendering:
