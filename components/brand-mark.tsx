@@ -26,7 +26,7 @@ export function BrandMark({
   return (
     <span className={cn("inline-flex items-center", className)}>
       <img
-        src="/brand/trackdash-logo-v6.webp"
+        src="/brand-logo-v7"
         alt="TrackDash — Collect · Track · Trade"
         className="h-[46px] w-auto max-w-[210px] object-contain sm:h-[52px] sm:max-w-[235px]"
       />
