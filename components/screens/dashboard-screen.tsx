@@ -117,10 +117,10 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                   <p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketValue)}</p>
                 ) : entry.item.condition !== "Sealed" ? (
                   <p className="text-[11px] text-muted-foreground">{it ? "Valore copia non stimato" : "Copy value not estimated"}</p>
-                ) : entry.observedPrice != null ? (
+                ) : observedMarketDisplayPrice(entry.marketSignal) != null ? (
                   <div>
                     <p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(entry.marketSignal, it)}</p>
-                    <p className="text-xs font-semibold tabular-nums">{observedMarketDisplayKind(entry.marketSignal) === "sold" ? "≈ " : ""}{formatMoney(entry.observedPrice)}</p>
+                    <p className="text-xs font-semibold tabular-nums">{observedMarketDisplayKind(entry.marketSignal) === "sold" ? "≈ " : ""}{formatMoney(observedMarketDisplayPrice(entry.marketSignal)!)}</p>
                   </div>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
