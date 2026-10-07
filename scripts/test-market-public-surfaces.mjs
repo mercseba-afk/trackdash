@@ -165,12 +165,6 @@ if (!analyticsSource.includes('return condition === "Sealed"')) {
 if (analyticsSource.includes('condition === "New / Opened"')) {
   errors.push("New / Opened copies are still being valued with the new/unbuilt Release benchmark")
 }
-if (!collectionScreen.includes("summary.marketValue") || collectionScreen.includes("summary.marketReferenceValue")) {
-  errors.push("Collection headline total is not using only canonical Market Value")
-}
-if (!collectionScreen.includes("Valore della copia non stimato")) {
-  errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
-}
 const publicHome = fs.readFileSync("components/screens/public-home-screen.tsx", "utf8")
 if (!publicHome.includes("signal?.trendPercent == null || signal.trendPercent > 0")) {
   errors.push("Homepage editorial market examples are not excluding negative collector trends")
@@ -209,6 +203,12 @@ if (releaseScreen.includes("ExternalAvailabilityCard") || releaseScreen.includes
 }
 
 const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
+if (!collectionScreen.includes("summary.marketValue") || collectionScreen.includes("summary.marketReferenceValue")) {
+  errors.push("Collection headline total is not using only canonical Market Value")
+}
+if (!collectionScreen.includes("Valore della copia non stimato")) {
+  errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
+}
 if (!collectionScreen.includes("Mercato osservato") || !collectionScreen.includes("Riferimenti storici disponibili")) {
   errors.push("Collection does not distinguish historical market context from missing data")
 }
