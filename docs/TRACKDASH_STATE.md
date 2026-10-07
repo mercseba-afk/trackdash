@@ -7,6 +7,25 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SEALED-ONLY COLLECTION VALUE + POSITIVE EDITORIAL MARKET EXAMPLES
+
+Collection valuation policy:
+- `market_release_signals` remains the single canonical source for current Release market state.
+- `MarketSignalsProvider` refreshes the shared public signal map every 60 seconds and on window focus; Collection, Dashboard and other shared surfaces therefore consume the same current signal instead of storing independent price snapshots.
+- A physical collection copy contributes to `La mia collezione` estimated value **only when condition = Sealed** and a canonical `valueEUR` exists.
+- `New / Opened`, `Built`, `Used` and `Incomplete` copies are deliberately not assigned a copy value from the new/unbuilt Release benchmark. TrackDash must not invent condition discounts/multipliers.
+- ASK and SOLD references may remain visible as Release-level market context, but they must not be summed into the collection value.
+- Collection headline total and Dashboard collection total both use only canonical Market Value, never ASK fallback.
+- Personal gain/loss is calculated only where the physical copy is eligible for the sealed benchmark and a trustworthy EUR acquisition basis exists.
+- Non-sealed collection-item detail explicitly explains that Release market data is a benchmark for new/sealed kits, not an estimate of the user's physical copy.
+
+Editorial trend policy:
+- Homepage, promotional/informational examples and curated market-highlight modules must never select a Release with a negative collector trend as an example.
+- Curated examples may use a positive trend or no trend when other meaningful market evidence exists.
+- This is a presentation-selection rule only: factual surfaces must remain honest. Full Market views, Release detail and a user's own holdings may still show negative trend / loss when that is the real canonical data.
+- No trend/value used in an example may be hardcoded: editorial examples must be selected from the same live canonical `marketSignals` map used elsewhere, so the displayed price/trend changes when the underlying canonical signal changes.
+
+Public copy is updated to describe collection value as an estimate for sealed copies rather than a guaranteed resale value.
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-06 — MARKET PAGE CLEANUP + FREE/PRO BETA POSITIONING
 
 Market page policy:

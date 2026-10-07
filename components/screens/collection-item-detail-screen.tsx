@@ -173,6 +173,16 @@ export function CollectionItemDetailScreen({
         </CardContent>
       </Card>
 
+      {entry.item.condition !== "Sealed" ? (
+        <Card className="border-amber-200 bg-amber-50/70">
+          <CardContent className="py-4 text-sm leading-6 text-amber-900">
+            {it
+              ? `Questa copia è ${conditionLabel(entry.item.condition, it)}: i dati di mercato sotto si riferiscono alla Release nuova/sigillata e non rappresentano una stima della tua copia fisica. TrackDash non applica svalutazioni automatiche senza evidenze specifiche per condizione.`
+              : `This copy is ${conditionLabel(entry.item.condition, it)}: the market data below refers to a new/sealed Release and is not an estimate of your physical copy. TrackDash does not apply automatic discounts without condition-specific evidence.`}
+          </CardContent>
+        </Card>
+      ) : null}
+
       <ReleaseMarketOverview signal={entry.marketSignal} />
 
       <div className="grid gap-3 sm:grid-cols-2">

@@ -122,14 +122,21 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
   const watchList = React.useMemo(() => {
     const ranked = [...releases]
-      .filter(({ release, signal }) => Boolean(release.itemNumber) && Boolean(signal))
+      .filter(({ release, signal }) =>
+        Boolean(release.itemNumber) &&
+        Boolean(signal) &&
+        (signal?.trendPercent == null || signal.trendPercent > 0),
+      )
       .sort((a, b) => marketScore(b) - marketScore(a))
 
     const primary = distinctByProduct(ranked, 4)
     if (primary.length >= 4) return primary
 
     const fallback = distinctByProduct(
-      releases.filter(({ release }) => Boolean(release.itemNumber)),
+      releases.filter(({ release, signal }) =>
+        Boolean(release.itemNumber) &&
+        (signal?.trendPercent == null || signal.trendPercent > 0),
+      ),
       8,
     )
 
@@ -173,7 +180,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
     if (growing[0]) return growing[0]
 
     return releases
-      .filter(({ signal }) => signal?.valueEUR != null)
+      .filter(({ signal }) =>
+        signal?.valueEUR != null &&
+        (signal.trendPercent == null || signal.trendPercent > 0),
+      )
       .sort((a, b) => marketScore(b) - marketScore(a))[0] ?? null
   }, [releases])
 
@@ -364,8 +374,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               title={it ? "Organizza la tua collezione." : "Organise your collection."}
               text={
                 it
-                  ? "Aggiungi le Release che possiedi, gestisci più copie dello stesso modello e guarda in un colpo d’occhio il valore stimato della tua raccolta."
-                  : "Add the Releases you own, manage multiple copies of the same model and see your collection’s estimated value at a glance."
+                  ? "Aggiungi le Release che possiedi, indica la condizione di ogni copia e consulta la stima aggiornata delle sole copie sigillate."
+                  : "Add the Releases you own, record each copy's condition and see the updated estimate for sealed copies only."
               }
               tone="brand"
               href="/login?next=%2Fcollection"
@@ -489,13 +499,13 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             </h2>
             <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
               {it
-                ? "Registra le Release che possiedi e usale come punto di partenza: scopri quanto valgono, controlla il mercato e trova altre copie da comprare o vendi le tue ad altri collezionisti."
-                : "Register the Releases you own and use them as your starting point: discover their value, watch the market, find other copies to buy or sell yours to other collectors."}
+                ? "Registra le Release che possiedi, indica la condizione di ogni copia e controlla il mercato. Per le copie sigillate TrackDash può usare il Market Value aggiornato come stima; per copie aperte o usate non inventa svalutazioni."
+                : "Register the Releases you own, record each copy's condition and watch the market. For sealed copies TrackDash can use the latest Market Value as an estimate; for opened or used copies it does not invent discounts."}
             </p>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <CollectionPoint icon={Boxes} title={it ? "Release esatte" : "Exact Releases"} text={it ? "Sai quale versione possiedi davvero." : "Know exactly which version you own."} />
               <CollectionPoint icon={Copy} title={it ? "Più copie" : "Multiple copies"} text={it ? "Gestisci più esemplari della stessa Release." : "Manage multiple copies of the same Release."} />
-              <CollectionPoint icon={TrendingUp} title={it ? "Valore stimato" : "Estimated value"} text={it ? "Vedi quanto vale oggi la raccolta." : "See what your collection is worth today."} />
+              <CollectionPoint icon={TrendingUp} title={it ? "Valore stimato" : "Estimated value"} text={it ? "Stima aggiornata delle copie sigillate, senza inventare valori per aperte o usate." : "Updated estimate for sealed copies, without inventing values for opened or used ones."} />
               <CollectionPoint icon={Heart} title={it ? "Desideri" : "Wishlist"} text={it ? "Tieni separato ciò che hai da ciò che stai cercando." : "Keep what you own separate from what you want."} />
             </div>
             <Link href="/login?next=%2Fcollection" className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">

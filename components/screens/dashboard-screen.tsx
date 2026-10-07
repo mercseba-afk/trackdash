@@ -69,7 +69,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       <DashboardMarketOverview products={catalogProducts} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.count} {it ? "con Valore stimato" : "with an Estimated value"}</span>} />
+        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? <>≈ {formatMoney(summary.marketValue)}</> : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.sealedCount} {it ? "sigillate con Market Value" : "sealed with Market Value"}</span>} />
         <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati sufficienti non ancora disponibili" : "Not enough data yet"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
@@ -78,8 +78,8 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Valore e differenza dal prezzo pagato compaiono solo quando TrackDash dispone di una stima affidabile per quella Release."
-            : "Value and difference from the price paid are shown only when TrackDash has a reliable estimate for that exact Release."}
+            ? "La stima della collezione usa solo copie Sigillate con un Market Value canonico disponibile. Copie aperte, montate, usate o incomplete restano escluse dal totale finché non esistono evidenze specifiche per condizione."
+            : "The collection estimate uses only Sealed copies with an available canonical Market Value. Opened, built, used or incomplete copies stay outside the total until condition-specific evidence exists."}
         </p>
       ) : null}
 
@@ -114,7 +114,9 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
                 {entry.marketValue != null ? (
-                  <p className="text-xs font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p>
+                  <p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketValue)}</p>
+                ) : entry.item.condition !== "Sealed" ? (
+                  <p className="text-[11px] text-muted-foreground">{it ? "Valore copia non stimato" : "Copy value not estimated"}</p>
                 ) : observedMarketDisplayPrice(entry.marketSignal) != null ? (
                   <div>
                     <p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(entry.marketSignal, it)}</p>

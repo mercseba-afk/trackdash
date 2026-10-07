@@ -159,6 +159,16 @@ if (!marketPresentation.includes("signal?.soldAnchorEUR") || !marketPresentation
   errors.push("Shared market presentation does not expose SOLD anchor as a display-only fallback")
 }
 const analyticsSource = fs.readFileSync("lib/analytics.ts", "utf8")
+if (!analyticsSource.includes('return condition === "Sealed"')) {
+  errors.push("Collection copy valuation is not restricted to Sealed copies")
+}
+if (analyticsSource.includes('condition === "New / Opened"')) {
+  errors.push("New / Opened copies are still being valued with the new/unbuilt Release benchmark")
+}
+const publicHome = fs.readFileSync("components/screens/public-home-screen.tsx", "utf8")
+if (!publicHome.includes("signal?.trendPercent == null || signal.trendPercent > 0")) {
+  errors.push("Homepage editorial market examples are not excluding negative collector trends")
+}
 if (!analyticsSource.includes("observedMarketPrice(marketSignal)")) {
   errors.push("Collection analytics duplicates ASK price-selection logic instead of using the shared presentation helper")
 }
@@ -193,6 +203,12 @@ if (releaseScreen.includes("ExternalAvailabilityCard") || releaseScreen.includes
 }
 
 const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
+if (!collectionScreen.includes("summary.marketValue") || collectionScreen.includes("summary.marketReferenceValue")) {
+  errors.push("Collection headline total is not using only canonical Market Value")
+}
+if (!collectionScreen.includes("Valore della copia non stimato")) {
+  errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
+}
 if (!collectionScreen.includes("Mercato osservato") || !collectionScreen.includes("Riferimenti storici disponibili")) {
   errors.push("Collection does not distinguish historical market context from missing data")
 }
@@ -257,6 +273,9 @@ if (!collectionItemScreen.includes("catalogProduct") || !collectionItemScreen.in
 const dashboardPage = fs.readFileSync("app/dashboard/page.tsx", "utf8")
 const dashboardScreen = fs.readFileSync("components/screens/dashboard-screen.tsx", "utf8")
 const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.tsx", "utf8")
+if (!dashboardMarket.includes("isEditoriallyPositive")) {
+  errors.push("Dashboard market highlights are not excluding negative trends from curated examples")
+}
 if (!dashboardScreen.includes("observedMarketDisplayPrice(entry.marketSignal)") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
   errors.push("Dashboard recent additions can disagree with Collection on ASK/SOLD display fallback")
 }
