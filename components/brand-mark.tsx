@@ -20,7 +20,7 @@ export function BrandMark({
       )}
     >
       <img
-        src="/brand/trackdash-logo-official.png"
+        src="/brand/trackdash-logo-official-v2.png"
         alt="TrackDash — Collect · Track · Trade"
         className="absolute inset-0 block h-full w-full object-contain object-center"
       />
