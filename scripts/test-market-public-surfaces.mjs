@@ -209,7 +209,7 @@ if (!collectionScreen.includes("summary.marketValue") || collectionScreen.includ
 if (!collectionScreen.includes("Valore della copia non stimato")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
 }
-if (!collectionScreen.includes("Mercato sigillato osservato") || !collectionScreen.includes("Riferimenti storici disponibili")) {
+if (!collectionScreen.includes("Mercato osservato · sigillato") || !collectionScreen.includes("Riferimenti storici disponibili")) {
   errors.push("Collection does not distinguish historical market context from missing data")
 }
 
