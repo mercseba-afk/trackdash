@@ -15,14 +15,15 @@ export function BrandMark({
     <span
       aria-label="TrackDash"
       className={cn(
-        "relative inline-flex h-[50px] w-[190px] shrink-0 items-center overflow-visible sm:h-[56px] sm:w-[213px]",
+        "relative inline-flex h-[54px] w-[162px] shrink-0 items-center overflow-visible sm:h-[62px] sm:w-[186px]",
         className,
       )}
     >
       <img
-        src="/brand/trackdash-logo-official-v3.png"
+        src="/brand/trackdash-logo-official-v4.png"
         alt="TrackDash — Collect · Track · Trade"
         className="absolute inset-0 block h-full w-full object-contain object-center"
+        style={_tone === "invert" ? { filter: "drop-shadow(0 0 2px rgba(255,255,255,0.9))" } : undefined}
       />
     </span>
   )

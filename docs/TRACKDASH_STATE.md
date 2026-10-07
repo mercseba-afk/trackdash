@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — TRANSPARENT OFFICIAL LOGO LIVE
+
+Brand asset correction:
+- the new transparent PNG supplied by Sebastiano (2048×682, RGBA, 890,204 bytes) is now the production TrackDash lockup at `/brand/trackdash-logo-official-v4.png`;
+- the PNG is stored from the supplied file with transparency preserved and no white background added;
+- BrandMark continues to render the full logo with `object-contain`, with its display box adjusted to the new wider/taller transparent lockup ratio so the car, TrackDash wordmark and `COLLECT • TRACK • TRADE` payoff remain visible without cropping;
+- dark/inverted auth surfaces use only a subtle white drop-shadow for legibility; the logo colors and transparent background remain unchanged;
+- the service-worker shell is bumped to `trackdash-shell-v10` so installed PWAs pick up the new asset path immediately;
+- no catalog, market, auth, Collection, Scanner or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — EXACT USER-SUPPLIED LOGO LIVE
 
 Brand asset correction:
