@@ -20,11 +20,12 @@ export function releaseLabel(release: ProductRelease, displayYear?: number): str
 }
 
 // R3 currently publishes a reference market for complete, new, unbuilt kits.
-// Sealed and New / Opened collection states can use that release-level reference
-// without inventing a condition multiplier. Built/Used/Incomplete deliberately
-// remain unvalued until condition-specific evidence exists.
+// For a user's *physical copy* TrackDash deliberately applies that benchmark
+// only to Sealed copies. Once a kit is opened, built, used or incomplete its
+// condition can materially change the price and we do not invent multipliers.
+// The Release-level market signal remains available separately as context.
 export function conditionUsesNewUnbuiltReference(condition: Condition): boolean {
-  return condition === "Sealed" || condition === "New / Opened"
+  return condition === "Sealed"
 }
 
 export interface EnrichedCollectionItem {
