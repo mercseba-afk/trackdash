@@ -27,7 +27,7 @@ export function BrandMark({
     <span
       aria-label="TrackDash"
       className={cn(
-        "inline-flex items-center gap-1.5 overflow-visible py-1",
+        "inline-flex items-center gap-0.5 overflow-visible py-1",
         className,
       )}
     >
@@ -39,7 +39,7 @@ export function BrandMark({
       />
       <span
         aria-hidden="true"
-        className="whitespace-nowrap font-sans text-[27px] font-extrabold italic leading-none tracking-[-0.055em] sm:text-[31px]"
+        className="whitespace-nowrap font-sans text-[28px] font-black italic leading-none tracking-[-0.055em] sm:text-[32px]"
       >
         <span className="text-[#086cff]">Track</span>
         <span className="text-[#ef2b2d]">Dash</span>
