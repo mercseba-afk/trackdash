@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HOMEPAGE WATCHLIST EVIDENCE-BASED CURATION
+
+Homepage market curation correction:
+- exact Release image and publishable Market Value remain mandatory;
+- negative collector trends remain excluded from the promotional watchlist;
+- a positive trend is no longer mandatory because many complete Releases currently have valid Market Value and meaningful market evidence while collector trend is still null;
+- a Release can qualify through meaningful activity: recent completed sales, at least 3 observed SOLD units, or at least 5 active offers;
+- cards with no published trend simply omit the percentage and use factual badges such as observed sales or active listings;
+- the homepage remains selective and does not use incomplete filler cards;
+- no Market Value, trend computation or underlying release data changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HOMEPAGE MARKET WATCHLIST QUALITY GATE
 
 Homepage market curation:
