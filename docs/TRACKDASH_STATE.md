@@ -21,46 +21,13 @@ Collection valuation invariants:
 - collection total = sum of current canonical Market Values for eligible Sealed copies only;
 - ASK/current listing prices and SOLD display references are never summed into the collection total;
 - gain/loss is calculated only for Sealed copies with a canonical Market Value and trustworthy EUR acquisition basis;
-- Collection and Dashboard must therefore show the same total from the same live signal source, and that total changes automatically when the canonical Release Market Value changes.
+- Collection and Dashboard must therefore show the same total from the same live signal source, and that total changes automatically when the canonical Release Market Value changes;
+- `MarketSignalsProvider` refreshes the shared signal map every 60 seconds and on window focus, so current values are not stored as independent local snapshots.
 
 Editorial selectors:
 - homepage market watch/examples exclude negative-trend Releases from automatic promotional selection;
 - dashboard Market Highlights treats negative-trend Releases as ineligible for promotional highlight blocks, while the full Market page remains factual and can show rising and falling trends.
 
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — LIVE VALUE COHERENCE + SEALED-ONLY COLLECTION ESTIMATE
-
-Market/collection presentation rules were tightened before user acquisition:
-
-- every displayed current price/value continues to come from the shared canonical `market_release_signals` projection; no homepage, catalog, dashboard or collection surface may hardcode a market number or keep an independent snapshot;
-- curated/editorial examples (homepage and dashboard market highlights) must never select a negative collector trend. They may show a positive trend or a neutral/no-trend example. Analytical surfaces such as `/market`, Release detail and personal holdings may still show negative trends because those are real market data, not promotional examples;
-- the user's collection headline total is now a conservative **estimate for Sealed copies only**;
-- only canonical Market Value (`valueEUR`) is summed into collection value. ASK/current offer prices and SOLD display fallbacks are not portfolio value;
-- `New / Opened`, `Built`, `Used` and `Incomplete` copies receive no automatic value or gain/loss calculation until TrackDash has condition-specific evidence. The Release-level new/unbuilt market benchmark can still be shown separately as context;
-- changing a copy's condition immediately changes whether it participates in the collection estimate;
-- when a Release Market Value changes after canonical recompute, Collection and Dashboard update from the same shared market signal map, so the user does not retain an obsolete local valuation;
-- the Free plan keeps the current sealed-copy estimate; Pro remains focused on historical evolution, charts and advanced monitoring rather than locking the current number.
-
-This deliberately treats “collection value” as an approximate market benchmark, not an appraisal or guaranteed resale value.
-
-## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SEALED-ONLY COLLECTION VALUE + POSITIVE EDITORIAL MARKET EXAMPLES
-
-Collection valuation policy:
-- `market_release_signals` remains the single canonical source for current Release market state.
-- `MarketSignalsProvider` refreshes the shared public signal map every 60 seconds and on window focus; Collection, Dashboard and other shared surfaces therefore consume the same current signal instead of storing independent price snapshots.
-- A physical collection copy contributes to `La mia collezione` estimated value **only when condition = Sealed** and a canonical `valueEUR` exists.
-- `New / Opened`, `Built`, `Used` and `Incomplete` copies are deliberately not assigned a copy value from the new/unbuilt Release benchmark. TrackDash must not invent condition discounts/multipliers.
-- ASK and SOLD references may remain visible as Release-level market context, but they must not be summed into the collection value.
-- Collection headline total and Dashboard collection total both use only canonical Market Value, never ASK fallback.
-- Personal gain/loss is calculated only where the physical copy is eligible for the sealed benchmark and a trustworthy EUR acquisition basis exists.
-- Non-sealed collection-item detail explicitly explains that Release market data is a benchmark for new/sealed kits, not an estimate of the user's physical copy.
-
-Editorial trend policy:
-- Homepage, promotional/informational examples and curated market-highlight modules must never select a Release with a negative collector trend as an example.
-- Curated examples may use a positive trend or no trend when other meaningful market evidence exists.
-- This is a presentation-selection rule only: factual surfaces must remain honest. Full Market views, Release detail and a user's own holdings may still show negative trend / loss when that is the real canonical data.
-- No trend/value used in an example may be hardcoded: editorial examples must be selected from the same live canonical `marketSignals` map used elsewhere, so the displayed price/trend changes when the underlying canonical signal changes.
-
-Public copy is updated to describe collection value as an estimate for sealed copies rather than a guaranteed resale value.
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-06 — MARKET PAGE CLEANUP + FREE/PRO BETA POSITIONING
 
 Market page policy:
