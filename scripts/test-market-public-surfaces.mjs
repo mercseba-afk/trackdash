@@ -175,9 +175,6 @@ const publicHome = fs.readFileSync("components/screens/public-home-screen.tsx", 
 if (!publicHome.includes("signal?.trendPercent == null || signal.trendPercent > 0")) {
   errors.push("Homepage editorial market examples are not excluding negative collector trends")
 }
-if (!dashboardMarket.includes("isEditoriallyPositive")) {
-  errors.push("Dashboard market highlights are not excluding negative trends from curated examples")
-}
 if (!analyticsSource.includes("observedMarketPrice(marketSignal)")) {
   errors.push("Collection analytics duplicates ASK price-selection logic instead of using the shared presentation helper")
 }
@@ -276,6 +273,9 @@ if (!collectionItemScreen.includes("catalogProduct") || !collectionItemScreen.in
 const dashboardPage = fs.readFileSync("app/dashboard/page.tsx", "utf8")
 const dashboardScreen = fs.readFileSync("components/screens/dashboard-screen.tsx", "utf8")
 const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.tsx", "utf8")
+if (!dashboardMarket.includes("isEditoriallyPositive")) {
+  errors.push("Dashboard market highlights are not excluding negative trends from curated examples")
+}
 if (!dashboardScreen.includes("observedMarketDisplayPrice(entry.marketSignal)") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
   errors.push("Dashboard recent additions can disagree with Collection on ASK/SOLD display fallback")
 }
