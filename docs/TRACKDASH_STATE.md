@@ -7,6 +7,18 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SUBTLE PUBLIC MOTION SYSTEM
+
+Motion/UI direction:
+- public editorial surfaces now use a lightweight native entrance-motion system based on IntersectionObserver, with no new animation dependency;
+- homepage and /market sections reveal once as they enter the viewport using a restrained fade + upward movement;
+- homepage hero copy and artwork use dedicated softer entrance timing so the first screen feels more alive without becoming distracting;
+- motion automatically respects prefers-reduced-motion and is disabled for users who request reduced animation;
+- the controller also observes dynamically added page content so client-side navigation remains covered;
+- motion is deliberately one-shot: no bouncing, looping or constant decorative movement;
+- background artwork/“wow” surfaces are intentionally deferred until a coherent visual background direction is designed or sourced;
+- no catalog, market, valuation, entitlement, PWA or marketplace logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HUMAN COPY + DISCOVER / COLLECT / TRADE
 
 Editorial direction:
