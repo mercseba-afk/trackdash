@@ -13,7 +13,7 @@ export function BrandMark({
 }) {
   if (!showText) {
     return (
-      <span className={cn("inline-flex items-center", className)}>
+      <span className={cn("inline-flex items-center overflow-visible", className)}>
         <img
           src="/brand-car-v5"
           alt="TrackDash"
@@ -24,12 +24,26 @@ export function BrandMark({
   }
 
   return (
-    <span className={cn("inline-flex items-center", className)}>
+    <span
+      aria-label="TrackDash"
+      className={cn(
+        "inline-flex items-center gap-1.5 overflow-visible py-1",
+        className,
+      )}
+    >
       <img
-        src="/brand/trackdash-logo-v7-exact.png"
-        alt="TrackDash"
-        className="h-[46px] w-auto max-w-[230px] object-contain sm:h-[52px] sm:max-w-[250px]"
+        src="/brand-car-v5"
+        alt=""
+        aria-hidden="true"
+        className="h-[38px] w-auto shrink-0 object-contain sm:h-[42px]"
       />
+      <span
+        aria-hidden="true"
+        className="whitespace-nowrap font-sans text-[27px] font-extrabold italic leading-none tracking-[-0.055em] sm:text-[31px]"
+      >
+        <span className="text-[#086cff]">Track</span>
+        <span className="text-[#ef2b2d]">Dash</span>
+      </span>
     </span>
   )
 }
