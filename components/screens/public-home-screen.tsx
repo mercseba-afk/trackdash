@@ -541,7 +541,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               {it ? "TRA COLLEZIONISTI" : "COLLECTOR TO COLLECTOR"}
             </p>
             <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-[.97] tracking-[-0.055em] text-ink md:text-5xl">
-              {it ? "Trova chi ha la Release che cerchi. Parla. Fai un’offerta." : "Find who has the Release you want. Talk. Make an offer."}
+              {it ? "Trova la Release che cerchi, contatta il collezionista e fai la tua offerta." : "Find the Release you want, contact the collector and make your offer."}
             </h2>
             <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
               {it
@@ -681,12 +681,12 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             <div>
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">{it ? "INIZIA DA QUI" : "START HERE"}</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-ink md:text-4xl">
-                {it ? "Scopri. Colleziona. Controlla. Compra e vendi." : "Discover. Collect. Watch. Buy and sell."}
+                {it ? "Scopri. Colleziona. Scambia." : "Discover. Collect. Trade."}
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {it
-                  ? "Crea un account per registrare la tua collezione, seguire il valore delle Release, controllare il mercato e comprare o vendere con altri collezionisti."
-                  : "Create an account to build your collection, track Release values, watch the market and buy or sell with other collectors."}
+                  ? "Crea il tuo account e inserisci le Release che possiedi. Più collezioni crescono su TrackDash, più diventa facile trovare una Release, contattare il collezionista e fare un’offerta."
+                  : "Create your account and add the Releases you own. As more collections grow on TrackDash, it becomes easier to find a Release, contact the collector and make an offer."}
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
