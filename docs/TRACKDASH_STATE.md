@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — TRACKDASH BRAND LOGO V6
+
+Brand identity:
+- the shared TrackDash wordmark used across the public site and authenticated app now renders from the exact approved raster logo asset at `/brand/trackdash-logo-v6.webp`;
+- the logo asset was derived directly from the approved source image without regenerating the artwork;
+- the previous CSS-composed Track/Dash wordmark and payoff are no longer used when the full brand mark is shown;
+- compact icon-only contexts continue to use the existing car-only asset so small controls remain legible;
+- header, footer, login/auth and app surfaces that consume the shared `BrandMark` component inherit the new logo automatically;
+- no navigation, PWA, auth, catalog, market or collection logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HOMEPAGE WATCHLIST EVIDENCE-BASED CURATION
 
 Homepage market curation correction:
