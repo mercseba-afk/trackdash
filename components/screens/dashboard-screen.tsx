@@ -14,7 +14,7 @@ import {
   topValued,
 } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
-import { observedMarketAskLabel, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { observedMarketAskLabel, observedMarketDisplayKind, observedMarketDisplayLabel } from "@/lib/market/presentation"
 import type { Product } from "@/lib/types"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
@@ -75,7 +75,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
       </div>
 
-      {summary.marketValueCount < summary.count || summary.gainCount < summary.marketValueCount ? (
+      {summary.marketValueCount < summary.sealedCount || summary.sealedCount < summary.count || summary.gainCount < summary.marketValueCount ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
             ? "La stima della collezione usa solo copie Sigillate con un Market Value canonico disponibile. Copie aperte, montate, usate o incomplete restano escluse dal totale finché non esistono evidenze specifiche per condizione."
@@ -117,10 +117,10 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                   <p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketValue)}</p>
                 ) : entry.item.condition !== "Sealed" ? (
                   <p className="text-[11px] text-muted-foreground">{it ? "Valore copia non stimato" : "Copy value not estimated"}</p>
-                ) : observedMarketDisplayPrice(entry.marketSignal) != null ? (
+                ) : entry.observedPrice != null ? (
                   <div>
                     <p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(entry.marketSignal, it)}</p>
-                    <p className="text-xs font-semibold tabular-nums">{observedMarketDisplayKind(entry.marketSignal) === "sold" ? "≈ " : ""}{formatMoney(observedMarketDisplayPrice(entry.marketSignal)!)}</p>
+                    <p className="text-xs font-semibold tabular-nums">{observedMarketDisplayKind(entry.marketSignal) === "sold" ? "≈ " : ""}{formatMoney(entry.observedPrice)}</p>
                   </div>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
