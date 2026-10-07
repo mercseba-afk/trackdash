@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — FACEBOOK PWA HANDOFF TO CHROME
+
+PWA install flow:
+- Android Facebook/Instagram/Messenger in-app browsers are now detected explicitly before the Chromium fallback;
+- when the user taps the TrackDash install control inside those Meta in-app browsers, TrackDash opens the current page directly in Google Chrome via an Android intent;
+- no explanatory Facebook-browser modal is shown: the action is simply handed off to Chrome, where the normal TrackDash PWA install flow continues;
+- standard Chrome, Edge, Samsung Internet, Safari/iOS and existing native `beforeinstallprompt` behavior remain unchanged;
+- no catalog, market, auth, Collection, Scanner or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HOMEPAGE DUPLICATE FLOW REMOVED
 
 Homepage cleanup:
