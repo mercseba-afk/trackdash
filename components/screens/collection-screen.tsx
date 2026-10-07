@@ -355,7 +355,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
 
   if (collectorTrend != null) return <div className="min-w-0"><p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Trend collezionistico · sigillato" : "Collector trend · sealed"}</p><div className="mt-1"><TrendIndicator value={collectorTrend} className="text-[11px]" /></div></div>
 
-  if ((signal?.marketContextEvidenceCount ?? 0) > 0) return <div className="min-w-0"><p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Mercato sigillato osservato" : "Sealed market observed"}</p><p className="mt-1 text-[10px] leading-tight text-muted-foreground">{it ? "Riferimenti storici disponibili · nessun valore corrente consolidato" : "Historical references available · no consolidated current value"}</p></div>
+  if ((signal?.marketContextEvidenceCount ?? 0) > 0) return <div className="min-w-0"><p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Mercato osservato · sigillato" : "Market observed · sealed"}</p><p className="mt-1 text-[10px] leading-tight text-muted-foreground">{it ? "Riferimenti storici disponibili · nessun valore corrente consolidato" : "Historical references available · no consolidated current value"}</p></div>
 
   return <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
 }
