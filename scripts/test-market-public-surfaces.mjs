@@ -276,8 +276,8 @@ const dashboardMarket = fs.readFileSync("components/dashboard-market-overview.ts
 if (!dashboardMarket.includes("isEditoriallyPositive")) {
   errors.push("Dashboard market highlights are not excluding negative trends from curated examples")
 }
-if (!dashboardScreen.includes("observedMarketDisplayPrice(entry.marketSignal)") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
-  errors.push("Dashboard recent additions can disagree with Collection on ASK/SOLD display fallback")
+if (!dashboardScreen.includes("entry.observedPrice") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
+  errors.push("Dashboard recent additions are not using the condition-aware Collection market reference")
 }
 if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") || !collectionScreen.includes("observedMarketDisplayKind(signal)")) {
   errors.push("ASK/SOLD approximation semantics are not shared across Dashboard and Collection")
