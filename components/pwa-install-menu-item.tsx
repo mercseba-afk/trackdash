@@ -30,10 +30,17 @@ function isAndroidChromium() {
   return /Android/i.test(ua) && /Chrome|Chromium|Edg|SamsungBrowser|Vivaldi|OPR/i.test(ua) && !/Firefox/i.test(ua)
 }
 
+function isAndroidMetaInAppBrowser() {
+  if (typeof navigator === "undefined") return false
+  const ua = navigator.userAgent
+  return /Android/i.test(ua) && /FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(ua)
+}
+
 function readPwaState(): PwaState {
   if (typeof window === "undefined") return "waiting"
   if (isStandalone()) return "installed"
   if (window.__trackdashInstallPrompt) return "ready"
+  if (isAndroidMetaInAppBrowser()) return "manual"
   if (isIOSFamily() || isMacSafari()) return "manual"
   if (isAndroidChromium()) return "waiting"
   return "unsupported"
