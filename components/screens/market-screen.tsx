@@ -71,7 +71,14 @@ export function MarketScreen({ products }: { products: Product[] }) {
     .filter((entry): entry is { row: Row; trend: number } => entry.trend != null)
     .sort((a, b) => b.trend - a.trend), [rows])
   const currentOffers = rows.reduce((sum, row) => sum + row.signal.currentOfferCount, 0)
-  const example = valued[0]
+  const example = React.useMemo(() => {
+    const positive = valued
+      .filter((row) => (collectorMarketTrend(row.signal) ?? 0) > 0)
+      .sort((a, b) => (collectorMarketTrend(b.signal) ?? 0) - (collectorMarketTrend(a.signal) ?? 0))
+    if (positive[0]) return positive[0]
+
+    return valued.find((row) => collectorMarketTrend(row.signal) == null) ?? null
+  }, [valued])
 
   const copy = it
     ? {
