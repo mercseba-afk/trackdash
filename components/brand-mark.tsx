@@ -14,12 +14,15 @@ export function BrandMark({
   return (
     <span
       aria-label="TrackDash"
-      className={cn("inline-flex items-center overflow-visible leading-none", className)}
+      className={cn(
+        "relative inline-flex h-[50px] w-[200px] shrink-0 items-center overflow-visible sm:h-[56px] sm:w-[225px]",
+        className,
+      )}
     >
       <img
         src="/brand/trackdash-logo-official.png"
         alt="TrackDash — Collect · Track · Trade"
-        className="block h-auto w-[190px] shrink-0 object-contain sm:w-[225px]"
+        className="absolute inset-0 block h-full w-full object-contain object-center"
       />
     </span>
   )
