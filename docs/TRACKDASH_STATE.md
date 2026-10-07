@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HUMAN COPY + DISCOVER / COLLECT / TRADE
+
+Editorial direction:
+- prefer positive, human wording over corrective/contrastive headings and AI-like negation patterns;
+- Market explanation headline is now **Dati reali per capire il valore**;
+- Market intro describes completed sales, store prices and active listings as complementary signals that together build a clearer view of each Release;
+- collector exchange headline is now **Trova la Release che cerchi, contatta il collezionista e fai la tua offerta.**;
+- homepage growth pillar is now **Scopri. Colleziona. Scambia.**;
+- conversion sequence is explicit: first encourage users to create an account and add the Releases they own, then leverage the growing collector inventory to make discovery, contact and offers more useful;
+- no market logic, valuation rule, entitlement or marketplace mechanics changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — MARKET GROWTH HERO + HOMEPAGE ARTWORK SCALE
 
 Growth/UI checkpoint:
