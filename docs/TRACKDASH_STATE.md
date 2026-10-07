@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — EXACT USER-SUPPLIED LOGO LIVE
+
+Brand asset correction:
+- the exact PNG supplied by Sebastiano (964×254, 73,008 bytes) is now the production TrackDash lockup at `/brand/trackdash-logo-official-v3.png`;
+- the PNG is stored byte-for-byte as supplied, with no redraw, crop, regeneration, recoloring or image processing;
+- BrandMark renders the asset with `object-contain` in a box matching its native aspect ratio so the full car, TrackDash wordmark and `COLLECT • TRACK • TRADE` payoff remain visible;
+- the service-worker shell is bumped to `trackdash-shell-v9` so installed PWAs pick up the new asset path immediately;
+- no catalog, market, auth, Collection, Scanner or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — PWA BRAND REFRESH HARDENING
 
 Installed-app update behavior:
