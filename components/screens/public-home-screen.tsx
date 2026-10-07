@@ -487,8 +487,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       </section>
 
       <section data-reveal className="bg-white">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:px-8 lg:py-16">
-          <div className="flex flex-col justify-center">
+        <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+          <div className="flex max-w-4xl flex-col justify-center">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
               {it ? "LA TUA COLLEZIONE" : "YOUR COLLECTION"}
             </p>
@@ -511,23 +511,6 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
             </Link>
           </div>
 
-          <div className="overflow-hidden border border-line bg-[#eef4fb] p-4 sm:p-6">
-            <div className="rounded-xl bg-white p-5 shadow-[0_18px_45px_rgba(11,50,117,0.10)] sm:p-6">
-              <div className="border-b border-line pb-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{it ? "IL TUO PERCORSO SU TRACKDASH" : "YOUR TRACKDASH FLOW"}</p>
-                <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-ink">{it ? "Dalla tua Release alla prossima." : "From your Release to the next one."}</p>
-              </div>
-              <div className="mt-4 grid gap-3">
-                <FlowStep number="01" icon={ShieldCheck} title={it ? "Scopri quanto vale" : "Discover what it is worth"} text={it ? "Apri la Release esatta e consulta valore di mercato, vendite e ASK disponibili." : "Open the exact Release and check available Market Value, sales and ASK."} />
-                <FlowStep number="02" icon={Boxes} title={it ? "Registra la tua collezione" : "Build your collection"} text={it ? "Aggiungi le Release che possiedi e tieni ogni copia collegata alla versione corretta." : "Add the Releases you own and keep every copy tied to the correct version."} />
-                <FlowStep number="03" icon={TrendingUp} title={it ? "Controlla il mercato" : "Watch the market"} text={it ? "Segui prezzi, disponibilità, vendite e trend per capire quando il mercato si muove." : "Follow prices, availability, sales and trends to see when the market moves."} />
-                <FlowStep number="04" icon={Handshake} title={it ? "Compra e vendi altre Release" : "Buy and sell other Releases"} text={it ? "Trova copie offerte da altri collezionisti oppure apri le tue alle offerte e tratta direttamente con loro." : "Find copies offered by other collectors or open yours to offers and negotiate directly with them."} />
-              </div>
-              <p className="mt-4 border-l-2 border-brand pl-3 text-xs leading-5 text-muted-foreground">
-                {it ? "Pagamento e spedizione vengono concordati direttamente tra i collezionisti." : "Payment and shipping are arranged directly between collectors."}
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -855,33 +838,6 @@ function CollectionPoint({
       <Icon className="size-5 text-brand" />
       <p className="mt-3 text-sm font-semibold text-ink">{title}</p>
       <p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p>
-    </div>
-  )
-}
-
-function FlowStep({
-  number,
-  icon: Icon,
-  title,
-  text,
-}: {
-  number: string
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  text: string
-}) {
-  return (
-    <div className="grid grid-cols-[42px_1fr] gap-3 border border-line bg-[#f8fafc] p-4">
-      <div className="flex size-10 items-center justify-center rounded-full bg-brand-muted text-brand">
-        <Icon className="size-4" />
-      </div>
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] font-bold tracking-[0.14em] text-brand">{number}</span>
-          <p className="text-sm font-semibold text-ink">{title}</p>
-        </div>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p>
-      </div>
     </div>
   )
 }
