@@ -146,11 +146,11 @@ export function MarketScreen({ products }: { products: Product[] }) {
 
   return (
     <div className="flex flex-col gap-8 md:gap-10">
-      <section className="relative overflow-hidden rounded-[28px] border border-[#d9e4f2] bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_58%,#f8fafc_100%)] px-5 py-8 shadow-[0_18px_50px_rgba(15,56,120,0.08)] md:px-8 md:py-12 lg:px-12 lg:py-14">
+      <section data-reveal="hero" className="relative overflow-hidden rounded-[28px] border border-[#d9e4f2] bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_58%,#f8fafc_100%)] px-5 py-8 shadow-[0_18px_50px_rgba(15,56,120,0.08)] md:px-8 md:py-12 lg:px-12 lg:py-14">
         <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full border-[28px] border-white/70" />
         <div className="pointer-events-none absolute -bottom-20 right-20 h-40 w-80 rotate-[-8deg] rounded-[999px] border border-[#c9dcf7] opacity-70" />
         <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-          <div>
+          <div className="td-hero-copy">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">{copy.kicker}</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-navy sm:text-5xl lg:text-[60px] lg:leading-[1.02]">
               {copy.titleA}<br /><span className="text-brand">{copy.titleB}</span>
@@ -194,7 +194,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section className="grid gap-6 rounded-[28px] border border-border bg-white p-5 md:p-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
+      <section data-reveal className="grid gap-6 rounded-[28px] border border-border bg-white p-5 md:p-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
         <div>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">{copy.signalsKicker}</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-navy md:text-4xl">{copy.signalsTitle}</h2>
@@ -207,7 +207,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section className="grid overflow-hidden rounded-[28px] border border-[#173f79] bg-navy text-white lg:grid-cols-[1fr_0.95fr]">
+      <section data-reveal className="grid overflow-hidden rounded-[28px] border border-[#173f79] bg-navy text-white lg:grid-cols-[1fr_0.95fr]">
         <div className="p-6 md:p-9 lg:p-10">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8c8ff]">{copy.resultKicker}</p>
           <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-0.035em] md:text-4xl">{copy.resultTitle}</h2>
@@ -227,7 +227,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section className="grid gap-6 rounded-[28px] border border-[#eadfca] bg-[#fffaf1] p-5 md:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-10">
+      <section data-reveal className="grid gap-6 rounded-[28px] border border-[#eadfca] bg-[#fffaf1] p-5 md:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-10">
         <div>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a66a19]">{copy.limitedKicker}</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[#513712] md:text-4xl">{copy.limitedTitle}</h2>
@@ -243,7 +243,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section id="live-market" className="scroll-mt-28 rounded-[28px] border border-border bg-[#f8fafc] p-4 md:p-6 lg:p-8">
+      <section data-reveal id="live-market" className="scroll-mt-28 rounded-[28px] border border-border bg-[#f8fafc] p-4 md:p-6 lg:p-8">
         <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">{copy.liveKicker}</p>
