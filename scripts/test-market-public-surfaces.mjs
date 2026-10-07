@@ -166,11 +166,14 @@ if (analyticsSource.includes('condition === "New / Opened"')) {
   errors.push("New / Opened copies are still being valued with the new/unbuilt Release benchmark")
 }
 const publicHome = fs.readFileSync("components/screens/public-home-screen.tsx", "utf8")
-if (!publicHome.includes("collectorMarketTrend(signal)") || !publicHome.includes("trend == null || trend <= 0")) {
-  errors.push("Homepage editorial market examples are not restricted to positive canonical collector trends")
+if (!publicHome.includes("collectorMarketTrend(signal)") || !publicHome.includes("trend != null && trend < 0")) {
+  errors.push("Homepage editorial market examples are not excluding negative canonical collector trends")
 }
 if (!publicHome.includes("release.images?.length") || !publicHome.includes("signal.valueEUR == null || signal.valueEUR <= 0")) {
   errors.push("Homepage editorial market examples are not restricted to complete Releases with exact images and publishable Market Value")
+}
+if (!publicHome.includes("hasMeaningfulActivity") || !publicHome.includes("signal.soldUnits") || !publicHome.includes("signal.currentOfferCount")) {
+  errors.push("Homepage editorial market examples are not requiring meaningful market activity")
 }
 if (!analyticsSource.includes("observedMarketPrice(marketSignal)")) {
   errors.push("Collection analytics duplicates ASK price-selection logic instead of using the shared presentation helper")

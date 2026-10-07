@@ -67,7 +67,7 @@ function distinctByProduct(entries: ReleaseEntry[], count: number) {
 
 function watchReason(entry: ReleaseEntry, it: boolean) {
   const signal = entry.signal
-  if (!signal) return it ? "Dal mercato" : "From the market"
+  if (!signal) return it ? "Mercato attivo" : "Active market"
 
   const trend = collectorMarketTrend(signal)
   if (trend != null && trend >= 3) {
@@ -81,7 +81,19 @@ function watchReason(entry: ReleaseEntry, it: boolean) {
       : `${signal.recentSoldUnits3m} recent sales`
   }
 
-  return it ? "Release in crescita" : "Rising Release"
+  if ((signal.soldUnits ?? 0) > 0) {
+    return it
+      ? `${signal.soldUnits} vendite osservate`
+      : `${signal.soldUnits} observed sales`
+  }
+
+  if ((signal.currentOfferCount ?? 0) > 0) {
+    return it
+      ? `${signal.currentOfferCount} annunci attivi`
+      : `${signal.currentOfferCount} active listings`
+  }
+
+  return it ? "Mercato attivo" : "Active market"
 }
 
 function trendText(signal: ReleaseMarketSignalView | null, it: boolean) {
@@ -120,9 +132,14 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         if (signal.valueEUR == null || signal.valueEUR <= 0) return false
 
         const trend = collectorMarketTrend(signal)
-        if (trend == null || trend <= 0) return false
+        if (trend != null && trend < 0) return false
 
-        return true
+        const hasMeaningfulActivity =
+          (signal.recentSoldUnits3m ?? 0) > 0 ||
+          (signal.soldUnits ?? 0) >= 3 ||
+          (signal.currentOfferCount ?? 0) >= 5
+
+        return hasMeaningfulActivity
       })
       .sort((a, b) => marketScore(b) - marketScore(a))
 
