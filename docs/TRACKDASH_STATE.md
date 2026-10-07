@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — EXACT USER-SUPPLIED LOGO REPLACEMENT
+
+Brand rendering:
+- the TrackDash brand mark now uses the exact 964×254 PNG supplied in the current approval;
+- the raster source is preserved byte-for-byte from the supplied image (SHA-1 `0bebd726541909dcc673721896636ab2ffdd0818`);
+- `BrandMark` preserves the source aspect ratio `964/254` and renders with `object-contain`, so no part of the logo is cropped;
+- the previous production logo asset is no longer rendered by `BrandMark`;
+- the PWA shell cache version is bumped to `trackdash-shell-v9` so installed clients refresh to the approved logo;
+- no catalog, market, auth, Collection, Scanner, Supabase or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — PWA BRAND REFRESH HARDENING
 
 Installed-app update behavior:
