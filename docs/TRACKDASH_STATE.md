@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SIGNUP COPY REFRESH
+
+Signup editorial direction:
+- signup messaging is now explicitly collection-first and aligned with **Scopri. Colleziona. Scambia.**;
+- Italian signup hero now uses **LA TUA COLLEZIONE, SU TRACKDASH** and **Inizia dalla tua prima Release.**;
+- English signup hero uses the equivalent **YOUR COLLECTION, ON TRACKDASH** and **Start with your first Release.**;
+- signup benefits are simplified to four clear actions: build the collection, follow Release values, find a Release, trade with other collectors;
+- signup body encourages users to add the Mini 4WDs they already own before emphasizing collector-to-collector exchange;
+- login messaging remains unchanged;
+- no auth flow, onboarding, market, valuation, collection or marketplace logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SUBTLE PUBLIC MOTION SYSTEM
 
 Motion/UI direction:
