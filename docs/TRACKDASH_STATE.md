@@ -7,6 +7,26 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — LIVE EDITORIAL MARKET EXAMPLES + CONDITION-AWARE COLLECTION VALUE
+
+Presentation invariants:
+- promotional/editorial market examples on public/informational surfaces must be selected from live canonical market signals and must never hardcode a price or trend;
+- automatic editorial examples may use positive collector trends or no trend, but must not feature a negative collector trend as promotional proof;
+- factual/user-driven market surfaces (Release detail, Market tabs, a user's own holdings) continue to show negative trends when they are real; TrackDash does not hide adverse market data in analytical views.
+
+Collection valuation invariants:
+- the Release Market Value remains a canonical market benchmark for complete new/unbuilt kits and updates everywhere through the shared `market_release_signals` projection;
+- a user's physical-copy valuation uses that benchmark only when the copy condition is **Sealed**;
+- `New / Opened`, `Built`, `Used` and `Incomplete` copies receive no automatic valuation and no arbitrary discount/multiplier until condition-specific evidence exists;
+- collection total = sum of current canonical Market Values for eligible Sealed copies only;
+- ASK/current listing prices and SOLD display references are never summed into the collection total;
+- gain/loss is calculated only for Sealed copies with a canonical Market Value and trustworthy EUR acquisition basis;
+- Collection and Dashboard must therefore show the same total from the same live signal source, and that total changes automatically when the canonical Release Market Value changes.
+
+Editorial selectors:
+- homepage market watch/examples exclude negative-trend Releases from automatic promotional selection;
+- dashboard Market Highlights treats negative-trend Releases as ineligible for promotional highlight blocks, while the full Market page remains factual and can show rising and falling trends.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — LIVE VALUE COHERENCE + SEALED-ONLY COLLECTION ESTIMATE
 
 Market/collection presentation rules were tightened before user acquisition:
