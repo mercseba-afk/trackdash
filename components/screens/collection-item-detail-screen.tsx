@@ -183,15 +183,6 @@ export function CollectionItemDetailScreen({
         </Card>
       ) : null}
 
-      {entry.item.condition !== "Sealed" ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
-          <strong>{it ? "Riferimento della Release, non valore della tua copia." : "Release reference, not your copy value."}</strong>{" "}
-          {it
-            ? "I dati di mercato qui sotto descrivono kit nuovi/non montati. La tua copia non viene valorizzata automaticamente perché la condizione può cambiarne il prezzo."
-            : "The market data below describes new/unbuilt kits. Your physical copy is not automatically valued because condition can materially change its price."}
-        </div>
-      ) : null}
-
       <ReleaseMarketOverview signal={entry.marketSignal} />
 
       <div className="grid gap-3 sm:grid-cols-2">
