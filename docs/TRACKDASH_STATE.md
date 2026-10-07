@@ -7,6 +7,21 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — LIVE VALUE COHERENCE + SEALED-ONLY COLLECTION ESTIMATE
+
+Market/collection presentation rules were tightened before user acquisition:
+
+- every displayed current price/value continues to come from the shared canonical `market_release_signals` projection; no homepage, catalog, dashboard or collection surface may hardcode a market number or keep an independent snapshot;
+- curated/editorial examples (homepage and dashboard market highlights) must never select a negative collector trend. They may show a positive trend or a neutral/no-trend example. Analytical surfaces such as `/market`, Release detail and personal holdings may still show negative trends because those are real market data, not promotional examples;
+- the user's collection headline total is now a conservative **estimate for Sealed copies only**;
+- only canonical Market Value (`valueEUR`) is summed into collection value. ASK/current offer prices and SOLD display fallbacks are not portfolio value;
+- `New / Opened`, `Built`, `Used` and `Incomplete` copies receive no automatic value or gain/loss calculation until TrackDash has condition-specific evidence. The Release-level new/unbuilt market benchmark can still be shown separately as context;
+- changing a copy's condition immediately changes whether it participates in the collection estimate;
+- when a Release Market Value changes after canonical recompute, Collection and Dashboard update from the same shared market signal map, so the user does not retain an obsolete local valuation;
+- the Free plan keeps the current sealed-copy estimate; Pro remains focused on historical evolution, charts and advanced monitoring rather than locking the current number.
+
+This deliberately treats “collection value” as an approximate market benchmark, not an appraisal or guaranteed resale value.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — SEALED-ONLY COLLECTION VALUE + POSITIVE EDITORIAL MARKET EXAMPLES
 
 Collection valuation policy:
