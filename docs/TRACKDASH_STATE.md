@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — EXACT USER-SUPPLIED LOGO ASSET
+
+Brand rendering:
+- the user-supplied PNG has been added byte-for-byte as `/brand/trackdash-logo-official-v3.png`;
+- source dimensions are 964 × 254 and the shared BrandMark preserves that aspect ratio;
+- rendering uses `object-contain`, so the logo is never cropped horizontally or vertically;
+- no redraw, recolor, recomposition or image regeneration is applied;
+- the PWA shell version is bumped to `trackdash-shell-v9` so installed apps refresh the asset;
+- no catalog, market, auth, Collection, Scanner or valuation logic changed.
+
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — EXACT USER-SUPPLIED LOGO REPLACEMENT
 
 Brand rendering:
