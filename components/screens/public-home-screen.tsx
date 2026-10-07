@@ -248,7 +248,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               <img
                 src="/trackdash-hero-mini4wd-transparent.svg"
                 alt={it ? "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC e Magnum Saber in esposizione" : "Avante Jr., Dash-1 Emperor, Neo-Tridagger ZMC and Magnum Saber on display"}
-                className="absolute right-[-2%] top-1/2 h-auto w-[104%] max-w-none -translate-y-1/2 object-contain xl:right-[-1%] xl:w-[108%]"
+                className="absolute right-[1%] top-1/2 h-auto w-[98%] max-w-none -translate-y-1/2 object-contain xl:right-[2%] xl:w-[101%]"
                 width={800}
                 height={450}
                 loading="eager"

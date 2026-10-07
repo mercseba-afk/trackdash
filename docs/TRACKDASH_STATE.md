@@ -7,6 +7,18 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — MARKET GROWTH HERO + HOMEPAGE ARTWORK SCALE
+
+Growth/UI checkpoint:
+- homepage desktop hero artwork is slightly smaller and shifted inward so the Mini 4WD composition is no longer clipped at the left/right edges; mobile artwork is unchanged;
+- /market hero no longer promotes internal/technical counters such as available-value count or available-trend count;
+- the hero now surfaces only two live numeric proof points: monitored Releases and observed current listings;
+- the other two cards communicate the user benefit: prices grounded in the real market and a collection that stays aligned with canonical market values;
+- anonymous primary CTA is now **Create free account** while existing users retain direct access to the live market overview;
+- the locked live-market section also prioritizes signup, with sign-in kept as the secondary path for existing accounts;
+- a PWA install CTA is surfaced in the hero using the existing canonical install manager, with platform-appropriate native/manual guidance;
+- no market computation, canonical signal, valuation rule, trend rule, catalog data or entitlement policy changed in this checkpoint.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — LIVE EDITORIAL MARKET EXAMPLES + CONDITION-AWARE COLLECTION VALUE
 
 Presentation invariants:
