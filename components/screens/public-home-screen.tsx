@@ -22,6 +22,7 @@ import {
 import { ProductImage } from "@/components/catalog/product-image"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
+import { collectorMarketTrend } from "@/lib/market/presentation"
 import { formatMoney } from "@/lib/format"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
@@ -41,13 +42,13 @@ function marketScore(entry: ReleaseEntry) {
   const signal = entry.signal
   if (!signal) return 0
 
-  const positiveTrend = signal.trendPercent != null && signal.trendPercent > 0 ? signal.trendPercent : 0
+  const trend = collectorMarketTrend(signal)
+  const positiveTrend = trend != null && trend > 0 ? trend : 0
   const recentSales = signal.recentSoldUnits3m ?? 0
   const observedSales = signal.soldUnits ?? 0
   const offers = signal.currentOfferCount ?? 0
-  const hasValue = signal.valueEUR != null ? 1 : 0
 
-  return positiveTrend * 1000 + recentSales * 80 + observedSales * 2 + offers * 10 + hasValue
+  return positiveTrend * 1000 + recentSales * 80 + observedSales * 2 + offers * 10
 }
 
 function distinctByProduct(entries: ReleaseEntry[], count: number) {
@@ -66,11 +67,12 @@ function distinctByProduct(entries: ReleaseEntry[], count: number) {
 
 function watchReason(entry: ReleaseEntry, it: boolean) {
   const signal = entry.signal
-  if (!signal) return it ? "Dal catalogo TrackDash" : "From the TrackDash catalog"
+  if (!signal) return it ? "Dal mercato" : "From the market"
 
-  if (signal.trendPercent != null && signal.trendPercent >= 3) {
-    const trend = Math.abs(signal.trendPercent).toLocaleString(it ? "it-IT" : "en-US", { maximumFractionDigits: 1 })
-    return it ? `Trend +${trend}%` : `Trend +${trend}%`
+  const trend = collectorMarketTrend(signal)
+  if (trend != null && trend >= 3) {
+    const value = Math.abs(trend).toLocaleString(it ? "it-IT" : "en-US", { maximumFractionDigits: 1 })
+    return `Trend +${value}%`
   }
 
   if ((signal.recentSoldUnits3m ?? 0) > 0) {
@@ -79,26 +81,17 @@ function watchReason(entry: ReleaseEntry, it: boolean) {
       : `${signal.recentSoldUnits3m} recent sales`
   }
 
-  if (signal.soldUnits > 0) {
-    return it
-      ? `${signal.soldUnits} vendite osservate`
-      : `${signal.soldUnits} observed sales`
-  }
-
-  if (signal.currentOfferCount > 0) {
-    return it
-      ? `${signal.currentOfferCount} annunci attivi`
-      : `${signal.currentOfferCount} active listings`
-  }
-
-  return it ? "Mercato da seguire" : "Market to watch"
+  return it ? "Release in crescita" : "Rising Release"
 }
 
 function trendText(signal: ReleaseMarketSignalView | null, it: boolean) {
-  if (signal?.trendPercent == null) return it ? "Trend in costruzione" : "Trend building"
-  const value = Math.abs(signal.trendPercent).toLocaleString(it ? "it-IT" : "en-US", { maximumFractionDigits: 1 })
-  if (signal.trendPercent > 0) return `+${value}%`
-  if (signal.trendPercent < 0) return `−${value}%`
+  if (!signal) return null
+  const trend = collectorMarketTrend(signal)
+  if (trend == null) return null
+
+  const value = Math.abs(trend).toLocaleString(it ? "it-IT" : "en-US", { maximumFractionDigits: 1 })
+  if (trend > 0) return `+${value}%`
+  if (trend < 0) return `−${value}%`
   return "0%"
 }
 
@@ -122,30 +115,18 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
   const watchList = React.useMemo(() => {
     const ranked = [...releases]
-      .filter(({ release, signal }) =>
-        Boolean(release.itemNumber) &&
-        Boolean(signal) &&
-        (signal?.trendPercent == null || signal.trendPercent > 0),
-      )
+      .filter(({ release, signal }) => {
+        if (!release.itemNumber || !release.images?.length || !signal) return false
+        if (signal.valueEUR == null || signal.valueEUR <= 0) return false
+
+        const trend = collectorMarketTrend(signal)
+        if (trend == null || trend <= 0) return false
+
+        return true
+      })
       .sort((a, b) => marketScore(b) - marketScore(a))
 
-    const primary = distinctByProduct(ranked, 4)
-    if (primary.length >= 4) return primary
-
-    const fallback = distinctByProduct(
-      releases.filter(({ release, signal }) =>
-        Boolean(release.itemNumber) &&
-        (signal?.trendPercent == null || signal.trendPercent > 0),
-      ),
-      8,
-    )
-
-    for (const entry of fallback) {
-      if (!primary.some((item) => item.release.id === entry.release.id)) primary.push(entry)
-      if (primary.length === 4) break
-    }
-
-    return primary
+    return distinctByProduct(ranked, 4)
   }, [releases])
 
   const familyProduct = React.useMemo(() => {
@@ -728,8 +709,8 @@ function WatchCard({ entry, it, locale }: { entry: ReleaseEntry; it: boolean; lo
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it ? "Valore di mercato" : "Market Value"}</p>
             <p className="mt-0.5 text-lg font-semibold text-navy">{signal?.valueEUR != null ? formatMoney(signal.valueEUR) : (it ? "Dati in arrivo" : "Data coming soon")}</p>
           </div>
-          {signal?.trendPercent != null ? (
-            <span className={`text-sm font-semibold ${signal.trendPercent >= 0 ? "text-emerald-700" : "text-brand-red"}`}>
+          {trendText(signal, it) ? (
+            <span className="text-sm font-semibold text-emerald-700">
               {trendText(signal, it)}
             </span>
           ) : null}
