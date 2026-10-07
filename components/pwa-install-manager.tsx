@@ -57,6 +57,19 @@ function isAndroid() {
   return typeof navigator !== "undefined" && /android/i.test(navigator.userAgent)
 }
 
+function isMetaInAppBrowser() {
+  if (typeof navigator === "undefined") return false
+  return /FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(navigator.userAgent)
+}
+
+function openCurrentPageInChrome() {
+  if (typeof window === "undefined") return
+  const url = new URL(window.location.href)
+  const fallbackUrl = encodeURIComponent(window.location.href)
+  const intentUrl = `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${fallbackUrl};end`
+  window.location.href = intentUrl
+}
+
 function isFirefox() {
   return typeof navigator !== "undefined" && /firefox|fxios/i.test(navigator.userAgent)
 }
@@ -147,6 +160,11 @@ export function PwaInstallManager() {
     const onRequest = async () => {
       if (isStandalone()) {
         markInstalled()
+        return
+      }
+
+      if (isAndroid() && isMetaInAppBrowser()) {
+        openCurrentPageInChrome()
         return
       }
 
