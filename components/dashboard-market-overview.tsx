@@ -26,6 +26,11 @@ function hasMeaningfulActivity(signal: ReleaseMarketSignalView): boolean {
   return signal.recentSoldUnits3m != null && signal.recentSoldUnits3m >= 2
 }
 
+function isEditoriallyPositive(signal: ReleaseMarketSignalView): boolean {
+  const trend = collectorMarketTrend(signal)
+  return trend == null || trend > 0
+}
+
 function releaseYear(release: ProductRelease): number | null {
   if (release.releaseYear == null) return null
   const value = Number(release.releaseYear)
@@ -79,7 +84,10 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
     }),
   ), [marketSignals, products])
 
-  const active = React.useMemo(() => rows.filter((row) => hasMeaningfulActivity(row.signal)), [rows])
+  const active = React.useMemo(
+    () => rows.filter((row) => hasMeaningfulActivity(row.signal) && isEditoriallyPositive(row.signal)),
+    [rows],
+  )
 
   const vintage = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => {
