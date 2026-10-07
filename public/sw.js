@@ -1,4 +1,4 @@
-const CACHE_VERSION = "trackdash-shell-v9"
+const CACHE_VERSION = "trackdash-shell-v10"
 const OFFLINE_URL = "/offline.html"
 
 self.addEventListener("install", (event) => {
