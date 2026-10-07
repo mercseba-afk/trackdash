@@ -29,13 +29,20 @@ function withNext(path: string, nextPath?: string) {
 export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextPath?: string }) {
   const { locale, setLocale } = useI18n()
   const it = locale === "it"
-  const highlights = [
-    { icon: ShieldCheck, label: it ? "Scopri quanto vale la Release esatta" : "Discover what the exact Release is worth" },
-    { icon: Boxes, label: it ? "Registra e organizza la tua collezione" : "Build and organise your collection" },
-    { icon: TrendingUp, label: it ? "Controlla mercato, vendite, ASK e trend" : "Watch market sales, ASK and trends" },
-    { icon: MessageCircle, label: it ? "Compra e vendi con altri collezionisti" : "Buy and sell with other collectors" },
-    { icon: ScanLine, label: it ? "Trova più velocemente la Release con lo Scanner" : "Find the right Release faster with Scanner" },
-  ]
+  const highlights = mode === "signup"
+    ? [
+        { icon: Boxes, label: it ? "Costruisci la tua collezione" : "Build your collection" },
+        { icon: TrendingUp, label: it ? "Segui il valore delle tue Release" : "Follow your Release values" },
+        { icon: ScanLine, label: it ? "Trova la Release che cerchi" : "Find the Release you are looking for" },
+        { icon: MessageCircle, label: it ? "Scambia con altri collezionisti" : "Trade with other collectors" },
+      ]
+    : [
+        { icon: ShieldCheck, label: it ? "Scopri quanto vale la Release esatta" : "Discover what the exact Release is worth" },
+        { icon: Boxes, label: it ? "Registra e organizza la tua collezione" : "Build and organise your collection" },
+        { icon: TrendingUp, label: it ? "Controlla mercato, vendite, ASK e trend" : "Watch market sales, ASK and trends" },
+        { icon: MessageCircle, label: it ? "Compra e vendi con altri collezionisti" : "Buy and sell with other collectors" },
+        { icon: ScanLine, label: it ? "Trova più velocemente la Release con lo Scanner" : "Find the right Release faster with Scanner" },
+      ]
 
   return (
     <div className="relative min-h-svh bg-background lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,.95fr)]">
@@ -47,12 +54,24 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
       <aside className="relative hidden min-h-svh overflow-hidden border-r border-border/10 bg-[#0b3275] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-12">
         <div className="relative z-10"><BrandMark tone="invert" /></div>
         <div className="relative z-10 max-w-xl py-10">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">{it ? "Il tuo Mini 4WD, insieme" : "Your Mini 4WD, together"}</p>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
+            {mode === "signup"
+              ? (it ? "LA TUA COLLEZIONE, SU TRACKDASH" : "YOUR COLLECTION, ON TRACKDASH")
+              : (it ? "Il tuo Mini 4WD, insieme" : "Your Mini 4WD, together")}
+          </p>
           <h1 className="max-w-lg text-4xl font-semibold leading-[1.02] tracking-[-0.04em] xl:text-5xl">
-            {it ? <>Entra nel tuo <span className="text-[#8fb5ff]">TrackDash.</span></> : <>Enter your <span className="text-[#8fb5ff]">TrackDash.</span></>}
+            {mode === "signup"
+              ? (it ? <>Inizia dalla tua <span className="text-[#8fb5ff]">prima Release.</span></> : <>Start with your <span className="text-[#8fb5ff]">first Release.</span></>)
+              : (it ? <>Entra nel tuo <span className="text-[#8fb5ff]">TrackDash.</span></> : <>Enter your <span className="text-[#8fb5ff]">TrackDash.</span></>)}
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-white/65">
-            {it ? "Scopri quanto vale la Release, registrala nella tua Collection, controlla il mercato e compra o vendi con altri collezionisti: tutto parte dalla versione esatta." : "Discover what a Release is worth, add it to your Collection, watch the market and buy or sell with other collectors: everything starts from the exact version."}
+            {mode === "signup"
+              ? (it
+                ? "Crea il tuo account, aggiungi le Mini 4WD che possiedi e costruisci la tua collezione su TrackDash. Segui il mercato, scopri nuove Release e trova altri collezionisti con cui entrare in contatto."
+                : "Create your account, add the Mini 4WDs you own and build your collection on TrackDash. Follow the market, discover new Releases and find other collectors to connect with.")
+              : (it
+                ? "Scopri quanto vale la Release, registrala nella tua Collection, controlla il mercato e compra o vendi con altri collezionisti: tutto parte dalla versione esatta."
+                : "Discover what a Release is worth, add it to your Collection, watch the market and buy or sell with other collectors: everything starts from the exact version.")}
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {highlights.map((h) => (
@@ -63,9 +82,16 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
             ))}
           </div>
         </div>
-        <p className="relative z-10 max-w-lg text-xs leading-relaxed text-white/45">
-          {it ? "I valori di mercato sono stime indicative basate sui dati disponibili e non costituiscono perizie." : "Market values are indicative estimates based on available data and are not appraisals."}
-        </p>
+        <div className="relative z-10 max-w-lg">
+          {mode === "signup" ? (
+            <p className="mb-3 text-sm font-semibold tracking-[-0.01em] text-white/80">
+              {it ? "Scopri. Colleziona. Scambia." : "Discover. Collect. Trade."}
+            </p>
+          ) : null}
+          <p className="text-xs leading-relaxed text-white/45">
+            {it ? "I valori di mercato sono stime indicative basate sui dati disponibili e non costituiscono perizie." : "Market values are indicative estimates based on available data and are not appraisals."}
+          </p>
+        </div>
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-16 size-80 rounded-full border border-white/10" />
         <div aria-hidden className="pointer-events-none absolute -right-8 top-20 size-56 rounded-full border border-white/10" />
         <div aria-hidden className="pointer-events-none absolute bottom-[-180px] left-[-60px] size-[420px] rounded-full bg-[#1558e8]/25 blur-3xl" />
@@ -194,7 +220,7 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account, completa il breve onboarding e poi torna alla Release da cui sei partito." : "Create your account, complete the short onboarding, then return to the Release you started from.") : (it ? "Registra la tua collezione, segui il valore delle Release, controlla il mercato e compra o vendi con altri collezionisti." : "Build your collection, track Release values, watch the market and buy or sell with other collectors.")}</p></div>
+      <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Account gratuito" : "Free account"}</p><h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Inizia la tua Collection." : "Start your Collection."}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Crea l'account, completa il breve onboarding e poi torna alla Release da cui sei partito." : "Create your account, complete the short onboarding, then return to the Release you started from.") : (it ? "Aggiungi le Release che possiedi, segui il loro valore e fai crescere la tua collezione su TrackDash." : "Add the Releases you own, follow their value and grow your collection on TrackDash.")}</p></div>
       <GoogleAuthButton nextPath={nextPath} />
       <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
