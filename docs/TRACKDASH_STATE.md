@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — OFFICIAL LOGO VERTICAL CLIPPING FIX
+
+Brand rendering:
+- the single official TrackDash PNG lockup remains unchanged;
+- BrandMark now scales by width with intrinsic height instead of forcing a fixed height/max-width pair;
+- this prevents vertical clipping/distortion in shared headers and app/auth surfaces;
+- no alternate logo variant was introduced;
+- no catalog, market, auth, PWA, collection or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — OFFICIAL TRACKDASH LOGO LOCKUP
 
 Brand identity:
