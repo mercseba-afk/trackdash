@@ -1,11 +1,23 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-10-05  
+> **Last updated:** 2026-10-07  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
 ---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — OFFICIAL TRACKDASH LOGO LOCKUP
+
+Brand identity:
+- one official TrackDash logo lockup is now the shared brand mark across public website and authenticated app surfaces;
+- the approved reference is used as a raster PNG asset at `/brand/trackdash-logo-official.png`;
+- the lockup contains the illustrated Mini 4WD car at left, the blue/red `TrackDash` wordmark, and the payoff `COLLECT • TRACK • TRADE`;
+- the car artwork is not redrawn as SVG and the wordmark/payoff are not rebuilt with CSS text;
+- `BrandMark` no longer switches to alternate car-only or text-composed variants: every consumer receives the same complete logo, scaled only by layout;
+- header, footer, auth and app surfaces that consume `BrandMark` inherit the same logo automatically;
+- PWA launcher icons remain application icons, not alternate wordmarks;
+- no navigation, auth, catalog, market, valuation, Collection, Scanner or Price Engine logic changed.
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — TRACKDASH BRAND LOGO V6
 
