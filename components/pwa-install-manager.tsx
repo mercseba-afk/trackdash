@@ -124,8 +124,11 @@ export function PwaInstallManager() {
 
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
-        .then(() => navigator.serviceWorker.ready)
+        .register("/sw.js", { scope: "/", updateViaCache: "none" })
+        .then(async (registration) => {
+          await registration.update()
+          return navigator.serviceWorker.ready
+        })
         .then(() => emitStateChange())
         .catch(() => emitStateChange())
     }
