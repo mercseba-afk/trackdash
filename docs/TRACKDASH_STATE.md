@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — HOMEPAGE DUPLICATE FLOW REMOVED
+
+Homepage cleanup:
+- removed the duplicated `IL TUO PERCORSO SU TRACKDASH / Dalla tua Release alla prossima` flow card from the Collection section;
+- the earlier `COSA PUOI FARE CON TRACKDASH` feature section remains the single explanatory feature flow;
+- the Collection section now focuses only on the user's collection, exact Releases, multiple copies, sealed-copy estimated value and wishlist;
+- desktop/mobile layout was simplified so the remaining Collection content uses the available width cleanly;
+- no catalog, market, auth, Collection data, Scanner or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — TRANSPARENT OFFICIAL LOGO LIVE
 
 Brand asset correction:
