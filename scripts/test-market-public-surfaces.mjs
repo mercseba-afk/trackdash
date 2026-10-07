@@ -159,6 +159,25 @@ if (!marketPresentation.includes("signal?.soldAnchorEUR") || !marketPresentation
   errors.push("Shared market presentation does not expose SOLD anchor as a display-only fallback")
 }
 const analyticsSource = fs.readFileSync("lib/analytics.ts", "utf8")
+if (!analyticsSource.includes('return condition === "Sealed"')) {
+  errors.push("Collection copy valuation is not restricted to Sealed copies")
+}
+if (analyticsSource.includes('condition === "New / Opened"')) {
+  errors.push("New / Opened copies are still being valued with the new/unbuilt Release benchmark")
+}
+if (!collectionScreen.includes("summary.marketValue") || collectionScreen.includes("summary.marketReferenceValue")) {
+  errors.push("Collection headline total is not using only canonical Market Value")
+}
+if (!collectionScreen.includes("Valore della copia non stimato")) {
+  errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
+}
+const publicHome = fs.readFileSync("components/screens/public-home-screen.tsx", "utf8")
+if (!publicHome.includes("signal?.trendPercent == null || signal.trendPercent > 0")) {
+  errors.push("Homepage editorial market examples are not excluding negative collector trends")
+}
+if (!dashboardMarket.includes("isEditoriallyPositive")) {
+  errors.push("Dashboard market highlights are not excluding negative trends from curated examples")
+}
 if (!analyticsSource.includes("observedMarketPrice(marketSignal)")) {
   errors.push("Collection analytics duplicates ASK price-selection logic instead of using the shared presentation helper")
 }
