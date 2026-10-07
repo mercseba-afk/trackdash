@@ -14,7 +14,7 @@ import {
   topValued,
 } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
-import { observedMarketAskLabel, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { observedMarketAskLabel, observedMarketDisplayKind, observedMarketDisplayLabel } from "@/lib/market/presentation"
 import type { Product } from "@/lib/types"
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
