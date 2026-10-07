@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — PWA BRAND REFRESH HARDENING
+
+Installed-app update behavior:
+- the official TrackDash lockup is now referenced through a versioned asset path `/brand/trackdash-logo-official-v2.png` to eliminate stale asset reuse;
+- the service-worker shell version is bumped to `trackdash-shell-v8`;
+- on service-worker activation, open TrackDash windows are navigated to their current URL so an installed Android PWA cannot remain indefinitely on an older frontend shell;
+- PWA registration now uses `updateViaCache: "none"` and explicitly checks for an updated worker;
+- the official logo itself is unchanged: car + TrackDash + `COLLECT • TRACK • TRADE`;
+- no alternate logo, SVG redraw, catalog, market, auth, Collection, Scanner or valuation logic changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — OFFICIAL LOGO MOBILE FULL-LOCKUP FIX
 
 Brand rendering:
