@@ -4,6 +4,10 @@ import { and, eq, inArray } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
+  MARKETPLACE_OFFER_MAX_AGE_HOURS,
+  RETAIL_OFFER_MAX_AGE_HOURS,
+} from "@/lib/market/pipeline/market-publication-policy"
+import {
   marketEstimates,
   marketOfferStates,
   marketReleaseMonthlySignals,
@@ -29,6 +33,7 @@ export interface CurrentObservedOfferRow {
   itemPriceEUR: string
   shippingEUR: string | null
   effectiveCostEUR: string | null
+  costBasis: string
   lastCheckedAt: Date
 }
 
@@ -120,6 +125,7 @@ export async function listCurrentObservedOffers(
       itemPriceEUR: marketOfferStates.itemPriceEUR,
       shippingEUR: marketOfferStates.shippingEUR,
       effectiveCostEUR: marketOfferStates.effectiveCostEUR,
+      costBasis: marketOfferStates.costBasis,
       lastCheckedAt: marketOfferStates.lastCheckedAt,
     })
     .from(marketOfferStates)
@@ -166,18 +172,32 @@ export async function getCatalogStartingPrices(): Promise<Record<string, number>
   const rows = await db
     .select({
       productId: productReleases.productId,
-      startingItemPriceEUR: marketReleaseSignals.startingItemPriceEUR,
+      channel: marketOfferStates.channel,
+      itemPriceEUR: marketOfferStates.itemPriceEUR,
+      lastCheckedAt: marketOfferStates.lastCheckedAt,
     })
-    .from(marketReleaseSignals)
-    .innerJoin(productReleases, eq(productReleases.id, marketReleaseSignals.releaseId))
-    .where(eq(marketReleaseSignals.condition, COLLECTOR_VALUE_CONDITION))
+    .from(marketOfferStates)
+    .innerJoin(productReleases, eq(productReleases.id, marketOfferStates.releaseId))
+    .where(and(
+      eq(marketOfferStates.condition, COLLECTOR_VALUE_CONDITION),
+      inArray(marketOfferStates.availability, ["in_stock", "low_stock"]),
+    ))
 
   const result: Record<string, number> = {}
+  const now = Date.now()
 
   for (const row of rows) {
-    const raw = row.startingItemPriceEUR
-    if (raw == null) continue
-    const amount = Number(raw)
+    const checkedAt = row.lastCheckedAt instanceof Date
+      ? row.lastCheckedAt.getTime()
+      : Date.parse(String(row.lastCheckedAt))
+    if (!Number.isFinite(checkedAt)) continue
+
+    const maxAgeHours = row.channel === "marketplace"
+      ? MARKETPLACE_OFFER_MAX_AGE_HOURS
+      : RETAIL_OFFER_MAX_AGE_HOURS
+    if (Math.max(0, now - checkedAt) > maxAgeHours * 3_600_000) continue
+
+    const amount = Number(row.itemPriceEUR)
     if (!Number.isFinite(amount) || amount <= 0) continue
 
     const current = result[row.productId]
