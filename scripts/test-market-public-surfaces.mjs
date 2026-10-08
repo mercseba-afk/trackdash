@@ -226,17 +226,38 @@ if (publicMarket.includes("unstable_cache") || publicMarket.includes("listCached
 if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listSafeMarketContextEvidence")) {
   errors.push("Public market service is not carrying safe historical context evidence through the trusted server boundary")
 }
-if (!publicMarket.includes("startingEffectiveCostEUR: startingEffectiveCostEUR")) {
-  errors.push("Public market service is not exposing the canonical starting effective cost")
+if (
+  !publicMarket.includes("const startingItemPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)") ||
+  !publicMarket.includes("const startingEffectiveCostEUR = numberOrNull(observedOffer?.effectiveCostEUR)")
+) {
+  errors.push("Public market service is not deriving current starting prices from a TTL-valid observed offer")
 }
-if (publicMarket.includes("startingItemPriceEUR: observedPriceEUR")) {
-  errors.push("Public market service is re-deriving the canonical starting price from offer-state ordering")
+if (
+  !publicMarket.includes("const retailAnchorEUR = freshRetailOffers.length > 0 ? rawRetailAnchorEUR : null") ||
+  !publicMarket.includes("const activeAnchorEUR = freshMarketplaceOffers.length > 0 ? rawActiveAnchorEUR : null")
+) {
+  errors.push("Public market service can expose a current-offer anchor after its supporting channel has no fresh offers")
 }
 
-const startingIndex = marketPresentation.indexOf("startingEffectiveCostEUR")
-const activeIndex = marketPresentation.indexOf("activeAnchorEUR", startingIndex)
-if (startingIndex < 0 || activeIndex < 0 || startingIndex > activeIndex) {
-  errors.push("Shared market presentation must use canonical starting effective cost before active anchor")
+const startingEffectiveIndex = marketPresentation.indexOf("startingEffectiveCostEUR")
+const startingItemIndex = marketPresentation.indexOf("startingItemPriceEUR", startingEffectiveIndex)
+if (startingEffectiveIndex < 0 || startingItemIndex < 0 || startingEffectiveIndex > startingItemIndex) {
+  errors.push("Shared market presentation must prefer fresh delivered cost before fresh item-only price")
+}
+if (
+  marketPresentation.includes("?? signal?.activeAnchorEUR") ||
+  marketPresentation.includes("?? signal?.retailAnchorEUR")
+) {
+  errors.push("Shared market presentation still falls back to potentially expired materialized current-offer anchors")
+}
+
+const marketQueries = fs.readFileSync("lib/db/queries/market.ts", "utf8")
+if (
+  !marketQueries.includes("MARKETPLACE_OFFER_MAX_AGE_HOURS") ||
+  !marketQueries.includes("RETAIL_OFFER_MAX_AGE_HOURS") ||
+  !marketQueries.includes("marketOfferStates.lastCheckedAt")
+) {
+  errors.push("Catalog starting-price query is not enforcing canonical current-offer TTLs")
 }
 
 for (const file of [
