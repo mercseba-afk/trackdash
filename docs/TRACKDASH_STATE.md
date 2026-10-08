@@ -7,6 +7,26 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-08 — PRICE GUARD RUNTIME SAFETY / RECOMPUTE PERMISSION
+
+Price Guard follow-up found two independent monitoring/runtime issues without changing Market Method v4:
+- automatic backlog monitoring must use the queues and claim gates actually used by the workers; legacy `market_scan_targets` counters are not authoritative for runnable backlog;
+- the backend `service_role` was missing EXECUTE on `trackdash_enqueue_market_recompute(uuid,text)`, which could stop the recompute worker during time-driven offer-expiry maintenance before already-due recompute jobs were claimed.
+
+Correction:
+- migration `0213_market_recompute_service_role_enqueue_grant.sql` grants the missing enqueue permission only;
+- Market Value, SOLD selection, retail qualification, ASK handling, trend logic, weights and Method v4 are unchanged;
+- the public market projection now derives current starting-price fields only from TTL-valid purchasable `market_offer_states` rows and never falls back to an expired materialized current-offer anchor;
+- catalog `Da/From` prices are likewise derived from fresh purchasable offer-state rows using the canonical 15-day marketplace / 31-day retail TTLs;
+- Price Guard monitoring was aligned to the real runnable queue definition so non-runnable compatibility rows do not trigger false backlog alerts.
+
+Live DB privilege check after the migration:
+- service_role enqueue: PASS;
+- service_role recompute claim: PASS;
+- service_role recompute finish: PASS.
+
+No canonical signal row was manually rewritten as part of this correction. Existing recompute rows remain for the normal worker to process under the unchanged engine.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-07 — FACEBOOK PWA HANDOFF TO CHROME
 
 PWA install flow:
