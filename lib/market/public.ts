@@ -191,24 +191,26 @@ export function toPublicMarketSignalView(
   if (!signal) return null
 
   const valueEUR = numberOrNull(signal.marketValueEUR)
-  const retailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
-  const activeAnchorEUR = numberOrNull(signal.activeAnchorEUR)
+  const rawRetailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
+  const rawActiveAnchorEUR = numberOrNull(signal.activeAnchorEUR)
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
-  const startingItemPriceEUR = numberOrNull(signal.startingItemPriceEUR)
-  const startingEffectiveCostEUR = numberOrNull(signal.startingEffectiveCostEUR)
   const freshOffers = freshObservedOffers(observedOffers)
   const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId)
+  const startingItemPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)
+  const startingEffectiveCostEUR = numberOrNull(observedOffer?.effectiveCostEUR)
   const currentOfferCount = freshOffers.length
-  const activeOfferCount = freshOffers.filter((offer) => offer.channel === "marketplace").length
-  const retailSourceCount = new Set(
-    freshOffers.filter((offer) => offer.channel === "retail").map((offer) => offer.sourceId),
-  ).size
+  const freshMarketplaceOffers = freshOffers.filter((offer) => offer.channel === "marketplace")
+  const freshRetailOffers = freshOffers.filter((offer) => offer.channel === "retail")
+  const activeOfferCount = freshMarketplaceOffers.length
+  const retailSourceCount = new Set(freshRetailOffers.map((offer) => offer.sourceId)).size
+  const retailAnchorEUR = freshRetailOffers.length > 0 ? rawRetailAnchorEUR : null
+  const activeAnchorEUR = freshMarketplaceOffers.length > 0 ? rawActiveAnchorEUR : null
   const hasMarketEvidence =
     (valueEUR != null && valueEUR > 0) ||
     (retailAnchorEUR != null && retailAnchorEUR > 0) ||
     (activeAnchorEUR != null && activeAnchorEUR > 0) ||
     (soldAnchorEUR != null && soldAnchorEUR > 0) ||
-    signal.currentOfferCount > 0 ||
+    currentOfferCount > 0 ||
     signal.soldUnits > 0 ||
     marketContextEvidenceCount > 0
 
@@ -223,14 +225,14 @@ export function toPublicMarketSignalView(
     confidenceLabel: signal.confidenceLabel as ReleaseMarketConfidence,
     retailAnchorEUR,
     activeAnchorEUR,
-    activeLowEUR: numberOrNull(signal.activeLowEUR),
-    activeHighEUR: numberOrNull(signal.activeHighEUR),
+    activeLowEUR: activeOfferCount > 0 ? numberOrNull(signal.activeLowEUR) : null,
+    activeHighEUR: activeOfferCount > 0 ? numberOrNull(signal.activeHighEUR) : null,
     soldAnchorEUR,
     startingItemPriceEUR: startingItemPriceEUR != null && startingItemPriceEUR > 0 ? startingItemPriceEUR : null,
     startingEffectiveCostEUR: startingEffectiveCostEUR != null && startingEffectiveCostEUR > 0 ? startingEffectiveCostEUR : null,
     startingCostBasis:
-      signal.startingCostBasis === "delivered" || signal.startingCostBasis === "item_only"
-        ? signal.startingCostBasis
+      observedOffer?.costBasis === "delivered" || observedOffer?.costBasis === "item_only"
+        ? observedOffer.costBasis
         : null,
     observedPriceAt: observedOffer
       ? (observedOffer.lastCheckedAt instanceof Date ? observedOffer.lastCheckedAt.toISOString() : String(observedOffer.lastCheckedAt))
@@ -239,7 +241,7 @@ export function toPublicMarketSignalView(
       observedOffer?.channel === "retail" || observedOffer?.channel === "marketplace"
         ? observedOffer.channel
         : null,
-    observedShippingEUR: numberOrNull(signal.startingShippingEUR) ?? numberOrNull(observedOffer?.shippingEUR),
+    observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
     retailSourceCount,
     activeOfferCount,
     currentOfferCount,
