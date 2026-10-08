@@ -110,6 +110,19 @@ This is a recompute event, **not** a scan and not automatically a HOT/material m
 
 ## Runnable-source queue hygiene
 
+Operational monitoring must mirror the worker's real claim gates rather than counting compatibility rows. In particular:
+- `market_scan_targets` is not the authoritative automatic backlog counter;
+- exact-page retail is runnable only when `market_scan_queue.enabled=true`, the source policy is `adapter_status='ready'`, the job is due/unlocked, and an enabled `market_scan_endpoints` row exists for the same Release/source with `exact_release_verified=true`;
+- eBay Active backlog must be evaluated from its real `market_scan_queue` plus the identity/worker gates used by `trackdash_claim_ebay_active_jobs`;
+- manual/planned/parked sources are not automatic scanner failures.
+
+The recompute lifecycle is a separate operational dependency. The backend service role must retain EXECUTE on:
+- `trackdash_enqueue_market_recompute(uuid,text)`;
+- `trackdash_claim_market_recompute_jobs(integer,integer)`;
+- `trackdash_finish_market_recompute_job(uuid,text,timestamptz,boolean,text)`.
+
+A due recompute row that remains at `attempts=0` across cron runs is a blocker and must be investigated before interpreting stale materialized current-offer fields as current market data.
+
 Only sources with `adapter_status = 'ready'` belong in enabled automatic scan queues.
 
 Sources marked `manual` or `planned` may still provide valid stored context/research evidence, but their automatic queue/target rows must remain disabled until an executable adapter is promoted to `ready`. `include_by_default` is therefore disabled for non-ready source policies.
