@@ -7,6 +7,20 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-08 — PUBLIC MARKET SIGNAL BOOTSTRAP HOTFIX
+
+A regression introduced by the TTL-safe public offer projection caused the global public market signal bootstrap to fail in Production:
+- `listCurrentObservedOffers()` began selecting `market_offer_states.cost_basis`;
+- the restricted runtime DB role `trackdash_app` already had column-level SELECT on the other public offer fields but not on `cost_basis`;
+- PostgreSQL therefore rejected the query with `permission denied for table market_offer_states`;
+- RootLayout caught the failure and initialized `MarketSignalsProvider` with an empty map, making market values/references disappear across Catalog, Release pages, Collection and Dashboard even though canonical DB signals were still intact.
+
+Correction:
+- migration `0214_market_offer_runtime_cost_basis_read.sql` grants SELECT on `cost_basis` only to `trackdash_app`;
+- the existing row-level policy remains unchanged and still restricts reads to collector-condition purchasable offers;
+- no Market Value, SOLD, ASK, trend, matching, evidence, weights, cadence or Method v4 calculation was changed;
+- the permission was applied live immediately and the Dyna-Hawk GX 95467 public Release page again exposes its market reference/trend without bootstrap errors.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-08 — PRICE GUARD RUNTIME SAFETY / RECOMPUTE PERMISSION
 
 Price Guard follow-up found two independent monitoring/runtime issues without changing Market Method v4:
