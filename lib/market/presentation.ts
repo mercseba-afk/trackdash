@@ -3,10 +3,12 @@ import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 export function observedMarketPrice(
   signal?: ReleaseMarketSignalView | null,
 ): number | null {
+  // Public current-price display must come from a fresh observed purchasable
+  // offer. The public projection populates starting* only from TTL-valid
+  // market_offer_states rows; raw materialized anchors are intentionally not a
+  // fallback because they can outlive their publication TTL until recompute.
   return signal?.startingEffectiveCostEUR
     ?? signal?.startingItemPriceEUR
-    ?? signal?.retailAnchorEUR
-    ?? signal?.activeAnchorEUR
     ?? null
 }
 
