@@ -130,7 +130,7 @@ export function ReleaseDetailScreen({
                   <h2 className="text-base font-semibold text-[#081a3a]">{it ? "La possiedi?" : "Do you own it?"}</h2>
                   <p className="mt-1 text-sm leading-6 text-[#607089]">
                     {it
-                      ? "Aggiungila alla tua Collection, indica quanto l’hai pagata e, se vuoi, rendila disponibile alle offerte di altri collezionisti."
+                      ? "Rendila disponibile alle offerte di altri collezionisti e fai il tuo prezzo!"
                       : "Add it to your Collection, record what you paid and, if you want, open it to offers from other collectors."}
                   </p>
                   <div className="mt-3">
