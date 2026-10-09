@@ -122,7 +122,6 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
                     : "Your collection, market values and the Releases you follow are here.")}
               </p>
             </div>
-            <div aria-hidden className="pointer-events-none absolute" />
           </div>
           <div className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-8">
             {mode === "login" ? <LoginForm nextPath={nextPath} /> : <SignupForm nextPath={nextPath} />}
