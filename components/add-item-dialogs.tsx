@@ -709,8 +709,8 @@ export function AddToWishlistDialog({
           <DialogTitle>{it ? "Aggiungi ai desideri" : "Add to wishlist"}</DialogTitle>
           <DialogDescription>
             {it
-              ? "Salva una release che stai cercando e, se vuoi, imposta il prezzo che vorresti pagare."
-              : "Save a release you're looking for and optionally set the price you'd like to pay."}
+              ? "Salva una Release che stai cercando. Se scegli una Release precisa, TrackDash ti avviserà quando un collezionista la renderà disponibile alle offerte."
+              : "Save a Release you're looking for. If you choose an exact Release, TrackDash will notify you when a collector opens a copy to offers."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3 rounded-lg border border-border p-2">
