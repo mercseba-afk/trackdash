@@ -7,6 +7,23 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — NOTIFICATION CENTER EVENT-DRIVEN UX
+
+Notification Center no longer treats every Production deployment/build SHA change as a user-facing update.
+
+New behavior:
+- removed the 60-second `/api/version` polling notification and localStorage pending-version badge;
+- minor UI/code deployments no longer generate “Nuovo aggiornamento disponibile” for users;
+- important TrackDash announcements are now explicit events through `trackdash_broadcast_important_update(...)`, executable only by `service_role`;
+- newly inserted Mini 4WD Releases generate `catalog_release_available` only when they are already `verified`, `public`, and belong to a family whose `launch_status` is `available`;
+- Releases inserted while a family is still `coming_soon` do not spam users individually; when the family becomes available, the existing family-available notification remains the single launch event;
+- the pinned “Catalogo in espansione” notice remains unchanged;
+- transactional notifications (offers, sale confirmations, support updates, etc.) remain unchanged.
+
+Release notifications are deduplicated per user + Release and link directly to the Release route.
+
+This change affects notification UX only. It does not alter Product/Release identity, catalog visibility rules, Market Method v4, Price Engine, SOLD/ASK evidence, Collection data, SEO routes, or auth behavior.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — MOBILE CONTENT PARITY AUDIT
 
 Responsive content audit focused on whether mobile loses meaningful desktop content or actions.
