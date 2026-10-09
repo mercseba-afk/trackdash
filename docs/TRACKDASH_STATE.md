@@ -7,6 +7,22 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — RECOMPUTE QUEUE READ PERMISSION + HEALTH WATCH CLARIFICATION
+
+Health Watch follow-up:
+- the daily cron DID run normally on 2026-10-09 at 03:41 UTC / 05:41 Europe/Rome; a 05:25 local check was simply earlier than the scheduled cron;
+- the recompute queue still contained 94704, 18069 and 18614 with attempts=0 because expiry maintenance performs a direct SELECT on `market_recompute_queue` before the SECURITY DEFINER enqueue/claim/finish RPCs;
+- `service_role` already had EXECUTE on enqueue/claim/finish, and those RPCs are SECURITY DEFINER, so INSERT/UPDATE/DELETE table grants are not required;
+- migration `0215_market_recompute_service_role_queue_read.sql` grants only SELECT on `market_recompute_queue` to `service_role`, preserving least privilege and leaving Price Engine logic unchanged.
+
+Retail backlog interpretation:
+- raw ready-source queue counts (209 iModellini / 209 Pieroni) are not equivalent to runnable jobs;
+- exact-page retail is runnable only with an enabled exact-release-verified endpoint for the same Release/source;
+- live 2026-10-09 runnable state: iModellini 3 enabled / 0 due, Pieroni 5 enabled / 0 due, Gandolfi 1 enabled / 0 due;
+- therefore 206/204 raw due rows are compatibility/non-runnable queue noise and must not be raised as an operational retail backlog.
+
+No Market Method v4 calculation, SOLD/ASK weighting, trend logic, matching or canonical signal rule changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-08 — PUBLIC MARKET SIGNAL BOOTSTRAP HOTFIX
 
 A regression introduced by the TTL-safe public offer projection caused the global public market signal bootstrap to fail in Production:
