@@ -7,6 +7,24 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — MOBILE CONTENT PARITY AUDIT
+
+Responsive content audit focused on whether mobile loses meaningful desktop content or actions.
+
+Corrections:
+- Login / Signup now keep the desktop blue brand/value proposition on mobile through a compact intro card above the form instead of dropping it completely.
+- Collection cards no longer hide visibility/share controls, copy-detail access and copy-photo access below the `sm` breakpoint.
+- Messaging conversation status is now visible on mobile as well as desktop.
+
+Verified intentional responsive differences:
+- public header uses a mobile menu that contains the same public destinations and auth actions as desktop;
+- Homepage hero uses the same artwork/content with a separate mobile layout only;
+- Homepage market carousel hides desktop arrow buttons on small screens but keeps the same cards/content and touch/scroll interaction;
+- authenticated mobile bottom navigation is intentionally compact; Dashboard remains reachable from the TrackDash logo, while Catalog, Collection, Scanner, Messages and Profile remain direct mobile destinations;
+- Market, Catalog, family/Release detail, Dashboard, Scanner, Profile, Settings, Shared Collection and Onboarding use layout-only responsive changes without hiding core content.
+
+No catalog data, Product/Release identity, Collection data, market values, Price Engine logic, auth behavior or SEO routes were changed.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — RECOMPUTE QUEUE READ PERMISSION + HEALTH WATCH CLARIFICATION
 
 Health Watch follow-up:
