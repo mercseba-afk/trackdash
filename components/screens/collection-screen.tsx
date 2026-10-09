@@ -238,7 +238,7 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                             </Button>
                           </div>
                         </div>
-                        <div className="mt-1.5 hidden items-center gap-1.5 sm:flex">
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
                           <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                         </div>

@@ -99,7 +99,30 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
 
       <main className="flex min-h-svh items-center justify-center px-5 py-16 sm:px-8 lg:min-h-0 lg:px-12">
         <div className="w-full max-w-md">
-          <div className="mb-10 lg:hidden"><BrandMark /></div>
+          <div className="mb-5 overflow-hidden rounded-3xl bg-[#0b3275] p-5 text-white shadow-[0_16px_40px_rgba(11,50,117,0.18)] lg:hidden">
+            <div className="relative z-10"><BrandMark tone="invert" /></div>
+            <div className="relative z-10 mt-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                {mode === "signup"
+                  ? (it ? "LA TUA COLLEZIONE, SU TRACKDASH" : "YOUR COLLECTION, ON TRACKDASH")
+                  : (it ? "BENTORNATO SU TRACKDASH" : "WELCOME BACK TO TRACKDASH")}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-[-0.035em]">
+                {mode === "signup"
+                  ? (it ? <>Inizia dalla tua <span className="text-[#9fc0ff]">prima Release.</span></> : <>Start with your <span className="text-[#9fc0ff]">first Release.</span></>)
+                  : (it ? <>Entra nel tuo <span className="text-[#9fc0ff]">TrackDash.</span></> : <>Enter your <span className="text-[#9fc0ff]">TrackDash.</span></>)}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/70">
+                {mode === "signup"
+                  ? (it
+                    ? "Aggiungi le Mini 4WD che possiedi e costruisci la tua collezione, una Release alla volta."
+                    : "Add the Mini 4WDs you own and build your collection, one Release at a time.")
+                  : (it
+                    ? "La tua collezione, i valori di mercato e le Release che segui sono qui."
+                    : "Your collection, market values and the Releases you follow are here.")}
+              </p>
+            </div>
+          </div>
           <div className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-8">
             {mode === "login" ? <LoginForm nextPath={nextPath} /> : <SignupForm nextPath={nextPath} />}
           </div>
