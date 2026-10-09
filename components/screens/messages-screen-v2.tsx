@@ -322,6 +322,7 @@ export function MessagesScreenV2() {
                   {selected.release.editionName}{selected.release.itemNumber ? ` · #${selected.release.itemNumber}` : ""}
                 </Link>
               </div>
+              <div className="mt-1 sm:hidden">{statusBadge(selected.status, it)}</div>
             </div>
             <div className="hidden shrink-0 sm:block">{statusBadge(selected.status, it)}</div>
             {selected.blockedByMe ? (
