@@ -127,22 +127,22 @@ export function ReleaseDetailScreen({
                   <Plus className="size-4" />
                 </span>
                 <div className="min-w-0">
-                  <h2 className="text-base font-semibold text-[#081a3a]">{it ? "La possiedi?" : "Do you own it?"}</h2>
+                  <h2 className="text-base font-semibold text-[#081a3a]">{it ? "Hai questa Release?" : "Do you own this Release?"}</h2>
                   <p className="mt-1 text-sm leading-6 text-[#607089]">
                     {it
-                      ? "Rendila disponibile alle offerte di altri collezionisti e fai il tuo prezzo!"
+                      ? "Aggiungi la tua copia alla Collection. Se vuoi, rendila disponibile alle offerte degli altri collezionisti e fai il tuo prezzo!"
                       : "Add it to your Collection, record what you paid and, if you want, open it to offers from other collectors."}
                   </p>
                   <div className="mt-3">
                     {user ? (
                       <AddToCollectionDialog product={product} defaultReleaseId={release.id} defaultOpen={openCollectionFromIntent}>
                         <Button size="sm" className="gap-1.5">
-                          <Plus className="size-3.5" /> {mine.length > 0 ? (it ? "Aggiungi un’altra copia" : "Add another copy") : (it ? "La possiedo" : "I own it")}
+                          <Plus className="size-3.5" /> {mine.length > 0 ? (it ? "Aggiungi un’altra copia" : "Add another copy") : (it ? "Aggiungi la tua copia" : "Add your copy")}
                         </Button>
                       </AddToCollectionDialog>
                     ) : (
                       <Button size="sm" render={<Link href={collectionSignupHref} />} className="gap-1.5">
-                        <Plus className="size-3.5" /> {it ? "La possiedo" : "I own it"}
+                        <Plus className="size-3.5" /> {it ? "Aggiungi la tua copia" : "Add your copy"}
                       </Button>
                     )}
                   </div>
