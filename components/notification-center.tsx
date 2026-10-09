@@ -12,7 +12,6 @@ import {
   Megaphone,
   PackagePlus,
   ReceiptText,
-  RefreshCw,
 } from "lucide-react"
 import {
   getNotificationsAction,
@@ -29,18 +28,6 @@ import { useI18n } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-
-const CURRENT_BUILD_VERSION = process.env.NEXT_PUBLIC_TRACKDASH_BUILD_SHA ?? "development"
-const UPDATE_POLL_MS = 60_000
-const UPDATE_PENDING_KEY = "trackdash.update.pendingVersion"
-const UPDATE_READ_KEY = "trackdash.update.readVersion"
-
-function getSessionBuildVersion() {
-  if (typeof window === "undefined") return CURRENT_BUILD_VERSION
-  const runtimeWindow = window as Window & { __trackdashSessionBuildVersion?: string }
-  runtimeWindow.__trackdashSessionBuildVersion ??= CURRENT_BUILD_VERSION
-  return runtimeWindow.__trackdashSessionBuildVersion
-}
 
 function asText(value: unknown): string | null {
   return typeof value === "string" ? value : null
@@ -113,6 +100,27 @@ function copyFor(notification: AppNotification, it: boolean) {
         icon: PackagePlus,
       }
     }
+    case "catalog_release_available": {
+      const productName = asText(notification.metadata.product_name) ?? (it ? "Mini 4WD" : "Mini 4WD")
+      const editionName = asText(notification.metadata.edition_name) ?? (it ? "Nuova Release" : "New Release")
+      const itemNumber = asText(notification.metadata.item_number)
+      return {
+        title: it ? `Nuova Release: ${editionName}` : `New Release: ${editionName}`,
+        body: it
+          ? `${productName}${itemNumber ? ` · #${itemNumber}` : ""} è ora disponibile nel catalogo TrackDash.`
+          : `${productName}${itemNumber ? ` · #${itemNumber}` : ""} is now available in the TrackDash catalog.`,
+        icon: PackagePlus,
+      }
+    }
+    case "app_important_update": {
+      const title = asText(notification.metadata[it ? "title_it" : "title_en"])
+        ?? notification.title
+        ?? (it ? "Novità importante su TrackDash" : "Important TrackDash update")
+      const body = asText(notification.metadata[it ? "body_it" : "body_en"])
+        ?? notification.body
+        ?? (it ? "C'è una novità importante da scoprire." : "There is an important update to discover.")
+      return { title, body, icon: Megaphone }
+    }
     case "support_status_changed":
       return {
         title: it ? "Aggiornamento assistenza" : "Support update",
@@ -142,6 +150,13 @@ function NotificationRow({
   const copy = copyFor(notification, it)
   const Icon = copy.icon
   const date = new Date(notification.createdAt)
+  const actionLabel = notification.type === "catalog_family_available"
+    ? (it ? "Vai alla famiglia →" : "Open family →")
+    : notification.type === "catalog_release_available"
+      ? (it ? "Apri la Release →" : "Open Release →")
+      : notification.type === "app_important_update"
+        ? (it ? "Scopri la novità →" : "See what's new →")
+        : null
 
   return (
     <button
@@ -161,50 +176,13 @@ function NotificationRow({
           {!notification.readAt ? <span className="size-1.5 shrink-0 rounded-full bg-brand" /> : null}
         </span>
         <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">{copy.body}</span>
-        {notification.type === "catalog_family_available" && notification.href ? (
+        {actionLabel && notification.href ? (
           <span className="mt-1.5 inline-flex items-center rounded-md bg-brand/10 px-2 py-1 text-[11px] font-semibold text-brand">
-            {it ? "Vai alla famiglia →" : "Open family →"}
+            {actionLabel}
           </span>
         ) : null}
         <span className="mt-1 block text-[10px] text-muted-foreground">
           {date.toLocaleString(it ? "it-IT" : "en-US", { dateStyle: "short", timeStyle: "short" })}
-        </span>
-      </span>
-    </button>
-  )
-}
-
-function UpdateNotificationRow({
-  it,
-  read,
-  onApply,
-}: {
-  it: boolean
-  read: boolean
-  onApply: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onApply}
-      className={cn(
-        "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent",
-        !read && "bg-brand/5",
-      )}
-    >
-      <span className={cn("mt-0.5 grid size-8 shrink-0 place-items-center rounded-full", read ? "bg-muted text-muted-foreground" : "bg-brand/10 text-brand")}>
-        <RefreshCw className="size-4" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className="truncate text-sm font-medium">{it ? "Nuovo aggiornamento disponibile" : "New update available"}</span>
-          {!read ? <span className="size-1.5 shrink-0 rounded-full bg-brand" /> : null}
-        </span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-          {it ? "È disponibile una nuova versione di TrackDash." : "A new version of TrackDash is available."}
-        </span>
-        <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand">
-          <RefreshCw className="size-3" /> {it ? "Aggiorna ora" : "Update now"}
         </span>
       </span>
     </button>
@@ -263,8 +241,6 @@ export function NotificationCenter() {
   const [unread, setUnread] = React.useState(0)
   const [loading, setLoading] = React.useState(false)
   const [catalogExpansion, setCatalogExpansion] = React.useState<CatalogExpansionNotice>({ count: 0, names: [] })
-  const [availableVersion, setAvailableVersion] = React.useState<string | null>(null)
-  const [updateRead, setUpdateRead] = React.useState(false)
 
   const refresh = React.useCallback(async () => {
     if (!user) {
@@ -287,48 +263,9 @@ export function NotificationCenter() {
     }
   }, [user])
 
-  const checkAppVersion = React.useCallback(async () => {
-    const sessionBuildVersion = getSessionBuildVersion()
-    if (sessionBuildVersion === "development") return
-
-    const storedPendingVersion = localStorage.getItem(UPDATE_PENDING_KEY)
-    if (storedPendingVersion) {
-      setAvailableVersion(storedPendingVersion)
-      setUpdateRead(localStorage.getItem(UPDATE_READ_KEY) === storedPendingVersion)
-    }
-
-    try {
-      const response = await fetch(`/api/version?ts=${Date.now()}`, { cache: "no-store" })
-      if (!response.ok) return
-      const payload = await response.json() as { version?: unknown }
-      const latestVersion = typeof payload.version === "string" ? payload.version : null
-      if (!latestVersion || latestVersion === "development") return
-
-      if (latestVersion !== sessionBuildVersion) {
-        if (storedPendingVersion !== latestVersion) {
-          localStorage.setItem(UPDATE_PENDING_KEY, latestVersion)
-          localStorage.removeItem(UPDATE_READ_KEY)
-          setUpdateRead(false)
-        }
-        setAvailableVersion(latestVersion)
-        return
-      }
-
-      // If a pending update was already detected, keep it visible until the
-      // user explicitly applies/acknowledges it. This survives route changes
-      // and even a framework-triggered document refresh during a deployment.
-      if (!storedPendingVersion) {
-        setAvailableVersion(null)
-        setUpdateRead(false)
-      }
-    } catch {
-      // Update checks must never affect normal app usage.
-    }
-  }, [])
 
   React.useEffect(() => {
     void refresh()
-    void checkAppVersion()
     if (!user) return
 
     const supabase = createClient()
@@ -341,31 +278,24 @@ export function NotificationCenter() {
       )
       .subscribe()
 
-    const onFocus = () => {
-      void refresh()
-      void checkAppVersion()
-    }
-    const interval = window.setInterval(() => void checkAppVersion(), UPDATE_POLL_MS)
-
+    const onFocus = () => void refresh()
     window.addEventListener("focus", onFocus)
     return () => {
       window.removeEventListener("focus", onFocus)
-      window.clearInterval(interval)
       void supabase.removeChannel(channel)
     }
-  }, [checkAppVersion, refresh, user])
+  }, [refresh, user])
 
   React.useEffect(() => {
     if (open) {
       setLoading(true)
-      void Promise.all([refresh(), checkAppVersion()]).finally(() => setLoading(false))
+      void refresh().finally(() => setLoading(false))
     }
-  }, [checkAppVersion, open, refresh])
+  }, [open, refresh])
 
   if (!user) return null
 
-  const updateUnread = availableVersion && !updateRead ? 1 : 0
-  const totalUnread = unread + updateUnread
+  const totalUnread = unread
 
   async function openNotification(notification: AppNotification) {
     if (!notification.readAt) {
@@ -377,26 +307,10 @@ export function NotificationCenter() {
     if (notification.href) router.push(notification.href)
   }
 
-  async function applyAppUpdate() {
-    setUpdateRead(true)
-    setOpen(false)
-    localStorage.removeItem(UPDATE_PENDING_KEY)
-    localStorage.removeItem(UPDATE_READ_KEY)
-    try {
-      const registration = await navigator.serviceWorker?.getRegistration()
-      await registration?.update()
-    } catch {
-      // A hard reload below is enough even if the service-worker update check fails.
-    }
-    window.location.reload()
-  }
-
   async function markAll() {
     const now = new Date().toISOString()
     setRows((current) => current.map((row) => ({ ...row, readAt: row.readAt ?? now })))
     setUnread(0)
-    setUpdateRead(true)
-    if (availableVersion) localStorage.setItem(UPDATE_READ_KEY, availableVersion)
     try { await markAllNotificationsReadAction() } catch { void refresh() }
   }
 
@@ -427,14 +341,13 @@ export function NotificationCenter() {
           ) : null}
         </div>
         <div className="max-h-[min(65vh,32rem)] overflow-y-auto p-1.5">
-          {loading && rows.length === 0 && !availableVersion && catalogExpansion.count === 0 ? (
+          {loading && rows.length === 0 && catalogExpansion.count === 0 ? (
             <div className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground"><Loader2 className="size-4 animate-spin" />{it ? "Caricamento…" : "Loading…"}</div>
-          ) : rows.length === 0 && !availableVersion && catalogExpansion.count === 0 ? (
+          ) : rows.length === 0 && catalogExpansion.count === 0 ? (
             <div className="px-4 py-8 text-center"><Bell className="mx-auto mb-2 size-5 text-muted-foreground" /><p className="text-sm font-medium">{it ? "Tutto tranquillo" : "All quiet"}</p><p className="mt-1 text-xs text-muted-foreground">{it ? "Le offerte e gli aggiornamenti importanti compariranno qui." : "Offers and important updates will appear here."}</p></div>
           ) : (
             <>
               <CatalogExpansionRow notice={catalogExpansion} it={it} onOpen={() => { setOpen(false); router.push("/catalog") }} />
-              {availableVersion ? <UpdateNotificationRow it={it} read={updateRead} onApply={() => void applyAppUpdate()} /> : null}
               {rows.map((notification) => (
                 <NotificationRow key={notification.id} notification={notification} it={it} onOpen={(row) => void openNotification(row)} />
               ))}
