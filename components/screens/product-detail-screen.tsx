@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Check, ChevronDown, Handshake, Heart, LockKeyhole, Plus, UsersRound } from "lucide-react"
+import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Plus, UsersRound } from "lucide-react"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
@@ -105,16 +105,16 @@ export function ProductDetailScreen({
           <div className="flex flex-wrap gap-2">
             {user ? (
               <>
-                <AddToCollectionDialog product={product} defaultOpen={openCollectionFromIntent}><Button className="gap-1.5"><Plus className="size-4" /> {t("product.addCollection")}</Button></AddToCollectionDialog>
-                <AddToWishlistDialog product={product} defaultOpen={openWishlistFromIntent}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? t("product.onWishlist") : t("product.wishlist")}</Button></AddToWishlistDialog>
+                <AddToCollectionDialog product={product} defaultOpen={openCollectionFromIntent}><Button className="gap-1.5"><Plus className="size-4" /> {locale === "it" ? "La possiedo" : "I own it"}</Button></AddToCollectionDialog>
+                <AddToWishlistDialog product={product} defaultOpen={openWishlistFromIntent}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? (locale === "it" ? "Nei miei Desideri" : "On my Wishlist") : (locale === "it" ? "La sto cercando" : "I'm looking for it")}</Button></AddToWishlistDialog>
               </>
             ) : (
               <>
                 <Button render={<Link href={collectionSignupHref} />} className="gap-1.5">
-                  <LockKeyhole className="size-4" /> {locale === "it" ? "Aggiungi alla collezione" : "Add to collection"}
+                  <Plus className="size-4" /> {locale === "it" ? "La possiedo" : "I own it"}
                 </Button>
                 <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
-                  <LockKeyhole className="size-4" /> {locale === "it" ? "Desideri" : "Wishlist"}
+                  <Heart className="size-4" /> {locale === "it" ? "La sto cercando" : "I'm looking for it"}
                 </Button>
               </>
             )}
@@ -276,7 +276,7 @@ function ReleaseRow({
               </AddToCollectionDialog>
             ) : (
               <Button size="sm" className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none" render={<Link href={collectionSignupHref} />}>
-                <LockKeyhole className="size-3.5" /> {locale === "it" ? "Aggiungi alla collezione" : "Add to collection"}
+                <Plus className="size-3.5" /> {locale === "it" ? "La possiedo" : "I own it"}
               </Button>
             )}
           </div>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { ArrowLeft, Check, Heart, LockKeyhole, Plus, Tag } from "lucide-react"
+import { ArrowLeft, Check, Heart, Plus, Tag } from "lucide-react"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { ProductImage } from "@/components/catalog/product-image"
 import { ReleaseCollectorOffers } from "@/components/release-collector-offers"
@@ -120,26 +120,64 @@ export function ReleaseDetailScreen({
 
           <ReleaseMarketOverview signal={marketSignal} />
 
-          <div className="flex flex-wrap gap-2">
-            {user ? (
-              <>
-                <AddToCollectionDialog product={product} defaultReleaseId={release.id} defaultOpen={openCollectionFromIntent}>
-                  <Button className="gap-1.5"><Plus className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}</Button>
-                </AddToCollectionDialog>
-                <AddToWishlistDialog product={product} defaultReleaseId={release.id} defaultOpen={openWishlistFromIntent}>
-                  <Button variant="outline" className="gap-1.5"><Heart className="size-4" /> {it ? "Desideri" : "Wishlist"}</Button>
-                </AddToWishlistDialog>
-              </>
-            ) : (
-              <>
-                <Button render={<Link href={collectionSignupHref} />} className="gap-1.5">
-                  <LockKeyhole className="size-4" /> {it ? "Aggiungi alla collezione" : "Add to collection"}
-                </Button>
-                <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
-                  <Heart className="size-4" /> {it ? "Desideri" : "Wishlist"}
-                </Button>
-              </>
-            )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[#c8d8ef] bg-[#f7faff] p-4">
+              <div className="flex items-start gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#0f4bb4]/10 text-[#0f4bb4]">
+                  <Plus className="size-4" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold text-[#081a3a]">{it ? "La possiedi?" : "Do you own it?"}</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#607089]">
+                    {it
+                      ? "Aggiungila alla tua Collection, indica quanto l’hai pagata e, se vuoi, rendila disponibile alle offerte di altri collezionisti."
+                      : "Add it to your Collection, record what you paid and, if you want, open it to offers from other collectors."}
+                  </p>
+                  <div className="mt-3">
+                    {user ? (
+                      <AddToCollectionDialog product={product} defaultReleaseId={release.id} defaultOpen={openCollectionFromIntent}>
+                        <Button size="sm" className="gap-1.5">
+                          <Plus className="size-3.5" /> {mine.length > 0 ? (it ? "Aggiungi un’altra copia" : "Add another copy") : (it ? "La possiedo" : "I own it")}
+                        </Button>
+                      </AddToCollectionDialog>
+                    ) : (
+                      <Button size="sm" render={<Link href={collectionSignupHref} />} className="gap-1.5">
+                        <Plus className="size-3.5" /> {it ? "La possiedo" : "I own it"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#eadfca] bg-[#fffaf1] p-4">
+              <div className="flex items-start gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#f0b429]/15 text-[#9a6810]">
+                  <Heart className="size-4" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold text-[#081a3a]">{it ? "La stai cercando?" : "Looking for it?"}</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#607089]">
+                    {it
+                      ? "Aggiungila ai Desideri e tienila monitorata. Ti avvisiamo se un collezionista la rende disponibile alle offerte."
+                      : "Add it to your Wishlist and keep an eye on it. We’ll notify you if a collector opens a copy to offers."}
+                  </p>
+                  <div className="mt-3">
+                    {user ? (
+                      <AddToWishlistDialog product={product} defaultReleaseId={release.id} defaultOpen={openWishlistFromIntent}>
+                        <Button size="sm" variant="outline" className="gap-1.5 bg-white">
+                          <Heart className="size-3.5" /> {it ? "La sto cercando" : "I'm looking for it"}
+                        </Button>
+                      </AddToWishlistDialog>
+                    ) : (
+                      <Button size="sm" variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5 bg-white">
+                        <Heart className="size-3.5" /> {it ? "La sto cercando" : "I'm looking for it"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {mine.length > 0 ? <OwnedCopiesCard copies={mine} marketSignal={marketSignal} it={it} /> : null}

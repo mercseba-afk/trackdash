@@ -7,6 +7,31 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — RELEASE CONVERSION CTAs + WISHLIST MONITORING
+
+Public conversion UX now uses action-led CTAs instead of asking visitors to “create an account” first.
+
+Release detail:
+- added two prominent action cards immediately after market data:
+  - “La possiedi?” → Collection flow, with purchase-price capture and optional open-to-offers visibility;
+  - “La stai cercando?” → exact Release Wishlist flow;
+- logged-out users preserve the intended action through signup/onboarding and return to the same Release;
+- CTA labels focus on the user goal (“La possiedo”, “La sto cercando”), not on registration.
+
+Family/catalog detail:
+- corresponding Collection/Wishlist CTAs now use the same action-led language;
+- logged-out Release-row Collection CTA is now “La possiedo”.
+
+Wishlist monitoring:
+- migration `0217_wishlist_open_to_offers_notifications.sql` adds an event-driven notification when another collector changes a copy of an exact wished Release to `open_to_offers`;
+- users who saved that exact Release in Desideri receive `wishlist_release_available` with a direct link to the Release;
+- the owner of the newly available copy is excluded;
+- one notification is deduplicated per user + public share;
+- changing asking price while a copy is already open to offers does not create repeated alerts;
+- generic product-level Wishlist entries do not subscribe to every edition; monitoring is exact-Release only.
+
+This work changes conversion/notification UX only. It does not alter Product/Release identity, Market Method v4, Price Engine, SOLD/ASK evidence, canonical Market Value, catalog visibility, or SEO route rules.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — NOTIFICATION CENTER EVENT-DRIVEN UX
 
 Notification Center no longer treats every Production deployment/build SHA change as a user-facing update.

@@ -7,6 +7,7 @@ import {
   CheckCheck,
   CircleCheckBig,
   HandCoins,
+  Heart,
   LifeBuoy,
   Loader2,
   Megaphone,
@@ -121,6 +122,17 @@ function copyFor(notification: AppNotification, it: boolean) {
         ?? (it ? "C'è una novità importante da scoprire." : "There is an important update to discover.")
       return { title, body, icon: Megaphone }
     }
+    case "wishlist_release_available": {
+      const editionName = asText(notification.metadata.edition_name) ?? (it ? "Una Release nei tuoi Desideri" : "A Release on your Wishlist")
+      const itemNumber = asText(notification.metadata.item_number)
+      return {
+        title: it ? "Una Release che cerchi è disponibile" : "A Release you're looking for is available",
+        body: it
+          ? `${editionName}${itemNumber ? ` · #${itemNumber}` : ""} è stata resa disponibile alle offerte da un collezionista.`
+          : `${editionName}${itemNumber ? ` · #${itemNumber}` : ""} has been opened to offers by a collector.`,
+        icon: Heart,
+      }
+    }
     case "support_status_changed":
       return {
         title: it ? "Aggiornamento assistenza" : "Support update",
@@ -156,7 +168,9 @@ function NotificationRow({
       ? (it ? "Apri la Release →" : "Open Release →")
       : notification.type === "app_important_update"
         ? (it ? "Scopri la novità →" : "See what's new →")
-        : null
+        : notification.type === "wishlist_release_available"
+          ? (it ? "Apri la Release →" : "Open Release →")
+          : null
 
   return (
     <button
