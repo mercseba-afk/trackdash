@@ -13,6 +13,7 @@ function euro(n: number) {
 }
 
 function recoveryHint(row: Mini4wdSoldRecoveryRow): string {
+  if (row.verificationStatus !== "verified") return "Identità dell'edizione da verificare"
   if (row.queued) return "Ricalcolo in coda"
   if (row.category === "corroboration_candidate") return "Storico corroborante da ricalcolare"
   if (row.category === "broader_sold") return "Verificare il campione"
