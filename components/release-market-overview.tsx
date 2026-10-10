@@ -1,107 +1,65 @@
 "use client"
 
 import { BadgeCheck, BarChart3, Tag } from "lucide-react"
-import { TrendIndicator } from "@/components/market-bits"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
-import {
-  hasReliableObservedPriceTrend,
-  observedMarketAskTrendLabel,
-  observedMarketPrice,
-} from "@/lib/market/presentation"
+import { observedMarketPrice } from "@/lib/market/presentation"
 
-function valueTrendWindow(months: ReleaseMarketSignalView["trendWindowMonths"], it: boolean) {
-  if (months === 12) return it ? "ultimo anno" : "last year"
-  if (months === 6) return it ? "ultimi 6 mesi" : "last 6 months"
-  if (months === 3) return it ? "ultimi 3 mesi" : "last 3 months"
-  if (months === 1) return it ? "ultimo mese" : "last month"
-  return null
-}
-
-function askTrendWindow(days: ReleaseMarketSignalView["askTrendWindowDays"], it: boolean) {
-  if (!days) return null
-  return it ? `ultimi ${days} giorni` : `last ${days} days`
-}
-
+// The Release is a collector-facing price reference, not a statistics report.
+// Public MV, SOLD and ASK remain separate in the canonical data everywhere.
+// If SOLD and ASK exist, the two useful references are the only big numbers.
+// A numeric Market Value is a fallback here, NOT a third copy of SOLD.
 function MarketReference({
   kind,
   price,
   count,
   it,
   compact,
-  trend,
 }: {
   kind: "ask" | "sold"
   price: number
   count: number
   it: boolean
   compact: boolean
-  trend?: { value: number; label: string; window: string | null } | null
 }) {
   const ask = kind === "ask"
-
   return (
-    <div
-      className={
+    <div className={
+      ask
+        ? "rounded-2xl border border-amber-200 bg-amber-50/80 p-4"
+        : "rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4"
+    }>
+      <p className={
         ask
-          ? "rounded-2xl border border-amber-200 bg-amber-50/80 p-4"
-          : "rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4"
-      }
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span
-          className={
-            ask
-              ? "inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-amber-800"
-              : "inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-800"
-          }
-        >
-          {ask ? <Tag className="size-3" /> : <BadgeCheck className="size-3" />}
-          {ask
-            ? (it ? "Annunci attivi" : "Active listings")
-            : (it ? "Vendite concluse" : "Completed sales")}
-        </span>
-      </div>
-
-      <p className={ask ? "mt-3 text-sm font-semibold text-amber-950" : "mt-3 text-sm font-semibold text-emerald-950"}>
+          ? "inline-flex items-center gap-1.5 text-sm font-semibold text-amber-900"
+          : "inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-900"
+      }>
+        {ask ? <Tag className="size-4" /> : <BadgeCheck className="size-4" />}
         {ask
           ? (it ? "Prezzo richiesto più basso" : "Lowest asking price")
-          : (it ? "Prezzo da vendite concluse" : "Price from completed sales")}
+          : (it ? "Vendite concluse" : "Completed sales")}
       </p>
-
-      <div className="mt-1 flex flex-wrap items-end gap-x-3 gap-y-1">
-        <p
-          className={
-            compact
-              ? "text-2xl font-semibold tabular-nums text-foreground"
-              : "text-3xl font-semibold tracking-[-0.035em] tabular-nums text-foreground"
-          }
-        >
-          {ask ? formatMoney(price) : `≈ ${formatMoney(price)}`}
-        </p>
-        {ask && trend ? (
-          <div className="flex flex-wrap items-center gap-1.5 pb-1 text-sm">
-            <span className="font-medium text-amber-800">{trend.label}</span>
-            <TrendIndicator value={trend.value} />
-            {trend.window ? <span className="text-xs text-amber-700">· {trend.window}</span> : null}
-          </div>
-        ) : null}
-      </div>
-
+      <p className={
+        compact
+          ? "mt-2 text-2xl font-semibold tabular-nums text-foreground"
+          : "mt-2 text-3xl font-semibold tracking-[-0.035em] tabular-nums text-foreground"
+      }>
+        {ask ? formatMoney(price) : `≈ ${formatMoney(price)}`}
+      </p>
       <p className={ask ? "mt-2 text-xs leading-relaxed text-amber-800" : "mt-2 text-xs leading-relaxed text-emerald-800"}>
         {ask
           ? count > 0
             ? (it
-                ? `Il minimo tra ${count} ${count === 1 ? "annuncio attivo osservato" : "annunci attivi osservati"}. È una richiesta del venditore, non una vendita conclusa.`
-                : `Lowest of ${count} active ${count === 1 ? "listing" : "listings"} observed. This is a seller asking price, not a completed sale.`)
-            : (it ? "Richiesta del venditore: non indica una vendita conclusa." : "Seller asking price: this is not a completed sale.")
+                ? `Il minimo tra ${count} ${count === 1 ? "annuncio attivo" : "annunci attivi"} verificati. È una richiesta, non una vendita.`
+                : `Lowest among ${count} verified active ${count === 1 ? "listing" : "listings"}. An asking price, not a sale.`)
+            : (it ? "Richiesta del venditore, non una vendita." : "Seller's asking price, not a completed sale.")
           : count > 0
             ? (it
-                ? `Basato su ${count} ${count === 1 ? "vendita conclusa osservata" : "vendite concluse osservate"}.`
-                : `Based on ${count} completed ${count === 1 ? "sale" : "sales"} observed.`)
-            : (it ? "Riferimento da vendite concluse." : "Completed-sale reference.")}
+                ? `Riferimento da ${count} ${count === 1 ? "vendita conclusa osservata" : "vendite concluse osservate"}.`
+                : `Reference from ${count} observed completed ${count === 1 ? "sale" : "sales"}.`)
+            : (it ? "Riferimento da vendite concluse osservate." : "Reference from observed completed sales.")}
       </p>
     </div>
   )
@@ -116,28 +74,12 @@ export function ReleaseMarketOverview({
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
-
-  const hasValue = signal?.valueEUR != null && signal.valueEUR > 0
+  // Only the TTL-valid current purchasable price, never a stale ASK anchor.
   const askPrice = observedMarketPrice(signal)
   const hasAsk = askPrice != null && askPrice > 0
   const soldPrice = signal?.soldAnchorEUR ?? null
   const hasSold = soldPrice != null && soldPrice > 0
-
-  const valueTrend = signal?.trendPercent != null
-    ? {
-        value: signal.trendPercent,
-        label: it ? "Trend collezionistico" : "Collector trend",
-        window: valueTrendWindow(signal.trendWindowMonths, it),
-      }
-    : null
-
-  const askTrend = hasReliableObservedPriceTrend(signal)
-    ? {
-        value: signal!.askTrendPercent!,
-        label: observedMarketAskTrendLabel(it),
-        window: askTrendWindow(signal!.askTrendWindowDays, it),
-      }
-    : null
+  const hasValue = signal?.valueEUR != null && signal.valueEUR > 0
 
   return (
     <Card className="overflow-hidden border-border/70 bg-white shadow-sm">
@@ -149,86 +91,46 @@ export function ReleaseMarketOverview({
           </p>
         </div>
 
-        {hasValue ? (
-          <div className="mt-3 rounded-2xl border border-brand/20 bg-brand/5 p-4">
-            <p className="text-sm font-medium text-brand">{it ? "Valore stimato" : "Estimated value"}</p>
-            <div className="mt-1 flex flex-wrap items-end gap-x-3 gap-y-1">
-              <p className={compact ? "text-2xl font-semibold tabular-nums" : "text-4xl font-semibold tracking-[-0.04em] tabular-nums"}>
-                ≈ {formatMoney(signal!.valueEUR!)}
-              </p>
-              {valueTrend ? (
-                <div className="flex flex-wrap items-center gap-1.5 pb-1 text-sm">
-                  <span className="font-medium text-muted-foreground">{valueTrend.label}</span>
-                  <TrendIndicator value={valueTrend.value} />
-                  {valueTrend.window ? <span className="text-xs text-muted-foreground">· {valueTrend.window}</span> : null}
-                </div>
-              ) : null}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {it ? "Stima TrackDash basata sulle evidenze di mercato disponibili." : "TrackDash estimate based on available market evidence."}
-            </p>
-          </div>
-        ) : null}
-
-        {!hasValue && valueTrend ? (
-          <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4">
-            <p className="text-sm font-semibold text-brand">
-              {it ? "Trend collezionistico" : "Collector trend"}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <TrendIndicator value={valueTrend.value} className="text-base" />
-              {valueTrend.window ? (
-                <span className="text-xs text-muted-foreground">· {valueTrend.window}</span>
-              ) : null}
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              {signal?.trendBasis === "sold"
-                ? (it
-                    ? "Direzione confermata dalle vendite concluse osservate. Resta valida finché nuove evidenze significative non la rafforzano o la ribaltano."
-                    : "Direction confirmed by observed completed sales. It remains valid until new material evidence strengthens or reverses it.")
-                : (it
-                    ? "Direzione confermata dal valore di mercato consolidato. Non viene azzerata da una scansione invariata."
-                    : "Direction confirmed by consolidated market value. An unchanged scan does not reset it.")}
-            </p>
-          </div>
-        ) : null}
-
-        {hasAsk || hasSold ? (
-          <div className={hasValue ? "mt-3" : "mt-4"}>
-            {!hasValue && hasAsk && hasSold ? (
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                {it
-                  ? "Sono due riferimenti diversi: ciò che i venditori chiedono oggi e ciò che è stato realmente venduto."
-                  : "These are two different references: what sellers ask today and what has actually sold."}
-              </p>
+        {hasSold || hasAsk ? (
+          <div className={hasSold && hasAsk ? "mt-4 grid gap-3 sm:grid-cols-2" : "mt-4 grid gap-3"}>
+            {hasSold ? (
+              <MarketReference
+                kind="sold"
+                price={soldPrice!}
+                count={signal?.soldUnits ?? 0}
+                compact={compact}
+                it={it}
+              />
             ) : null}
-            <div className={hasAsk && hasSold ? "grid gap-3 sm:grid-cols-2" : "grid gap-3"}>
-              {hasAsk ? (
-                <MarketReference
-                  kind="ask"
-                  price={askPrice!}
-                  count={signal?.currentOfferCount ?? 0}
-                  it={it}
-                  compact={compact}
-                  trend={askTrend}
-                />
-              ) : null}
-              {hasSold ? (
-                <MarketReference
-                  kind="sold"
-                  price={soldPrice!}
-                  count={signal?.soldUnits ?? 0}
-                  it={it}
-                  compact={compact}
-                />
-              ) : null}
-            </div>
+            {hasAsk ? (
+              <MarketReference
+                kind="ask"
+                price={askPrice!}
+                count={signal?.currentOfferCount ?? 0}
+                compact={compact}
+                it={it}
+              />
+            ) : null}
           </div>
-        ) : !hasValue ? (
-          <div className="mt-3">
-            <p className="text-xl font-semibold">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
+        ) : null}
+
+        {!hasSold && !hasAsk && hasValue ? (
+          <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4">
+            <p className="text-sm font-medium text-brand">{it ? "Valore stimato" : "Estimated value"}</p>
+            <p className={compact ? "mt-2 text-2xl font-semibold tabular-nums" : "mt-2 text-3xl font-semibold tabular-nums"}>
+              ≈ {formatMoney(signal!.valueEUR!)}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {it ? "Stima TrackDash basata sulle evidenze disponibili." : "TrackDash estimate based on available evidence."}
+            </p>
+          </div>
+        ) : null}
+
+        {!hasSold && !hasAsk && !hasValue ? (
+          <div className="mt-4">
+            <p className="text-lg font-semibold">{it ? "Mercato in osservazione" : "Market under observation"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {it ? "Non c'è ancora un riferimento di prezzo abbastanza chiaro da pubblicare." : "There is not yet a sufficiently clear price reference to publish."}
+              {it ? "Non ci sono ancora prezzi verificabili da mostrare." : "No verifiable prices are available yet."}
             </p>
           </div>
         ) : null}

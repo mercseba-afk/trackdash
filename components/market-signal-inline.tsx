@@ -49,7 +49,7 @@ export function MarketSignalInline({
   const hasAsk = askPrice != null && askPrice > 0
   const soldPrice = signal.soldAnchorEUR
   const hasSold = soldPrice != null && soldPrice > 0
-  const showDualReferences = showBothReferences && !hasValue && hasAsk && hasSold
+  const showDualReferences = showBothReferences && hasAsk && hasSold
   const observedKind = observedMarketDisplayKind(signal)
   const observedEvidence = observedMarketDisplayEvidenceLabel(signal, it)
   const observedTrend = hasReliableObservedPriceTrend(signal) ? signal.askTrendPercent : null
@@ -58,7 +58,7 @@ export function MarketSignalInline({
   if (compactPreview) {
     return (
       <div className="grid gap-1">
-        {hasValue ? (
+        {hasValue && !(showBothReferences && (hasSold || hasAsk)) ? (
           <div className="flex items-center justify-between gap-3 rounded-lg bg-brand/5 px-2.5 py-1.5 text-brand">
             <span className="text-[10px] font-bold uppercase tracking-[0.06em]">
               {it ? "Valore stimato" : "Estimated value"}

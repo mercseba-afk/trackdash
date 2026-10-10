@@ -201,6 +201,7 @@ export function applyPublicMarketPublicationPolicy(
   signal: MarketSignalDraft,
   soldEvidence: SoldMarketEvidence[] = [],
   asOfDate?: string,
+  historicalContext: SoldMarketEvidence[] = [],
 ): MarketSignalDraft {
   const soldUnits = Math.max(signal.soldUnits, totalSoldUnits(soldEvidence))
   const sellerDiversity = knownSellerDiversity(soldEvidence)
@@ -254,11 +255,50 @@ export function applyPublicMarketPublicationPolicy(
       return Number.isFinite(ageDays) && ageDays >= 0 && ageDays <= 365
     })
 
+  // Recent 3–4 exact-release SOLD observations must not be hidden just because
+  // the CURRENT-window seller diversity is unknown. A much broader,
+  // multi-seller history from the SAME source and exact Release can corroborate
+  // the recent price without being added to the selected sample (no double count).
+  // Thin monthly traces, item-pool matches, stale sales, and historical-only
+  // prices NEVER qualify. Confidence remains LOW when this is the only gate.
+  const historicallyCorroboratedThinSold =
+    signal.soldSourceCount === 1 &&
+    soldUnits >= 3 && soldUnits <= 4 &&
+    (sellerDiversity == null || sellerDiversity === 1) &&
+    asOfDate != null &&
+    soldEvidence.some((recent) => {
+      if (
+        recent.grain !== "rolling_window" ||
+        recent.attributionStatus !== "release_exact" ||
+        recent.evidenceGrade !== "indicative" ||
+        recent.salesCount < 3 ||
+        recent.averagePriceEUR <= 0
+      ) return false
+
+      const asOf = Date.parse(`${asOfDate}T00:00:00Z`)
+      const end = Date.parse(`${recent.periodEnd}T00:00:00Z`)
+      const ageDays = (asOf - end) / DAY_MS
+      if (!Number.isFinite(ageDays) || ageDays < 0 || ageDays > 365) return false
+
+      return historicalContext.some((history) =>
+        history.grain === "full_history" &&
+        history.attributionStatus === "release_exact" &&
+        history.sourceId === recent.sourceId &&
+        history.salesCount >= 8 &&
+        (history.sellerCount ?? 0) >= 2 &&
+        history.periodStart <= recent.periodStart &&
+        history.periodEnd >= recent.periodEnd &&
+        history.periodEnd <= asOfDate &&
+        pricesBroadlyCorroborate(recent.averagePriceEUR, history.averagePriceEUR, 0.3)
+      )
+    })
+
   const broadIndicativeSold =
     signal.soldSourceCount >= 2 ||
     (sellerDiversity != null && sellerDiversity >= 2) ||
     (sellerDiversity == null && soldUnits >= 5) ||
-    auditedSingleSellerCluster
+    auditedSingleSellerCluster ||
+    historicallyCorroboratedThinSold
 
   const hasSoldCluster =
     signal.soldAnchorEUR != null &&
@@ -291,6 +331,14 @@ export function applyPublicMarketPublicationPolicy(
       confidence = { score, label: confidenceLabel(score) }
     } else if (retailCanHeadline && pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR, 0.3)) {
       const score = Math.min(100, confidence.score + 5)
+      confidence = { score, label: confidenceLabel(score) }
+    }
+
+    if (historicallyCorroboratedThinSold && !hasVerifiedSale) {
+      // The selected 3–4 SOLD alone set the number, with historical
+      // multi-seller context as corroboration. Never claim Medium/High
+      // from an overlapping historical sample, even if retail agrees.
+      const score = Math.min(confidence.score, 49)
       confidence = { score, label: confidenceLabel(score) }
     }
 
