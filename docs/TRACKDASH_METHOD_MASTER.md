@@ -778,7 +778,7 @@ Regola permanente:
 - più vendite attribuibili allo stesso seller sono evidenza reale di sell-through;
 - un retailer indipendente, anche extra-UE, dimostra che la Release circola su più canali;
 - però la presenza di un canale extra-UE con landed cost europeo sconosciuto NON corrobora automaticamente il valore numerico europeo;
-- un cluster SOLD single-seller non deve da solo diventare Market Value solo perché il volume è alto;
+- un campione SOLD concentrato in un venditore puo sostenere un Market Value con confidence bassa SOLO se la finestra rolling recente contiene almeno 5 transazioni eBay Research documentate, con attribuzione release_exact, e ultima vendita entro 365 giorni. Senza queste prove resta solo contesto SOLD;
 - può sostenere un Market Value quando esiste corroborazione di prezzo indipendente e confrontabile, preferibilmente Europe-first / delivered-cost;
 - in assenza di convergenza, mantenere SOLD anchor/storico/trend come evidenza reale e pubblicare il Prezzo minimo richiesto corrente quando disponibile.
 
