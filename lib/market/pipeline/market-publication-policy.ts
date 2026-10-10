@@ -233,10 +233,33 @@ export function applyPublicMarketPublicationPolicy(
     signal.retailSourceCount >= 1 &&
     pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR)
 
+  // Seller concentration is a confidence penalty, not a veto against
+  // documented sell-through. Require a RECENT, exact-edition aggregate of
+  // >=5 SOLD units, never an item pool, ASK or unattributed listing count.
+  // Upstream SOLD selection already prevents history-window double counting.
+  const auditedSingleSellerCluster =
+    sellerDiversity === 1 &&
+    asOfDate != null &&
+    soldEvidence.some((evidence) => {
+      if (
+        evidence.attributionStatus !== "release_exact" ||
+        evidence.grain !== "rolling_window" ||
+        evidence.evidenceGrade !== "indicative" ||
+        evidence.salesCount < 5 ||
+        evidence.sellerCount !== 1 ||
+        evidence.averagePriceEUR <= 0
+      ) return false
+      const end = Date.parse(`${evidence.periodEnd}T00:00:00Z`)
+      const asOf = Date.parse(`${asOfDate}T00:00:00Z`)
+      const ageDays = (asOf - end) / DAY_MS
+      return Number.isFinite(ageDays) && ageDays >= 0 && ageDays <= 365
+    })
+
   const broadIndicativeSold =
     signal.soldSourceCount >= 2 ||
     (sellerDiversity != null && sellerDiversity >= 2) ||
-    (sellerDiversity == null && soldUnits >= 5)
+    (sellerDiversity == null && soldUnits >= 5) ||
+    auditedSingleSellerCluster
 
   const hasSoldCluster =
     signal.soldAnchorEUR != null &&
