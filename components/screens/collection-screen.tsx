@@ -113,8 +113,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
       return haystack.includes(normalizedQuery)
     })
     switch (sort) {
-      case "value-desc": return list.sort((a, b) => (b.marketValue ?? -Infinity) - (a.marketValue ?? -Infinity))
-      case "value-asc": return list.sort((a, b) => (a.marketValue ?? Infinity) - (b.marketValue ?? Infinity))
+      case "value-desc": return list.sort((a, b) => (b.marketReferenceValue ?? -Infinity) - (a.marketReferenceValue ?? -Infinity))
+      case "value-asc": return list.sort((a, b) => (a.marketReferenceValue ?? Infinity) - (b.marketReferenceValue ?? Infinity))
       case "name": return list.sort((a, b) => a.product.name.localeCompare(b.product.name))
       default: return list.sort((a, b) => +new Date(b.item.createdAt) - +new Date(a.item.createdAt))
     }
@@ -151,11 +151,11 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                 <StatCard label={it ? "Guadagno / perdita" : "Gain / loss"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Nessun confronto disponibile" : "No comparison available"}</span>} />
                 <StatCard label={it ? "Sigillati" : "Sealed"} value={summary.sealedCount} icon={Boxes} hint={<span>{it ? "su" : "of"} {summary.count}</span>} />
               </div>
-              {summary.marketValueCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
+              {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "La stima della collezione somma soltanto i Market Value canonici delle copie indicate come Sigillate. ASK e riferimenti SOLD restano informazioni di mercato della Release ma non vengono sommati al valore della collezione. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie: il valore della singola copia resta non stimato finché non avremo evidenze specifiche per condizione. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
-      : "The collection estimate sums only canonical Market Values for copies marked Sealed. ASK and SOLD references remain Release market information but are not added to collection value. For New/Opened, Built, Used or Incomplete copies we do not apply arbitrary discounts: the physical copy remains unvalued until condition-specific evidence exists. USD, JPY and GBP purchases are normalized in EUR using historical ECB rates."}
+      ? "Il valore della collezione usa il Market Value canonico quando disponibile e, in alternativa, il prezzo richiesto corrente osservato per la stessa Release. I riferimenti da vendite concluse restano visibili sulla singola Release ma non vengono sommati al totale. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
+      : "Collection value uses canonical Market Value when available and otherwise the current observed asking price for the same Release. Completed-sale references remain visible on the individual Release but are not added to the total. We do not apply arbitrary discounts to Opened, Built, Used or Incomplete copies. USD, JPY and GBP purchases are normalized to EUR using historical ECB rates."}
   </p>
 ) : null}
             </div>
@@ -281,11 +281,11 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           </div>
 
           <div className="mt-7">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore stimato · copie sigillate" : "Estimated value · sealed copies"}</p>
-<p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketValueCount > 0 ? <>≈ {formatMoney(summary.marketValue)}</> : "—"}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore della collezione · copie sigillate" : "Collection value · sealed copies"}</p>
+<p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"}</p>
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-  {summary.marketValueCount}/{summary.sealedCount} {it ? "copie sigillate con un Market Value disponibile" : "sealed copies with an available Market Value"}.
-  <span> {it ? "Il totale usa sempre il valore canonico più recente della Release; copie aperte, montate, usate o incomplete restano escluse perché TrackDash non inventa coefficienti di condizione." : "The total always uses the latest canonical Release value; opened, built, used or incomplete copies are excluded because TrackDash does not invent condition multipliers."}</span>
+  {summary.marketReferenceCount}/{summary.sealedCount} {it ? "copie sigillate con un riferimento di mercato disponibile" : "sealed copies with an available market reference"}.
+  <span> {it ? "Il totale usa il Market Value quando disponibile e, in alternativa, il prezzo richiesto corrente osservato per la Release. Copie aperte, montate, usate o incomplete restano escluse." : "The total uses Market Value when available and otherwise the current observed asking price for the Release. Opened, built, used or incomplete copies remain excluded."}</span>
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>

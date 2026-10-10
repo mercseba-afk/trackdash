@@ -7,6 +7,22 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — COLLECTION VALUE RESTORED TO USEFUL MARKET REFERENCE
+
+Collection overview is no longer limited to canonical Market Value only.
+
+Current Collection semantics:
+- headline label: “Valore della collezione · copie sigillate”;
+- only copies marked `Sealed` contribute to the headline total;
+- per sealed copy, use canonical Market Value when available;
+- otherwise use the current TTL-valid observed asking price for that exact Release;
+- completed-sale fallback may remain visible on the individual Release/card, but is not added to the Collection headline total;
+- Opened, Built, Used and Incomplete copies remain excluded from automatic valuation;
+- personal gain/loss remains stricter and is still calculated only from canonical Market Value, never from ASK;
+- value sorting now follows the same Collection market reference shown in the overview.
+
+This is a Collection presentation/aggregation correction only. It does not alter Market Method v4, Price Engine, SOLD/ASK evidence selection, TTL publication rules, or canonical market_release_signals.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-09 — RELEASE CONVERSION CTAs + WISHLIST MONITORING
 
 Public conversion UX now uses action-led CTAs instead of asking visitors to “create an account” first.

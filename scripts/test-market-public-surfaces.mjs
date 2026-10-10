@@ -209,8 +209,14 @@ if (releaseScreen.includes("ExternalAvailabilityCard") || releaseScreen.includes
 }
 
 const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
-if (!collectionScreen.includes("summary.marketValue") || collectionScreen.includes("summary.marketReferenceValue")) {
-  errors.push("Collection headline total is not using only canonical Market Value")
+if (!collectionScreen.includes("summary.marketReferenceValue") || !collectionScreen.includes("summary.marketReferenceCount")) {
+  errors.push("Collection headline total is not using the sealed Market Value / fresh observed ASK reference")
+}
+if (!analyticsSource.includes("marketValue ?? observedPrice")) {
+  errors.push("Collection market reference no longer prefers canonical Market Value before fresh observed ASK")
+}
+if (!analyticsSource.includes("marketValue != null") || !analyticsSource.includes("personalGainEUR")) {
+  errors.push("Personal Collection performance is no longer restricted to canonical Market Value")
 }
 if (!collectionScreen.includes("Valore della copia non stimato")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
