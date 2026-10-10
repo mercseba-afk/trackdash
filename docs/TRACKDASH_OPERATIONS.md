@@ -72,6 +72,18 @@ Check the queue/signals when family-specific completion matters.
 
 ---
 
+## Automatic SOLD-only recovery audit (Mini 4WD)
+
+Admin `/admin` now includes **Mini 4WD · Recupero valori da vendite concluse**. This is a live **read-only** analysis and priority view, not another pricing engine:
+
+- It derives the current set from all verified public Mini4WD Releases belonging to available families, joins their canonical `new_complete_unbuilt` signals, then groups SOLD-only Releases (positive SOLD anchor but NULL MV) by **2+ selected sales first** and **single sale second**. New families and Releases join automatically; the number need not remain 45.
+- It fetches existing exact/release-matched aggregate research and the current recompute queue; for 3–4 selected SOLD it flags potential same-release/same-source exact historical corroboration using tight date, seller-count, price-agreement and identity gates. The diagnostic NEVER changes prices or creates SOLD and must not be interpreted as a confirmed MV.
+- On page load and after Admin “Esegui ora”, the protected `getAdminMini4wdSoldRecoveryAction()` refreshes the report. Each row shows selected SOLD count, anchor, category and pending canonical recompute state.
+- **Automatic valuation is already change-driven:** the existing `market_aggregate_observations_queue_recompute` and `price_points_queue_market_recompute` database triggers enqueue an existing or newly published Release when its qualifying evidence changes; `runMarketRecomputeBatch(8)` under the protected daily market cron computes v4. Do not add a redundant daily 45-Release scan/recompute loop or promote the audit to an independent price calculation.
+- This is NOT automated external SOLD acquisition: eBay Product Research and other closed-sales sources without compliant APIs still require captured/verified research. A single accepted real sale remains visible as SOLD, not a fabricated MV; when additional credible data arrive the same generic pipeline re-evaluates automatically.
+
+The pure classifier at `lib/market/automation/sold-recovery-classifier.ts` is for audit prioritization, never the source of canonical MV. The diagnostic rules have negative regression tests for ambiguous edition, single historical seller, source mismatches, insufficient history and future/stale windows.
+
 # 2. CANONICAL RECOMPUTE
 
 Implementation:
