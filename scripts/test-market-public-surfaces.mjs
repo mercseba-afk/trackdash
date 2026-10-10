@@ -113,6 +113,9 @@ const productDetailScreen = fs.readFileSync("components/screens/product-detail-s
 if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Annunci attivi")) {
   errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
 }
+if (!marketInline.includes("hasValue && !(showBothReferences && (hasSold || hasAsk))")) {
+  errors.push("Release previews must prefer SOLD and ASK rather than duplicated estimates")
+}
 if (!productDetailScreen.includes("showBothReferences")) {
   errors.push("Release family rows are not enabling the dual SOLD + ASK preview")
 }
