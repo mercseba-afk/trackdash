@@ -16,6 +16,13 @@ const nextConfig = {
     // Never add a broad catch-all wildcard just to make an image render.
     remotePatterns: [
       {
+        // Poseidon-X 94584 / 2006 documented exact-product retailer image.
+        // Restrict to this audited filename, not a general retail CDN wildcard.
+        protocol: "https",
+        hostname: "myrcstation.com",
+        pathname: "/cdn/shop/products/96b79938ea5aeb7c1d696355af5e2d88_1200x1200.jpg",
+      },
+      {
         protocol: "https",
         hostname: "www.tamiya.com",
         pathname: "/japan_contents/img/**",
