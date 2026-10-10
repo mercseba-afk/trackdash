@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import {
   canFeedCurrentSoldAnchor,
   coverageNeedsReview,
@@ -170,6 +171,41 @@ ok("retail sell-through requires an observed available-to-unavailable transition
   assert.equal(isObservedRetailSellThrough("unknown", "out_of_stock"), false)
   assert.equal(isObservedRetailSellThrough("out_of_stock", "out_of_stock"), false)
   assert.equal(isObservedRetailSellThrough("preorder", "out_of_stock"), false)
+})
+
+// DB-trigger regression contract for new/old public Release first-signal enrollment.
+// The production migration is the single authority for the SQL trigger semantics.
+const initialCoverageSql = readFileSync(
+  new URL("../supabase/migrations/0223_market_first_public_recompute_dynamic_coverage.sql", import.meta.url),
+  "utf8",
+)
+
+ok("new verified public Releases get canonical first-signal enrollment dynamically", () => {
+  assert.match(initialCoverageSql, /after insert or update of catalog_visibility, verification_status, product_id/i)
+  assert.match(initialCoverageSql, /c\.slug = 'mini4wd'/)
+  assert.match(initialCoverageSql, /r\.catalog_visibility = 'public'/)
+  assert.match(initialCoverageSql, /r\.verification_status = 'verified'/)
+  assert.match(initialCoverageSql, /p\.metadata->>'launch_status' = 'available'/)
+})
+
+ok("coming-soon to available family transitions also enroll existing public Releases", () => {
+  assert.match(initialCoverageSql, /after update of metadata on public\.products/i)
+  assert.match(initialCoverageSql, /old\.metadata->>'launch_status' is distinct from 'available'/)
+  assert.match(initialCoverageSql, /select r\.id[\s\S]*?where r\.product_id = new\.id/)
+})
+
+ok("initial recompute never resets existing signals or in-flight jobs", () => {
+  assert.match(initialCoverageSql, /exists \([\s\S]*?public\.market_release_signals/)
+  assert.match(initialCoverageSql, /exists \([\s\S]*?public\.market_recompute_queue/)
+  assert.match(initialCoverageSql, /perform public\.trackdash_enqueue_market_recompute\(/)
+  assert.match(initialCoverageSql, /'new_complete_unbuilt'/)
+})
+
+ok("dynamic missing-signal backfill cannot alter Price Engine, scans or send notifications", () => {
+  assert.match(initialCoverageSql, /not exists \([\s\S]*?public\.market_release_signals/)
+  assert.match(initialCoverageSql, /not exists \([\s\S]*?public\.market_recompute_queue/)
+  assert.doesNotMatch(initialCoverageSql, /\b(insert|update|delete)\s+(?:into\s+|from\s+)?public\.(?:market_release_signals|price_points|market_candidates|market_offer_states|notifications)\b/i)
+  assert.doesNotMatch(initialCoverageSql, /\b(?:item_number|barcode_jan)\s*=/i)
 })
 
 console.log(`${passed} passed, 0 failed`)
