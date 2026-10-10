@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — MARKET METHOD V4 EXACT SINGLE-SELLER SOLD GATE
+
+- Authoritative Production commit: `f58e127274eabbc370ee7d229926414dc4b228b4` (PR #381); Vercel READY and bound to trackdash.it.
+- The general v4 publication rule now permits a LOW-confidence Market Value from one seller only where an indicative, exact-release, recent rolling SOLD observation contains >=5 completed sale units, known seller count 1, and latest sale no older than 365 days. The source data is already selected by canonical Market R3; overlapping historic windows are not added again.
+- 95450 Proto-Emperor Premium Black Special: 7 exact SOLD, one seller, canonical SOLD anchor EUR 12.72. 95467 Dyna-Hawk GX Super XX Special: 5 exact SOLD, one seller, canonical SOLD anchor EUR 14.92. Both are eligible for the new policy, not manually set Market Values.
+- The policy still rejects weak/ambiguous release attribution, four or fewer indicative single-seller SOLD, old history without recent evidence, and future-dated evidence. Confidence for unverified single-seller samples stays below 50; ASK never generates Market Value.
+- After Production READY, the canonical `trackdash_enqueue_market_recompute` RPC was called for exactly those 2 Releases on 2026-10-10. At queue time their public MV was still NULL and recompute jobs had attempts=0, no errors. Their actual published MV MUST be checked AFTER the worker runs; do not misstate queued work as completed.
+- No unrelated market signals were overwritten and no other Release IDs were changed. Separate Price Guard finding of 50 existing published Releases lacking initial canonical signals remains a distinct, unresolved enrollment/bootstrap issue.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — POSEIDON-X SAFE PARTIAL LAUNCH + DYNAMIC SITEMAP
 
 Poseidon-X genealogy has been audited and staged with official CoroCoro historical material, 2006 contemporary records, HLJ JAN/edition provenance, exact retail shop documentation and an explicit Market v4 empty-signal challenge. See `docs/POSEIDON_X_FAMILY_AUDIT_2026-10-10.md` for release-by-release source URLs, market exclusion reasons and remaining gaps.
