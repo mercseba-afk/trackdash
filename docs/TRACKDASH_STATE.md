@@ -7,6 +7,25 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — DYNAMIC INITIAL MARKET SIGNAL COVERAGE FOR ALL PUBLIC RELEASES
+
+Production implementation: PR #383, commit `90c600f14839a446d1d23cc8d1f82498dc3b31ad` (READY on `trackdash.it`). Supabase migration `0223_market_first_public_recompute_dynamic_coverage.sql` has been applied live and verified.
+
+**Before migration (live audit):** Mini 4WD public verified Releases = **176**; Releases with canonical `new_complete_unbuilt` signal = **126**; published Releases missing both initial signal and recompute job = **50**.
+
+**After migration (live audit):** existing signals = 126 (untouched), previously missing Releases now present in canonical recompute queue = **50**, published Releases missing *both* signal and a job = **ZERO**; total recompute queue = **52** (the 50 recovered plus the earlier 95450/95467 SOLD-method recomputes). At checkpoint time the 50 new jobs are *queued*, NOT yet materialized as 50 signals: do not claim completion until the worker has processed them. The canonical worker handles up to 8 jobs per Admin/cron cycle, in oldest-dirty-first order; the configured Vercel cron runs daily at `17 3 * * *` (UTC). With 52 due jobs, multiple cycles are expected; the global Price Guard must continue to audit coverage and failures.
+
+**Permanent future-family automation:**
+- `trg_trackdash_first_market_on_release` runs after new Release inserts or updates to catalog visibility, verification status or product ownership. The common helper requires published Mini4WD family (`launch_status=available`), public and verified Release.
+- `trg_trackdash_first_market_on_family_launch` runs when family metadata transitions to `available`; it finds ALL public verified Releases under that family dynamically.
+- Both trigger paths call `private.trackdash_ensure_initial_public_release_market(uuid)`, which invokes the canonical `trackdash_enqueue_market_recompute(uuid,'new_complete_unbuilt')` only when **neither** a canonical current-condition signal **nor** a queued recompute exists. No reset of in-flight jobs; no hardcoded ITEM, barcode, family, Release UUID, or seller.
+- The helper cannot be executed directly by `anon` or `authenticated` roles (both function EXECUTE privilege checks false). It does not create scans, modify Market Method v4 or write any price data.
+- All 50 historical public Releases were independently verified; 30 had no JAN and 2 had no Item Number. Initial recompute is still safe: it can produce a correct NULL Market Value without attributing unsafe eBay offers to shared Item Numbers.
+- Catalog notifications are **not** emitted by first-signal triggers. Existing launch/Release notification triggers remain unchanged.
+- Market automation suite gained four regression tests for dynamic catalog eligibility, future family launches, no resetting of existing jobs/signals, and no price/notification mutation: 17/17 market automation tests passed; full `pnpm verify` and Vercel Preview/Production builds passed.
+
+**Final completion gate:** verify that the queued count falls as `market_release_signals` covers all 176 public Releases, with any remaining job errors investigated. The two earlier 95450/95467 value recomputes are separate and were STILL PENDING with `attempts=0` at this checkpoint; do not imply their values are already public. Correct fallback for no qualifying evidence remains `Mercato in osservazione`. Do not fabricate SOLD, ASK, MV or JAN.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — MARKET METHOD V4 EXACT SINGLE-SELLER SOLD GATE
 
 - Authoritative Production commit: `f58e127274eabbc370ee7d229926414dc4b228b4` (PR #381); Vercel READY and bound to trackdash.it.
