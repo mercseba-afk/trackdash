@@ -52,6 +52,8 @@ export interface SoldMarketEvidence {
   periodEnd: string
   grain: SoldEvidenceGrain
   evidenceGrade: SoldEvidenceGrade
+  // Proven release-level identity on audited aggregate SOLD observations.
+  attributionStatus?: "release_exact" | "release_matched"
 }
 
 export interface MonthlyTrendPoint {
