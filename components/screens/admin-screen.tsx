@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { HotWheelsMarketAudit } from "@/components/admin/hotwheels-market-audit"
+import { Mini4wdSoldRecoveryAudit } from "@/components/admin/mini4wd-sold-recovery-audit"
 
 function fmtDate(value: string | null) {
   if (!value) return "—"
@@ -309,6 +310,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
   const [data, setData] = React.useState(initialData)
   const [query, setQuery] = React.useState("")
   const [runningMarketRefresh, startMarketRefresh] = React.useTransition()
+  const [marketAuditRefreshKey, setMarketAuditRefreshKey] = React.useState(0)
 
   React.useEffect(() => setData(initialData), [initialData])
 
@@ -340,6 +342,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
         } else {
           toast.success(`Aggiornamento completato · ${parts.join(" · ")}`)
         }
+        setMarketAuditRefreshKey((i) => i + 1)
         router.refresh()
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Aggiornamento mercato non riuscito")
@@ -380,6 +383,8 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
           </Button>
         </CardHeader>
       </Card>
+
+      <Mini4wdSoldRecoveryAudit refreshKey={marketAuditRefreshKey} />
 
       <HotWheelsMarketAudit />
 
