@@ -13,6 +13,7 @@ import { deleteUserAndOwnedStorage } from "@/lib/account/delete-user"
 import { runExactPageMarketScanBatch } from "@/lib/market/automation/worker"
 import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worker"
 import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
+import { getMini4wdSoldRecoveryReport } from "@/lib/market/automation/sold-recovery-report"
 
 const USERNAME_RE = /^[A-Za-z0-9._-]+$/
 const PLANS = new Set<AccountPlan>(["free", "pro"])
@@ -151,4 +152,11 @@ export async function runAdminMarketRefreshAction() {
       : { ok: false as const, attempted: 0, succeeded: 0, failed: 0, error: recomputeResult.reason instanceof Error ? recomputeResult.reason.message : String(recomputeResult.reason) }
 
   return { exactPages, ebayActive, recompute }
+}
+
+// Admin-only, read-only: the underlying canonical signals and SOLD evidence
+// keep updating via the existing evidence triggers and daily recompute cron.
+export async function getAdminMini4wdSoldRecoveryAction() {
+  await requireAdmin()
+  return getMini4wdSoldRecoveryReport()
 }
