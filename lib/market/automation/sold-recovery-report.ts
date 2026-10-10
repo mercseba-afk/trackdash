@@ -8,6 +8,7 @@ export interface Mini4wdSoldRecoveryRow {
   family: string
   itemNumber: string | null
   edition: string
+  verificationStatus: string
   soldUnits: number
   soldEUR: number
   category: Exclude<SoldRecoveryCategory, "valued" | "no_sold">
@@ -68,7 +69,6 @@ export async function getMini4wdSoldRecoveryReport(): Promise<Mini4wdSoldRecover
     .select("id,product_id,item_number,edition_name,catalog_visibility,verification_status")
     .in("product_id", productIds)
     .eq("catalog_visibility", "public")
-    .eq("verification_status", "verified")
   check(releaseError, "load public verified Mini4WD Releases")
   if (!releases?.length) return empty
 
@@ -143,6 +143,7 @@ export async function getMini4wdSoldRecoveryReport(): Promise<Mini4wdSoldRecover
       family: productNames.get(release.product_id) ?? "Mini 4WD",
       itemNumber: release.item_number,
       edition: release.edition_name,
+      verificationStatus: release.verification_status,
       soldUnits,
       soldEUR,
       category: category === "valued" || category === "no_sold" ? "thin_sold" as const : category,
