@@ -33,7 +33,7 @@ Stable identifiers: `stableUuid("product:poseidon-x-94584")` = `e8a13fb8-4af2-5f
 ## Image audit
 
 - **1993 original**: exact packaging-generation photo not yet verifiable; explicit placeholder (never reuse a 2006 catalog photo as exact 1993).
-- **2006 reissue**: exact product page verified, candidate specialist-hosted SKU photo at https://myrcstation.com/cdn/shop/products/96b79938ea5aeb7c1d696355af5e2d88_1200x1200.jpg?v=1630399392; must visually confirm exact **2006** product and image identity and scope the Next remotePatterns to one trusted asset before publication. Candidate is NOT automatically a verified Release image.
+- **2006 reissue**: exact SKU shop page and its 800x800 JPEG independently checked; a visual preview confirms Poseidon-X Black Special model. The high-confidence, source-attributed product photo is stored in `release_images`; the Next image allowlist is narrowed to its exact filename. Image URL: https://myrcstation.com/cdn/shop/products/96b79938ea5aeb7c1d696355af5e2d88_1200x1200.jpg?v=1630399392. Packaging-year evidence remains the source URL, not mere visual resemblance.
 - No photo from accessory or assembled eBay sale can silently substitute an unopened collector kit generation.
 
 ## Price Intelligence initial research — no fabricated value
@@ -66,7 +66,7 @@ The automated monitoring prompt's global scope does **not** imply guaranteed exh
 
 1. Validate migration in actual DB transaction / staging, confirm stable IDs and provenance; family remains `coming_soon`.
 2. Confirm 2006 exact image, independently verify 1993 generation photo or acceptable attributable market evidence and apply the same Publication Gate as other families; keep 1993 research_only until then.
-3. Complete real initial market scan (not just queue) / Europe-first second-pass Empty Market Challenge for both; run canonical recompute; verify market public projection and existing family signal non-regression.
+3. Complete real initial market scan (not just queue) / Europe-first second-pass Empty Market Challenge for both; run canonical recompute; verify market public projection and existing family signal non-regression. One-time 0220 makes the safe 2006 JAN-qualified eBay job due at the next worker run (1993 stays parked). This is a **scheduled scan**, not proof of a completed scan.
 4. Execute `pnpm verify`, image/identity checks, market method/public surface/queue tests, TypeScript and build, PR and Vercel Preview.
 5. Verify Release cards, IT/EN, scanner, Collection, Wishlist, offer opening, Market, SEO, sitemap and notifications; ensure no accessory represented as kit. No special case code unless a verified defect exists.
 6. Only after these gates: update `launch_status` `coming_soon -> available` **once**, allowing the existing one-family notification trigger; verify Production READY and live trackdash.it. Add final authoritative Production checkpoint to `docs/TRACKDASH_STATE.md`.
