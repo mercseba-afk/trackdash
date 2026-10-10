@@ -9,7 +9,7 @@
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — LIVE MINI4WD SOLD RECOVERY AUDIT
 
-Purpose: integrate the user's desired analysis of **20 Releases with 2–3 selected SOLD then 25 with one selected SOLD** into a durable *automatic audit* instead of one-off manual family research.
+Purpose: integrate the user's desired analysis of **20 Releases with 2–3 selected SOLD then 25 with one selected SOLD** (the 25 include 4 publicly visible partial-verification editions which must be flagged, not hidden) into a durable *automatic audit* instead of one-off manual family research.
 
 - Protected Admin dashboard gains `Mini4wdSoldRecoveryAudit` underneath `Aggiornamento mercato`. Server action `getAdminMini4wdSoldRecoveryAction()` requires `requireAdmin()` and reads fresh canonical signals, exact/release-matched aggregate SOLD research and pending recompute queue through `getMini4wdSoldRecoveryReport()`.
 - Auto-discovers **all** verified/public Mini4WD Releases in launched families: reports total public Releases, numeric Market Values, selected SOLD references, SOLD without MV, 2–3 SOLD, 1 SOLD, multi-seller historical corroboration candidates and queued recomputes. Prioritizes 2+ SOLD, followed by single-SOLD; includes price and next-evidence-needed explanation for every SOLD-only Release.
