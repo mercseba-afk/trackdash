@@ -75,3 +75,31 @@ The automated monitoring prompt's global scope does **not** imply guaranteed exh
 6. Only after these gates: update `launch_status` `coming_soon -> available` **once**, allowing the existing one-family notification trigger; verify Production READY and live trackdash.it. Add final authoritative Production checkpoint to `docs/TRACKDASH_STATE.md`.
 
 **DO NOT mark this family complete or Production published unless all gates are actually verified.**
+
+
+## Initial scan and recompute actually verified — 2026-10-10 20:23 UTC
+
+User triggered Admin → Aggiornamento mercato → Esegui ora. Live Supabase checks:
+
+- The four-job eBay batch run `916a72c8-bf1a-4c71-b614-ce3a41caa335` finished successfully; four of four targets succeeded.
+- Poseidon-X 2006 queue job has `last_attempt_at=2026-10-10T20:23:06Z`, `last_success_at=2026-10-10T20:23:25Z`, `consecutive_failures=0`; next scan scheduled 2026-11-21.
+- 94584 eBay candidate `ebay:v1|206518842881|0` was classified `needs_review`: `SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW`, `JAN_NOT_CONFIRMED_ITEM_DETAILS`, `possible_release_ids=[1993,2006]`, `resolved_release_id=NULL`. This is correct fail-closed behavior; **do not assign to 2006 on ITEM alone**.
+- Both 1993 and 2006 now have `market_release_signals` rows, `condition=new_complete_unbuilt`, `market_method_version=v4`; `computed_at=2026-10-10T20:23:08Z / 20:23:09Z`. Both have `market_value_eur=NULL`, `sold_anchor_eur=NULL`, `starting_effective_cost_eur=NULL`. Canonical recompute queue for these release IDs is empty (processed successfully).
+- 1993 automatic eBay is **correctly parked** for shared 94584 with missing original JAN. 2006 has unique JAN and valid enabled eBay enrollment. No ready exact-retail endpoint for either, therefore iModellini/Pieroni compatibility queue rows are NOT runnable scans.
+- Relevant `market_offer_states`: 0; accepted `market_candidates` resolved to either Release: 0. No fabricated prices; public projection correctly has no current starting-price fields.
+
+Second-pass **Empty Market Challenge**:
+- Italian eBay seller ADRIA MODEL 94584 at €50+€10 shipping is already assembled/used; excluded from `new_complete_unbuilt` despite Europe-delivered cost being visible: https://www.ebay.it/p/1958427716
+- Italian Toys World catalog presents `94584 Mini4wd Poseidon X Black Special` €50; the source does **not establish 1993 vs 2006 generation**, verified stock, condition, or delivered cost. Retain only as unqualified retail context: https://www.toysworld.it/prodotto/94584-mini4wd-poseidon-x-black-special/
+- Japan Mercari seller lists an unassembled but seriously damaged box / affected decals and documentation at JPY7370 plus JP-domestic shipping; generation/delivered Italy cost unproven. Historical/condition context only: https://jp.mercari.com/shops/product/wJNjAjVqquaZXUVwvujkJR
+- 1993-labelled Mercari ¥17,600 seller claim with 1993 mold/chassis marking is not manufacturing-wave verification; keep original identity under research pending verifiable packaging generation/JAN: https://jp.mercari.com/item/m84279024694
+- Yahoo Auctions completed-search example `POSEIDON-X BLACK SPECIAL` ¥8,600 `unused` (March 15), but no photo/JAN to separate 1993/2006; do not attribute to either or enter canonical SOLD: https://auctions.yahoo.co.jp/closedsearch/closedsearch/special%E3%82%B9%E3%83%9A%E3%82%B7%E3%83%A3%E3%83%AB/2084250966
+- Valid SOLD/ASK and Market Value thus all remain absent for each Release, rather than being manually manufactured.
+
+## Publication decision after scan
+
+**Publish only the 2006 verified Black Special**, qualifying for the `identity + HIGH-CONFIDENCE image` branch of the permanent Release Publication Gate, with thin-market fallback; retain the 1993 collector generation as `research_only` because the exact 1993 image and edition-qualified market evidence are both missing. This is **partial family publication**: product `Poseidon-X` will have ONE public Release and ONE durable hidden research Release. It must never be reported as 2/2 publicly completed.
+
+Add the already verified 2006 edition representative photo at `product_images` so the generic family hero and SEO Open Graph have a real, attributable picture, without incorrectly assigning it to 1993 `release_images`. This is versioned in migration 0221. Existing shared catalog image resolver supports this without Poseidon-specific code.
+
+Before public activation: merge guarded PR only after latest Preview READY. After merge and Production READY, perform **one** `coming_soon -> available` metadata transition in Supabase to trigger **one** family-available notification (never individual new-release spam). Then verify live IT/EN family+2006 Release URLs, canonical/hreflang/sitemap/hero and ensure 1993 and body accessories are not indexed. Final authoritative checkpoint belongs in `docs/TRACKDASH_STATE.md` after real Production checks.
