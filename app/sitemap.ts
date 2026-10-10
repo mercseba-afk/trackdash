@@ -3,6 +3,11 @@ import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { listMarketSignals } from "@/lib/db/queries/market"
 import { productPublicPath, releasePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
 
+// Next.js metadata-route sitemaps are otherwise cacheable at build time.
+// Catalog visibility is DB-controlled: publishing a family after Production READY
+// must immediately affect the sitemap, without another deployment or hardcoded IDs.
+export const dynamic = "force-dynamic"
+
 const SITE_URL = "https://trackdash.it"
 const PUBLIC_LOCALES: PublicLocale[] = ["it", "en"]
 
