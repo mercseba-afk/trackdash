@@ -127,13 +127,19 @@ if (productDetailScreen.includes("compactPilot") || productDetailScreen.includes
   errors.push("Compact Release preview is still scoped to a single family instead of being global")
 }
 if (!marketOverview.includes("Valore stimato")) {
-  errors.push("Shared market overview does not expose the public estimated market value")
+  errors.push("Shared market overview lost its rare estimated-value-only fallback")
 }
 if (!marketOverview.includes("observedMarketPrice") || !marketOverview.includes("soldAnchorEUR")) {
   errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
-if (!marketOverview.includes("Trend collezionistico") || !marketOverview.includes("observedMarketAskTrendLabel")) {
-  errors.push("Shared market overview does not distinguish persistent collector trend from seller-ask trend")
+if (!marketOverview.includes("!hasSold && !hasAsk && hasValue")) {
+  errors.push("Release detail must not show a duplicate Market Value beside SOLD or current ASK")
+}
+if (!marketOverview.includes("Prezzo richiesto più basso") || !marketOverview.includes("Vendite concluse")) {
+  errors.push("Release detail must keep the two primary collector-facing price labels")
+}
+if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
+  errors.push("Release price card must not show distracting numeric trend values beside SOLD and ASK")
 }
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
 for (const requiredSellerAskCopy of [
