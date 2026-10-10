@@ -11,6 +11,7 @@ import {
 } from "../lib/market/automation/policy.ts"
 import { collectorScanIntervalHours, ebayCollectorScanIntervalHours, marketActivityMateriallyChanged, materialPriceChange } from "../lib/market/automation/market-activity.ts"
 import { isObservedRetailSellThrough } from "../lib/market/automation/retail-sell-through.ts"
+import { classifySoldRecovery, hasThinSoldHistoricalCorroboration } from "../lib/market/automation/sold-recovery-classifier.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -206,6 +207,60 @@ ok("dynamic missing-signal backfill cannot alter Price Engine, scans or send not
   assert.match(initialCoverageSql, /not exists \([\s\S]*?public\.market_recompute_queue/)
   assert.doesNotMatch(initialCoverageSql, /\b(insert|update|delete)\s+(?:into\s+|from\s+)?public\.(?:market_release_signals|price_points|market_candidates|market_offer_states|notifications)\b/i)
   assert.doesNotMatch(initialCoverageSql, /\b(?:item_number|barcode_jan)\s*=/i)
+})
+
+const current95525 = {
+  sourceId: "ebay-research", attributionStatus: "release_exact", grain: "rolling_window",
+  periodStart: "2025-09-10", periodEnd: "2026-04-06", salesCount: 3, sellerCount: null,
+  averageEUR: 48.79, evidenceGrade: "indicative",
+}
+const history95525 = {
+  sourceId: "ebay-research", attributionStatus: "release_exact", grain: "full_history",
+  periodStart: "2023-09-11", periodEnd: "2026-04-06", salesCount: 18, sellerCount: 6,
+  averageEUR: 40.09, evidenceGrade: "indicative",
+}
+
+ok("SOLD recovery is dynamic, only recognizes corroboration without creating a numeric MV", () => {
+  const input = { marketValueEUR: null, soldUnits: 3, soldAnchorEUR: 48.79,
+    aggregates: [current95525, history95525], asOfDate: "2026-10-10" }
+  assert.equal(hasThinSoldHistoricalCorroboration(input), true)
+  assert.equal(classifySoldRecovery(input), "corroboration_candidate")
+  assert.equal(classifySoldRecovery({ ...input, marketValueEUR: 48.79 }), "valued")
+  assert.equal(classifySoldRecovery({ ...input, soldUnits: 1 }), "single_sold")
+  assert.equal(classifySoldRecovery({ ...input, soldUnits: 2 }), "thin_sold")
+  assert.equal(classifySoldRecovery({ ...input, soldUnits: 0, soldAnchorEUR: null }), "no_sold")
+})
+
+ok("SOLD recovery cannot treat historic single-seller, foreign-source or ambiguous editions as valid", () => {
+  const input = { marketValueEUR: null, soldUnits: 3, soldAnchorEUR: 48.79,
+    aggregates: [current95525, history95525], asOfDate: "2026-10-10" }
+  for (const changed of [
+    { ...history95525, sellerCount: 1 },
+    { ...history95525, sourceId: "other" },
+    { ...history95525, attributionStatus: "release_matched" },
+    { ...history95525, salesCount: 7 },
+    { ...history95525, averageEUR: 130 },
+    { ...history95525, periodStart: "2026-05-01" },
+  ]) {
+    assert.equal(classifySoldRecovery({ ...input, aggregates: [current95525, changed] }), "thin_sold")
+  }
+  assert.equal(classifySoldRecovery({ ...input, aggregates: [{ ...current95525, attributionStatus: "release_matched" }, history95525] }), "thin_sold")
+  assert.equal(classifySoldRecovery({ ...input, soldAnchorEUR: 48.0 }), "thin_sold")
+  assert.equal(classifySoldRecovery({ ...input, asOfDate: "2027-11-01" }), "thin_sold")
+})
+
+ok("SOLD recovery Admin is authenticated and diagnostic-only; canonical worker remains authoritative", () => {
+  const action = readFileSync(new URL("../lib/actions/admin.ts", import.meta.url), "utf8")
+  const report = readFileSync(new URL("../lib/market/automation/sold-recovery-report.ts", import.meta.url), "utf8")
+  const admin = readFileSync(new URL("../components/screens/admin-screen.tsx", import.meta.url), "utf8")
+  assert.match(action, /export async function getAdminMini4wdSoldRecoveryAction\(\)\s*\{\s*await requireAdmin\(\)/)
+  assert.match(action, /return getMini4wdSoldRecoveryReport\(\)/)
+  assert.match(admin, /Mini4wdSoldRecoveryAudit refreshKey=\{marketAuditRefreshKey\}/)
+  assert.match(report, /classifySoldRecovery\(/)
+  assert.match(report, /market_aggregate_observations/)
+  assert.match(report, /market_release_signals/)
+  assert.match(report, /market_recompute_queue/)
+  assert.doesNotMatch(report, /\.(?:insert|update|upsert|delete|rpc)\(/)
 })
 
 console.log(`${passed} passed, 0 failed`)
