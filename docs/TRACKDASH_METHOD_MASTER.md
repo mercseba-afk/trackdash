@@ -115,6 +115,7 @@ Regole permanenti di presentazione:
 - **ASK trend**: resta separato e può essere mostrato soltanto con le guardie condivise; non usare `askTrendWindowDays` per etichettare un collector trend.
 - ASK non è SOLD; SOLD non è MV. Le tre semantiche devono rimanere visivamente e logicamente distinte.
 - ASK deve essere mostrato come prezzo richiesto, senza prefisso `≈`; SOLD come riferimento da vendite concluse con `≈`.
+- **Dettaglio Release / dettaglio copia:** mostrare in primo piano SOLO **Vendite concluse** (SOLD, ≈) e **Prezzo richiesto più basso** (ASK TTL-valido), quando presenti; non ripetere il Market Value come terza cifra se corrisponde al SOLD. Se né SOLD né ASK sono disponibili, mantenere il fallback al Market Value canonico, quando esiste, oppure «Mercato in osservazione». È una scelta di presentazione, NON una sostituzione del Market Value in Collection, Market, Wishlist e altri calcoli. Nessun trend numerico aggiuntivo nel box mercato del dettaglio.
 
 Freschezza:
 - non introdurre cache/snapshot indipendenti per una singola superficie mercato;
@@ -779,6 +780,7 @@ Regola permanente:
 - un retailer indipendente, anche extra-UE, dimostra che la Release circola su più canali;
 - però la presenza di un canale extra-UE con landed cost europeo sconosciuto NON corrobora automaticamente il valore numerico europeo;
 - un campione SOLD concentrato in un venditore puo sostenere un Market Value con confidence bassa SOLO se la finestra rolling recente contiene almeno 5 transazioni eBay Research documentate, con attribuzione release_exact, e ultima vendita entro 365 giorni. Senza queste prove resta solo contesto SOLD;
+- **Eccezione separata per finestre recenti ristrette ma corroborate:** 3–4 SOLD `release_exact`, `rolling_window`, `indicative` ed entro 365 giorni possono definire un Market Value di confidence **bassa** se esiste, per la stessa Release e la stessa sorgente, uno storico `full_history` anch'esso `release_exact` con almeno 8 vendite, almeno 2 venditori documentati, un intervallo che comprende l'intera finestra recente e un prezzo medio compatibile (scostamento massimo 30%). Il valore usa SOLO la media della finestra recente; i SOLD storici NON si sommano e la seller diversity storica NON viene attribuita automaticamente alla finestra attuale. Se manca uno qualsiasi dei requisiti, resta solo il riferimento SOLD. Esempio audit: Avante Mk.II 95525, 3 recenti ≈€48,79 con storico di 18 vendite e 6 seller a ≈€40,09.
 - può sostenere un Market Value quando esiste corroborazione di prezzo indipendente e confrontabile, preferibilmente Europe-first / delivered-cost;
 - in assenza di convergenza, mantenere SOLD anchor/storico/trend come evidenza reale e pubblicare il Prezzo minimo richiesto corrente quando disponibile.
 
