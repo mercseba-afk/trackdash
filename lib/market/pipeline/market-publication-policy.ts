@@ -185,12 +185,11 @@ export function publicRetailConfidence(
 // 1. Completed sales are the primary public Market Value when the selected sold
 //    evidence is sufficiently broad. Recent windows remain preferred; a recent
 //    full-history aggregate is only a lower-confidence fallback.
-// 2. Seller concentration is a SOLD-evidence quality factor, not a statement
-//    about the whole market. Repeated sales from one eBay seller prove real
-//    sell-through but do not by themselves establish a European Market Value.
-//    Independent retail/market channels prove broader market presence; the
-//    numeric sold value may headline only when Europe-comparable current retail
-//    actually corroborates that price.
+// 2. Seller concentration is a confidence factor, not an absolute veto.
+//    A recent, exact-Release Product Research rolling window with >=5
+//    documented SOLD units can support a low-confidence Market Value from
+//    one seller. Older or uncertain single-seller aggregates still need
+//    independent corroboration; current ASK is never counted as SOLD.
 // 3. Current retail is a corroborating/current-availability lane. If completed
 //    sales are absent, at least two independent current merchants may define the
 //    value, with region-aware safeguards.
@@ -233,10 +232,33 @@ export function applyPublicMarketPublicationPolicy(
     signal.retailSourceCount >= 1 &&
     pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR)
 
+  // Seller concentration is a confidence penalty, not a veto against
+  // documented sell-through. Require a RECENT, exact-edition aggregate of
+  // >=5 SOLD units, never an item pool, ASK or unattributed listing count.
+  // Upstream SOLD selection already prevents history-window double counting.
+  const auditedSingleSellerCluster =
+    sellerDiversity === 1 &&
+    asOfDate != null &&
+    soldEvidence.some((evidence) => {
+      if (
+        evidence.attributionStatus !== "release_exact" ||
+        evidence.grain !== "rolling_window" ||
+        evidence.evidenceGrade !== "indicative" ||
+        evidence.salesCount < 5 ||
+        evidence.sellerCount !== 1 ||
+        evidence.averagePriceEUR <= 0
+      ) return false
+      const end = Date.parse(`${evidence.periodEnd}T00:00:00Z`)
+      const asOf = Date.parse(`${asOfDate}T00:00:00Z`)
+      const ageDays = (asOf - end) / DAY_MS
+      return Number.isFinite(ageDays) && ageDays >= 0 && ageDays <= 365
+    })
+
   const broadIndicativeSold =
     signal.soldSourceCount >= 2 ||
     (sellerDiversity != null && sellerDiversity >= 2) ||
-    (sellerDiversity == null && soldUnits >= 5)
+    (sellerDiversity == null && soldUnits >= 5) ||
+    auditedSingleSellerCluster
 
   const hasSoldCluster =
     signal.soldAnchorEUR != null &&

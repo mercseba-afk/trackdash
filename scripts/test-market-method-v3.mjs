@@ -12,7 +12,7 @@ function ok(name, fn) {
 
 const asOfDate = "2026-09-18"
 
-function sold({ id, price, count, start, end, grain = "full_history", grade = "indicative", sourceId = "ebay-pr", sellerCount = null }) {
+function sold({ id, price, count, start, end, grain = "full_history", grade = "indicative", sourceId = "ebay-pr", sellerCount = null, attributionStatus = undefined }) {
   return {
     stableId: id,
     sourceId,
@@ -23,6 +23,7 @@ function sold({ id, price, count, start, end, grain = "full_history", grade = "i
     periodEnd: end,
     grain,
     evidenceGrade: grade,
+    attributionStatus,
   }
 }
 
@@ -91,28 +92,28 @@ ok("18614: liquid standard kit follows the recent 10-sale window", () => {
   assert.equal(result.confidenceLabel, "medium")
 })
 
-ok("95467: five observed eBay sales from one seller remain evidence but do not alone define Market Value", () => {
+ok("95467: five recent exact SOLD units from one seller publish cautiously", () => {
   const selected = selectCurrentSoldEvidence({
     granular: [],
     aggregate: [
       sold({ id: "95467-history", price: 13.25, count: 37, sellerCount: 1, start: "2023-09-10", end: "2026-08-20" }),
-      sold({ id: "95467-current", price: 14.92, count: 5, sellerCount: null, start: "2026-06-12", end: "2026-08-20", grain: "rolling_window" }),
+      sold({ id: "95467-current", price: 14.92, count: 5, sellerCount: null, start: "2026-06-12", end: "2026-08-20", grain: "rolling_window", attributionStatus: "release_exact" }),
     ],
     asOfDate,
   })
   assert.equal(selected[0].sellerCount, 1)
   const result = publish(selected)
   assert.equal(result.soldAnchorEUR, 14.92)
-  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.marketValueEUR, 14.92)
   assert.equal(result.confidenceLabel, "low")
 })
 
-ok("seven sales from one seller remain sell-through evidence without standalone Market Value", () => {
+ok("seven attributable single-seller SOLD units now publish with low confidence", () => {
   const selected = [
-    sold({ id: "single-seller-seven", price: 15, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-09-10", grain: "rolling_window" }),
+    sold({ id: "single-seller-seven", price: 15, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-09-10", grain: "rolling_window", attributionStatus: "release_exact" }),
   ]
   const result = publish(selected)
-  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.marketValueEUR, 15)
   assert.equal(result.soldUnits, 7)
   assert.equal(result.soldSellerCount, 1)
   assert.equal(result.confidenceLabel, "low")
@@ -133,7 +134,7 @@ ok("extra-EU retail proves broader market presence but not a European numeric pr
   assert.equal(result.marketValueEUR, null)
 })
 
-ok("one known seller can publish only when independent current retail corroborates it", () => {
+ok("unattributed seller cluster still needs independent current retail corroboration", () => {
   const selected = [
     sold({ id: "single-seller", price: 14.92, count: 5, sellerCount: 1, start: "2026-06-12", end: "2026-08-20", grain: "rolling_window" }),
   ]
@@ -229,6 +230,48 @@ ok("out-of-stock retail remains context and cannot become current value", () => 
   ])
   assert.equal(result.retailAnchorEUR, null)
   assert.equal(result.marketValueEUR, null)
+})
+
+ok("95450: exact annual 7-sale window publishes without duplicating longer history", () => {
+  const selected = selectCurrentSoldEvidence({
+    granular: [],
+    aggregate: [
+      sold({ id: "95450-history", price: 13.98, count: 25, sellerCount: 6, start: "2023-09-14", end: "2026-08-10" }),
+      sold({ id: "95450-recent", price: 12.72, count: 7, sellerCount: 1, start: "2025-09-14", end: "2026-08-10", grain: "rolling_window", attributionStatus: "release_exact" }),
+    ],
+    asOfDate,
+  })
+  assert.equal(selected.length, 1)
+  const result = publish(selected)
+  assert.equal(result.marketValueEUR, 12.72)
+  assert.equal(result.soldUnits, 7)
+  assert.equal(result.soldSellerCount, 1)
+  assert.equal(result.confidenceLabel, "low")
+})
+
+ok("four single-seller indicative SOLD units are still too thin", () => {
+  const result = publish([sold({ id: "thin", price: 14, count: 4, sellerCount: 1, start: "2026-07-01", end: "2026-08-20", grain: "rolling_window", attributionStatus: "release_exact" })])
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.soldAnchorEUR, 14)
+})
+
+ok("a shared item pool or release_matched attribution cannot unlock this rule", () => {
+  const matched = publish([sold({ id: "matched", price: 14, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-08-20", grain: "rolling_window", attributionStatus: "release_matched" })])
+  const missing = publish([sold({ id: "missing", price: 14, count: 7, sellerCount: 1, start: "2026-07-01", end: "2026-08-20", grain: "rolling_window" })])
+  assert.equal(matched.marketValueEUR, null)
+  assert.equal(missing.marketValueEUR, null)
+})
+
+ok("full-history single-seller bulk volume cannot substitute for a recent window", () => {
+  const result = publish([sold({ id: "history", price: 14, count: 37, sellerCount: 1, start: "2023-09-10", end: "2026-08-20", grain: "full_history", attributionStatus: "release_exact" })])
+  assert.equal(result.marketValueEUR, null)
+})
+
+ok("stale and future-dated single-seller windows are not published", () => {
+  const stale = publish([sold({ id: "old", price: 14, count: 10, sellerCount: 1, start: "2024-01-01", end: "2024-07-01", grain: "rolling_window", attributionStatus: "release_exact" })])
+  const future = publish([sold({ id: "future", price: 14, count: 10, sellerCount: 1, start: "2027-01-01", end: "2027-08-20", grain: "rolling_window", attributionStatus: "release_exact" })])
+  assert.equal(stale.marketValueEUR, null)
+  assert.equal(future.marketValueEUR, null)
 })
 
 console.log(`${passed} passed, 0 failed`)
