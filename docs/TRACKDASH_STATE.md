@@ -1,11 +1,28 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-10-07  
+> **Last updated:** 2026-10-10  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
 ---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — POSEIDON-X SAFE PARTIAL LAUNCH + DYNAMIC SITEMAP
+
+Poseidon-X genealogy has been audited and staged with official CoroCoro historical material, 2006 contemporary records, HLJ JAN/edition provenance, exact retail shop documentation and an explicit Market v4 empty-signal challenge. See `docs/POSEIDON_X_FAMILY_AUDIT_2026-10-10.md` for release-by-release source URLs, market exclusion reasons and remaining gaps.
+
+- Product: `e8a13fb8-4af2-5f5f-936e-8871d9567289`, public slug `poseidon-x`, database slug `poseidon-x-94584`. First complete-kit Product/Release deployment `4a82b92ba00fc1de3d33398879f836a841f70c3b` via PR #379.
+- **94584 Black Special 1993 Original**: original kit on Super 1, catalog `research_only`. Exact 1993 packaging-generation image/JAN/qualified market evidence remain unverified; no image or market-value fabrication. Release ID `936ac729-f26b-5a21-bec1-f2620b93c5c4`.
+- **94584 Black Special 2006 Reissue**: verified complete Super 1 kit, JAN `4950344945849`, catalog `public`, release ID `c37d4161-aa31-535b-b1de-9040730a4cdd`. Exact/high-confidence SKU-linked 2006 specialist product photo stored at Release and representative Product image layers. Family `launch_status=available` with `family_completion.status=partial_publication_live`, `public_release_count=1`, `research_only_release_count=1`.
+- Body-only `94076`, body-only `94817`, reinforcement/accessory `94804` and multi-kit `94583` are documented related occurrences; **not** standalone Poseidon-X kit Releases.
+- First Admin Market Refresh on 2026-10-10 around 20:23 UTC successfully processed the 2006 eBay Active scan. A listing with shared 94584 without confirmed JAN was parked as `needs_review` with no Release assignment. Both 1993/2006 signals recomputed under Market Method v4; 0 supported Market Value, current Europe-delivered ASK or attributable SOLD values. Neither release has an enabled verified exact-retail endpoint; apparent retail queue rows are non-runnable. 1993 shared-ITEM/no-JAN eBay remains safely parked, 2006 unique-JAN eBay is enrolled and scheduled. TTL-aware projection and SOLD/ASK separation unchanged.
+- The globally scheduled **TrackDash Price Guard** automation was updated to enumerate all published/available Releases through DB membership rather than reading only existing price-signal rows. No Poseidon-X or future-family hardcoded whitelist. A Release entering the DB alone is not a guarantee of a successful worker scan.
+- Publication used **one guarded** `coming_soon -> available` metadata update after PR #379 Production READY, permitting the existing family-available notification once and not sending per-release launch notices. Reproducible/conditional transition is tracked in migration `0222_poseidon_x_partial_family_launch.sql`.
+- A post-launch SEO regression showed `/sitemap.xml` could remain cached from build-time coming_soon state despite live indexable family pages. The permanent generic fix forces `app/sitemap.ts` dynamic DB reads on each request (with a regression assertion in `scripts/test-seo-catalog-paths.mjs`). This applies to all future family launches and avoids special-case sitemap paths. Preview/Production for this follow-up must be verified before considering SEO complete.
+- Public family and 2006 Release routes use IT and `/en` canonical/hreflang URLs, indexed SEO metadata, and the source-attributed 2006 image. The 1993 Release remains hidden under the Publication Gate and is omitted from public sitemap.
+- **Remaining explicit research gap**: exact 1993 collector-generation image and/or attributable market evidence, historical original JAN, verified sold/new-ASK for both. This family has **one publicly launched Release, not complete 2/2**. Do not collapse generations to manufacture prices or present the absent 1993 as published.
+
+Price Engine, v4 SOLD/ASK logic, evidence deduplication, existing Release IDs and other families' market signals were not changed.
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — COLLECTION VALUE RESTORED TO USEFUL MARKET REFERENCE
 

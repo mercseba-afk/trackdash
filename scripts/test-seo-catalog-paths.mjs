@@ -1,4 +1,6 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
+
 
 const {
   localizePublicPath,
@@ -53,3 +55,13 @@ const noItem = {
 assert.equal(releasePublicSlug(noItem), "limited-anniversary-2012")
 
 console.log("SEO catalog path tests passed")
+
+
+// Regression protection: DB-driven family transitions may happen AFTER build.
+// Never freeze sitemap.xml at deployment time or future published Release URLs vanish.
+const sitemapRouteSource = readFileSync(new URL("../app/sitemap.ts", import.meta.url), "utf8")
+assert.match(
+  sitemapRouteSource,
+  /export const dynamic = ["']force-dynamic["']/,
+  "catalog sitemap must load available public Releases from current DB state on each request",
+)
