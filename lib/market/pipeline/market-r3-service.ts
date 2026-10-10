@@ -63,10 +63,17 @@ export async function recomputeReleaseMarketSignal(
     asOfDate,
   })
 
-  // Public v3 keeps completed-sale value primary, uses region-aware current retail
+  // Public v4 keeps completed-sale value primary, uses region-aware current retail
   // as corroboration/fallback, and keeps active seller ASK prices separate from
   // Market Value. Confidence follows the evidence behind the published headline.
-  const publishedSignal = applyPublicMarketPublicationPolicy(computedSignal, soldEvidence, asOfDate)
+  const publishedSignal = applyPublicMarketPublicationPolicy(
+    computedSignal,
+    soldEvidence,
+    asOfDate,
+    // Only used as a non-additive corroboration gate for narrow exact-current
+    // sold windows. Historical sales are NEVER counted as more current SOLD.
+    aggregate.filter((row) => row.grain === "full_history"),
+  )
   const askSignal = applyAskTrend(publishedSignal, askSnapshots, asOfDate)
   const signal = applyPersistentCollectorTrend(askSignal, persistedTrend, now.toISOString())
 
