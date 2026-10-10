@@ -260,6 +260,8 @@ ok("SOLD recovery Admin is authenticated and diagnostic-only; canonical worker r
   assert.match(report, /market_aggregate_observations/)
   assert.match(report, /market_release_signals/)
   assert.match(report, /market_recompute_queue/)
+  assert.match(report, /verificationStatus: release.verification_status/)
+  assert.doesNotMatch(report, /\.eq\("verification_status",\s*"verified"\)/)
   assert.doesNotMatch(report, /\.(?:insert|update|upsert|delete|rpc)\(/)
 })
 
