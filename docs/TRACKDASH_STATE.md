@@ -7,6 +7,19 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — 50/50 MARKET FIRST SIGNALS COMPLETED
+
+After the user ran Admin → Aggiornamento mercato → Esegui ora five additional times, the 2026-10-10 21:19:55 UTC live Supabase audit confirmed **full completion** of the original 50-Release market initialization backfill (migration `0223`, PR #383):
+
+- Available public Mini4WD Releases: **176**; canonical `new_complete_unbuilt` signals: **176 / 176**; Releases lacking both a signal and a pending recompute job: **0**.
+- Canonical `market_recompute_queue`: **0** pending, **0** due, **0** errors. Every original missing public Release has been initialized via canonical Market Method v4, including Releases without safe JAN or Item Number. There are **0** signals using a different market method version.
+- Market Value numeric on **9 / 176** public Releases; **167 / 176** have a legitimate NULL Market Value from insufficient qualified SOLD/retail evidence. A null Market Value is not the same as missing initialization; do not invent prices to increase this count.
+- 95450 Proto-Emperor Premium Black Special: verified canonical Market Value **€12.72**, SOLD anchor €12.72, confidence **low** (score 49), `computed_at=2026-10-10T21:15:57Z`.
+- 95467 Dyna-Hawk GX Super XX Special (2019 Reissue): verified canonical Market Value **€14.92**, SOLD anchor €14.92, confidence **low** (score 49), `computed_at=2026-10-10T21:15:58Z`.
+- The permanent dynamic launch/Release SQL triggers for future initial recomputes remain in place; no hardcoded family whitelist and no unsafe ambiguous external scans were added. The separate research task now is broader qualified SOLD/retail evidence collection for 167 currently value-less Releases, not another initial recompute run.
+
+This post-drain checkpoint **supersedes the earlier queued-not-yet-processed status below** for the original 50 backfilled Releases and the two value policy recomputes. The earlier section is retained as a historical audit of the original incident, not the current queue state.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — DYNAMIC INITIAL MARKET SIGNAL COVERAGE FOR ALL PUBLIC RELEASES
 
 Production implementation: PR #383, commit `90c600f14839a446d1d23cc8d1f82498dc3b31ad` (READY on `trackdash.it`). Supabase migration `0223_market_first_public_recompute_dynamic_coverage.sql` has been applied live and verified.
