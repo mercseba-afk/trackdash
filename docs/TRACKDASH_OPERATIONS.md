@@ -127,6 +127,44 @@ Only sources with `adapter_status = 'ready'` belong in enabled automatic scan qu
 
 Sources marked `manual` or `planned` may still provide valid stored context/research evidence, but their automatic queue/target rows must remain disabled until an executable adapter is promoted to `ready`. `include_by_default` is therefore disabled for non-ready source policies.
 
+## Initial canonical signal for every published Release (migration 0223)
+
+Do not confuse marketplace enrollment or barcode availability with initial **canonical recompute** coverage. Every *verified, public* Mini4WD Release under an *available* family must have either its `new_complete_unbuilt` canonical row in `market_release_signals` or a job in `market_recompute_queue`. This invariant must include Releases with NULL Item Number / JAN.
+
+The DB itself now enforces first-job creation on:
+- verified public Release insertion;
+- visibility/verification transitions into verified public;
+- a family changing from `coming_soon` to `available` with existing public Releases.
+
+The helper `private.trackdash_ensure_initial_public_release_market(uuid)` always delegates to the existing canonical `trackdash_enqueue_market_recompute` RPC but does nothing if a corresponding signal OR job already exists, avoiding resets of in-flight recomputes. On 2026-10-10 its initial migration backfilled **50** previously uncovered public Releases; the queue also held **2** older value-recompute jobs. The canonical worker must drain these in later runs.
+
+Operational audit query (execute read-only in Supabase):
+
+```sql
+WITH published AS (
+  SELECT r.id
+  FROM public.product_releases r
+  JOIN public.products p ON p.id = r.product_id
+  JOIN public.categories c ON c.id = p.category_id
+  WHERE c.slug = 'mini4wd'
+    AND p.metadata->>'launch_status' = 'available'
+    AND r.catalog_visibility = 'public'
+    AND r.verification_status = 'verified'
+)
+SELECT
+  count(*) AS public_releases,
+  count(*) FILTER (WHERE s.release_id IS NOT NULL) AS canonical_signals,
+  count(*) FILTER (WHERE s.release_id IS NULL AND q.release_id IS NOT NULL) AS pending_first_recomputes,
+  count(*) FILTER (WHERE s.release_id IS NULL AND q.release_id IS NULL) AS missing_both
+FROM published p
+LEFT JOIN public.market_release_signals s
+  ON s.release_id = p.id AND s.condition = 'new_complete_unbuilt'
+LEFT JOIN public.market_recompute_queue q
+  ON q.release_id = p.id AND q.condition = 'new_complete_unbuilt';
+```
+
+**Success conditions:** `missing_both = 0` immediately after publication; subsequently `pending_first_recomputes = 0` after the queue is drained, with failure states investigated. The global Vercel cron `/api/cron/market-scan` is scheduled daily at `03:17 UTC` and processes up to eight canonical recomputes per cycle (older due jobs first); repeated authorized Admin "Esegui ora" can accelerate the queue but is NOT a new per-Release web scan requirement. Never claim queue insertion equals actual Price Intelligence completion, never treat empty Market Value as scan failure, and do not create Market Values by hand.
+
 ## Recompute is NOT a scan
 
 It does not search the web.
