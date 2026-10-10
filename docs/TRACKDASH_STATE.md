@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — LIVE MINI4WD SOLD RECOVERY AUDIT
+
+Purpose: integrate the user's desired analysis of **20 Releases with 2–3 selected SOLD then 25 with one selected SOLD** into a durable *automatic audit* instead of one-off manual family research.
+
+- Protected Admin dashboard gains `Mini4wdSoldRecoveryAudit` underneath `Aggiornamento mercato`. Server action `getAdminMini4wdSoldRecoveryAction()` requires `requireAdmin()` and reads fresh canonical signals, exact/release-matched aggregate SOLD research and pending recompute queue through `getMini4wdSoldRecoveryReport()`.
+- Auto-discovers **all** verified/public Mini4WD Releases in launched families: reports total public Releases, numeric Market Values, selected SOLD references, SOLD without MV, 2–3 SOLD, 1 SOLD, multi-seller historical corroboration candidates and queued recomputes. Prioritizes 2+ SOLD, followed by single-SOLD; includes price and next-evidence-needed explanation for every SOLD-only Release.
+- A strict pure **audit-only** classifier recognizes only 3–4 current SOLD `release_exact` rolling windows that match the canonical selected anchor, with same-source multi-seller exact history, reasonable age and price agreement; it never becomes an alternative valuation engine. No new direct writes, no per-Release hardcoding, no fake SOLD, no extra auto-scans. The Market Method v4 remains sole authority and original data is untouched.
+- Existing data-change triggers on `market_aggregate_observations` and `price_points` already enqueue canonical recompute as evidence changes; protected daily/Admin `runMarketRecomputeBatch(8)` completes it. The report refreshes on Admin load, manual report refresh and after an Admin market refresh. eBay Product Research and other unsupported external sold-history capture are not newly automated.
+- The diagnostic makes the 45 existing cases visible and actionable; it does **not** mean 45 new Market Values were created. The initial 95525 canonical recompute remains independently queued until worker completion is verified.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — SOLD-FIRST RELEASE UI AND CORROBORATED THIN SOLD V4
 
 - Production implementation: PR #386, merge commit `c5d791fd405b10d8e182ad984ccfcea4c0dc102d`, Vercel READY and `trackdash.it` bound to this SHA. Full Preview/Production `pnpm verify` passed.
