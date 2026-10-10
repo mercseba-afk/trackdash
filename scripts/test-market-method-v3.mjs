@@ -27,9 +27,9 @@ function sold({ id, price, count, start, end, grain = "full_history", grade = "i
   }
 }
 
-function publish(selected, offers = [], monthlySoldEvidence = undefined) {
+function publish(selected, offers = [], monthlySoldEvidence = undefined, historicalContext = []) {
   const computed = computeCurrentMarketSignal({ offers, soldEvidence: selected, monthlySoldEvidence, asOfDate })
-  return applyPublicMarketPublicationPolicy(computed, selected, asOfDate)
+  return applyPublicMarketPublicationPolicy(computed, selected, asOfDate, historicalContext)
 }
 
 ok("18069: recent broad history is a conservative fallback instead of disappearing", () => {
@@ -272,6 +272,70 @@ ok("stale and future-dated single-seller windows are not published", () => {
   const future = publish([sold({ id: "future", price: 14, count: 10, sellerCount: 1, start: "2027-01-01", end: "2027-08-20", grain: "rolling_window", attributionStatus: "release_exact" })])
   assert.equal(stale.marketValueEUR, null)
   assert.equal(future.marketValueEUR, null)
+})
+
+// A recent exact-Release 3-SOLD window can be supported by a much larger
+// independent-seller history WITHOUT adding old sales into the current price.
+const exactRecent95525 = sold({
+  id: "95525-current-three",
+  price: 48.79,
+  count: 3,
+  start: "2025-09-10",
+  end: "2026-04-06",
+  grain: "rolling_window",
+  attributionStatus: "release_exact",
+})
+const broadHistory95525 = sold({
+  id: "95525-overlapping-history",
+  price: 40.09,
+  count: 18,
+  sellerCount: 6,
+  start: "2023-09-11",
+  end: "2026-04-06",
+  grain: "full_history",
+  attributionStatus: "release_exact",
+})
+
+ok("95525: 3 exact recent SOLD + 18 same-Release multi-seller historical units give cautious Market Value", () => {
+  const result = publish([exactRecent95525], [], undefined, [broadHistory95525])
+  assert.equal(result.soldAnchorEUR, 48.79)
+  assert.equal(result.marketValueEUR, 48.79)
+  assert.equal(result.soldUnits, 3) // never 3 + 18 overlapping units
+  assert.equal(result.soldSellerCount, null) // historical sellers are not recent sellers
+  assert.equal(result.confidenceLabel, "low")
+  assert.ok(result.confidenceScore <= 49)
+})
+
+ok("thin current SOLD without a corroborating exact multi-seller history remains SOLD-only", () => {
+  const result = publish([exactRecent95525])
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.soldAnchorEUR, 48.79)
+})
+
+ok("historical corroboration rejects one seller, different sources and ambiguous Releases", () => {
+  for (const context of [
+    [{ ...broadHistory95525, sellerCount: 1 }],
+    [{ ...broadHistory95525, sourceId: "different-market" }],
+    [{ ...broadHistory95525, attributionStatus: "release_matched" }],
+    [{ ...broadHistory95525, salesCount: 7 }],
+    [{ ...broadHistory95525, averagePriceEUR: 120 }],
+    [{ ...broadHistory95525, periodStart: "2026-01-01" }],
+  ]) {
+    assert.equal(publish([exactRecent95525], [], undefined, context).marketValueEUR, null)
+  }
+  const matchedRecent = { ...exactRecent95525, attributionStatus: "release_matched" }
+  assert.equal(publish([matchedRecent], [], undefined, [broadHistory95525]).marketValueEUR, null)
+})
+
+ok("two SOLD, monthly, stale or future windows cannot use the historical corroboration gate", () => {
+  for (const recent of [
+    { ...exactRecent95525, salesCount: 2 },
+    { ...exactRecent95525, grain: "monthly" },
+    { ...exactRecent95525, periodStart: "2023-01-01", periodEnd: "2023-03-01" },
+    { ...exactRecent95525, periodEnd: "2027-01-01" },
+  ]) {
+    assert.equal(publish([recent], [], undefined, [broadHistory95525]).marketValueEUR, null)
+  }
 })
 
 console.log(`${passed} passed, 0 failed`)
