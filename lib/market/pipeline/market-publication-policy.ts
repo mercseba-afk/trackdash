@@ -322,13 +322,6 @@ export function applyPublicMarketPublicationPolicy(
       ? publicSoldConfidence({ ...signal, soldUnits }, soldEvidence, asOfDate)
       : { score: signal.confidenceScore, label: signal.confidenceLabel }
 
-    if (historicallyCorroboratedThinSold && !hasVerifiedSale) {
-      // Selected current SOLD units (3–4), not the overlapping 8+ older ones,
-      // determine the value. History supports attribution/price only.
-      const score = Math.min(confidence.score, 49)
-      confidence = { score, label: confidenceLabel(score) }
-    }
-
     const hasRetailConflict =
       retailCanHeadline &&
       !pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR, 0.5)
@@ -338,6 +331,14 @@ export function applyPublicMarketPublicationPolicy(
       confidence = { score, label: confidenceLabel(score) }
     } else if (retailCanHeadline && pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR, 0.3)) {
       const score = Math.min(100, confidence.score + 5)
+      confidence = { score, label: confidenceLabel(score) }
+    }
+
+    if (historicallyCorroboratedThinSold && !hasVerifiedSale) {
+      // The selected 3–4 SOLD alone set the number, with historical
+      // multi-seller context as corroboration. Never claim Medium/High
+      // from an overlapping historical sample, even if retail agrees.
+      const score = Math.min(confidence.score, 49)
       confidence = { score, label: confidenceLabel(score) }
     }
 
