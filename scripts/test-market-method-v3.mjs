@@ -306,6 +306,16 @@ ok("95525: 3 exact recent SOLD + 18 same-Release multi-seller historical units g
   assert.ok(result.confidenceScore <= 49)
 })
 
+ok("corroborated thin current SOLD stays low confidence even with retail support", () => {
+  const result = publish([exactRecent95525], [
+    { stableId: "shop-eu-1", sourceId: "shop-eu-1", merchantKey: "shop-eu-1", marketRegion: "europe", channel: "retail", availability: "in_stock", itemPriceEUR: 46, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
+    { stableId: "shop-eu-2", sourceId: "shop-eu-2", merchantKey: "shop-eu-2", marketRegion: "europe", channel: "retail", availability: "in_stock", itemPriceEUR: 51, shippingEUR: 0, observedAt: "2026-09-18T10:00:00Z" },
+  ], undefined, [broadHistory95525])
+  assert.equal(result.marketValueEUR, 48.79)
+  assert.equal(result.confidenceLabel, "low")
+  assert.ok(result.confidenceScore <= 49)
+})
+
 ok("thin current SOLD without a corroborating exact multi-seller history remains SOLD-only", () => {
   const result = publish([exactRecent95525])
   assert.equal(result.marketValueEUR, null)
