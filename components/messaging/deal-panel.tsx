@@ -211,7 +211,7 @@ export function DealPanel({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-xs font-semibold text-foreground">
-                      {index > 0 ? (it ? "Controproposta" : "Counteroffer") : (it ? "Offerta" : "Offer")}
+                      {index > 0 && state.offers[index - 1]?.creatorId !== offer.creatorId ? (it ? "Controproposta" : "Counteroffer") : (it ? "Offerta" : "Offer")}
                       <span className="ml-1 font-normal text-muted-foreground">
                         · {byMe ? (it ? "inviata da te" : "sent by you") : (it ? `inviata da ${conversation.otherUsername}` : `sent by ${conversation.otherUsername}`)}
                       </span>
