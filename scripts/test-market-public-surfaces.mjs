@@ -146,16 +146,32 @@ if (!marketOverview.includes("observedMarketPrice") || !marketOverview.includes(
 if (!marketOverview.includes("!hasSold && !hasAsk && hasValue")) {
   errors.push("Release detail must not show a duplicate Market Value beside SOLD or current ASK")
 }
-if (!marketOverview.includes("Prezzo richiesto più basso") || !marketOverview.includes("Vendite concluse")) {
+if (!marketOverview.includes("Prezzo richiesto · solo kit") || !marketOverview.includes("Vendite concluse")) {
   errors.push("Release detail must keep the two primary collector-facing price labels")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
   errors.push("Release price card must not show distracting numeric trend values beside SOLD and ASK")
 }
+const priceBasis = fs.readFileSync("lib/market/presentation.ts", "utf8")
+if (!priceBasis.includes("return signal?.startingItemPriceEUR ?? null") ||
+    !priceBasis.includes("startingCostBasis !== \"delivered\"") ||
+    !priceBasis.includes("observedMarketKnownPurchaseCost")) {
+  errors.push("Public market must compare kit-only headline prices and keep known shipping separate")
+}
+const wishlistAnalytics = fs.readFileSync("lib/analytics.ts", "utf8")
+if (!wishlistAnalytics.includes("observedMarketKnownPurchaseCost(marketSignal)") ||
+    !wishlistAnalytics.includes("askingItemPrice")) {
+  errors.push("Wishlist target must fail closed for unknown delivery quote while keeping kit-only ASK visible")
+}
+const wishlist = fs.readFileSync("components/screens/wishlist-screen.tsx", "utf8")
+if (!wishlist.includes("Spedizione da verificare") ||
+    !wishlist.includes("Kit + spedizione indicata")) {
+  errors.push("Wishlist must distinguish asking price of kit from known item+shipping quote")
+}
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
 for (const requiredSellerAskCopy of [
-  "Prezzo richiesto più basso",
-  "Lowest asking price",
+  "Prezzo richiesto · solo kit",
+  "Asking price · kit only",
   "Trend prezzi richiesti",
   "Asking price trend",
   "annuncio attivo osservato",
