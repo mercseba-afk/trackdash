@@ -673,3 +673,10 @@ Therefore the current regular Admin/cron refresh remains unchanged:
 **Retail 4 + eBay Active 4 + Recompute 8**.
 
 Do not add a SOLD-research worker to cron until a real provider/source passes the readiness gate.
+
+
+---
+
+## eBay Active weekly verification — 2026-10-11 (pending Production QA)
+
+The eBay Active queue uses its own adaptive 3/7/30-day cadence: HOT=72h, NORMAL=168h, COLD=720h. Exact retail remains unchanged at 28/42/84 days. Normal eBay verification therefore falls below the 15-day current-marketplace TTL. A new CRON_SECRET-protected `/api/cron/ebay-scan` route runs a bounded 4-job batch every three hours (8/day), in addition to 4 daily jobs on `/api/cron/market-scan`. Capacity is nominally 36/day; verify actual attempts, successes, limits and processing time in Production. The rollout must reschedule existing enabled eBay queue rows safely; disabled/2099 parked rows must never be activated. Repricing method and historical ASK projections are unchanged.
