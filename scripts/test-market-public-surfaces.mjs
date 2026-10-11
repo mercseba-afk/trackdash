@@ -392,8 +392,10 @@ if (!dashboardMarket.includes("isEditoriallyPositive")) {
 if (!dashboardScreen.includes("entry.observedPrice") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
   errors.push("Dashboard recent additions are not using the condition-aware Collection market reference")
 }
-if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") || !collectionScreen.includes("observedMarketDisplayKind(signal)")) {
-  errors.push("ASK/SOLD approximation semantics are not shared across Dashboard and Collection")
+if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") ||
+    !collectionScreen.includes("observedMarketReferencePrice(signal)") ||
+    !collectionScreen.includes("signal?.soldAnchorEUR")) {
+  errors.push("Dashboard and Collection must preserve ASK/SOLD distinction and show both if available")
 }
 if (dashboardMarket.includes("askTrendWindowDays")) {
   errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
