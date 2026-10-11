@@ -4,9 +4,9 @@ import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worke
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-// Independent dispatcher: eight small eBay batches/day, in addition to the
-// four eBay jobs in the daily market cycle. The small per-run cap protects
-// the serverless timeout; the extra cadence supports 169 active jobs weekly.
+// Independent bounded dispatcher, secured by CRON_SECRET. Scheduling this
+// route requires a separate approved scheduler: Vercel Hobby cannot run a
+// three-hour native cron. Never treat a deployed route as an active schedule.
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET
   if (!secret) return NextResponse.json({ ok: false, error: "CRON_SECRET_NOT_CONFIGURED" }, { status: 503 })
