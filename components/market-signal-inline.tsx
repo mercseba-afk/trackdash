@@ -79,9 +79,9 @@ export function MarketSignalInline({
               <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-2.5 py-1.5 text-amber-900">
                 <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
                   <Tag className="size-3 shrink-0" />
-                  <span>{it ? "Annunci attivi" : "Active listings"}</span>
+                  <span>{it ? "Prezzo richiesto · kit" : "Asking price · kit"}</span>
                 </span>
-                <strong className="shrink-0 text-sm font-semibold tabular-nums">{it ? "da " : "from "}{formatMoney(askPrice!)}</strong>
+                <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
               </div>
             ) : null}
             {!hasSold && !hasAsk ? (
@@ -109,12 +109,12 @@ export function MarketSignalInline({
           <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900">
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
               <Tag className="size-3 shrink-0" />
-              <span>{it ? "Annunci attivi" : "Active listings"}</span>
+              <span>{it ? "Prezzo richiesto · kit" : "Asking price · kit"}</span>
             </span>
-            <strong className="shrink-0 text-sm font-semibold tabular-nums">{it ? "da " : "from "}{formatMoney(askPrice!)}</strong>
+            <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
           </div>
           <span className="text-[10px] leading-tight text-muted-foreground">
-            {it ? "Venduto osservato vs richiesta attuale" : "Observed sale vs current asking price"}
+            {it ? "Entrambi si riferiscono al prezzo del kit, senza spedizione." : "Both are kit-only prices, excluding shipping."}
           </span>
         </div>
       ) : hasValue ? (
