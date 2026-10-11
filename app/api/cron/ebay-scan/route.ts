@@ -61,7 +61,7 @@ async function isTrustedGithubAction(token: string): Promise<boolean> {
     const keys = Array.isArray(jwks?.keys) ? jwks.keys : []
     const jwk = keys.find((value: unknown) => {
       const key = asObject(value)
-      return key?.kid === header.kid && key.kty === "RSA" && (!key.alg || key.alg === "RS256")
+      return !!key && key.kid === header.kid && key.kty === "RSA" && (!key.alg || key.alg === "RS256")
     })
     if (!jwk) return false
     const publicKey = createPublicKey({ key: jwk as JsonWebKey, format: "jwk" })
