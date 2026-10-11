@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { observedMarketDisplayKind, observedMarketReferenceIsHistorical } from "@/lib/market/presentation"
+import { observedMarketReferenceIsHistorical, observedMarketReferencePrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -300,97 +300,84 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
   )
 }
 
-// A percentage alone is not an explanation of market movement.
-// Show the actual two comparable SOLD windows only when their source audit
-// exactly matches the persisted collector trend. Never compute a historical
-// price backwards from today's MV or conflate the user's purchase performance.
+// A constant, scan-driven layout across all copies: kit value, asking price,
+// and optional extra SOLD/trend evidence. An older ASK stays clearly DATED,
+// not a claim that the listing is still purchasable today.
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const trend = signal?.soldTrendComparison ?? null
+  const sealed = entry.item.condition === "Sealed"
+  const value = sealed ? entry.marketValue : null
+  const ask = observedMarketReferencePrice(signal)
+  const historicalAsk = observedMarketReferenceIsHistorical(signal)
+  const date = historicalAsk && signal?.historicalAskObservedAt
+    ? new Date(signal.historicalAskObservedAt)
+    : null
+  const lastObserved = date && Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", {
+        day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
+      }).format(date)
+    : null
+  const sold = signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0 ? signal.soldAnchorEUR : null
+  const soldCount = signal?.soldUnits ?? 0
+  const compared = signal?.soldTrendComparison ?? null
   const trendPercent = entry.marketTrend
-  const canShowSoldTrend = trend != null && trendPercent != null
-  const trendPeriod = trend?.windowMonths === 12
-    ? (it ? "due periodi di 12 mesi" : "two 12-month periods")
-    : trend?.windowMonths === 6
-      ? (it ? "due periodi di 6 mesi" : "two 6-month periods")
-      : trend?.windowMonths === 3
-        ? (it ? "due periodi di 3 mesi" : "two 3-month periods")
-        : (it ? "due mesi consecutivi" : "two consecutive months")
+  const showTrend = sealed && compared != null && trendPercent != null
 
-  const observedSoldTrend = canShowSoldTrend ? (
-    <div className="mt-2 border-t border-border/50 pt-2">
-      <p className="text-[10px] leading-tight text-muted-foreground">
-        {it ? "Prezzi medi delle vendite · " : "Average completed-sale prices · "}{trendPeriod}
-      </p>
-      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-xs font-medium tabular-nums text-foreground">
-          {formatMoney(trend.previousAverageEUR)} → {formatMoney(trend.recentAverageEUR)}
-        </span>
-        <TrendIndicator value={trendPercent} className="text-xs" />
-      </div>
-      <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
-        {it ? "Confronto rilevato " : "Comparison recorded "}
-        {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(trend.capturedAt))}
-        {signal?.soldSellerCount === 1
-          ? (it ? " · campione di un venditore" : " · one-seller sample")
-          : ""}
-      </p>
-    </div>
-  ) : null
-
-  if (entry.item.condition !== "Sealed") {
-    return (
-      <div className="min-w-0">
-        <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Valore della copia non stimato" : "Copy value not estimated"}</p>
-        <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
-          {it
-            ? "La stima riguarda i kit sigillati; nessuna svalutazione automatica per copie aperte o usate."
-            : "The estimate is for sealed kits; no automatic discounts for opened or used copies."}
-        </p>
-      </div>
-    )
-  }
-
-  if (entry.marketValue != null) {
-    return (
-      <div className="min-w-0">
-        <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Valore stimato · sigillato" : "Estimated value · sealed"}</p>
-        <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">≈ {formatMoney(entry.marketValue)}</p>
-        {observedSoldTrend}
-      </div>
-    )
-  }
-
-  const observedPrice = entry.observedPrice
-  if (observedPrice != null && observedPrice > 0) {
-    const observedKind = observedMarketDisplayKind(signal)
-    return (
-      <div className="min-w-0">
+  return (
+    <div className="min-w-0 space-y-2">
+      <div>
         <p className="text-[11px] leading-tight text-muted-foreground">
-          {observedKind === "ask"
-            ? (observedMarketReferenceIsHistorical(signal)
-                ? (it ? "Ultimo prezzo richiesto · solo kit" : "Last asking price · kit only")
-                : (it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"))
-            : (it ? "Vendite concluse · kit sigillati" : "Completed sales · sealed kits")}
+          {sealed
+            ? (it ? "Valore stimato · sigillato" : "Estimated value · sealed")
+            : (it ? "Valore della copia non stimato" : "Copy value not estimated")}
         </p>
         <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">
-          {observedKind === "sold" ? "≈ " : ""}{formatMoney(observedPrice)}
+          {value != null ? `≈ ${formatMoney(value)}` : "—"}
         </p>
-        {observedSoldTrend}
       </div>
-    )
-  }
-
-  if (observedSoldTrend) return <div className="min-w-0">{observedSoldTrend}</div>
-
-  if ((signal?.marketContextEvidenceCount ?? 0) > 0) return (
-    <div className="min-w-0">
-      <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Mercato osservato · sigillato" : "Observed market · sealed"}</p>
-      <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{it ? "Riferimenti storici disponibili" : "Historical references available"}</p>
+      <div className="border-t border-border/50 pt-2">
+        <p className="text-[11px] leading-tight text-muted-foreground">
+          {it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"}
+        </p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-sm font-semibold tabular-nums text-foreground">
+            {ask != null ? formatMoney(ask) : "—"}
+          </span>
+          {ask != null && historicalAsk ? (
+            <span className="text-[10px] font-medium text-muted-foreground">
+              {it ? "Ultimo osservato" : "Last observed"}{lastObserved ? ` · ${lastObserved}` : ""}
+            </span>
+          ) : null}
+        </div>
+      </div>
+      {sold != null && soldCount > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] font-medium text-foreground">
+            {soldCount} {it ? (soldCount === 1 ? "vendita conclusa" : "vendite concluse") : (soldCount === 1 ? "completed sale" : "completed sales")}
+          </Badge>
+          {value == null ? (
+            <span className="text-[11px] tabular-nums text-muted-foreground">≈ {formatMoney(sold)} {it ? "· riferimento SOLD" : "· SOLD reference"}</span>
+          ) : null}
+        </div>
+      ) : null}
+      {showTrend ? (
+        <div className="rounded-lg bg-muted/50 px-2.5 py-2">
+          <p className="text-[10px] leading-tight text-muted-foreground">
+            {it ? "Andamento delle vendite concluse" : "Completed-sales trend"} · {compared.windowMonths} {it ? "mesi" : "months"}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold tabular-nums">
+              {formatMoney(compared.previousAverageEUR)} → {formatMoney(compared.recentAverageEUR)}
+            </span>
+            <TrendIndicator value={trendPercent} className="text-[11px]" />
+          </div>
+        </div>
+      ) : null}
+      {value == null && ask == null && sold == null && (signal?.marketContextEvidenceCount ?? 0) > 0 ? (
+        <p className="text-[10px] leading-tight text-muted-foreground">{it ? "Mercato osservato · sigillato. Riferimenti storici disponibili." : "Observed sealed-kit market. Historical references available."}</p>
+      ) : null}
     </div>
   )
-
-  return <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
 }
 
 function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollectionItem | null; share?: MyShare; onClose: () => void; onSave: (id: string, patch: Partial<CollectionItem>, visibility: Visibility, offerTerms?: CollectionOfferTerms) => void }) {
