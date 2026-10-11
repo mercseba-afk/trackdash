@@ -55,6 +55,31 @@ export function observedMarketReferenceIsHistorical(
     signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
 }
 
+// The origin is the listing's actual itemLocation country, NEVER the
+// eBay marketplace queried (EBAY_IT can list an item shipping from Japan).
+// Keep old snapshots with missing location as UNKNOWN, not "imported".
+const EU_ORIGIN_COUNTRIES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI",
+  "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU",
+  "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+])
+
+export function observedAskOriginCountry(signal?: ReleaseMarketSignalView | null): string | null {
+  const current = observedMarketPrice(signal)
+  const country = current != null
+    ? signal?.observedAskOriginCountry
+    : signal?.historicalAskOriginCountry
+  const normalized = country?.trim().toUpperCase() ?? ""
+  if (!/^[A-Z]{2}$/.test(normalized) || ["EU", "UN", "ZZ", "XX"].includes(normalized)) return null
+  return normalized
+}
+
+export function isKnownExtraEuAsk(signal?: ReleaseMarketSignalView | null): boolean {
+  if (observedMarketReferencePrice(signal) == null) return false
+  const origin = observedAskOriginCountry(signal)
+  return origin != null && !EU_ORIGIN_COUNTRIES.has(origin)
+}
+
 export type ObservedMarketDisplayKind = "ask" | "sold"
 
 export function observedMarketDisplayKind(
