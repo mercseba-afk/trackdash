@@ -7,6 +7,13 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — KEEP EVERY QUALIFIED RECENT SOLD VISIBLE
+
+- Standing user decision: TrackDash should be **as flexible as truth permits**: one legitimate recent SOLD for the exact Release and comparable condition is already useful collector-market information, regardless of whether it can justify a numeric Market Value. **Show SOLD count and approximate observed-price anchor**, even if MV remains NULL. The conservative canonical Market Method v4 must remain unchanged.
+- Live read-only audit on 2026-10-11 after the protected recompute cron: 176 public available Mini4WD Releases, **54 with SOLD**, **10 numeric Market Values**, **44 SOLD-only**; 95525 Avante Mk.II Asia Challenge now has canonical MV €48.79 at LOW confidence, `computed_at 2026-10-11 03:41 UTC`, and is no longer queued. No unresolved recompute jobs/errors at this audit.
+- Small public UI correctness fix: family Release preview `MarketSignalInline` must derive active ASK from the *same freshness-aware* `observedMarketPrice(signal)` as Release detail. Previously `retailAnchorEUR`/`activeAnchorEUR` could be used as fallback and misleadingly displayed as active price after the offer expired. Valid recent SOLD remains independently visible even if no fresh ASK exists. Public signal, canonical prices, quantity and valuation engine are NOT modified.
+- Do not add unlicensed SOLD scraping or automatic currency/shipping/duties guesses. Existing canonical evidence ingestion already normalizes supported historical ECB FX and distinguishes known shipping/unknown international delivered costs; keep these gates intact.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-10 — LIVE MINI4WD SOLD RECOVERY AUDIT
 
 Purpose: integrate the user's desired analysis of **20 Releases with 2–3 selected SOLD then 25 with one selected SOLD** (the 25 include 4 publicly visible partial-verification editions which must be flagged, not hidden) into a durable *automatic audit* instead of one-off manual family research.

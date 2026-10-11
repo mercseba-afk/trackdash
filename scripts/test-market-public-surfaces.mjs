@@ -116,6 +116,14 @@ if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vend
 if (!marketInline.includes("hasValue && !(showBothReferences && (hasSold || hasAsk))")) {
   errors.push("Release previews must prefer SOLD and ASK rather than duplicated estimates")
 }
+if (!marketInline.includes("const askPrice = observedMarketPrice(signal)") ||
+    !marketInline.includes("const hasSold = soldPrice != null && soldPrice > 0")) {
+  errors.push("Release previews must show verified SOLD independently of fresh TTL-valid ASK")
+}
+if (marketInline.includes("?? signal.retailAnchorEUR") ||
+    marketInline.includes("?? signal.activeAnchorEUR")) {
+  errors.push("Release preview may not mislabel a stale stored retail/ASK anchor as a current asking price")
+}
 if (!productDetailScreen.includes("showBothReferences")) {
   errors.push("Release family rows are not enabling the dual SOLD + ASK preview")
 }

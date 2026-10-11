@@ -64,6 +64,8 @@ Se un dato non può essere dimostrato, mantenerlo sconosciuto/parziale e documen
 Vale anche il principio opposto:
 **DATO REALE DISPONIBILE > “DATI DI MERCATO IN ARRIVO” CAUSATO DA REGOLE TROPPO RIGIDE**
 Non aspettare arbitrariamente 5 o 10 SOLD prima di mostrare un'informazione utile.
+
+**Regola permanente di elasticità veritiera:** una vendita conclusa **recente, realmente osservata, correttamente attribuita all'edizione e alle condizioni della Release**, inclusa una singola vendita, è una prova di mercato utilizzabile e deve essere presentata come **Vendite concluse** (≈, con conteggio), anche se il Market Value canonico rimane NULL. Il numero minimo di vendite e la corroborazione sono gate della **stima Market Value**, non della **visibilità SOLD**. Non promuovere ASK, aste non aggiudicate, inserzioni ambigue, lotti, copie montate o ristampe non distinguibili a SOLD della Release esatta; non inventare costi di spedizione, dogana, quantità o cambio EUR. Conservare prezzi e provenienza in valuta d'origine e usare soltanto FX storici verificati. Nel dettaglio/anteprime mostrare ASK solo se l'offerta è ancora TTL-valida; non usare anchor retail/ASK memorizzati come fallback di offerte attuali.
 Quando esiste mercato reale ma non ancora abbastanza robusto per un Market Value, utilizzare:
 **Prezzo minimo richiesto \~€XX**
 
