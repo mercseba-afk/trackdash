@@ -361,7 +361,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
           ? (it ? "Nessuna offerta osservata" : "No offer observed")
           : historical
             ? (it ? `Ultima offerta osservata${formattedDate ? ` · ${formattedDate}` : ""} · disponibilità da verificare · spedizione esclusa` : `Last observed offer${formattedDate ? ` · ${formattedDate}` : ""} · availability unverified · shipping excluded`)
-            : (it ? "Prezzo osservato · spedizione esclusa" : "Observed price · shipping excluded")}
+            : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
       </p>
 
       {comparison && trendPercent != null ? (
