@@ -84,14 +84,14 @@ export function MarketSignalInline({
           <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-2 text-foreground">
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
               <Tag className="size-3 shrink-0" />
-              <span>{askHistorical ? (it ? "Ultimo ASK · kit" : "Last ASK · kit") : (it ? "Prezzo richiesto · kit" : "Asking price · kit")}</span>
+              <span>{askHistorical ? (it ? "Ultima offerta osservata" : "Last observed offer") : (it ? "Offerta sul mercato" : "Market offer")}</span>
             </span>
             <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
           </div>
           <span className="text-[10px] leading-tight text-muted-foreground">
             {askHistorical
-              ? (it ? "Ultimo ASK osservato, non necessariamente attivo · prezzi del solo kit, senza spedizione." : "Last observed ASK, not necessarily active · kit-only prices, excluding shipping.")
-              : (it ? "Prezzi del solo kit · spedizione esclusa." : "Kit-only prices · shipping excluded.")}
+              ? (it ? "Ultima offerta osservata, disponibilità da verificare · spedizione esclusa." : "Last observed offer, availability unverified · shipping excluded.")
+              : (it ? "Prezzo osservato · spedizione esclusa." : "Observed price · shipping excluded.")}
           </span>
         </div>
       ) : hasValue ? (
@@ -178,17 +178,21 @@ function PreviewPricePanel({
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
         <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
           <Tag className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          {it ? "Prezzo richiesto" : "Asking price"}
+          {it ? "Offerta sul mercato" : "Market offer"}
         </span>
         <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
           {askingEUR != null ? formatMoney(askingEUR) : "—"}
         </strong>
       </div>
 
-      {historical && askingEUR != null ? (
+      {askingEUR != null ? (
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          {it ? "Ultimo prezzo rilevato" : "Last observed price"}{observedDate ? ` · ${observedDate}` : ""} · {it ? "disponibilità da verificare" : "availability unverified"}
+          {historical
+            ? (it ? "Ultima offerta osservata" : "Last observed offer") + (observedDate ? ` · ${observedDate}` : "") + (it ? " · disponibilità da verificare · spedizione esclusa" : " · availability unverified · shipping excluded")
+            : (it ? "Prezzo osservato · spedizione esclusa" : "Observed price · shipping excluded")}
         </p>
+      ) : valueEUR != null ? (
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}</p>
       ) : null}
       {soldCount > 0 ? (
         <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-200/70 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-medium text-emerald-800 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-300">
