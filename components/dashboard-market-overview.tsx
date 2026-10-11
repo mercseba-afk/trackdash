@@ -8,7 +8,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice, observedMarketPrice } from "@/lib/market/presentation"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Badge } from "@/components/ui/badge"
@@ -107,23 +107,25 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
     .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0 && (collectorMarketTrend(row.signal) ?? 0) > 0)
     .sort((a, b) => (collectorMarketTrend(b.signal) ?? 0) - (collectorMarketTrend(a.signal) ?? 0)), 4), [rows])
 
-  // Unlike "In crescita", highest values are ranked across ALL Releases with
-  // a published Market Value, not just the tiny set with recent trend activity.
-  // Prefer different families so two dashboard sections do not mirror each other.
-  // Preserve the positive/neutral editorial policy for featured Releases.
-  const highValue = React.useMemo(() => {
+  // A separate ranking of CURRENT purchasable asking prices, not completed
+  // sales or historical quotes. The helper enforces the existing TTL-valid,
+  // Europe-first canonical offer; never use stale stored active anchors here.
+  const highestAsks = React.useMemo(() => {
     const growingProductIds = new Set(gainers.map((row) => row.product.id))
     return takeDistinctProducts(rows
-      .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0 &&
-        isEditoriallyPositive(row.signal) && !growingProductIds.has(row.product.id))
-      .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)), 4)
+      .filter((row) => {
+        const ask = observedMarketPrice(row.signal)
+        return ask != null && Number.isFinite(ask) && ask > 0 &&
+          !growingProductIds.has(row.product.id)
+      })
+      .sort((a, b) => (observedMarketPrice(b.signal) ?? 0) - (observedMarketPrice(a.signal) ?? 0)), 4)
   }, [rows, gainers])
 
   const mostTraded = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
     .sort((a, b) => (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0)), 4), [active])
 
-  const sectionCount = [gainers, highValue, mostTraded, vintage].filter((section) => section.length > 0).length
+  const sectionCount = [gainers, highestAsks, mostTraded, vintage].filter((section) => section.length > 0).length
   if (sectionCount === 0) return null
 
   return (
@@ -153,11 +155,12 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
           />
         ) : null}
 
-        {highValue.length > 0 ? (
+        {highestAsks.length > 0 ? (
           <MarketBlock
-            title={it ? "Valori più alti" : "Highest values"}
-            subtitle={it ? "Le Release con il valore di mercato più alto, senza ripetere quelle in crescita." : "Highest-valued Releases, without repeating the growing highlights."}
-            rows={highValue}
+            title={it ? "Prezzi richiesti più alti" : "Highest asking prices"}
+            subtitle={it ? "Le richieste più alte degli annunci attuali, non prezzi di vendita o valori stimati." : "Highest current asking prices, not completed sales or estimated values."}
+            rows={highestAsks}
+            priceMode="asking"
             icon={Gem}
             it={it}
           />
@@ -193,10 +196,12 @@ function MarketBlock({
   rows,
   icon: Icon,
   it,
+  priceMode = "market",
 }: {
   title: string
   subtitle: string
   rows: MarketRow[]
+  priceMode?: "market" | "asking"
   icon: React.ComponentType<{ className?: string }>
   it: boolean
 }) {
@@ -207,18 +212,18 @@ function MarketBlock({
         <p className="text-xs text-muted-foreground">{subtitle}</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-0.5">
-        {rows.map((row) => <MarketRowItem key={row.release.id} row={row} it={it} />)}
+        {rows.map((row) => <MarketRowItem key={row.release.id} row={row} it={it} priceMode={priceMode} />)}
       </CardContent>
     </Card>
   )
 }
 
-function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
+function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; priceMode: "market" | "asking" }) {
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const year = releaseYear(row.release)
   const salesLabel = recentSalesLabel(row.signal, it)
-  const displayPrice = observedMarketDisplayPrice(row.signal)
-  const displayKind = observedMarketDisplayKind(row.signal)
+  const displayPrice = priceMode === "asking" ? observedMarketPrice(row.signal) : observedMarketDisplayPrice(row.signal)
+  const displayKind = priceMode === "asking" ? "ask" : observedMarketDisplayKind(row.signal)
   const showProductFamily = row.release.editionName.trim().toLowerCase() !== row.product.name.trim().toLowerCase()
 
   return (
@@ -238,20 +243,20 @@ function MarketRowItem({ row, it }: { row: MarketRow; it: boolean }) {
         </div>
       </div>
       <div className="max-w-36 shrink-0 text-right">
-        {row.signal.valueEUR != null ? (
+        {priceMode !== "asking" && row.signal.valueEUR != null ? (
           <>
             <p className="text-[10px] text-muted-foreground">{it ? "Valore stimato" : "Estimated value"}</p>
             <p className="text-sm font-semibold tabular-nums">{formatMoney(row.signal.valueEUR)}</p>
           </>
         ) : displayPrice != null ? (
           <>
-            <p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(row.signal, it)}</p>
+            <p className="text-[10px] text-muted-foreground">{priceMode === "asking" ? (it ? "Prezzo richiesto" : "Asking price") : observedMarketDisplayLabel(row.signal, it)}</p>
             <p className="text-sm font-semibold tabular-nums">{displayKind === "sold" ? "≈ " : ""}{formatMoney(displayPrice)}</p>
           </>
         ) : (
           <Badge variant="secondary">{it ? "Valore in verifica" : "Value under review"}</Badge>
         )}
-        {collectorMarketTrend(row.signal) != null ? (
+        {priceMode !== "asking" && collectorMarketTrend(row.signal) != null ? (
           <div className="mt-0.5 flex flex-col items-end">
             <TrendIndicator value={collectorMarketTrend(row.signal)!} className="text-xs" />
             {row.signal.trendWindowMonths != null
