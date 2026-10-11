@@ -110,13 +110,13 @@ if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
 
 const marketInline = fs.readFileSync("components/market-signal-inline.tsx", "utf8")
 const productDetailScreen = fs.readFileSync("components/screens/product-detail-screen.tsx", "utf8")
-if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Annunci attivi")) {
+if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Prezzo richiesto")) {
   errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
 }
 if (!marketInline.includes("hasValue && !(showBothReferences && (hasSold || hasAsk))")) {
   errors.push("Release previews must prefer SOLD and ASK rather than duplicated estimates")
 }
-if (!marketInline.includes("const askPrice = observedMarketPrice(signal)") ||
+if (!marketInline.includes("const askPrice = observedMarketReferencePrice(signal)") ||
     !marketInline.includes("const hasSold = soldPrice != null && soldPrice > 0")) {
   errors.push("Release previews must show verified SOLD independently of fresh TTL-valid ASK")
 }
@@ -140,17 +140,40 @@ if (productDetailScreen.includes("compactPilot") || productDetailScreen.includes
 if (!marketOverview.includes("Valore stimato")) {
   errors.push("Shared market overview lost its rare estimated-value-only fallback")
 }
-if (!marketOverview.includes("observedMarketPrice") || !marketOverview.includes("soldAnchorEUR")) {
+if (!marketOverview.includes("observedMarketReferencePrice") || !marketOverview.includes("soldAnchorEUR")) {
   errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
-if (!marketOverview.includes("!hasSold && !hasAsk && hasValue")) {
+if (!marketOverview.includes("} : hasValue ? (")) {
   errors.push("Release detail must not show a duplicate Market Value beside SOLD or current ASK")
 }
-if (!marketOverview.includes("Prezzo richiesto · solo kit") || !marketOverview.includes("Vendite concluse")) {
+if (!marketOverview.includes("Prezzo richiesto osservato") || !marketOverview.includes("Vendite concluse")) {
   errors.push("Release detail must keep the two primary collector-facing price labels")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
   errors.push("Release price card must not show distracting numeric trend values beside SOLD and ASK")
+}
+// Regression of the live Dyna 95467 incident: expired observed ASK must
+// not disappear, but it must never masquerade as a purchasable current offer.
+const publicProjection = fs.readFileSync("lib/market/public.ts", "utf8")
+if (!publicProjection.includes("historicalAskItemEUR: histItem") ||
+    !publicProjection.includes("historicalAskObservedAt: historicalOffer") ||
+    !publicProjection.includes("nowMs - checkedMs <= 180 * DAY_MS") ||
+    !publicProjection.includes("observedOffer ? null : [...observedOffers]")) {
+  errors.push("Dated historical ASK must survive active offer TTL separately, with a strict 180-day evidence horizon")
+}
+if (!marketOverview.includes("Prezzi del solo kit · spedizione esclusa.") ||
+    !marketOverview.includes("Disponibilità da verificare") ||
+    !marketOverview.includes("historicalAskShippingEUR") ||
+    marketOverview.includes("bg-amber-50") ||
+    marketOverview.includes("bg-emerald-50")) {
+  errors.push("Release overview must be one neutral two-row kit-only display, with historic offer date and separate shipping")
+}
+if (!analyticsSource.includes("observedMarketReferencePrice(marketSignal)") ||
+    !analyticsSource.includes("marketValue ?? observedPrice")) {
+  errors.push("Indicative sealed Collection must include dated kit-only ASK reference where MV is absent")
+}
+if (!analyticsSource.includes("observedMarketKnownPurchaseCost(marketSignal)")) {
+  errors.push("Wishlist purchase target must keep using fresh, verified item+shipping cost")
 }
 const priceBasis = fs.readFileSync("lib/market/presentation.ts", "utf8")
 if (!priceBasis.includes("return signal?.startingItemPriceEUR ?? null") ||
@@ -214,7 +237,7 @@ if (!analyticsSource.includes("observedMarketPrice(marketSignal)")) {
 if (analyticsSource.includes("observedMarketDisplayPrice")) {
   errors.push("Display-only SOLD fallback leaked into portfolio or wishlist valuation logic")
 }
-if (!marketOverview.includes("currentOfferCount") || !marketOverview.includes("soldUnits")) {
+if (!marketOverview.includes("observedMarketReferenceIsHistorical") || !marketOverview.includes("soldUnits")) {
   errors.push("Shared market overview does not expose separate active-listing/completed-sale evidence")
 }
 for (const verboseReleaseToken of [
@@ -243,10 +266,10 @@ if (releaseScreen.includes("ExternalAvailabilityCard") || releaseScreen.includes
 
 const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
 if (!collectionScreen.includes("summary.marketReferenceValue") || !collectionScreen.includes("summary.marketReferenceCount")) {
-  errors.push("Collection headline total is not using the sealed Market Value / fresh observed ASK reference")
+  errors.push("Collection headline total must clearly distinguish Market Value from dated observed kit-only ASK references")
 }
 if (!analyticsSource.includes("marketValue ?? observedPrice")) {
-  errors.push("Collection market reference no longer prefers canonical Market Value before fresh observed ASK")
+  errors.push("Collection market reference no longer prefers canonical Market Value before dated observed kit-only ASK")
 }
 if (!analyticsSource.includes("marketValue != null") || !analyticsSource.includes("personalGainEUR")) {
   errors.push("Personal Collection performance is no longer restricted to canonical Market Value")
