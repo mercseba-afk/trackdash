@@ -103,13 +103,21 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
       return (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)
     }), 4), [active])
 
-  const highValue = React.useMemo(() => takeDistinctProducts(active
-    .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0)
-    .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)), 4), [active])
-
   const gainers = React.useMemo(() => takeDistinctProducts(rows
-    .filter((row) => (collectorMarketTrend(row.signal) ?? 0) > 0)
+    .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0 && (collectorMarketTrend(row.signal) ?? 0) > 0)
     .sort((a, b) => (collectorMarketTrend(b.signal) ?? 0) - (collectorMarketTrend(a.signal) ?? 0)), 4), [rows])
+
+  // Unlike "In crescita", highest values are ranked across ALL Releases with
+  // a published Market Value, not just the tiny set with recent trend activity.
+  // Prefer different families so two dashboard sections do not mirror each other.
+  // Preserve the positive/neutral editorial policy for featured Releases.
+  const highValue = React.useMemo(() => {
+    const growingProductIds = new Set(gainers.map((row) => row.product.id))
+    return takeDistinctProducts(rows
+      .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0 &&
+        isEditoriallyPositive(row.signal) && !growingProductIds.has(row.product.id))
+      .sort((a, b) => (b.signal.valueEUR ?? 0) - (a.signal.valueEUR ?? 0)), 4)
+  }, [rows, gainers])
 
   const mostTraded = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
@@ -148,7 +156,7 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
         {highValue.length > 0 ? (
           <MarketBlock
             title={it ? "Valori più alti" : "Highest values"}
-            subtitle={it ? "Le stime più alte tra le Release con attività di mercato recente." : "The highest estimates among Releases with recent market activity."}
+            subtitle={it ? "Le Release con il valore di mercato più alto, senza ripetere quelle in crescita." : "Highest-valued Releases, without repeating the growing highlights."}
             rows={highValue}
             icon={Gem}
             it={it}
