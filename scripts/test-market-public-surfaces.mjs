@@ -155,7 +155,9 @@ if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTre
 // Regression of the live Dyna 95467 incident: expired observed ASK must
 // not disappear, but it must never masquerade as a purchasable current offer.
 const publicProjection = fs.readFileSync("lib/market/public.ts", "utf8")
-if (!publicProjection.includes("historicalAskItemEUR: histItem") ||
+if (!publicProjection.includes("observedAskOriginCountry: observedOffer?.itemLocationCountry") ||
+    !publicProjection.includes("historicalAskOriginCountry: historicalOffer?.itemLocationCountry") ||
+    !publicProjection.includes("historicalAskItemEUR: histItem") ||
     !publicProjection.includes("historicalAskObservedAt: historicalOffer") ||
     !publicProjection.includes("nowMs - checkedMs <= 180 * DAY_MS") ||
     !publicProjection.includes("observedOffer ? null : [...observedOffers]")) {
@@ -284,6 +286,18 @@ if (!collectionScreen.includes("Mercato osservato · sigillato") || !collectionS
   errors.push("Collection does not distinguish historical market context from missing data")
 }
 
+const compact = collectionScreen.split("function CollectionMarketValue(")[1]?.split("function EditDialog(")[0] ?? ""
+if (!compact.includes("Valore stimato · sigillato") ||
+    !compact.includes("Prezzo richiesto · solo kit") ||
+    !compact.includes("historicalAskObservedAt") ||
+    !compact.includes("vendite concluse") ||
+    !compact.includes("soldTrendComparison")) {
+  errors.push("Collection previews must show consistent MV and ASK fields with optional SOLD evidence")
+}
+const originQuery = fs.readFileSync("lib/db/queries/market.ts", "utf8")
+if (!originQuery.includes("marketCandidates.rawPayload") || !originQuery.includes("itemLocationCountry")) {
+  errors.push("ASK origin must be supplied by the exact eBay listing metadata")
+}
 const publicMarket = fs.readFileSync("lib/market/public.ts", "utf8")
 if (publicMarket.includes("unstable_cache") || publicMarket.includes("listCachedPublicMarketBundle")) {
   errors.push("Public market map can drift behind exact Release data because it still has an independent snapshot cache")
