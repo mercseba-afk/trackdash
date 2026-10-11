@@ -1,6 +1,7 @@
 "use client"
 
-import { BadgeCheck, Tag } from "lucide-react"
+import { BadgeCheck, Tag, TrendingUp } from "lucide-react"
+import { MarketPricePanelShell } from "@/components/market-price-panel-shell"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
@@ -155,33 +156,45 @@ function PreviewPricePanel({
   soldCount: number
 }) {
   return (
-    <div className="w-full rounded-xl border border-brand/15 bg-brand/[0.055] p-2.5 text-left shadow-sm dark:bg-brand/10">
-      <div className="grid gap-2">
-        <div className="flex min-h-7 items-center justify-between gap-3">
-          <span className="text-[11px] font-semibold text-foreground/80">{it ? "Valore di mercato" : "Market value"}</span>
-          <strong className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-            {valueEUR != null ? `≈ ${formatMoney(valueEUR)}` : "—"}
-          </strong>
-        </div>
-        <div className="border-t border-border/55" />
-        <div className="flex min-h-7 items-center justify-between gap-3">
-          <span className="text-[11px] font-semibold text-foreground/80">{it ? "Prezzo richiesto" : "Asking price"}</span>
-          <strong className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-            {askingEUR != null ? formatMoney(askingEUR) : "—"}
-          </strong>
-        </div>
+    <MarketPricePanelShell>
+      <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+        <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
+          <TrendingUp className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+          {it ? "Valore di mercato" : "Market value"}
+        </span>
+        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
+          {valueEUR != null ? `≈ ${formatMoney(valueEUR)}` : "—"}
+        </strong>
       </div>
+
+      <div className="my-2.5 h-px bg-sky-200/75 dark:bg-sky-800/50" />
+
+      <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+        <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
+          <Tag className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+          {it ? "Prezzo richiesto" : "Asking price"}
+        </span>
+        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
+          {askingEUR != null ? formatMoney(askingEUR) : "—"}
+        </strong>
+      </div>
+
       {historical && askingEUR != null ? (
-        <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
           {it ? "Ultimo prezzo rilevato · disponibilità da verificare" : "Last observed price · availability unverified"}
         </p>
       ) : null}
       {soldCount > 0 ? (
-        <p className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
-          <BadgeCheck className="size-3 shrink-0" />
+        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-200/70 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-medium text-emerald-800 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+          <BadgeCheck className="size-3.5 shrink-0" aria-hidden="true" />
           {it ? `${soldCount} ${soldCount === 1 ? "vendita conclusa" : "vendite concluse"}` : `${soldCount} completed ${soldCount === 1 ? "sale" : "sales"}`}
         </p>
       ) : null}
-    </div>
+      {valueEUR == null && askingEUR == null && soldCount === 0 ? (
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          {it ? "Dati di mercato in arrivo" : "Market data coming soon"}
+        </p>
+      ) : null}
+    </MarketPricePanelShell>
   )
 }
