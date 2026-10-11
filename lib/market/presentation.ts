@@ -38,12 +38,29 @@ export function observedMarketKnownShipping(
   return shipping != null && Number.isFinite(shipping) && shipping >= 0 ? shipping : null
 }
 
+// Informational ONLY. A dated historical ASK stays visible after active-offer
+// TTL expires, but it is never an in-stock claim. Always KIT ONLY in EUR.
+export function observedMarketReferencePrice(
+  signal?: ReleaseMarketSignalView | null,
+): number | null {
+  return observedMarketPrice(signal) ??
+    (signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
+      ? signal.historicalAskItemEUR : null)
+}
+
+export function observedMarketReferenceIsHistorical(
+  signal?: ReleaseMarketSignalView | null,
+): boolean {
+  return observedMarketPrice(signal) == null &&
+    signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
+}
+
 export type ObservedMarketDisplayKind = "ask" | "sold"
 
 export function observedMarketDisplayKind(
   signal?: ReleaseMarketSignalView | null,
 ): ObservedMarketDisplayKind | null {
-  const askPrice = observedMarketPrice(signal)
+  const askPrice = observedMarketReferencePrice(signal)
   if (askPrice != null && askPrice > 0) return "ask"
   if (signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0) return "sold"
   return null
@@ -52,7 +69,7 @@ export function observedMarketDisplayKind(
 export function observedMarketDisplayPrice(
   signal?: ReleaseMarketSignalView | null,
 ): number | null {
-  const askPrice = observedMarketPrice(signal)
+  const askPrice = observedMarketReferencePrice(signal)
   if (askPrice != null && askPrice > 0) return askPrice
   return signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0
     ? signal.soldAnchorEUR
@@ -63,9 +80,13 @@ export function observedMarketDisplayLabel(
   signal: ReleaseMarketSignalView | null | undefined,
   it: boolean,
 ): string {
-  return observedMarketDisplayKind(signal) === "sold"
-    ? (it ? "Prezzo da vendite concluse" : "Price from completed sales")
-    : observedMarketAskLabel(signal, it)
+  if (observedMarketDisplayKind(signal) === "sold") {
+    return it ? "Prezzo da vendite concluse" : "Price from completed sales"
+  }
+  if (observedMarketReferenceIsHistorical(signal)) {
+    return it ? "Ultimo prezzo richiesto osservato · solo kit" : "Last observed asking price · kit only"
+  }
+  return observedMarketAskLabel(signal, it)
 }
 
 export function observedMarketDisplayEvidenceLabel(
@@ -77,6 +98,9 @@ export function observedMarketDisplayEvidenceLabel(
     if (count <= 0) return null
     if (it) return `${count} ${count === 1 ? "vendita conclusa osservata" : "vendite concluse osservate"}`
     return `${count} ${count === 1 ? "completed sale observed" : "completed sales observed"}`
+  }
+  if (observedMarketReferenceIsHistorical(signal)) {
+    return it ? "Ultima osservazione, disponibilità da verificare" : "Last observation, availability not verified"
   }
   return observedMarketAskCountLabel(signal, it)
 }
