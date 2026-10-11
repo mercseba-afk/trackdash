@@ -91,7 +91,7 @@ export function MarketSignalInline({
           <span className="text-[10px] leading-tight text-muted-foreground">
             {askHistorical
               ? (it ? "Ultima offerta osservata, disponibilità da verificare · spedizione esclusa." : "Last observed offer, availability unverified · shipping excluded.")
-              : (it ? "Prezzo osservato · spedizione esclusa." : "Observed price · shipping excluded.")}
+              : (it ? "Offerta verificata di recente · spedizione esclusa." : "Recently verified offer · shipping excluded.")}
           </span>
         </div>
       ) : hasValue ? (
@@ -189,7 +189,7 @@ function PreviewPricePanel({
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
           {historical
             ? (it ? "Ultima offerta osservata" : "Last observed offer") + (observedDate ? ` · ${observedDate}` : "") + (it ? " · disponibilità da verificare · spedizione esclusa" : " · availability unverified · shipping excluded")
-            : (it ? "Prezzo osservato · spedizione esclusa" : "Observed price · shipping excluded")}
+            : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
         </p>
       ) : valueEUR != null ? (
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}</p>
