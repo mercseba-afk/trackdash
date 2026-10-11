@@ -3,7 +3,11 @@ name: eBay Market Watch
 on:
   schedule:
     - cron: '41 */3 * * *'
-  # Do not enable workflow_dispatch without adjusting the OIDC event gate.
+  # One-time validation on workflow changes; production cadence uses schedule.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ebay-market-watch.yml'
 
 permissions:
   contents: read
