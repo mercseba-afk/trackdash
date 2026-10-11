@@ -369,19 +369,27 @@ if (!wishlistPage.includes("fetchCatalogProductsByIds") || !wishlistScreen.inclu
 // tiny personal profit deltas. Copy paid amount stays discreet and the
 // underlying canonical market trend is never recomputed here.
 const compactCollection = collectionScreen.split("function CollectionMarketValue(")[1]?.split("function EditDialog(")[0] ?? ""
-if (!compactCollection.includes("Mercato in crescita") ||
-    !compactCollection.includes("Mercato in calo") ||
-    !compactCollection.includes("<TrendIndicator value={collectorTrend}")) {
-  errors.push("Collection cards must show legible canonical collector market direction and percent")
+if (!compactCollection.includes("soldTrendComparison") ||
+    !compactCollection.includes("previousAverageEUR") ||
+    !compactCollection.includes("recentAverageEUR") ||
+    !compactCollection.includes("<TrendIndicator value={trendPercent}")) {
+  errors.push("Collection trend must disclose the exact compared SOLD averages, never an unexplained percent")
 }
 if (compactCollection.includes("personalGainEUR") ||
     compactCollection.includes("observedDirection") ||
     compactCollection.includes("hasReliableObservedPriceTrend")) {
   errors.push("Collection card still shows distracting purchase profit or ASK trend")
 }
-if (!collectionScreen.includes("entry.item.acquisitionPrice > 0 ? (") ||
-    !collectionScreen.includes('text-[10px] leading-tight text-muted-foreground')) {
-  errors.push("Collection paid cost must be subtle and optional")
+if (collectionScreen.includes('it ? "Pagato" : "Paid"') ||
+    compactCollection.includes("acquisitionPrice") ||
+    compactCollection.includes("personalGainEUR")) {
+  errors.push("Collection cards must not invite confusion between a personal purchase and historical SOLD performance")
+}
+const publicMarketProjection = fs.readFileSync("lib/market/public.ts", "utf8")
+if (!publicMarketProjection.includes("publishedSoldTrendComparison(") ||
+    !publicMarketProjection.includes("listCollectorTrendAuditRows(") ||
+    !publicMarketProjection.includes("soldTrendComparison,")) {
+  errors.push("Public market projection must expose only provenance-validated SOLD comparison windows")
 }
 
 // Notification bell: unread only, and reading the matching conversation
