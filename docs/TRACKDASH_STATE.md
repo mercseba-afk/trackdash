@@ -7,6 +7,14 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — COLLECTION TREND-FIRST CARDS + UNREAD-ONLY NOTIFICATIONS
+
+- Collector-facing Collection card UX: **main sealed-only market reference + canonical collector trend with literal rising/falling/stable Italian/English copy + optional subtle paid amount**. The purchase gain/loss delta in EUR and duplicate secondary asking-price line are hidden in cards only; personal performance remains in the copy detail and under Collection details. Avoid showing a market value for opened/built/used/incomplete copies, since no condition-adjusted valuation evidence exists. Price Engine, Collection total calculation, condition restrictions, Market Method v4, trends and historical FX untouched.
+- Bell `NotificationCenter` now lists **only notifications with `read_at IS NULL`**: clicking an alert marks it read, hides it and reduces the count, while `Segna tutte` clears the list. Remove the synthetic *perpetually pinned* `Catalogo in espansione` row from the bell. Upcoming families remain discoverable in Catalog, and genuine new family/Release alerts still come from event-driven notifications.
+- The current `markConversationReadAction(conversationId)` validates conversation ownership and updates `conversation_reads`; it ALSO marks matching `notifications` for that user's exact `/messages?conversation=<uuid>` href as read in the same RLS transaction. Therefore opening or reading a chat directly acknowledges offer/counteroffer bell alerts, without deleting the actual offer, message, sale, or notification history. The Messages screen already dispatches `trackdash:messaging-read`, which triggers a bell refresh. Do **not** indiscriminately clear notifications for unrelated conversations or future events.
+- Old read rows stay in the DB for audit; the bell is an actionable unread inbox, not a complete event history. Header badge uses only actual unread notifications, not a count of pinned/catalog-coming-soon items.
+- Regression guards live in `scripts/test-market-public-surfaces.mjs`. No DB migration, live data rewrites, market scanner, notification trigger or sold-price engine modification.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — KEEP EVERY QUALIFIED RECENT SOLD VISIBLE
 
 - Standing user decision: TrackDash should be **as flexible as truth permits**: one legitimate recent SOLD for the exact Release and comparable condition is already useful collector-market information, regardless of whether it can justify a numeric Market Value. **Show SOLD count and approximate observed-price anchor**, even if MV remains NULL. The conservative canonical Market Method v4 must remain unchanged.
