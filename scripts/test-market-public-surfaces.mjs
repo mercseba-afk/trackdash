@@ -113,8 +113,12 @@ const productDetailScreen = fs.readFileSync("components/screens/product-detail-s
 if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Prezzo richiesto")) {
   errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
 }
-if (!marketInline.includes("hasValue && !(showBothReferences && (hasSold || hasAsk))")) {
-  errors.push("Release previews must prefer SOLD and ASK rather than duplicated estimates")
+if (!marketInline.includes("<PreviewPricePanel") ||
+    !marketInline.includes("Valore di mercato") ||
+    !marketInline.includes("Prezzo richiesto") ||
+    !marketInline.includes("Ultimo prezzo rilevato") ||
+    !marketInline.includes("vendite concluse")) {
+  errors.push("Release previews must keep identical plain-language market/ask rows with optional sale evidence")
 }
 if (!marketInline.includes("const askPrice = observedMarketReferencePrice(signal)") ||
     !marketInline.includes("const hasSold = soldPrice != null && soldPrice > 0")) {
