@@ -8250,3 +8250,13 @@ A dedicated eBay-only dispatcher and independent active-ASK 3/7-day versus no-ac
 - GitHub Actions invokes extra bounded eBay batches every three hours using signed OIDC tokens; Vercel Hobby's one-daily-cron restriction is respected.
 - A workflow-file push on main triggers an additional one-time verification run; only exact GitHub repository/main/workflow claims are trusted.
 - Market Method v4, retail/SOLD cadence, market values and portfolio pricing are unchanged.
+
+
+## 2026-10-11 — VERIFIED LIVE: weekly eBay Market Watch
+
+- GitHub main deployed to Vercel Production via PR #396 and PR #397. A protected GitHub Actions push smoke run succeeded: [run 38142120165](https://github.com/mercseba-afk/trackdash/actions/runs/38142120165), 1 attempted / 1 succeeded / 0 failed, 1 accepted listing.
+- Live Dyna-Hawk GX 95467 eBay job: `last_success_at=2026-10-11T13:10:38Z`, no errors, `scan_interval_hours=168`, `next_scan_at=2026-10-18T13:10:38Z`.
+- Fresh eBay offer for Dyna 95467: item price EUR 46.36, item location country `JP`, queried marketplace `EBAY_IT`, active in-stock; current shipping to Italy is unknown and MUST NOT inherit the older observed EUR 12.20. The exact Market Value and SOLD anchor remain EUR 14.92; canonical source-selected `starting_offer_candidate_id` stays null under Europe-first publication guard.
+- Production queue replan changed only 169 enabled eBay Active jobs. 253 disabled eBay Active jobs remained parked; all enabled jobs received new adaptive intervals. Retail/SOLD queues, source prices and valuation method v4 were unchanged.
+- The separate GitHub Actions scheduled invocation every three hours is configured and one authenticated production execution has been proven end-to-end. Observe scheduled-event run health; an initial push test run 38141871180 occurred before PR #397's code reached Production and failed authorization, then the post-deploy rerun succeeded.
+- The eBay cadence is fresh-active HOT 3d and NORMAL/COLD 7d; without fresh active ASK it is HOT 7d, NORMAL 14d, COLD 30d. Vercel Hobby's only native cron remains the original daily market scan.
