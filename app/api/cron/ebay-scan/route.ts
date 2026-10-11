@@ -43,7 +43,7 @@ async function isTrustedGithubAction(token: string): Promise<boolean> {
       claims.repository_id !== TRUSTED_REPO_ID ||
       claims.ref !== TRUSTED_REF ||
       claims.workflow_ref !== TRUSTED_WORKFLOW ||
-      claims.event_name !== "schedule" ||
+      (claims.event_name !== "schedule" && claims.event_name !== "push") ||
       typeof claims.exp !== "number" ||
       typeof claims.iat !== "number" ||
       claims.exp < now - 60 ||
