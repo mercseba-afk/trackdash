@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatMoney } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
-import { observedMarketPrice } from "@/lib/market/presentation"
+import { observedMarketKnownPurchaseCost, observedMarketKnownShipping, observedMarketPrice } from "@/lib/market/presentation"
 
 // The Release is a collector-facing price reference, not a statistics report.
 // Public MV, SOLD and ASK remain separate in the canonical data everywhere.
@@ -17,12 +17,16 @@ function MarketReference({
   count,
   it,
   compact,
+  shipping,
+  quotedTotal,
 }: {
   kind: "ask" | "sold"
   price: number
   count: number
   it: boolean
   compact: boolean
+  shipping?: number | null
+  quotedTotal?: number | null
 }) {
   const ask = kind === "ask"
   return (
@@ -38,7 +42,7 @@ function MarketReference({
       }>
         {ask ? <Tag className="size-4" /> : <BadgeCheck className="size-4" />}
         {ask
-          ? (it ? "Prezzo richiesto più basso" : "Lowest asking price")
+          ? (it ? "Prezzo richiesto · solo kit" : "Asking price · kit only")
           : (it ? "Vendite concluse" : "Completed sales")}
       </p>
       <p className={
@@ -52,15 +56,28 @@ function MarketReference({
         {ask
           ? count > 0
             ? (it
-                ? `Il minimo tra ${count} ${count === 1 ? "annuncio attivo" : "annunci attivi"} verificati. È una richiesta, non una vendita.`
-                : `Lowest among ${count} verified active ${count === 1 ? "listing" : "listings"}. An asking price, not a sale.`)
-            : (it ? "Richiesta del venditore, non una vendita." : "Seller's asking price, not a completed sale.")
+                ? `Offerta selezionata tra ${count} ${count === 1 ? "annuncio osservato" : "annunci osservati"} ancora validi. Non è una vendita.`
+                : `Selected offer from ${count} currently valid observed ${count === 1 ? "listing" : "listings"}. Not a sale.`)
+            : (it ? "Prezzo chiesto dal venditore, non una vendita." : "Seller's price, not a completed sale.")
           : count > 0
             ? (it
                 ? `Riferimento da ${count} ${count === 1 ? "vendita conclusa osservata" : "vendite concluse osservate"}.`
                 : `Reference from ${count} observed completed ${count === 1 ? "sale" : "sales"}.`)
-            : (it ? "Riferimento da vendite concluse osservate." : "Reference from observed completed sales.")}
+             : (it ? "Riferimento da vendite concluse osservate." : "Reference from observed completed sales.")}
       </p>
+      {ask ? (
+        <p className="mt-2 text-xs leading-relaxed text-amber-800">
+          {quotedTotal != null && shipping != null
+            ? (it
+                ? `Spedizione indicata: ${formatMoney(shipping)} · Kit + spedizione: ${formatMoney(quotedTotal)}. Non include eventuali altri oneri non documentati.`
+                : `Listed shipping: ${formatMoney(shipping)} · Kit + shipping: ${formatMoney(quotedTotal)}. Other undocumented charges are not included.`)
+            : (it ? "Spedizione non verificata: il costo effettivo può essere maggiore." : "Shipping not verified: actual purchase cost may be higher.")}
+        </p>
+      ) : (
+        <p className="mt-2 text-xs leading-relaxed text-emerald-800">
+          {it ? "Prezzo medio del solo kit, senza spedizione." : "Average kit-only price, excluding shipping."}
+        </p>
+      )}
     </div>
   )
 }
@@ -77,6 +94,8 @@ export function ReleaseMarketOverview({
   // Only the TTL-valid current purchasable price, never a stale ASK anchor.
   const askPrice = observedMarketPrice(signal)
   const hasAsk = askPrice != null && askPrice > 0
+  const quotedTotal = observedMarketKnownPurchaseCost(signal)
+  const shipping = observedMarketKnownShipping(signal)
   const soldPrice = signal?.soldAnchorEUR ?? null
   const hasSold = soldPrice != null && soldPrice > 0
   const hasValue = signal?.valueEUR != null && signal.valueEUR > 0
@@ -106,6 +125,8 @@ export function ReleaseMarketOverview({
               <MarketReference
                 kind="ask"
                 price={askPrice!}
+                shipping={shipping}
+                quotedTotal={quotedTotal}
                 count={signal?.currentOfferCount ?? 0}
                 compact={compact}
                 it={it}
@@ -121,7 +142,7 @@ export function ReleaseMarketOverview({
               ≈ {formatMoney(signal!.valueEUR!)}
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {it ? "Stima TrackDash basata sulle evidenze disponibili." : "TrackDash estimate based on available evidence."}
+              {it ? "Stima TrackDash del solo kit, spedizione esclusa." : "TrackDash kit-only estimate, excluding shipping."}
             </p>
           </div>
         ) : null}
