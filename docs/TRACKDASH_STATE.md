@@ -8236,3 +8236,8 @@ Next SEO monitoring actions:
 3. re-inspect representative family + exact Release URLs;
 4. watch for the first Search Analytics impressions once settled data reaches 2026-10-02+;
 5. use those real impressions/queries to choose the next content/internal-linking SEO work.
+
+
+## 2026-10-11 — eBay weekly cadence rollout (not yet Production certified)
+
+A dedicated eBay-only dispatcher and independent 3/7/30 day cadence are prepared to replace the 28/42/84 day eBay ACTIVE policy. Retail remains on existing cadence. A successful production rollout requires: PR verification, Vercel READY/live SHA alignment, safe redistribution of 169 enabled eBay jobs, and inspection of the Dyna-Hawk GX 95467 first new scan. Existing ASK expires for current availability after 15 days; historical dated kit-only ASK remains context, not availability. No Market Method v4 change and no fabricated import estimates.
