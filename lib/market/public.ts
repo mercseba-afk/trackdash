@@ -234,6 +234,32 @@ export function toPublicMarketSignalView(
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
   const freshOffers = freshObservedOffers(observedOffers)
   const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId)
+  // A formerly observed ASK is valuable historical evidence, NOT proof that
+  // its listing is still purchasable. Preserve its dated KIT-ONLY component
+  // separately, without feeding stale quotes into the current-offer pipeline.
+  const nowMs = Date.now()
+  const historicalOffer = observedOffer ? null : [...observedOffers]
+    .filter((offer) => {
+      const price = numberOrNull(offer.itemPriceEUR)
+      const checkedMs = offer.lastCheckedAt instanceof Date
+        ? offer.lastCheckedAt.getTime()
+        : Date.parse(String(offer.lastCheckedAt))
+      return price != null && price > 0 &&
+        Number.isFinite(checkedMs) && checkedMs <= nowMs &&
+        nowMs - checkedMs <= 180 * DAY_MS
+    })
+    .sort((left, right) => {
+      const a = new Date(left.lastCheckedAt).getTime()
+      const b = new Date(right.lastCheckedAt).getTime()
+      return b - a || Number(left.itemPriceEUR) - Number(right.itemPriceEUR)
+    })[0] ?? null
+  const histItem = numberOrNull(historicalOffer?.itemPriceEUR)
+  const histShipping = numberOrNull(historicalOffer?.shippingEUR)
+  const histSubtotal = numberOrNull(historicalOffer?.effectiveCostEUR)
+  const verifiedHistSubtotal = histItem != null && histShipping != null &&
+    histShipping >= 0 && histSubtotal != null &&
+    Math.abs(histSubtotal - histItem - histShipping) < 0.025
+      ? histSubtotal : null
   const startingItemPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)
   const startingEffectiveCostEUR = numberOrNull(observedOffer?.effectiveCostEUR)
   const currentOfferCount = freshOffers.length
@@ -248,6 +274,7 @@ export function toPublicMarketSignalView(
     (retailAnchorEUR != null && retailAnchorEUR > 0) ||
     (activeAnchorEUR != null && activeAnchorEUR > 0) ||
     (soldAnchorEUR != null && soldAnchorEUR > 0) ||
+    (histItem != null && histItem > 0) ||
     currentOfferCount > 0 ||
     signal.soldUnits > 0 ||
     marketContextEvidenceCount > 0
@@ -280,6 +307,13 @@ export function toPublicMarketSignalView(
         ? observedOffer.channel
         : null,
     observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
+    historicalAskItemEUR: histItem != null && histItem > 0 ? histItem : null,
+    historicalAskShippingEUR: histShipping != null && histShipping >= 0 ? histShipping : null,
+    historicalAskObservedAt: historicalOffer
+      ? (historicalOffer.lastCheckedAt instanceof Date
+        ? historicalOffer.lastCheckedAt.toISOString() : String(historicalOffer.lastCheckedAt))
+      : null,
+    historicalAskItemPlusShippingEUR: verifiedHistSubtotal,
     retailSourceCount,
     activeOfferCount,
     currentOfferCount,
