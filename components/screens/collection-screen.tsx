@@ -221,11 +221,6 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                         <div className="mt-1.5 flex min-w-0 items-center gap-2 border-t border-border/60 pt-2">
                           <div className="min-w-0 flex-1">
                             <CollectionMarketValue entry={entry} it={it} />
-                            {entry.item.acquisitionPrice > 0 ? (
-                              <p className="mt-1.5 text-[10px] leading-tight text-muted-foreground">
-                                {it ? "Pagato" : "Paid"} {formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency)}
-                              </p>
-                            ) : null}
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
                             <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
@@ -305,25 +300,43 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
   )
 }
 
-// Collection previews communicate the Release's market direction first.
-// Purchase performance belongs in the copy detail, not on every compact card.
-// Only sealed copies can receive a numeric market value for the actual copy.
+// A percentage alone is not an explanation of market movement.
+// Show the actual two comparable SOLD windows only when their source audit
+// exactly matches the persisted collector trend. Never compute a historical
+// price backwards from today's MV or conflate the user's purchase performance.
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const collectorTrend = entry.marketTrend
+  const trend = signal?.soldTrendComparison ?? null
+  const trendPercent = entry.marketTrend
+  const canShowSoldTrend = trend != null && trendPercent != null
+  const trendPeriod = trend?.windowMonths === 12
+    ? (it ? "due periodi di 12 mesi" : "two 12-month periods")
+    : trend?.windowMonths === 6
+      ? (it ? "due periodi di 6 mesi" : "two 6-month periods")
+      : trend?.windowMonths === 3
+        ? (it ? "due periodi di 3 mesi" : "two 3-month periods")
+        : (it ? "due mesi consecutivi" : "two consecutive months")
 
-  const trend = collectorTrend == null ? null : (
-    <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] leading-tight">
-      <span className="font-medium text-muted-foreground">
-        {collectorTrend > 1
-          ? (it ? "Mercato in crescita" : "Market rising")
-          : collectorTrend < -1
-            ? (it ? "Mercato in calo" : "Market falling")
-            : (it ? "Mercato stabile" : "Market stable")}
-      </span>
-      <TrendIndicator value={collectorTrend} className="text-[11px]" />
-    </p>
-  )
+  const observedSoldTrend = canShowSoldTrend ? (
+    <div className="mt-2 border-t border-border/50 pt-2">
+      <p className="text-[10px] leading-tight text-muted-foreground">
+        {it ? "Prezzi medi delle vendite · " : "Average completed-sale prices · "}{trendPeriod}
+      </p>
+      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="text-xs font-medium tabular-nums text-foreground">
+          {formatMoney(trend.previousAverageEUR)} → {formatMoney(trend.recentAverageEUR)}
+        </span>
+        <TrendIndicator value={trendPercent} className="text-xs" />
+      </div>
+      <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+        {it ? "Confronto rilevato " : "Comparison recorded "}
+        {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(trend.capturedAt))}
+        {signal?.soldSellerCount === 1
+          ? (it ? " · campione di un venditore" : " · one-seller sample")
+          : ""}
+      </p>
+    </div>
+  ) : null
 
   if (entry.item.condition !== "Sealed") {
     return (
@@ -343,7 +356,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
       <div className="min-w-0">
         <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Valore stimato · sigillato" : "Estimated value · sealed"}</p>
         <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">≈ {formatMoney(entry.marketValue)}</p>
-        {trend}
+        {observedSoldTrend}
       </div>
     )
   }
@@ -361,12 +374,12 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">
           {observedKind === "sold" ? "≈ " : ""}{formatMoney(observedPrice)}
         </p>
-        {trend}
+        {observedSoldTrend}
       </div>
     )
   }
 
-  if (trend) return <div className="min-w-0">{trend}</div>
+  if (observedSoldTrend) return <div className="min-w-0">{observedSoldTrend}</div>
 
   if ((signal?.marketContextEvidenceCount ?? 0) > 0) return (
     <div className="min-w-0">
