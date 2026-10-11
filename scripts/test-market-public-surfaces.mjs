@@ -143,10 +143,11 @@ if (!marketOverview.includes("Valore stimato")) {
 if (!marketOverview.includes("observedMarketReferencePrice") || !marketOverview.includes("soldAnchorEUR")) {
   errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
-if (!marketOverview.includes(") : hasValue ? (")) {
-  errors.push("Release detail must not show a duplicate Market Value beside SOLD or current ASK")
+if (!marketOverview.includes("const reference = sold ?? mv") ||
+    !marketOverview.includes("observedMarketReferencePrice(signal)")) {
+  errors.push("Release detail must preserve a single SOLD-first or MV-fallback kit reference")
 }
-if (!marketOverview.includes("Prezzo richiesto osservato") || !marketOverview.includes("Vendite concluse")) {
+if (!marketOverview.includes("Prezzo richiesto · solo kit") || !marketOverview.includes("Vendite concluse")) {
   errors.push("Release detail must keep the two primary collector-facing price labels")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
@@ -161,12 +162,14 @@ if (!publicProjection.includes("historicalAskItemEUR: histItem") ||
     !publicProjection.includes("observedOffer ? null : [...observedOffers]")) {
   errors.push("Dated historical ASK must survive active offer TTL separately, with a strict 180-day evidence horizon")
 }
-if (!marketOverview.includes("Prezzi del solo kit · spedizione esclusa.") ||
-    !marketOverview.includes("Disponibilità da verificare") ||
+if (!marketOverview.includes("bg-muted/30") ||
+    !marketOverview.includes("Spedizione esclusa") ||
+    !marketOverview.includes("Ultimo osservato") ||
     !marketOverview.includes("historicalAskShippingEUR") ||
-    marketOverview.includes("bg-amber-50") ||
+    !marketOverview.includes("observedMarketOfferOrigin(signal)") ||
+    !marketOverview.includes('origin === "extra_eu"') ||
     marketOverview.includes("bg-emerald-50")) {
-  errors.push("Release overview must be one neutral two-row kit-only display, with historic offer date and separate shipping")
+  errors.push("Release overview must use one neutral stable layout, compact shipping and verified-region import flag")
 }
 const datedCollectionAnalytics = fs.readFileSync("lib/analytics.ts", "utf8")
 if (!datedCollectionAnalytics.includes("observedMarketReferencePrice(marketSignal)") ||
@@ -415,6 +418,29 @@ if (!wishlistPage.includes("fetchCatalogProductsByIds") || !wishlistScreen.inclu
 // Collection preview: the collectible market movement matters more than
 // tiny personal profit deltas. Copy paid amount stays discreet and the
 // underlying canonical market trend is never recomputed here.
+if (!collectionScreen.includes("CollectionMarketValue entry={entry} it={it}") ||
+    !collectionScreen.includes('entry.marketSignal.soldUnits > 0')) {
+  errors.push("Collection must show an evidence badge only when real SOLD exists")
+}
+if (!collectionScreen.includes("Riferimento mercato · kit sigillato") ||
+    !collectionScreen.includes("Prezzo richiesto · solo kit") ||
+    !collectionScreen.includes("Ultimo osservato") ||
+    !collectionScreen.includes("const mainPrice = mv ?? sold")) {
+  errors.push("Collection previews must have identical source-aware market and ASK rows, with dated historical ASK")
+}
+const marketOfferQuery = fs.readFileSync("lib/db/queries/market.ts", "utf8")
+const offerOrigin = fs.readFileSync("lib/market/offer-origin.ts", "utf8")
+if (!marketOfferQuery.includes("marketCandidates.rawPayload") ||
+    !marketOfferQuery.includes("priceSources.marketRegion") ||
+    !offerOrigin.includes("itemLocationCountry") ||
+    !publicProjection.includes("currentAskOrigin: classifyOfferOrigin(") ||
+    !publicProjection.includes("historicalAskOrigin: classifyOfferOrigin(")) {
+  errors.push("Offer region must be derived safely from original listing context for the same selected or historical ASK")
+}
+if (!marketOverview.includes("Extra-UE · possibili oneri d'importazione") ||
+    !marketOverview.includes("Spedizione esclusa")) {
+  errors.push("Shipping exclusion must be prominent and an extra-EU caution only conditional on verified origin")
+}
 const compactCollection = collectionScreen.split("function CollectionMarketValue(")[1]?.split("function EditDialog(")[0] ?? ""
 if (!compactCollection.includes("soldTrendComparison") ||
     !compactCollection.includes("previousAverageEUR") ||
