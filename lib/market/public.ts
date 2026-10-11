@@ -184,22 +184,12 @@ function startingFreshObservedOffer(
 ): CurrentObservedOfferRow | null {
   const fresh = freshObservedOffers(rows, asOf)
 
-  if (startingCandidateId) {
-    const exactStartingOffer = fresh.find((row) => row.candidateId === startingCandidateId)
-    if (exactStartingOffer) return exactStartingOffer
-  }
-
-  // Fallback only for legacy/incomplete rows: prefer a known delivered cost,
-  // then the lowest item price. Public pricing itself still comes from the
-  // canonical market_release_signals starting_* fields below.
-  return fresh.sort((a, b) => {
-    const aEffective = numberOrNull(a.effectiveCostEUR)
-    const bEffective = numberOrNull(b.effectiveCostEUR)
-    if (aEffective != null && bEffective != null && aEffective !== bEffective) return aEffective - bEffective
-    if (aEffective != null && bEffective == null) return -1
-    if (aEffective == null && bEffective != null) return 1
-    return Number(a.itemPriceEUR) - Number(b.itemPriceEUR)
-  })[0] ?? null
+  // Fail closed: only the Europe-first candidate explicitly selected by
+  // the canonical Market Method is allowed as public current ASK.
+  // A random fresh extra-EU offer may quote only local shipping and must
+  // NEVER be presented as a European purchasable price.
+  if (!startingCandidateId) return null
+  return fresh.find((row) => row.candidateId === startingCandidateId) ?? null
 }
 
 function deriveRecentSoldActivity(
