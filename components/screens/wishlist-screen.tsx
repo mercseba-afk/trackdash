@@ -11,7 +11,7 @@ import { formatMoney } from "@/lib/format"
 import { observedMarketAskLabel } from "@/lib/market/presentation"
 import type { Product, WishlistPriority } from "@/lib/types"
 import { ProductImage } from "@/components/catalog/product-image"
-import { RarityBadge, TrendIndicator } from "@/components/market-bits"
+import { RarityBadge } from "@/components/market-bits"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -55,15 +55,15 @@ export function WishlistScreen({ catalogProducts }: { catalogProducts: Product[]
         <Card className="flex-1 py-0"><CardContent className="flex items-center justify-between px-4 py-3"><span className="text-sm text-muted-foreground">{t("wishlist.complete")}</span><span className="text-lg font-semibold tabular-nums">{formatMoney(totalTarget)}</span></CardContent></Card>
         <Card className="flex-1 py-0"><CardContent className="flex items-center justify-between px-4 py-3"><span className="text-sm text-muted-foreground">{t("wishlist.targetPrice")}</span><span className="text-lg font-semibold tabular-nums text-success">{atTarget.length}</span></CardContent></Card>
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">{it ? "Il confronto con il target usa il Prezzo minimo richiesto tra gli annunci osservati quando disponibile. Il Valore stimato resta separato e viene mostrato solo quando TrackDash dispone di dati di mercato affidabili per la Release." : "Target matching uses the Lowest asking price among observed listings when available. Estimated value remains separate and is shown only when TrackDash has reliable market data for the Release."}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">{it ? "I prezzi di mercato sono riferiti al solo kit. Il budget viene confrontato con il totale kit + spedizione solo quando la spedizione è nota. Eventuali ulteriori oneri non documentati restano esclusi." : "Market prices refer to the kit only. Your budget is checked against kit + shipping only when shipping is known. Other undocumented charges are not included."}</p>
       <div className="grid gap-3">
         {sorted.map((entry) => <WishlistRow key={entry.item.id} entry={entry} onRemove={async () => { try { await removeFromWishlist(entry.item.id); toast.success(it ? `${entry.product.name} rimosso dai desideri` : `Removed ${entry.product.name} from wishlist`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }} onAcquire={async () => { try {
           const canonicalRelease = entry.release
             ?? entry.product.releases.find((release) => release.isOriginal)
             ?? [...entry.product.releases].sort((a, b) => (a.releaseYear ?? Number.MAX_SAFE_INTEGER) - (b.releaseYear ?? Number.MAX_SAFE_INTEGER))[0]
           if (!canonicalRelease) throw new Error(it ? "Nessuna Release canonica disponibile" : "No canonical Release available")
-          await moveWishlistToCollection(entry.item.id, { releaseId: canonicalRelease.id, condition: "New / Opened", acquisitionDate: new Date().toISOString(), acquisitionPrice: entry.item.targetPrice ?? entry.currentPrice ?? 0, acquisitionCurrency: "EUR" })
-          toast.success(it ? "Spostato nella collezione" : "Moved to collection", { description: entry.product.name })
+          await moveWishlistToCollection(entry.item.id, { releaseId: canonicalRelease.id, condition: "New / Opened", acquisitionDate: new Date().toISOString(), acquisitionPrice: 0, acquisitionCurrency: "EUR" })
+          toast.success(it ? "Spostato nella collezione" : "Moved to collection", { description: it ? "Inserisci nel dettaglio il prezzo realmente pagato." : "Enter the actual amount paid in the copy details." })
         } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile spostarlo nella collezione" : "Couldn't move this item to your collection") } }} />)}
       </div>
     </div>
@@ -90,16 +90,27 @@ function WishlistRow({ entry, onRemove, onAcquire }: { entry: EnrichedWishlistIt
 }
 
 function MarketReadout({ entry, it, marketLabel }: { entry: EnrichedWishlistItem; it: boolean; marketLabel: string }) {
-  if (entry.marketValue != null) {
-    return <span className="inline-flex items-center gap-1">{marketLabel} <span className="font-medium text-foreground">{formatMoney(entry.marketValue)}</span>{entry.marketSignal?.trendPercent != null ? <TrendIndicator value={entry.marketSignal.trendPercent} className="text-xs" /> : null}{entry.currentPrice != null ? <span>· {observedMarketAskLabel(entry.marketSignal, it)} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span> : null}</span>
+  const hasAsk = entry.askingItemPrice != null
+  if (entry.marketValue == null && !hasAsk) {
+    return <span>{entry.marketSignal
+      ? (it ? "Mercato in osservazione" : "Market under observation")
+      : (it ? "Dati di mercato in verifica" : "Market data under review")}</span>
   }
-  if (entry.currentPrice != null) {
-    return <span className="inline-flex items-center gap-1">{observedMarketAskLabel(entry.marketSignal, it)} <span className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</span></span>
-  }
-  if (entry.marketSignal) {
-    return <span>{it ? "Mercato in osservazione" : "Market under observation"}</span>
-  }
-  return <span>{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
+  return (
+    <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
+      {entry.marketValue != null ? (
+        <span>{marketLabel} · {it ? "solo kit" : "kit only"} <strong className="font-medium text-foreground">{formatMoney(entry.marketValue)}</strong></span>
+      ) : null}
+      {hasAsk ? (
+        <span>{observedMarketAskLabel(entry.marketSignal, it)} <strong className="font-medium text-foreground">{formatMoney(entry.askingItemPrice!)}</strong></span>
+      ) : null}
+      {entry.currentPrice != null ? (
+        <span>{it ? "Kit + spedizione indicata" : "Kit + listed shipping"} <strong className="font-medium text-foreground">{formatMoney(entry.currentPrice)}</strong></span>
+      ) : hasAsk ? (
+        <span>{it ? "Spedizione da verificare" : "Shipping to be verified"}</span>
+      ) : null}
+    </span>
+  )
 }
 
 function PageHeader() { const { t } = useI18n(); return <div className="flex flex-col gap-1"><h1 className="text-2xl font-semibold tracking-tight">{t("wishlist.title")}</h1><p className="text-sm text-muted-foreground">{t("wishlist.subtitle")}</p></div> }

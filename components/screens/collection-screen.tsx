@@ -151,8 +151,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "Il valore della collezione usa il Market Value canonico quando disponibile e, in alternativa, il prezzo richiesto corrente osservato per la stessa Release. I riferimenti da vendite concluse restano visibili sulla singola Release ma non vengono sommati al totale. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
-      : "Collection value uses canonical Market Value when available and otherwise the current observed asking price for the same Release. Completed-sale references remain visible on the individual Release but are not added to the total. We do not apply arbitrary discounts to Opened, Built, Used or Incomplete copies. USD, JPY and GBP purchases are normalized to EUR using historical ECB rates."}
+      ? "Il riferimento della collezione usa le stime di mercato quando disponibili e, altrimenti, il prezzo richiesto osservato per il solo kit. Nessuna spedizione viene sommata al valore delle copie. Le singole vendite concluse senza una stima restano visibili nel dettaglio Release, ma non vengono sommate al totale. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
+      : "The Collection reference uses Market Value when available, otherwise the observed asking price of the kit alone. Shipping is never added to the value of owned copies. Completed sales without an estimate remain visible on Release detail but are not added to the total. We do not apply arbitrary discounts to Opened, Built, Used or Incomplete copies. USD, JPY and GBP purchases are normalized to EUR using historical ECB rates."}
   </p>
 ) : null}
             </div>
@@ -221,11 +221,6 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                         <div className="mt-1.5 flex min-w-0 items-center gap-2 border-t border-border/60 pt-2">
                           <div className="min-w-0 flex-1">
                             <CollectionMarketValue entry={entry} it={it} />
-                            {entry.item.acquisitionPrice > 0 ? (
-                              <p className="mt-1.5 text-[10px] leading-tight text-muted-foreground">
-                                {it ? "Pagato" : "Paid"} {formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency)}
-                              </p>
-                            ) : null}
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
                             <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
@@ -282,11 +277,11 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           </div>
 
           <div className="mt-7">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore della collezione · copie sigillate" : "Collection value · sealed copies"}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore indicativo · copie sigillate" : "Indicative value · sealed copies"}</p>
 <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"}</p>
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
   {summary.marketReferenceCount}/{summary.sealedCount} {it ? "copie sigillate con un riferimento di mercato disponibile" : "sealed copies with an available market reference"}.
-  <span> {it ? "Il totale usa il Market Value quando disponibile e, in alternativa, il prezzo richiesto corrente osservato per la Release. Copie aperte, montate, usate o incomplete restano escluse." : "The total uses Market Value when available and otherwise the current observed asking price for the Release. Opened, built, used or incomplete copies remain excluded."}</span>
+  <span> {it ? "Il totale combina stime e, quando mancano, prezzi richiesti per il solo kit: non è un ricavo garantito né include la spedizione. Copie aperte, montate, usate o incomplete restano escluse." : "The total combines market estimates and, when missing, kit-only asking prices: it is not a guaranteed resale amount and does not include shipping. Opened, built, used or incomplete copies remain excluded."}</span>
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
@@ -305,25 +300,43 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
   )
 }
 
-// Collection previews communicate the Release's market direction first.
-// Purchase performance belongs in the copy detail, not on every compact card.
-// Only sealed copies can receive a numeric market value for the actual copy.
+// A percentage alone is not an explanation of market movement.
+// Show the actual two comparable SOLD windows only when their source audit
+// exactly matches the persisted collector trend. Never compute a historical
+// price backwards from today's MV or conflate the user's purchase performance.
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const collectorTrend = entry.marketTrend
+  const trend = signal?.soldTrendComparison ?? null
+  const trendPercent = entry.marketTrend
+  const canShowSoldTrend = trend != null && trendPercent != null
+  const trendPeriod = trend?.windowMonths === 12
+    ? (it ? "due periodi di 12 mesi" : "two 12-month periods")
+    : trend?.windowMonths === 6
+      ? (it ? "due periodi di 6 mesi" : "two 6-month periods")
+      : trend?.windowMonths === 3
+        ? (it ? "due periodi di 3 mesi" : "two 3-month periods")
+        : (it ? "due mesi consecutivi" : "two consecutive months")
 
-  const trend = collectorTrend == null ? null : (
-    <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] leading-tight">
-      <span className="font-medium text-muted-foreground">
-        {collectorTrend > 1
-          ? (it ? "Mercato in crescita" : "Market rising")
-          : collectorTrend < -1
-            ? (it ? "Mercato in calo" : "Market falling")
-            : (it ? "Mercato stabile" : "Market stable")}
-      </span>
-      <TrendIndicator value={collectorTrend} className="text-[11px]" />
-    </p>
-  )
+  const observedSoldTrend = canShowSoldTrend ? (
+    <div className="mt-2 border-t border-border/50 pt-2">
+      <p className="text-[10px] leading-tight text-muted-foreground">
+        {it ? "Prezzi medi delle vendite · " : "Average completed-sale prices · "}{trendPeriod}
+      </p>
+      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="text-xs font-medium tabular-nums text-foreground">
+          {formatMoney(trend.previousAverageEUR)} → {formatMoney(trend.recentAverageEUR)}
+        </span>
+        <TrendIndicator value={trendPercent} className="text-xs" />
+      </div>
+      <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+        {it ? "Confronto rilevato " : "Comparison recorded "}
+        {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(trend.capturedAt))}
+        {signal?.soldSellerCount === 1
+          ? (it ? " · campione di un venditore" : " · one-seller sample")
+          : ""}
+      </p>
+    </div>
+  ) : null
 
   if (entry.item.condition !== "Sealed") {
     return (
@@ -343,7 +356,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
       <div className="min-w-0">
         <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Valore stimato · sigillato" : "Estimated value · sealed"}</p>
         <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">≈ {formatMoney(entry.marketValue)}</p>
-        {trend}
+        {observedSoldTrend}
       </div>
     )
   }
@@ -355,18 +368,18 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
       <div className="min-w-0">
         <p className="text-[11px] leading-tight text-muted-foreground">
           {observedKind === "ask"
-            ? (it ? "Prezzo richiesto più basso · sigillato" : "Lowest asking price · sealed")
+            ? (it ? "Prezzo richiesto · solo kit" : "Asking price · kit only")
             : (it ? "Vendite concluse · kit sigillati" : "Completed sales · sealed kits")}
         </p>
         <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">
           {observedKind === "sold" ? "≈ " : ""}{formatMoney(observedPrice)}
         </p>
-        {trend}
+        {observedSoldTrend}
       </div>
     )
   }
 
-  if (trend) return <div className="min-w-0">{trend}</div>
+  if (observedSoldTrend) return <div className="min-w-0">{observedSoldTrend}</div>
 
   if ((signal?.marketContextEvidenceCount ?? 0) > 0) return (
     <div className="min-w-0">

@@ -146,16 +146,32 @@ if (!marketOverview.includes("observedMarketPrice") || !marketOverview.includes(
 if (!marketOverview.includes("!hasSold && !hasAsk && hasValue")) {
   errors.push("Release detail must not show a duplicate Market Value beside SOLD or current ASK")
 }
-if (!marketOverview.includes("Prezzo richiesto più basso") || !marketOverview.includes("Vendite concluse")) {
+if (!marketOverview.includes("Prezzo richiesto · solo kit") || !marketOverview.includes("Vendite concluse")) {
   errors.push("Release detail must keep the two primary collector-facing price labels")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
   errors.push("Release price card must not show distracting numeric trend values beside SOLD and ASK")
 }
+const priceBasis = fs.readFileSync("lib/market/presentation.ts", "utf8")
+if (!priceBasis.includes("return signal?.startingItemPriceEUR ?? null") ||
+    !priceBasis.includes("startingCostBasis !== \"delivered\"") ||
+    !priceBasis.includes("observedMarketKnownPurchaseCost")) {
+  errors.push("Public market must compare kit-only headline prices and keep known shipping separate")
+}
+const wishlistAnalytics = fs.readFileSync("lib/analytics.ts", "utf8")
+if (!wishlistAnalytics.includes("observedMarketKnownPurchaseCost(marketSignal)") ||
+    !wishlistAnalytics.includes("askingItemPrice")) {
+  errors.push("Wishlist target must fail closed for unknown delivery quote while keeping kit-only ASK visible")
+}
+const wishlist = fs.readFileSync("components/screens/wishlist-screen.tsx", "utf8")
+if (!wishlist.includes("Spedizione da verificare") ||
+    !wishlist.includes("Kit + spedizione indicata")) {
+  errors.push("Wishlist must distinguish asking price of kit from known item+shipping quote")
+}
 const marketPresentation = fs.readFileSync("lib/market/presentation.ts", "utf8")
 for (const requiredSellerAskCopy of [
-  "Prezzo richiesto più basso",
-  "Lowest asking price",
+  "Prezzo richiesto · solo kit",
+  "Asking price · kit only",
   "Trend prezzi richiesti",
   "Asking price trend",
   "annuncio attivo osservato",
@@ -249,6 +265,13 @@ if (publicMarket.includes("unstable_cache") || publicMarket.includes("listCached
 if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listSafeMarketContextEvidence")) {
   errors.push("Public market service is not carrying safe historical context evidence through the trusted server boundary")
 }
+// A fresh offer can still be Japan-only or a legacy row. Never bypass the
+// Europe-first canonical source selection to fabricate a public "from" price.
+if (!publicMarket.includes("if (!startingCandidateId) return null") ||
+    !publicMarket.includes("fresh.find((row) => row.candidateId === startingCandidateId) ?? null") ||
+    publicMarket.includes("return fresh.sort((a, b) =>")) {
+  errors.push("Public ASK may not fallback to an arbitrary fresh (possibly extra-EU) offer")
+}
 if (
   !publicMarket.includes("const startingItemPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)") ||
   !publicMarket.includes("const startingEffectiveCostEUR = numberOrNull(observedOffer?.effectiveCostEUR)")
@@ -262,10 +285,10 @@ if (
   errors.push("Public market service can expose a current-offer anchor after its supporting channel has no fresh offers")
 }
 
-const startingEffectiveIndex = marketPresentation.indexOf("startingEffectiveCostEUR")
-const startingItemIndex = marketPresentation.indexOf("startingItemPriceEUR", startingEffectiveIndex)
-if (startingEffectiveIndex < 0 || startingItemIndex < 0 || startingEffectiveIndex > startingItemIndex) {
-  errors.push("Shared market presentation must prefer fresh delivered cost before fresh item-only price")
+if (!marketPresentation.includes("return signal?.startingItemPriceEUR ?? null") ||
+    !marketPresentation.includes("observedMarketKnownPurchaseCost") ||
+    !marketPresentation.includes('startingCostBasis !== "delivered"')) {
+  errors.push("Shared presentation must use kit-only ASK and separate any known item+shipping quote")
 }
 if (
   marketPresentation.includes("?? signal?.activeAnchorEUR") ||
@@ -369,19 +392,27 @@ if (!wishlistPage.includes("fetchCatalogProductsByIds") || !wishlistScreen.inclu
 // tiny personal profit deltas. Copy paid amount stays discreet and the
 // underlying canonical market trend is never recomputed here.
 const compactCollection = collectionScreen.split("function CollectionMarketValue(")[1]?.split("function EditDialog(")[0] ?? ""
-if (!compactCollection.includes("Mercato in crescita") ||
-    !compactCollection.includes("Mercato in calo") ||
-    !compactCollection.includes("<TrendIndicator value={collectorTrend}")) {
-  errors.push("Collection cards must show legible canonical collector market direction and percent")
+if (!compactCollection.includes("soldTrendComparison") ||
+    !compactCollection.includes("previousAverageEUR") ||
+    !compactCollection.includes("recentAverageEUR") ||
+    !compactCollection.includes("<TrendIndicator value={trendPercent}")) {
+  errors.push("Collection trend must disclose the exact compared SOLD averages, never an unexplained percent")
 }
 if (compactCollection.includes("personalGainEUR") ||
     compactCollection.includes("observedDirection") ||
     compactCollection.includes("hasReliableObservedPriceTrend")) {
   errors.push("Collection card still shows distracting purchase profit or ASK trend")
 }
-if (!collectionScreen.includes("entry.item.acquisitionPrice > 0 ? (") ||
-    !collectionScreen.includes('text-[10px] leading-tight text-muted-foreground')) {
-  errors.push("Collection paid cost must be subtle and optional")
+if (collectionScreen.includes('it ? "Pagato" : "Paid"') ||
+    compactCollection.includes("acquisitionPrice") ||
+    compactCollection.includes("personalGainEUR")) {
+  errors.push("Collection cards must not invite confusion between a personal purchase and historical SOLD performance")
+}
+const publicMarketProjection = fs.readFileSync("lib/market/public.ts", "utf8")
+if (!publicMarketProjection.includes("publishedSoldTrendComparison(") ||
+    !publicMarketProjection.includes("listCollectorTrendAuditRows(") ||
+    !publicMarketProjection.includes("soldTrendComparison,")) {
+  errors.push("Public market projection must expose only provenance-validated SOLD comparison windows")
 }
 
 // Notification bell: unread only, and reading the matching conversation

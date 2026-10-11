@@ -65,6 +65,8 @@ Vale anche il principio opposto:
 **DATO REALE DISPONIBILE > “DATI DI MERCATO IN ARRIVO” CAUSATO DA REGOLE TROPPO RIGIDE**
 Non aspettare arbitrariamente 5 o 10 SOLD prima di mostrare un'informazione utile.
 
+**Regola del trend comprensibile in Collection (2026-10-11):** non mostrare più il `trendPercent` isolato o accanto al «Pagato» perché si può scambiare per guadagno personale. La Collection usa SOLO un confronto reale e attribuibile di **due medie SOLD**, già registrato in `market_aggregate_observations.raw_payload.trend_evidence` con le cifre medie precedenti e recenti, numero vendite, ampiezza delle due finestre e data dell'analisi. La proiezione pubblica normalizza e convalida **corrispondenza esatta con `market_release_signals.trend_percent`, `trend_window_months`, `trend_basis='sold'` e `trend_updated_at`**, più coerenza matematica (tollerando solo arrotondamenti). Le sole informazioni sintetiche convalidate attraversano il boundary server→client; raw audit resta privato. In anteprima: «Valore stimato · sigillato ≈ €14,92», «Prezzi medi delle vendite · due periodi di 3 mesi», «€12,45 → €14,92 ↑ +19,9%», «Confronto rilevato set 2026 · campione di un venditore» se pertinente; NON mostrare in questa card prezzo pagato né delta personale. Quando mancano medie SOLD verificabili non mostrare percentuali disancorate, neanche se il segnale canonico conserva il trend per altri usi. Non dedurre la base dal Market Value corrente, dal costo personale o da ASK. La logica del Price Engine v4, trend calcolato, persistenza delle direzioni e valutazione portafoglio restano invariati.
+
 **Regola permanente di elasticità veritiera:** una vendita conclusa **recente, realmente osservata, correttamente attribuita all'edizione e alle condizioni della Release**, inclusa una singola vendita, è una prova di mercato utilizzabile e deve essere presentata come **Vendite concluse** (≈, con conteggio), anche se il Market Value canonico rimane NULL. Il numero minimo di vendite e la corroborazione sono gate della **stima Market Value**, non della **visibilità SOLD**. Non promuovere ASK, aste non aggiudicate, inserzioni ambigue, lotti, copie montate o ristampe non distinguibili a SOLD della Release esatta; non inventare costi di spedizione, dogana, quantità o cambio EUR. Conservare prezzi e provenienza in valuta d'origine e usare soltanto FX storici verificati. Nel dettaglio/anteprime mostrare ASK solo se l'offerta è ancora TTL-valida; non usare anchor retail/ASK memorizzati come fallback di offerte attuali.
 Quando esiste mercato reale ma non ancora abbastanza robusto per un Market Value, utilizzare:
 **Prezzo minimo richiesto \~€XX**
@@ -109,15 +111,15 @@ Superfici incluse:
 
 Regole permanenti di presentazione:
 - **Market Value**: usare esclusivamente `valueEUR`; non sostituirlo con ASK o SOLD.
-- **Prezzo richiesto corrente (ASK)**: usare il selettore condiviso `observedMarketPrice`, con priorità canonica a starting delivered cost.
+- **Prezzo richiesto corrente (ASK)**: usare il selettore condiviso `observedMarketPrice` per il **solo kit** in EUR, dalla stessa offerta selezionata dal motore Europe-first e ancora TTL-valida. Il motore può continuare a scegliere l'offerta per costo d'acquisto, ma non va chiamato «ASK più basso del solo kit» se non è stato verificato il minimo assoluto del prezzo articolo.
 - **Fallback visuale SOLD**: quando non esistono MV/ASK ma esiste `soldAnchorEUR`, può essere mostrato tramite `observedMarketDisplayPrice` come riferimento da vendite concluse, con semantica approssimativa `≈`.
 - Il fallback SOLD è **solo display**: non deve entrare nel valore portafoglio, performance personale o logica target-price Wishlist.
-- **Wishlist**: il confronto con target price resta ASK-only, perché rappresenta un possibile prezzo di acquisto, non un prezzo storico venduto.
+- **Wishlist**: un target d'acquisto va confrontato SOLO con `observedMarketKnownPurchaseCost` (prezzo kit + spedizione effettivamente indicata sulla stessa offerta europea selezionata), mai con il solo prezzo del kit quando la spedizione non è nota. Importazione o IVA non documentate non sono incluse e non si possono presumere. Il valore stimato e il SOLD non sono prezzi di acquisto.
 - **Collector trend**: usare soltanto `trendPercent` + `trendWindowMonths` + `trendBasis` (SOLD/MV).
 - **ASK trend**: resta separato e può essere mostrato soltanto con le guardie condivise; non usare `askTrendWindowDays` per etichettare un collector trend.
 - ASK non è SOLD; SOLD non è MV. Le tre semantiche devono rimanere visivamente e logicamente distinte.
 - ASK deve essere mostrato come prezzo richiesto, senza prefisso `≈`; SOLD come riferimento da vendite concluse con `≈`.
-- **Dettaglio Release / dettaglio copia:** mostrare in primo piano SOLO **Vendite concluse** (SOLD, ≈) e **Prezzo richiesto più basso** (ASK TTL-valido), quando presenti; non ripetere il Market Value come terza cifra se corrisponde al SOLD. Se né SOLD né ASK sono disponibili, mantenere il fallback al Market Value canonico, quando esiste, oppure «Mercato in osservazione». È una scelta di presentazione, NON una sostituzione del Market Value in Collection, Market, Wishlist e altri calcoli. Nessun trend numerico aggiuntivo nel box mercato del dettaglio.
+- **Dettaglio Release / dettaglio copia:** mostrare in primo piano SOLO **Vendite concluse** (SOLD, ≈, solo kit) e **Prezzo richiesto · solo kit** (ASK TTL-valido, dall'offerta Europe-first selezionata), quando presenti; non ripetere il Market Value come terza cifra se corrisponde al SOLD. Se né SOLD né ASK sono disponibili, mantenere il fallback al Market Value canonico, quando esiste, oppure «Mercato in osservazione». È una scelta di presentazione, NON una sostituzione del Market Value in Collection, Market, Wishlist e altri calcoli. Nessun trend numerico aggiuntivo nel box mercato del dettaglio.
 
 - **Anteprima della Collection (non il dettaglio):** mostrare la cifra principale utile a quella copia (MV per sigillati; in alternativa un SOLO riferimento di mercato corrente, ASK o SOLD con semantica distinta), poi **trend collezionistico canonico con direzione esplicita** «Mercato in crescita / Mercato in calo / Mercato stabile» e percentuale, SOLO quando esiste `trendPercent` affidabile. Prezzo effettivamente pagato in testo molto piccolo, opzionale. NON mostrare qui `personalGainEUR` (+0,72 €/−0,08 €), doppioni ASK aggiuntivi, `askTrendPercent` o altri indicatori tecnici; guadagno/perdita personale e dati completi stanno nel dettaglio della copia. Non inventare trend o svalutazioni per copie aperte: il mercato di riferimento riguarda kit nuovi/sigillati.
 
@@ -548,6 +550,21 @@ Propagare quando possibile il marketplace reale:
 - ecc.
 
 Non trattare tutto come genericamente `global` se la regione è nota.
+
+---
+
+# REGOLA DEFINITIVA DI COMPARABILITÀ (2026-10-11)
+
+**Sono due dimensioni economiche, NON due stime concorrenti:**
+
+1. **Quanto vale il kit**: `Market Value` e SOLD (solo articolo, EUR, al netto della spedizione quando verificabile) e ASK pubblico (prezzo del solo articolo sulla stessa offerta qualificata). Le tre etichette rimangono distinte: SOLD è transato, ASK è richiesto, MV è una stima. Collection aggrega soltanto MV e, come riferimento alternativo chiaramente etichettato, ASK kit-only di copie sigillate; non somma spedizioni al valore dei beni posseduti.
+2. **Quanto costa comprarlo**: prezzo articolo + **spedizione indicata/effettivamente pertinente all'offerta**, solo quando documentata e aritmeticamente verificata; eventuale IVA/dogana/oneri ulteriori solo quando documentati. Il totale `kit + spedizione indicata` non è automaticamente un prezzo **finale consegnato in Italia**. Se la spedizione manca, non calcolare il totale e non mostrare un target/badge Wishlist raggiunto per un budget d'acquisto. Non stimare la spedizione per media di altre vendite.
+
+**Regola geografica:** i prezzi di origine giapponese/USA restano evidenze reali del mercato di origine. Un extra-UE con costo d'importazione sconosciuto non può apparire come «disponibile da» europeo. Se il motore Europe-first non ha un `starting_offer_candidate_id` attuale e verificato, il frontend NON deve fare fallback a un annuncio fresco casuale; conserva SOLD/MV/storico come prove, ma non inventa un prezzo ASK europeo.
+
+**Convenzione UX:** nella preview mostrare massimo un numero principale, con il qualificatore `solo kit` dove serve; il dettaglio Release distingue SOLD e ASK, mostra spese e subtotale solo se attendibili e lascia le spiegazioni lunghe fuori dalla preview. I trend % mostrati nella Collection hanno SOLO basi SOLD documentate (media precedente → media recente) e mai correlazioni implicite con ASK o Pagato. In ogni pagina il riferimento di prezzo del solo kit ha la stessa definizione.
+
+**Compatibilità:** questa è una normalizzazione di proiezione/prezzi mostrati e logica budget dell'acquisto, NON un cambiamento a `Market Method v4`, fonti SOLD, valori canonici, cron o sicurezza. Qualunque futura modifica al modo in cui il v4 pondera ASK con shipping richiede un audit separato, test espliciti e versione di metodo.
 
 ---
 
