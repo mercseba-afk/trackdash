@@ -282,7 +282,9 @@ if (!analyticsSource.includes("marketValue ?? observedPrice")) {
 if (!analyticsSource.includes("marketValue != null") || !analyticsSource.includes("personalGainEUR")) {
   errors.push("Personal Collection performance is no longer restricted to canonical Market Value")
 }
-if (!collectionScreen.includes("Valore della copia non stimato")) {
+if (!collectionScreen.includes("Copia non stimata") ||
+    !collectionScreen.includes('const sealed = entry.item.condition === "Sealed"') ||
+    !collectionScreen.includes("const mv = sealed ? entry.marketValue : null")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
 }
 if (!collectionScreen.includes("Riferimento mercato") ||
