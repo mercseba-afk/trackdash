@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — TRANSPARENT SOLD TREND COMPARISONS IN COLLECTION
+
+- User identified a real semantic trap in the current Collection preview: 95467 Dyna-Hawk shows `market_value_eur=14.92`, `trend_percent=+19.86` and personal paid €15 next to each other, suggesting the user gained 19.9% even though personal purchase performance is −€0.08. The separate ~€58 current seller ASK is NOT the origin of the percentage.
+- Live evidence audit identifies exact provenance for trend, captured 2026-09-10: **8 SOLD in previous 3-month window average €12.45 (Mar–Jun 2026)** vs **5 SOLD in later 3-month window average €14.92 (Jun–Sep 2026)**, variation +19.86%. The Dyna R3 v4 MV is €14.92, SOLD sample's known `sold_seller_count=1` means single-seller concentration, not a broad market index.
+- Two other persisted trends: 95061 Avante Pink Special negative 12-month SOLD from annual average €55.875 to €41.0925, −26.46%; 95525 Asia Challenge positive 12-month SOLD from €38.995 to €48.7867, +25.11%. They are NOT necessarily equal to the current MV. Trend is historical SOLD direction, not personal gain nor ASK.
+- Compact Collection card removes the **paid-price** line altogether, and shows a trend percentage ONLY beside source-verified *before → after* SOLD averages with period length, capture month and (when known) concentration in one seller. No separate «Mercato in crescita» percentage without reference, no inference of the baseline from present MV. The stored v4 trend and portfolio math are unchanged.
+- Small trusted server projection validates the audit's `raw_payload.trend_evidence` against the exact canonical persisted trend's percentage, period, SOLD basis, provenance capture timestamp and arithmetic, then sends only normalized comparison information to the client. This is not a new pricing engine, not new ingestion, not a DB migration; absence/mismatch of provenance means **no percent shown in Collection card**.
+- Tests defend 95467 and 95525 provenance/periods and malformed/mismatched/dated evidence.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — COLLECTION TREND-FIRST CARDS + UNREAD-ONLY NOTIFICATIONS
 
 - Collector-facing Collection card UX: **main sealed-only market reference + canonical collector trend with literal rising/falling/stable Italian/English copy + optional subtle paid amount**. The purchase gain/loss delta in EUR and duplicate secondary asking-price line are hidden in cards only; personal performance remains in the copy detail and under Collection details. Avoid showing a market value for opened/built/used/incomplete copies, since no condition-adjusted valuation evidence exists. Price Engine, Collection total calculation, condition restrictions, Market Method v4, trends and historical FX untouched.
