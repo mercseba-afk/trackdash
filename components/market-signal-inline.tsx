@@ -12,6 +12,7 @@ import {
   observedMarketDisplayLabel,
   observedMarketDisplayPrice,
   observedMarketDisplayEvidenceLabel,
+  observedMarketPrice,
 } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
@@ -41,11 +42,9 @@ export function MarketSignalInline({
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
   const observedPrice = observedMarketDisplayPrice(signal)
   const hasObservedPrice = observedPrice != null && observedPrice > 0
-  const askPrice = signal.startingEffectiveCostEUR
-    ?? signal.startingItemPriceEUR
-    ?? signal.retailAnchorEUR
-    ?? signal.activeAnchorEUR
-    ?? null
+  // Only TTL-verified, currently purchasable offers may appear as ASK.
+  // Never let a stale materialized retail/active anchor obscure a real SOLD.
+  const askPrice = observedMarketPrice(signal)
   const hasAsk = askPrice != null && askPrice > 0
   const soldPrice = signal.soldAnchorEUR
   const hasSold = soldPrice != null && soldPrice > 0
