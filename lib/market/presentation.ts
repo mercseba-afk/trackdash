@@ -20,8 +20,14 @@ export function observedMarketKnownPurchaseCost(
   signal?: ReleaseMarketSignalView | null,
 ): number | null {
   if (signal?.startingCostBasis !== "delivered") return null
+  const item = observedMarketPrice(signal)
+  const shipping = signal.observedShippingEUR
   const total = signal.startingEffectiveCostEUR
-  return total != null && Number.isFinite(total) && total > 0 ? total : null
+  if (item == null || !Number.isFinite(item) || item <= 0 ||
+      shipping == null || !Number.isFinite(shipping) || shipping < 0 ||
+      total == null || !Number.isFinite(total) || total <= 0 ||
+      Math.abs(total - item - shipping) > 0.025) return null
+  return total
 }
 
 export function observedMarketKnownShipping(
