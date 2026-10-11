@@ -436,6 +436,15 @@ if (!collectionScreen.includes("Riferimento mercato") ||
     !collectionScreen.includes("const mainPrice = mv ?? sold")) {
   errors.push("Collection previews must have identical source-aware market and ASK rows, with dated historical ASK")
 }
+if (!collectionScreen.includes("flex h-full min-w-0 flex-row") ||
+    collectionScreen.includes("flex h-full min-w-0 flex-col sm:flex-row") ||
+    !collectionScreen.includes("w-[clamp(96px,27vw,148px)]") ||
+    !collectionScreen.includes("grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto]")) {
+  errors.push("Collection cards must keep a compact image-left, information-right layout on mobile with prices wrapping inside the content column")
+}
+if (!productDetailScreen.includes("md:grid-cols-[176px_minmax(0,1fr)]")) {
+  errors.push("Catalog Release previews must preserve the image-above mobile layout")
+}
 const marketOfferQuery = fs.readFileSync("lib/db/queries/market.ts", "utf8")
 const offerOrigin = fs.readFileSync("lib/market/offer-origin.ts", "utf8")
 if (!marketOfferQuery.includes('admin.from("market_candidates")') && !marketOfferQuery.includes('.from("market_candidates")') ||
