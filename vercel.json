@@ -4,10 +4,7 @@
     {
       "path": "/api/cron/market-scan",
       "schedule": "17 3 * * *"
-    },
-    {
-      "path": "/api/cron/ebay-scan",
-      "schedule": "41 */3 * * *"
+
     }
   ],
   "git": {
