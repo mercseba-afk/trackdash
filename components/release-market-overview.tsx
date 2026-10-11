@@ -44,7 +44,7 @@ export function ReleaseMarketOverview({
         <div className="divide-y divide-border/60 rounded-xl border border-border/70 bg-background/80">
           <div className="flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">{it ? "Riferimento mercato · solo kit" : "Market reference · kit only"}</p>
+              <p className="text-sm font-medium">{it ? "Riferimento mercato" : "Market reference"}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {sold != null
                   ? (it
@@ -61,14 +61,14 @@ export function ReleaseMarketOverview({
           </div>
           <div className="flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">{it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"}</p>
+              <p className="text-sm font-medium">{it ? "Offerta sul mercato" : "Market offer"}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {ask == null
-                  ? (it ? "Nessun prezzo osservato" : "No asking price observed")
+                  ? (it ? "Nessuna offerta osservata" : "No offer observed")
                   : historical
                     ? (it
-                      ? `Ultimo osservato${date ? ` · ${date}` : ""} · da verificare`
-                      : `Last observed${date ? ` · ${date}` : ""} · unverified`)
+                      ? `Ultima offerta osservata${date ? ` · ${date}` : ""} · da verificare`
+                      : `Last observed offer${date ? ` · ${date}` : ""} · unverified`)
                     : (it ? "Offerta verificata di recente" : "Recently verified offer")}
               </p>
             </div>
