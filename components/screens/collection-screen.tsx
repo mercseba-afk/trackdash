@@ -332,7 +332,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         </p>
         <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
           {!sealed
-            ? (it ? "La tua copia non è sigillata: valore non stimato" : "Your copy is not sealed: value not estimated")
+            ? (it ? "Valore della copia non stimato: non sigillata" : "Copy value not estimated: not sealed")
             : mv != null
               ? (it ? "Stima TrackDash" : "TrackDash estimate")
               : sold != null
