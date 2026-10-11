@@ -7,6 +7,15 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — CATALOGUE + COLLECTION UI REDESIGN LIVE ON PRODUCTION
+
+- **Released:** PR #407 (UI-only) squash-merged into GitHub `main` as `df8a65ca70ab9efdce20cebb57af8def4a7d90ec`.
+- **Vercel:** Production deployment `dpl_8d52ZxVNtXY8CWPcwrEAyjvZ7hu5` reached READY and was assigned to `trackdash.it`; live `https://trackdash.it/api/version` returned exactly `df8a65ca70ab9efdce20cebb57af8def4a7d90ec` (HTTP 200). Preview for complete pre-merge code `5687a8ef970d4d928810835a9ba53a1d5690a37c` also READY and reported its exact version.
+- **UI scope:** full-width consistent soft-blue market price preview panels for Catalog Releases, including no-data cases; improved responsive Collection cards and price boxes, positive documented-sales trend subpanel. Files: `components/market-price-panel-shell.tsx`, `components/market-signal-inline.tsx`, `components/screens/product-detail-screen.tsx`, `components/screens/collection-screen.tsx`.
+- **Quality:** `pnpm verify` passed twice, independent typecheck passed, full isolated Next.js build with dummy/test-only env passed; Vercel Preview and Production real builds READY. Public `/catalog/avante-mk-iii` returned HTTP 200 with both labels and new panel classes. Authenticated Collection visual/click-path QA in a real browser was not performed; monitor user feedback.
+- **Safety:** no market algorithm, published prices, SOLD/ASK data, Supabase data/migrations, API routes, Collection persistence, messages or offer logic changed. PR #406 (admin Analytics exclusion) remains a separate open work item and was not merged.
+- **Previous staged checkpoint below is historical and superseded**; the earlier Hobby deployment quota limit cleared before this release. The documentation-only continuation commit after this checkpoint should be revalidated separately against `/api/version` if Vercel redeploys it.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — CATALOGUE + COLLECTION MARKET PANEL REDESIGN STAGED (NOT PUBLISHED)
 
 - **Starting verified state:** GitHub `main`, Vercel Production READY and `https://trackdash.it/api/version` all returned `2f21300e1765302a3a1b766f90087ccf47b52841`. PR #406 (`fix/exclude-admin-from-analytics`) is OPEN and intentionally untouched.
