@@ -307,8 +307,10 @@ export function toPublicMarketSignalView(
         ? observedOffer.channel
         : null,
     observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
+    observedAskOriginCountry: observedOffer?.itemLocationCountry ?? null,
     historicalAskItemEUR: histItem != null && histItem > 0 ? histItem : null,
     historicalAskShippingEUR: histShipping != null && histShipping >= 0 ? histShipping : null,
+    historicalAskOriginCountry: historicalOffer?.itemLocationCountry ?? null,
     historicalAskObservedAt: historicalOffer
       ? (historicalOffer.lastCheckedAt instanceof Date
         ? historicalOffer.lastCheckedAt.toISOString() : String(historicalOffer.lastCheckedAt))
