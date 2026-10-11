@@ -9,7 +9,7 @@ import type {
   ReleaseMarketSignalMap,
   ReleaseMarketSignalView,
 } from "@/lib/market/view-types"
-import { collectorMarketTrend, observedMarketPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketKnownPurchaseCost, observedMarketPrice } from "@/lib/market/presentation"
 import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
@@ -232,14 +232,20 @@ export interface EnrichedWishlistItem {
   marketSignal: ReleaseMarketSignalView | null
   marketValue: number | null
   currentPrice: number | null
+  /** Current kit-only ASK, distinct from known kit+shipping quote. */
+  askingItemPrice: number | null
   label?: string
   belowTarget: boolean
 }
 
-function lowestObservedPrice(product: Product, marketSignals: ReleaseMarketSignalMap): number | null {
+function lowestObservedPrice(
+  product: Product,
+  marketSignals: ReleaseMarketSignalMap,
+  extractor: (signal?: ReleaseMarketSignalView | null) => number | null,
+): number | null {
   let lowest: number | null = null
   for (const release of product.releases) {
-    const price = observedMarketPrice(marketSignals[release.id])
+    const price = extractor(marketSignals[release.id])
     if (price == null || price <= 0) continue
     if (lowest == null || price < lowest) lowest = price
   }
@@ -263,9 +269,14 @@ export function enrichWishlist(
         : undefined
       const marketSignal = release ? marketSignals[release.id] ?? null : null
       const marketValue = release ? marketSignal?.valueEUR ?? null : null
+      // Wishlist target is an acquisition budget: never claim a kit-only
+      // offer is below target when the delivery quote is unknown.
       const currentPrice = release
+        ? observedMarketKnownPurchaseCost(marketSignal)
+        : lowestObservedPrice(product, marketSignals, observedMarketKnownPurchaseCost)
+      const askingItemPrice = release
         ? observedMarketPrice(marketSignal)
-        : lowestObservedPrice(product, marketSignals)
+        : lowestObservedPrice(product, marketSignals, observedMarketPrice)
       const belowTarget = item.targetPrice != null && currentPrice != null
         ? currentPrice <= item.targetPrice
         : false
@@ -277,6 +288,7 @@ export function enrichWishlist(
         marketSignal,
         marketValue,
         currentPrice,
+        askingItemPrice,
         label: release ? releaseLabel(release) : undefined,
         belowTarget,
       }
