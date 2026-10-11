@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { observedMarketDisplayKind, observedMarketReferenceIsHistorical } from "@/lib/market/presentation"
+import { observedMarketReferenceIsHistorical, observedMarketReferencePrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -215,12 +215,14 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
                           <h2 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-4 tracking-tight transition-colors group-hover:text-brand sm:text-base sm:leading-[1.15rem]">{entry.release.editionName}</h2>
                         </Link>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
-                        </div>
-                        <div className="mt-1.5 flex min-w-0 items-center gap-2 border-t border-border/60 pt-2">
-                          <div className="min-w-0 flex-1">
-                            <CollectionMarketValue entry={entry} it={it} />
+                        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
+                            {entry.marketSignal?.soldUnits != null && entry.marketSignal.soldUnits > 0 ? (
+                              <Badge variant="secondary" className="h-5 rounded-full bg-emerald-50 px-2 text-[9px] font-semibold text-emerald-800">
+                                {entry.marketSignal.soldUnits} {it ? (entry.marketSignal.soldUnits === 1 ? "vendita" : "vendite") : (entry.marketSignal.soldUnits === 1 ? "sale" : "sales")}
+                              </Badge>
+                            ) : null}
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
                             <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
@@ -229,10 +231,13 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                             <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-muted/70 text-foreground hover:bg-muted" aria-label={t("common.edit")} title={it ? "Modifica copia" : "Edit copy"} onClick={() => setEditing(entry)}>
                               <Pencil className="size-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive" aria-label={t("common.remove")} title={it ? "Rimuovi dalla collezione" : "Remove from collection"} onClick={() => void remove()}>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive" aria-label={it ? "Rimuovi dalla collezione" : "Remove from collection"} title={it ? "Rimuovi dalla collezione" : "Remove from collection"} onClick={() => void remove()}>
                               <Trash2 className="size-4" />
                             </Button>
                           </div>
+                        </div>
+                        <div className="mt-2 min-w-0 border-t border-border/60 pt-2">
+                          <CollectionMarketValue entry={entry} it={it} />
                         </div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
@@ -300,97 +305,69 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
   )
 }
 
-// A percentage alone is not an explanation of market movement.
-// Show the actual two comparable SOLD windows only when their source audit
-// exactly matches the persisted collector trend. Never compute a historical
-// price backwards from today's MV or conflate the user's purchase performance.
+// Every collector card has exactly two familiar price lines. Source and age
+// explain the evidence; neither ASK nor a single SOLD is promoted to Market Value.
+// The one optional compact trend always discloses both compared SOLD averages.
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
-  const trend = signal?.soldTrendComparison ?? null
-  const trendPercent = entry.marketTrend
-  const canShowSoldTrend = trend != null && trendPercent != null
-  const trendPeriod = trend?.windowMonths === 12
-    ? (it ? "due periodi di 12 mesi" : "two 12-month periods")
-    : trend?.windowMonths === 6
-      ? (it ? "due periodi di 6 mesi" : "two 6-month periods")
-      : trend?.windowMonths === 3
-        ? (it ? "due periodi di 3 mesi" : "two 3-month periods")
-        : (it ? "due mesi consecutivi" : "two consecutive months")
+  const sealed = entry.item.condition === "Sealed"
+  const mv = sealed ? entry.marketValue : null
+  const sold = sealed && signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0 ? signal.soldAnchorEUR : null
+  const mainPrice = mv ?? sold
+  const ask = observedMarketReferencePrice(signal)
+  const historical = observedMarketReferenceIsHistorical(signal)
+  const observedDate = signal?.historicalAskObservedAt
+  const formattedDate = historical && observedDate && Number.isFinite(Date.parse(observedDate))
+    ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(observedDate))
+    : null
+  const comparison = sealed ? signal?.soldTrendComparison : null
+  const trendPercent = comparison ? entry.marketTrend : null
 
-  const observedSoldTrend = canShowSoldTrend ? (
-    <div className="mt-2 border-t border-border/50 pt-2">
-      <p className="text-[10px] leading-tight text-muted-foreground">
-        {it ? "Prezzi medi delle vendite · " : "Average completed-sale prices · "}{trendPeriod}
-      </p>
-      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-xs font-medium tabular-nums text-foreground">
-          {formatMoney(trend.previousAverageEUR)} → {formatMoney(trend.recentAverageEUR)}
-        </span>
-        <TrendIndicator value={trendPercent} className="text-xs" />
-      </div>
-      <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
-        {it ? "Confronto rilevato " : "Comparison recorded "}
-        {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(trend.capturedAt))}
-        {signal?.soldSellerCount === 1
-          ? (it ? " · campione di un venditore" : " · one-seller sample")
-          : ""}
-      </p>
-    </div>
-  ) : null
-
-  if (entry.item.condition !== "Sealed") {
-    return (
+  return (
+    <div className="min-w-0 space-y-2">
       <div className="min-w-0">
-        <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Valore della copia non stimato" : "Copy value not estimated"}</p>
-        <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
-          {it
-            ? "La stima riguarda i kit sigillati; nessuna svalutazione automatica per copie aperte o usate."
-            : "The estimate is for sealed kits; no automatic discounts for opened or used copies."}
-        </p>
-      </div>
-    )
-  }
-
-  if (entry.marketValue != null) {
-    return (
-      <div className="min-w-0">
-        <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Valore stimato · sigillato" : "Estimated value · sealed"}</p>
-        <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">≈ {formatMoney(entry.marketValue)}</p>
-        {observedSoldTrend}
-      </div>
-    )
-  }
-
-  const observedPrice = entry.observedPrice
-  if (observedPrice != null && observedPrice > 0) {
-    const observedKind = observedMarketDisplayKind(signal)
-    return (
-      <div className="min-w-0">
-        <p className="text-[11px] leading-tight text-muted-foreground">
-          {observedKind === "ask"
-            ? (observedMarketReferenceIsHistorical(signal)
-                ? (it ? "Ultimo prezzo richiesto · solo kit" : "Last asking price · kit only")
-                : (it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"))
-            : (it ? "Vendite concluse · kit sigillati" : "Completed sales · sealed kits")}
-        </p>
+        <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Riferimento mercato · kit sigillato" : "Market reference · sealed kit"}</p>
         <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">
-          {observedKind === "sold" ? "≈ " : ""}{formatMoney(observedPrice)}
+          {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : "—"}
         </p>
-        {observedSoldTrend}
+        <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+          {!sealed
+            ? (it ? "Valore della copia non stimato: non sigillata" : "Copy value not estimated: not sealed")
+            : mv != null
+              ? (it ? "Stima TrackDash" : "TrackDash estimate")
+              : sold != null
+                ? (it ? "Riferimento da vendite concluse, non una stima" : "Completed sales reference, not an estimate")
+                : (it ? "Valore in osservazione" : "Value under observation")}
+        </p>
       </div>
-    )
-  }
-
-  if (observedSoldTrend) return <div className="min-w-0">{observedSoldTrend}</div>
-
-  if ((signal?.marketContextEvidenceCount ?? 0) > 0) return (
-    <div className="min-w-0">
-      <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Mercato osservato · sigillato" : "Observed market · sealed"}</p>
-      <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{it ? "Riferimenti storici disponibili" : "Historical references available"}</p>
+      <div className="min-w-0 border-t border-border/40 pt-2">
+        <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"}</p>
+        <p className="mt-0.5 text-sm font-semibold leading-tight tabular-nums text-foreground">
+          {ask != null ? formatMoney(ask) : "—"}
+        </p>
+        <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+          {ask == null
+            ? (it ? "Nessun prezzo osservato" : "No asking price observed")
+            : historical
+              ? (it ? `Ultimo osservato${formattedDate ? ` · ${formattedDate}` : ""} · da verificare` : `Last observed${formattedDate ? ` · ${formattedDate}` : ""} · unverified`)
+              : (it ? "Offerta verificata di recente" : "Recently verified offer")}
+        </p>
+      </div>
+      {comparison && trendPercent != null ? (
+        <div className="rounded-lg bg-muted/45 px-2.5 py-2">
+          <p className="text-[10px] font-medium leading-tight text-muted-foreground">
+            {it ? "Andamento vendite" : "Completed-sales trend"} · {comparison.windowMonths} {it ? "mesi vs" : "months vs"} {comparison.windowMonths} {it ? "mesi" : "months"}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium tabular-nums text-foreground">
+              {formatMoney(comparison.previousAverageEUR)} → {formatMoney(comparison.recentAverageEUR)}
+            </span>
+            <TrendIndicator value={trendPercent} className="text-[11px]" />
+          </div>
+        </div>
+      ) : null}
     </div>
   )
-
-  return <p className="text-[11px] font-medium leading-tight text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
 }
 
 function EditDialog({ entry, share, onClose, onSave }: { entry: EnrichedCollectionItem | null; share?: MyShare; onClose: () => void; onSave: (id: string, patch: Partial<CollectionItem>, visibility: Visibility, offerTerms?: CollectionOfferTerms) => void }) {

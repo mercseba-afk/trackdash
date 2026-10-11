@@ -561,6 +561,14 @@ Non trattare tutto come genericamente `global` se la regione è nota.
 - La Collection mostra un totale **indicativo** delle copie sigillate (MV quando esiste; in alternativa ultimo prezzo richiesto osservato *solo kit*, opportunamente dichiarato anche se il venditore potrebbe non essere più attivo). Prezzo pagato e guadagno personale rimangono distinti; shipping non entra mai nel valore della copia. La Wishlist confronta i target di acquisto **solo con prezzi correnti e spese di spedizione documentate**, e non riutilizza ASK storici per segnalare offerte.
 - Se non esistono MV né ASK entro l'orizzonte, usare il SOLD solo come **evidenza consultabile** (non come valore fittizio portafoglio). Nessuna modifica a Market Method v4, pesi, colonne canoniche o cron. Questo fix è di proiezione/presentazione, non di stima.
 
+## Standard unico card mercato, shipping e origine (2026-10-11)
+
+- In tutte le card Collection, nello stesso ordine, mostrare **Riferimento mercato · kit sigillato** (MV se presente, altrimenti SOLD con disclaimer esplicito «riferimento, non stima») e **Prezzo richiesto · solo kit** (ASK attuale selezionato, altrimenti ultimo ASK storico datato entro 180 giorni, segnalato «da verificare»). In assenza di dato mostrare «—», senza cambiare struttura. Mai stimare copie aperte come sigillate.
+- Badge piccolo con il numero di vere vendite concluse quando disponibili; andamento SOLD solo se vengono mostrati entrambi i prezzi medi del confronto (es. €12,45 → €14,92 +19,9%) e finestra. Mai mostrare una percentuale confondibile con il prezzo pagato personalmente. Le icone di gestione stanno fuori dal blocco dei prezzi.
+- Dettaglio Release e dettaglio copia condividono esattamente un box neutro Mercato: due righe fisse, dato o —, stato sintetico, dicitura **Spedizione esclusa** in evidenza, e +€ indicati quando riferiti alla medesima offerta ASK. Niente lunghi disclaimer automatici nel box.
+- Badge **Extra-UE · possibili oneri d'importazione** SOLO quando la provenienza della **stessa offerta ASK** è verificata fuori Unione europea: itemLocationCountry salvato da eBay Browse, oppure una sorgente geograficamente extra-UE. EBAY_IT, EBAY_US e simili rappresentano il marketplace, NON l'ubicazione del venditore. Fonte global/europe o origine ignota NON consente avviso doganale. Su nuovo scan con origine Italia/UE il badge scompare automaticamente; se il nuovo scan documenta Giappone/USA compare.
+- ASK datato rimane informazione storica, mai disponibilità verificata, né prezzo d'acquisto Wishlist. Prezzi del solo kit, MV, SOLD, FX, metodo v4 e storico NON vengono modificati. Nessuna migrazione DB, nessuna nuova scansione o cron.
+
 # REGOLA DEFINITIVA DI COMPARABILITÀ (2026-10-11)
 
 **Sono due dimensioni economiche, NON due stime concorrenti:**

@@ -3,6 +3,7 @@ import { applyAskTrend, computeCurrentMarketSignal } from "../lib/market/pipelin
 import { applyPublicMarketPublicationPolicy } from "../lib/market/pipeline/market-publication-policy.ts"
 import { selectCurrentSoldEvidence } from "../lib/market/pipeline/sold-selection.ts"
 import { getCollectorSoldTrendComparison } from "../lib/market/collector-sold-trend-comparison.ts"
+import { classifyOfferOrigin } from "../lib/market/offer-origin.ts"
 import { observedMarketPrice, observedMarketKnownShipping, observedMarketKnownPurchaseCost } from "../lib/market/presentation.ts"
 
 let passed = 0
@@ -427,6 +428,21 @@ ok("Unconfirmed or international-only shipping NEVER creates a final acquisition
   assert.equal(observedMarketKnownShipping(unknown), null)
   assert.equal(observedMarketPrice({ startingItemPriceEUR: null, startingEffectiveCostEUR: 58.56, startingCostBasis: "delivered" }), null)
   assert.equal(observedMarketKnownPurchaseCost({ ...unknown, startingEffectiveCostEUR: 29 }), null)
+})
+
+ok("Origin-driven extra-EU warning is tied to real seller item location, not eBay locale", () => {
+  assert.equal(classifyOfferOrigin("IT", "global"), "eu")
+  assert.equal(classifyOfferOrigin("DE", "global"), "eu")
+  assert.equal(classifyOfferOrigin("JP", "global"), "extra_eu")
+  assert.equal(classifyOfferOrigin("US", "global"), "extra_eu")
+  assert.equal(classifyOfferOrigin("GB", "global"), "extra_eu")
+  assert.equal(classifyOfferOrigin(null, "japan"), "extra_eu")
+  assert.equal(classifyOfferOrigin(null, "asia_pacific"), "extra_eu")
+  assert.equal(classifyOfferOrigin(null, "north_america"), "extra_eu")
+  assert.equal(classifyOfferOrigin(null, "global"), "unknown")
+  assert.equal(classifyOfferOrigin(null, "europe"), "unknown")
+  assert.equal(classifyOfferOrigin(null, "internal"), "eu")
+  assert.equal(classifyOfferOrigin("IT", "japan"), "eu")
 })
 
 console.log(`${passed} passed, 0 failed`)

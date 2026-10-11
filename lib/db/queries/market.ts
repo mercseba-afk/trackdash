@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, sql } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
@@ -10,6 +10,8 @@ import {
 import {
   marketEstimates,
   marketOfferStates,
+  marketCandidates,
+  priceSources,
   marketReleaseMonthlySignals,
   marketReleaseSignals,
   marketValueHistory,
@@ -35,6 +37,9 @@ export interface CurrentObservedOfferRow {
   effectiveCostEUR: string | null
   costBasis: string
   lastCheckedAt: Date
+  /** Seller's verified shipping origin, never eBay marketplace country. */
+  originCountry: string | null
+  sourceMarketRegion: string | null
 }
 
 // Normalized completed-sale observations only. Candidate/raw listing evidence stays
@@ -127,8 +132,12 @@ export async function listCurrentObservedOffers(
       effectiveCostEUR: marketOfferStates.effectiveCostEUR,
       costBasis: marketOfferStates.costBasis,
       lastCheckedAt: marketOfferStates.lastCheckedAt,
+      originCountry: sql<string | null>`${marketCandidates.rawPayload} ->> 'itemLocationCountry'`,
+      sourceMarketRegion: priceSources.marketRegion,
     })
     .from(marketOfferStates)
+    .leftJoin(marketCandidates, eq(marketCandidates.id, marketOfferStates.candidateId))
+    .leftJoin(priceSources, eq(priceSources.id, marketOfferStates.sourceId))
     .where(where)
 }
 

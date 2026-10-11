@@ -16,6 +16,7 @@ import {
 } from "@/lib/market/pipeline/market-publication-policy"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } from "@/lib/market/collector-sold-trend-comparison"
+import { classifyOfferOrigin } from "@/lib/market/offer-origin"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -307,6 +308,8 @@ export function toPublicMarketSignalView(
         ? observedOffer.channel
         : null,
     observedShippingEUR: numberOrNull(observedOffer?.shippingEUR),
+    currentAskOrigin: classifyOfferOrigin(observedOffer?.originCountry, observedOffer?.sourceMarketRegion),
+    historicalAskOrigin: classifyOfferOrigin(historicalOffer?.originCountry, historicalOffer?.sourceMarketRegion),
     historicalAskItemEUR: histItem != null && histItem > 0 ? histItem : null,
     historicalAskShippingEUR: histShipping != null && histShipping >= 0 ? histShipping : null,
     historicalAskObservedAt: historicalOffer

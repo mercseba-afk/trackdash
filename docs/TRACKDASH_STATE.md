@@ -7,6 +7,14 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — UNIFORM COLLECTION CARDS AND VERIFIED OFFER ORIGIN
+
+- Production safety: main/Production READY was 94719ac2dff0bd21a2cb68c19b76c488ee8daa8f before edits; no SQL writes, reprice or changes to Market Method v4. Dyna #95467 had MV €14.92, 5 SOLD, no currently selected ASK, but retained historical ASK €46.36 (+€12.20 shipping) observed Oct 1 2026.
+- Two identical rows on ALL Collection cards: «Riferimento mercato · kit sigillato» and «Prezzo richiesto · solo kit». MV/SOLD are clearly distinguished; historical ASK shows last observed date and «da verificare»; no data becomes —; true SOLD count is a compact badge; validated comparison of two SOLD averages is extra evidence only. Action icons moved out of the narrow market-price column. Opened/used copies do not receive sealed copy valuation.
+- Shared Release/Copy detail uses one neutral two-row box and concise bold «Spedizione esclusa», plus documented postage when known. Extra-UE import warning conditional on verified shipping origin of the SAME current/historic ASK, never always-on.
+- Existing eBay Browse worker already writes itemLocationCountry into candidate.raw_payload on scans; new read-only source projection joins market offer to its candidate and price source. The regional warning is calculated anew for that selected quote: IT/DE/EU remove it, JP/US/known extra-UE add it; EBAY_IT is not proof of item origin, unknown/general Europe causes no invented caution. No migration, price-engine change, cron change, caching or source write.
+- Must confirm Preview pnpm verify/next build and Production READY before release. Do not revive prior #392 live portfolio regression.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — EMERGENCY ROLLBACK + LAST OBSERVED ASK, UNIFORM MARKET UI
 
 - **Production incident:** PR #392 changed an existing collector's indicative portfolio from ~€140 to ~€60 and hid Dyna-Hawk 95467 ASK because expired offer TTL led to NULL `starting_offer_candidate_id`. User also reported incomprehensible alternating green/yellow boxes and verbose shipping information. Emergency production rollback successfully restored `fe80ce7348427e2aee7d48e88fece73b609bfcef`; note GitHub `main` was still `1917f61ca71bb1218d0cebba57e79a7e9055a4d2` afterwards. **Never re-release that unchanged main state.**

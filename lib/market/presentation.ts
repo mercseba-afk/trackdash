@@ -55,6 +55,17 @@ export function observedMarketReferenceIsHistorical(
     signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
 }
 
+// The warning follows the SAME selected or dated historical offer as the
+// displayed ASK, not another source or an eBay marketplace locale.
+export function observedMarketOfferOrigin(
+  signal?: ReleaseMarketSignalView | null,
+): "eu" | "extra_eu" | "unknown" {
+  if (observedMarketReferencePrice(signal) == null) return "unknown"
+  return observedMarketReferenceIsHistorical(signal)
+    ? signal?.historicalAskOrigin ?? "unknown"
+    : signal?.currentAskOrigin ?? "unknown"
+}
+
 export type ObservedMarketDisplayKind = "ask" | "sold"
 
 export function observedMarketDisplayKind(

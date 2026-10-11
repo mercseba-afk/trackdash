@@ -1,4 +1,5 @@
 import type { CollectorSoldTrendComparison } from "./collector-sold-trend-comparison"
+import type { OfferOrigin } from "./offer-origin"
 
 export type ReleaseMarketRegime =
   | "retail_driven"
@@ -26,6 +27,8 @@ export interface ReleaseMarketSignalView {
   observedPriceAt: string | null
   observedPriceChannel: "retail" | "marketplace" | null
   observedShippingEUR: number | null
+  currentAskOrigin: OfferOrigin
+  historicalAskOrigin: OfferOrigin
   /** Last observed asking price (kit only), kept as dated historical evidence. */
   historicalAskItemEUR: number | null
   historicalAskShippingEUR: number | null
