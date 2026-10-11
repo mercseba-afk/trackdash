@@ -8241,3 +8241,12 @@ Next SEO monitoring actions:
 ## 2026-10-11 — eBay weekly cadence rollout (not yet Production certified)
 
 A dedicated eBay-only dispatcher and independent active-ASK 3/7-day versus no-active-ASK 7/14/30-day cadence are prepared to replace the 28/42/84 day eBay ACTIVE policy. Vercel is confirmed Hobby: a 3-hour Vercel cron is not deployable. A separate GitHub Actions scheduled workflow now requests a short-lived GitHub OIDC token to authenticate the separate eBay dispatcher every three hours. This is pending Production merge, actual first scheduled-run verification, and guarded rollout of existing enabled queue dates. Do not claim 7-day coverage until those gates pass. Retail remains on existing cadence. A successful production rollout requires: PR verification, Vercel READY/live SHA alignment, safe redistribution of 169 enabled eBay jobs, and inspection of the Dyna-Hawk GX 95467 first new scan. Existing ASK expires for current availability after 15 days; historical dated kit-only ASK remains context, not availability. No Market Method v4 change and no fabricated import estimates.
+
+
+## 2026-10-11 — eBay weekly market watch Production rollout
+- PR #396 merged and Vercel Production READY matched commit 7c336e64ecb180c568620bc4c95e7a12f531a2e0; /api/version confirmed it.
+- Supabase queue migration updated 169 enabled eBay Active jobs; 253 parked/disabled jobs were not changed.
+- Dyna-Hawk 95467 scheduled due-now; its seller origin and current listing require a successful new eBay scan before calling them verified.
+- GitHub Actions invokes extra bounded eBay batches every three hours using signed OIDC tokens; Vercel Hobby's one-daily-cron restriction is respected.
+- A workflow-file push on main triggers an additional one-time verification run; only exact GitHub repository/main/workflow claims are trusted.
+- Market Method v4, retail/SOLD cadence, market values and portfolio pricing are unchanged.
