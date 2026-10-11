@@ -62,7 +62,12 @@ export const EBAY_ACTIVE_SCAN_INTERVAL_HOURS = {
   cold: 30 * 24,
 } as const
 
-export function ebayCollectorScanIntervalHours(tier: string): number {
-  return EBAY_ACTIVE_SCAN_INTERVAL_HOURS[tier as MarketActivityTier]
-    ?? EBAY_ACTIVE_SCAN_INTERVAL_HOURS.normal
+export function ebayCollectorScanIntervalHours(tier: string, hasFreshActiveOffer = true): number {
+  // A visible, recently verified active ASK is never allowed to drift beyond
+  // seven days between planned checks. Thin/no-offer markets can be polled
+  // less often without claiming that a stale listing is currently active.
+  if (hasFreshActiveOffer) return tier === "hot" ? 3 * 24 : 7 * 24
+  if (tier === "cold") return 30 * 24
+  if (tier === "hot") return 7 * 24
+  return 14 * 24
 }
