@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Trash2, TrendingUp } from "lucide-react"
+import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Tag, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
@@ -15,6 +15,7 @@ import { getMyCollectionSharesAction, saveCollectionItemAndShareAction, type Col
 import { StatCard } from "@/components/stat-card"
 import { ProductImage } from "@/components/catalog/product-image"
 import { TrendIndicator } from "@/components/market-bits"
+import { MarketPricePanelShell } from "@/components/market-price-panel-shell"
 import { CollectionItemPhotosButton } from "@/components/collection-item-photos-button"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -205,17 +206,17 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                 const share = shareByCollectionItem.get(entry.item.id); const visibility: Visibility = share?.shareMode ?? "private"
                 const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
                 return (
-                  <Card key={entry.item.id} className="group min-h-[156px] overflow-hidden rounded-2xl border-border/70 py-0 shadow-[0_8px_26px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
-                    <div className="flex h-full min-h-[156px]">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative w-28 shrink-0 overflow-hidden border-r border-border/50 bg-white sm:w-36">
-                        <ProductImage product={entry.product} release={entry.release} className="h-full min-h-[156px] w-full rounded-none bg-white transition-transform duration-300 group-hover:scale-[1.035]" />
+                  <Card key={entry.item.id} className="group min-w-0 overflow-hidden rounded-[22px] border-border/70 py-0 shadow-[0_8px_28px_rgba(15,23,42,0.045)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
+                    <div className="flex h-full min-w-0 flex-col sm:flex-row">
+                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative block h-44 w-full shrink-0 overflow-hidden border-b border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:h-auto sm:min-h-48 sm:w-36 sm:border-b-0 sm:border-r">
+                        <ProductImage product={entry.product} release={entry.release} className="h-full w-full rounded-none bg-transparent transition-transform duration-300 group-hover:scale-[1.025]" />
                       </Link>
-                      <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-3.5">
+                      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
                         <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
-                          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
-                          <h2 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-4 tracking-tight transition-colors group-hover:text-brand sm:text-base sm:leading-[1.15rem]">{entry.release.editionName}</h2>
+                          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
+                          <h2 className="mt-1 line-clamp-2 text-base font-semibold leading-snug tracking-tight transition-colors group-hover:text-brand">{entry.release.editionName}</h2>
                         </Link>
-                        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2.5">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
                             {entry.marketSignal?.soldUnits != null && entry.marketSignal.soldUnits > 0 ? (
@@ -224,7 +225,7 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                               </Badge>
                             ) : null}
                           </div>
-                          <div className="flex shrink-0 items-center gap-1">
+                          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border/60 bg-background/80 p-0.5">
                             <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
                               <Eye className="size-4" />
                             </Button>
@@ -236,10 +237,10 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                             </Button>
                           </div>
                         </div>
-                        <div className="mt-2 min-w-0 border-t border-border/60 pt-2">
+                        <div className="mt-3 w-full min-w-0">
                           <CollectionMarketValue entry={entry} it={it} />
                         </div>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/55 pt-3">
                           <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
                           <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                         </div>
@@ -324,41 +325,56 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
   const trendPercent = comparison ? entry.marketTrend : null
 
   return (
-    <div className="min-w-0 space-y-2">
-      <div className="min-w-0">
-        <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Riferimento mercato · kit sigillato" : "Market reference · sealed kit"}</p>
-        <p className="mt-0.5 text-base font-semibold leading-tight tabular-nums text-foreground">
+    <MarketPricePanelShell className="space-y-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
+        <div className="inline-flex min-w-0 items-start gap-2">
+          <Coins className="mt-0.5 size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Riferimento mercato · kit sigillato" : "Market reference · sealed kit"}</p>
+        </div>
+        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
           {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : "—"}
-        </p>
-        <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
-          {!sealed
-            ? (it ? "Valore della copia non stimato: non sigillata" : "Copy value not estimated: not sealed")
-            : mv != null
-              ? (it ? "Stima TrackDash" : "TrackDash estimate")
-              : sold != null
-                ? (it ? "Riferimento da vendite concluse, non una stima" : "Completed sales reference, not an estimate")
-                : (it ? "Valore in osservazione" : "Value under observation")}
-        </p>
+        </strong>
       </div>
-      <div className="min-w-0 border-t border-border/40 pt-2">
-        <p className="text-[11px] leading-tight text-muted-foreground">{it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"}</p>
-        <p className="mt-0.5 text-sm font-semibold leading-tight tabular-nums text-foreground">
+      <p className="mt-1.5 pl-6 text-[10px] leading-relaxed text-muted-foreground">
+        {!sealed
+          ? (it ? "Valore della copia non stimato: non sigillata" : "Copy value not estimated: not sealed")
+          : mv != null
+            ? (it ? "Stima TrackDash" : "TrackDash estimate")
+            : sold != null
+              ? (it ? "Riferimento da vendite concluse, non una stima" : "Completed sales reference, not an estimate")
+              : (it ? "Valore in osservazione" : "Value under observation")}
+      </p>
+
+      <div className="my-3 h-px bg-sky-200/75 dark:bg-sky-800/50" />
+
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
+        <div className="inline-flex min-w-0 items-start gap-2">
+          <Tag className="mt-0.5 size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"}</p>
+        </div>
+        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
           {ask != null ? formatMoney(ask) : "—"}
-        </p>
-        <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
-          {ask == null
-            ? (it ? "Nessun prezzo osservato" : "No asking price observed")
-            : historical
-              ? (it ? `Ultimo osservato${formattedDate ? ` · ${formattedDate}` : ""} · da verificare` : `Last observed${formattedDate ? ` · ${formattedDate}` : ""} · unverified`)
-              : (it ? "Offerta verificata di recente" : "Recently verified offer")}
-        </p>
+        </strong>
       </div>
+      <p className="mt-1.5 pl-6 text-[10px] leading-relaxed text-muted-foreground">
+        {ask == null
+          ? (it ? "Nessun prezzo osservato" : "No asking price observed")
+          : historical
+            ? (it ? `Ultimo osservato${formattedDate ? ` · ${formattedDate}` : ""} · da verificare` : `Last observed${formattedDate ? ` · ${formattedDate}` : ""} · unverified`)
+            : (it ? "Offerta verificata di recente" : "Recently verified offer")}
+      </p>
+
       {comparison && trendPercent != null ? (
-        <div className="rounded-lg bg-muted/45 px-2.5 py-2">
-          <p className="text-[10px] font-medium leading-tight text-muted-foreground">
+        <div className={cn(
+          "mt-3 rounded-xl border px-3 py-2.5",
+          trendPercent > 0
+            ? "border-emerald-200/80 bg-emerald-50/90 dark:border-emerald-800/55 dark:bg-emerald-950/30"
+            : "border-border/60 bg-white/65 dark:bg-background/40",
+        )}>
+          <p className="text-[10px] font-medium leading-snug text-muted-foreground">
             {it ? "Andamento vendite" : "Completed-sales trend"} · {comparison.windowMonths} {it ? "mesi vs" : "months vs"} {comparison.windowMonths} {it ? "mesi" : "months"}
           </p>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium tabular-nums text-foreground">
               {formatMoney(comparison.previousAverageEUR)} → {formatMoney(comparison.recentAverageEUR)}
             </span>
@@ -366,7 +382,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
           </div>
         </div>
       ) : null}
-    </div>
+    </MarketPricePanelShell>
   )
 }
 

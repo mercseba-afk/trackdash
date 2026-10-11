@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — CATALOGUE + COLLECTION MARKET PANEL REDESIGN STAGED (NOT PUBLISHED)
+
+- **Starting verified state:** GitHub `main`, Vercel Production READY and `https://trackdash.it/api/version` all returned `2f21300e1765302a3a1b766f90087ccf47b52841`. PR #406 (`fix/exclude-admin-from-analytics`) is OPEN and intentionally untouched.
+- **Isolated work:** PR #407 / branch `ui/catalog-collection-market-panels-20261011`. Four UI files affected: new `components/market-price-panel-shell.tsx`; updated `components/market-signal-inline.tsx`, `components/screens/product-detail-screen.tsx` and `components/screens/collection-screen.tsx`. This documentation checkpoint is separate.
+- **Catalogue Release previews:** move price panel out of the narrow third-column layout into a full-width section of the card's content area; consistent neutral light-sky panel, two fixed icon-labelled rows (Market Value, Asking price), separator, documented completed-sale badge, real historical observation date when present and stable no-data empty state. Never treat ASK as a completed sale or a Market Value.
+- **Collection cards:** responsive full-width image above content on narrow screens and side-by-side image on larger screens; reorganized title, badges and three actions; full-width shared economic panel with the existing sealed-copy reference and ASK evidence; positive documented completed-sales trend uses a soft green subpanel. Existing visibility and photos controls, item actions, conditions, references, evidence, trend values and links are preserved.
+- **No functional/data changes:** no Supabase writes or migrations; no market method, valuation, pricing, SOLD/ASK selection, scan cadence, API, messaging, offer workflow, authentication or Collection persistence changes.
+- **Verification performed:** repository `pnpm verify` passed twice, including the final UI code head `1d3cec40e694c38126963847ccfc4883514f0d7c`; `pnpm typecheck` passed independently; `git diff --check` clean. Isolated `pnpm build` initially compiled and then stopped when `DATABASE_URL` was absent; a second **full production build succeeded** with syntactically valid *dummy/test-only* Postgres/Supabase environment values (no real database connection). Vercel Preview READY was observed on an earlier intermediate UI commit, **not on the final branch HEAD**. A live final-commit Vercel build plus actual mobile/desktop QA remain publication gates.
+- **Publication blocker:** Vercel returned HTTP 402 `api-deployments-free-per-day` (Hobby daily deployment limit; retry after 86400s). No change to plan or billing. **Do not merge PR #407 into `main` or claim Production is updated until a fresh final-head Preview build and responsive smoke verification pass.**
+- **Carry forward:** once quota resets, test Preview at final PR head across Release previews with MV+ASK, ASK-only, no market data; Collection sealed/opened/no-valuation copies; messaging and offers; verify Production READY and `/api/version` only after an approved merge. Recheck `main` and any open PRs first.
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — UNIFORM COLLECTION CARDS AND VERIFIED OFFER ORIGIN
 
 - Production safety: main/Production READY was 94719ac2dff0bd21a2cb68c19b76c488ee8daa8f before edits; no SQL writes, reprice or changes to Market Method v4. Dyna #95467 had MV €14.92, 5 SOLD, no currently selected ASK, but retained historical ASK €46.36 (+€12.20 shipping) observed Oct 1 2026.

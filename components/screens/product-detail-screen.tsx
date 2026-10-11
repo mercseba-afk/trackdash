@@ -211,7 +211,7 @@ function ReleaseRow({
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_7px_22px_rgba(15,23,42,0.035)] transition-all duration-200 hover:border-brand/30 hover:shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-      <div className="grid gap-0 md:grid-cols-[160px_minmax(0,1fr)_minmax(190px,auto)]">
+      <div className="grid gap-0 md:grid-cols-[176px_minmax(0,1fr)]">
         <Link href={releaseHref} className="relative block overflow-hidden border-b border-border/50 bg-gradient-to-br from-white to-muted/20 md:border-b-0 md:border-r">
           <ProductImage
             product={product}
@@ -227,7 +227,8 @@ function ReleaseRow({
           </span>
         </Link>
 
-        <div className="min-w-0 p-3 sm:p-3.5 md:p-4">
+        <div className="min-w-0">
+          <div className="p-3 sm:p-3.5 md:p-4">
           <Link href={releaseHref} className="text-base font-semibold leading-snug tracking-tight text-foreground transition-colors hover:text-brand sm:text-lg">
             {release.editionName}
           </Link>
@@ -264,21 +265,20 @@ function ReleaseRow({
           ) : null}
         </div>
 
-        <div className="flex flex-col justify-between gap-2 border-t border-border/60 bg-muted/15 p-3 sm:flex-row sm:items-center sm:p-3 md:items-stretch md:border-l md:border-t-0 md:p-3">
-          <div className="flex min-w-0 items-center md:items-start md:justify-end">
-            <div className="text-left md:text-right"><MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences compactPreview /></div>
-          </div>
-          <div className="flex w-full items-center gap-2 sm:w-auto md:flex-col md:items-stretch md:justify-end">
-            <Button size="sm" variant="outline" className="h-8 flex-1 rounded-lg bg-white px-3 text-xs md:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
-            {isAuthed ? (
-              <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
-                <Button size="sm" variant={owned ? "outline" : "default"} className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none">{owned ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
-              </AddToCollectionDialog>
-            ) : (
-              <Button size="sm" className="h-8 flex-1 gap-1.5 rounded-lg px-3 text-xs md:flex-none" render={<Link href={collectionSignupHref} />}>
-                <Plus className="size-3.5" /> {locale === "it" ? "La possiedo" : "I own it"}
-              </Button>
-            )}
+          <div className="border-t border-border/60 bg-muted/10 p-3 sm:p-3.5 md:p-4">
+            <MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences compactPreview />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" className="h-9 min-w-0 flex-1 rounded-xl bg-white px-3 text-xs sm:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
+              {isAuthed ? (
+                <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
+                  <Button size="sm" variant={owned ? "outline" : "default"} className="h-9 min-w-0 flex-1 gap-1.5 rounded-xl px-3 text-xs sm:flex-none">{owned ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{owned ? t("product.addAnother") : t("product.addThis")}</Button>
+                </AddToCollectionDialog>
+              ) : (
+                <Button size="sm" className="h-9 min-w-0 flex-1 gap-1.5 rounded-xl px-3 text-xs sm:flex-none" render={<Link href={collectionSignupHref} />}>
+                  <Plus className="size-3.5" /> {locale === "it" ? "La possiedo" : "I own it"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
