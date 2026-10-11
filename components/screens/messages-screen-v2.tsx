@@ -72,7 +72,7 @@ export function MessagesScreenV2() {
   const [loadingMessages, setLoadingMessages] = React.useState(false)
   const [draft, setDraft] = React.useState("")
   const [busy, setBusy] = React.useState(false)
-  const messagesEndRef = React.useRef<HTMLDivElement | null>(null)
+  const messageViewportRef = React.useRef<HTMLDivElement | null>(null)
   const selected = conversations.find((conversation) => conversation.id === selectedId) ?? null
   const filteredConversations = React.useMemo(
     () => universeFilter === "all" ? conversations : conversations.filter((conversation) => conversation.vertical === universeFilter),
@@ -169,7 +169,8 @@ export function MessagesScreenV2() {
 
   React.useEffect(() => {
     if (loadingMessages) return
-    messagesEndRef.current?.scrollIntoView({ block: "end" })
+    const viewport = messageViewportRef.current
+    if (viewport) viewport.scrollTop = viewport.scrollHeight
   }, [loadingMessages, messages.length, selectedId])
 
   function selectConversation(id: string) {
@@ -418,7 +419,7 @@ export function MessagesScreenV2() {
                 <DealPanel conversation={selected} locale={it ? "it" : "en"} onActivity={refreshConversations} />
               </section>
 
-              <div className="flex min-h-[420px] max-h-[62vh] flex-col gap-3 overflow-y-auto rounded-2xl border bg-muted/15 p-3 sm:p-4">
+              <div ref={messageViewportRef} className="flex min-h-[320px] max-h-[55vh] flex-col gap-3 overflow-y-auto rounded-2xl border bg-muted/15 p-3 sm:p-4">
                 {loadingMessages ? (
                   <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> {it ? "Caricamento conversazione…" : "Loading conversation…"}</div>
                 ) : messages.length === 0 ? (
@@ -438,7 +439,7 @@ export function MessagesScreenV2() {
                     </div>
                   )
                 })}
-                <div ref={messagesEndRef} />
+
               </div>
 
               {selected.blockedByMe || selected.blockedByThem ? (
