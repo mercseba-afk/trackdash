@@ -30,15 +30,15 @@ export function MarketSignalInline({
   const { locale } = useI18n()
   const it = locale === "it"
 
-  if (!signal) {
-    return compactPreview ? (
-      <div className="rounded-lg bg-muted/45 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground">
-        {it ? "Dati di mercato in verifica" : "Market data under review"}
-      </div>
-    ) : (
-      <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
-    )
+  // Compact cards always use the same two-row market layout, including when
+  // no signal exists. Never change the labels based on available evidence.
+  if (!signal && !compactPreview) {
+    return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
   }
+  if (!signal && compactPreview) {
+    return <PreviewPricePanel it={it} valueEUR={null} askingEUR={null} historical={false} soldCount={0} />
+  }
+  if (!signal) return null
 
   const hasValue = signal.valueEUR != null && signal.valueEUR > 0
   const observedPrice = observedMarketDisplayPrice(signal)
@@ -58,42 +58,13 @@ export function MarketSignalInline({
 
   if (compactPreview) {
     return (
-      <div className="grid gap-1">
-        {hasValue && !(showBothReferences && (hasSold || hasAsk)) ? (
-          <div className="flex items-center justify-between gap-3 rounded-lg bg-brand/5 px-2.5 py-1.5 text-brand">
-            <span className="text-[10px] font-bold uppercase tracking-[0.06em]">
-              {it ? "Valore stimato" : "Estimated value"}
-            </span>
-            <strong className="shrink-0 text-sm font-semibold tabular-nums">≈ {formatMoney(signal.valueEUR!)}</strong>
-          </div>
-        ) : (
-          <>
-            {hasSold ? (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-1.5 text-foreground">
-                <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
-                  <BadgeCheck className="size-3 shrink-0" />
-                  <span>{it ? "Vendite concluse" : "Completed sales"}</span>
-                </span>
-                <strong className="shrink-0 text-sm font-semibold tabular-nums">≈ {formatMoney(soldPrice!)}</strong>
-              </div>
-            ) : null}
-            {hasAsk ? (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-1.5 text-foreground">
-                <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
-                  <Tag className="size-3 shrink-0" />
-                  <span>{askHistorical ? (it ? "Ultimo ASK · kit" : "Last ASK · kit") : (it ? "Prezzo richiesto · kit" : "Asking price · kit")}</span>
-                </span>
-                <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
-              </div>
-            ) : null}
-            {!hasSold && !hasAsk ? (
-              <div className="rounded-lg bg-muted/45 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground">
-                {it ? "Dati di mercato in verifica" : "Market data under review"}
-              </div>
-            ) : null}
-          </>
-        )}
-      </div>
+      <PreviewPricePanel
+        it={it}
+        valueEUR={hasValue ? signal.valueEUR : null}
+        askingEUR={hasAsk ? askPrice : null}
+        historical={askHistorical}
+        soldCount={signal.soldUnits ?? 0}
+      />
     )
   }
 
@@ -166,6 +137,50 @@ export function MarketSignalInline({
           <span className="font-medium text-foreground">{formatMoney(observedPrice)}</span>
           {observedDirection ? <span className="ml-1.5 font-medium text-brand">· {observedDirection}</span> : null}
         </span>
+      ) : null}
+    </div>
+  )
+}
+
+
+// Fixed two-row, source-aware preview panel shared by every catalogue Release.
+// SOLD information is supplemental; an asking price never becomes Market Value.
+function PreviewPricePanel({
+  it, valueEUR, askingEUR, historical, soldCount,
+}: {
+  it: boolean
+  valueEUR: number | null
+  askingEUR: number | null
+  historical: boolean
+  soldCount: number
+}) {
+  return (
+    <div className="w-full rounded-xl border border-brand/15 bg-brand/[0.055] p-2.5 text-left shadow-sm dark:bg-brand/10">
+      <div className="grid gap-2">
+        <div className="flex min-h-7 items-center justify-between gap-3">
+          <span className="text-[11px] font-semibold text-foreground/80">{it ? "Valore di mercato" : "Market value"}</span>
+          <strong className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+            {valueEUR != null ? `≈ ${formatMoney(valueEUR)}` : "—"}
+          </strong>
+        </div>
+        <div className="border-t border-border/55" />
+        <div className="flex min-h-7 items-center justify-between gap-3">
+          <span className="text-[11px] font-semibold text-foreground/80">{it ? "Prezzo richiesto" : "Asking price"}</span>
+          <strong className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+            {askingEUR != null ? formatMoney(askingEUR) : "—"}
+          </strong>
+        </div>
+      </div>
+      {historical && askingEUR != null ? (
+        <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+          {it ? "Ultimo prezzo rilevato · disponibilità da verificare" : "Last observed price · availability unverified"}
+        </p>
+      ) : null}
+      {soldCount > 0 ? (
+        <p className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+          <BadgeCheck className="size-3 shrink-0" />
+          {it ? `${soldCount} ${soldCount === 1 ? "vendita conclusa" : "vendite concluse"}` : `${soldCount} completed ${soldCount === 1 ? "sale" : "sales"}`}
+        </p>
       ) : null}
     </div>
   )
