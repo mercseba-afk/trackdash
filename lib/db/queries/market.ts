@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, sql } from "drizzle-orm"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
@@ -8,6 +8,7 @@ import {
   RETAIL_OFFER_MAX_AGE_HOURS,
 } from "@/lib/market/pipeline/market-publication-policy"
 import {
+  marketCandidates,
   marketEstimates,
   marketOfferStates,
   marketReleaseMonthlySignals,
@@ -35,6 +36,8 @@ export interface CurrentObservedOfferRow {
   effectiveCostEUR: string | null
   costBasis: string
   lastCheckedAt: Date
+  /** Listing's origin country from eBay itemLocation, not the eBay marketplace. */
+  itemLocationCountry: string | null
 }
 
 // Normalized completed-sale observations only. Candidate/raw listing evidence stays
@@ -127,8 +130,10 @@ export async function listCurrentObservedOffers(
       effectiveCostEUR: marketOfferStates.effectiveCostEUR,
       costBasis: marketOfferStates.costBasis,
       lastCheckedAt: marketOfferStates.lastCheckedAt,
+      itemLocationCountry: sql<string | null>`${marketCandidates.rawPayload}->>'itemLocationCountry'`,
     })
     .from(marketOfferStates)
+    .leftJoin(marketCandidates, eq(marketCandidates.id, marketOfferStates.candidateId))
     .where(where)
 }
 
