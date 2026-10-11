@@ -7,9 +7,29 @@ export function observedMarketPrice(
   // offer. The public projection populates starting* only from TTL-valid
   // market_offer_states rows; raw materialized anchors are intentionally not a
   // fallback because they can outlive their publication TTL until recompute.
-  return signal?.startingEffectiveCostEUR
-    ?? signal?.startingItemPriceEUR
-    ?? null
+  // Uniform public price basis: PRICE OF THE KIT ONLY.
+  // Shipping and any import costs are a separate purchasing calculation.
+  // This selects the existing, Europe-first, TTL-valid canonical offer;
+  // never invent prices from stale anchors or from an extra-EU source.
+  return signal?.startingItemPriceEUR ?? null
+}
+
+// Known item+shipping quote, never a guarantee of total landed-in-Italy
+// cost. Unknown or international-only shipping stays NULL (fail closed).
+export function observedMarketKnownPurchaseCost(
+  signal?: ReleaseMarketSignalView | null,
+): number | null {
+  if (signal?.startingCostBasis !== "delivered") return null
+  const total = signal.startingEffectiveCostEUR
+  return total != null && Number.isFinite(total) && total > 0 ? total : null
+}
+
+export function observedMarketKnownShipping(
+  signal?: ReleaseMarketSignalView | null,
+): number | null {
+  if (observedMarketKnownPurchaseCost(signal) == null) return null
+  const shipping = signal?.observedShippingEUR
+  return shipping != null && Number.isFinite(shipping) && shipping >= 0 ? shipping : null
 }
 
 export type ObservedMarketDisplayKind = "ask" | "sold"
@@ -80,7 +100,7 @@ export function observedMarketAskLabel(
   _signal: ReleaseMarketSignalView | null | undefined,
   it: boolean,
 ): string {
-  return it ? "Prezzo richiesto più basso" : "Lowest asking price"
+  return it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"
 }
 
 export function observedMarketAskTrendLabel(it: boolean): string {
