@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { applyAskTrend, computeCurrentMarketSignal } from "../lib/market/pipeline/market-model.ts"
 import { applyPublicMarketPublicationPolicy } from "../lib/market/pipeline/market-publication-policy.ts"
 import { selectCurrentSoldEvidence } from "../lib/market/pipeline/sold-selection.ts"
+import { getCollectorSoldTrendComparison } from "../lib/market/collector-sold-trend-comparison.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -345,6 +346,59 @@ ok("two SOLD, monthly, stale or future windows cannot use the historical corrobo
     { ...exactRecent95525, periodEnd: "2027-01-01" },
   ]) {
     assert.equal(publish([recent], [], undefined, [broadHistory95525]).marketValueEUR, null)
+  }
+})
+
+const dynaTrendAudit = {
+  trend_evidence: {
+    method: "consecutive_non_overlapping_3m_windows",
+    previous_window: { average_eur: 12.45, sales_count: 8 },
+    recent_window: { average_eur: 14.92, sales_count: 5 },
+    trend_percent: 19.86, trend_window_months: 3,
+  },
+}
+const dynaPersistedTrend = {
+  percent: 19.86, windowMonths: 3, basis: "sold",
+  updatedAt: "2026-09-10T19:26:52.320134Z",
+}
+const dynaTrendCapturedAt = "2026-09-10T19:26:52.320134Z"
+
+ok("Dyna 95467 shows genuine €12.45 → €14.92 comparison instead of a mysterious +19.9%", () => {
+  const result = getCollectorSoldTrendComparison(dynaTrendAudit, dynaTrendCapturedAt, dynaPersistedTrend)
+  assert.equal(result?.previousAverageEUR, 12.45)
+  assert.equal(result?.recentAverageEUR, 14.92)
+  assert.equal(result?.previousSaleCount, 8)
+  assert.equal(result?.recentSaleCount, 5)
+  assert.equal(result?.windowMonths, 3)
+})
+
+ok("Annual comparisons are grounded in actual audited sold averages, not current MV", () => {
+  const result = getCollectorSoldTrendComparison({
+    trend_evidence: {
+      previous_window: { average_eur: 38.995, sales_count: 6 },
+      recent_window: { average_eur: 48.7866666667, sales_count: 3 },
+      trend_percent: 25.11, trend_window_months: 12,
+    },
+  }, "2026-09-11T09:32:23.964601Z", {
+    percent: 25.11, windowMonths: 12, basis: "sold",
+    updatedAt: "2026-09-11T09:32:23.964601Z",
+  })
+  assert.equal(result?.previousAverageEUR, 38.995)
+  assert.equal(result?.recentAverageEUR, 48.7866666667)
+})
+
+ok("No implied baseline from stale, ASK, mismatched or unsupported SOLD evidence", () => {
+  const mismatch = [
+    [{ ...dynaTrendAudit }, dynaTrendCapturedAt, { ...dynaPersistedTrend, percent: 30 }],
+    [{ ...dynaTrendAudit }, dynaTrendCapturedAt, { ...dynaPersistedTrend, basis: "market_value" }],
+    [dynaTrendAudit, dynaTrendCapturedAt, { ...dynaPersistedTrend, updatedAt: "2026-10-11T00:00:00Z" }],
+    [dynaTrendAudit, dynaTrendCapturedAt, { ...dynaPersistedTrend, windowMonths: 12 }],
+    [{ trend_evidence: { ...dynaTrendAudit.trend_evidence, recent_window: { average_eur: 75, sales_count: 5 } } }, dynaTrendCapturedAt, dynaPersistedTrend],
+    [{ trend_evidence: { ...dynaTrendAudit.trend_evidence, previous_window: { average_eur: null, sales_count: 8 } } }, dynaTrendCapturedAt, dynaPersistedTrend],
+    [{}, dynaTrendCapturedAt, dynaPersistedTrend],
+  ]
+  for (const [raw, captured, persisted] of mismatch) {
+    assert.equal(getCollectorSoldTrendComparison(raw, captured, persisted), null)
   }
 })
 
