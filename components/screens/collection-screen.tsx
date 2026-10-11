@@ -207,43 +207,43 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                 const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
                 return (
                   <Card key={entry.item.id} className="group min-w-0 overflow-hidden rounded-[22px] border-border/70 py-0 shadow-[0_8px_28px_rgba(15,23,42,0.045)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
-                    <div className="flex h-full min-w-0 flex-row">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative block h-36 w-[clamp(96px,27vw,148px)] shrink-0 self-start overflow-hidden border-r border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:h-48">
-                        <ProductImage product={entry.product} release={entry.release} className="h-full w-full rounded-none bg-transparent transition-transform duration-300 group-hover:scale-[1.025]" />
+                    <div className="grid grid-cols-[42%_minmax(0,1fr)] border-b border-border/50 sm:grid-cols-[36%_minmax(0,1fr)]">
+                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative block min-h-40 overflow-hidden border-r border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:min-h-44">
+                        <ProductImage product={entry.product} release={entry.release} className="absolute inset-0 h-full w-full rounded-none bg-transparent transition-transform duration-300 group-hover:scale-[1.025]" />
                       </Link>
-                      <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-4">
+                      <div className="flex min-w-0 flex-col justify-center gap-2 p-3 sm:p-4">
                         <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
                           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
-                          <h2 className="mt-1 line-clamp-2 text-base font-semibold leading-snug tracking-tight transition-colors group-hover:text-brand">{entry.release.editionName}</h2>
+                          <h2 className="mt-1 line-clamp-3 text-[15px] font-semibold leading-snug tracking-tight transition-colors group-hover:text-brand sm:text-base">{entry.release.editionName}</h2>
                         </Link>
-                        <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
-                            {entry.marketSignal?.soldUnits != null && entry.marketSignal.soldUnits > 0 ? (
-                              <Badge variant="secondary" className="h-5 rounded-full bg-emerald-50 px-2 text-[9px] font-semibold text-emerald-800">
-                                {entry.marketSignal.soldUnits} {it ? (entry.marketSignal.soldUnits === 1 ? "vendita" : "vendite") : (entry.marketSignal.soldUnits === 1 ? "sale" : "sales")}
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border/60 bg-background/80 p-0.5">
-                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
-                              <Eye className="size-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-muted/70 text-foreground hover:bg-muted" aria-label={t("common.edit")} title={it ? "Modifica copia" : "Edit copy"} onClick={() => setEditing(entry)}>
-                              <Pencil className="size-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive" aria-label={it ? "Rimuovi dalla collezione" : "Remove from collection"} title={it ? "Rimuovi dalla collezione" : "Remove from collection"} onClick={() => void remove()}>
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
+                          {entry.marketSignal?.soldUnits != null && entry.marketSignal.soldUnits > 0 ? (
+                            <Badge variant="secondary" className="h-5 rounded-full bg-emerald-50 px-2 text-[9px] font-semibold text-emerald-800">
+                              {entry.marketSignal.soldUnits} {it ? (entry.marketSignal.soldUnits === 1 ? "vendita" : "vendite") : (entry.marketSignal.soldUnits === 1 ? "sale" : "sales")}
+                            </Badge>
+                          ) : null}
                         </div>
-                        <div className="mt-2.5 w-full min-w-0">
-                          <CollectionMarketValue entry={entry} it={it} />
-                        </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/55 pt-3">
-                          <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
-                          <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
-                        </div>
+                      </div>
+                    </div>
+                    <div className="px-3 pt-3 sm:px-4">
+                      <CollectionMarketValue entry={entry} it={it} />
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border/55 px-3 py-3 sm:px-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <VisibilitySelect value={visibility} disabled={visibilityBusyId === entry.item.id} onChange={(next) => void changeVisibility(entry.item.id, next)} />
+                        <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border/60 bg-background/80 p-0.5">
+                        <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
+                          <Eye className="size-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-muted/70 text-foreground hover:bg-muted" aria-label={t("common.edit")} title={it ? "Modifica copia" : "Edit copy"} onClick={() => setEditing(entry)}>
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive" aria-label={it ? "Rimuovi dalla collezione" : "Remove from collection"} title={it ? "Rimuovi dalla collezione" : "Remove from collection"} onClick={() => void remove()}>
+                          <Trash2 className="size-4" />
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -306,9 +306,8 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
   )
 }
 
-// Every collector card has exactly two familiar price lines. Source and age
-// explain the evidence; neither ASK nor a single SOLD is promoted to Market Value.
-// The one optional compact trend always discloses both compared SOLD averages.
+// Compact Collection preview: prices share one row, complete evidence remains
+// on the Release/copy detail. Never turn a SOLD anchor or dated ASK into MV.
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
   const sealed = entry.item.condition === "Sealed"
@@ -317,69 +316,66 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
   const mainPrice = mv ?? sold
   const ask = observedMarketReferencePrice(signal)
   const historical = observedMarketReferenceIsHistorical(signal)
-  const observedDate = signal?.historicalAskObservedAt
-  const formattedDate = historical && observedDate && Number.isFinite(Date.parse(observedDate))
-    ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(observedDate))
-    : null
   const comparison = sealed ? signal?.soldTrendComparison : null
   const trendPercent = comparison ? entry.marketTrend : null
 
   return (
-    <MarketPricePanelShell className="space-y-0 p-2.5 sm:p-3.5">
-      <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-3">
-        <div className="inline-flex min-w-0 items-start gap-2">
-          <Coins className="mt-0.5 size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Riferimento mercato" : "Market reference"}</p>
+    <MarketPricePanelShell className="p-3 sm:p-3.5">
+      <div className="grid grid-cols-2">
+        <div className="min-w-0 pr-3">
+          <p className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-foreground/85 sm:text-xs">
+            <Coins className="size-3.5 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+            <span>{it ? "Riferimento mercato" : "Market reference"}</span>
+          </p>
+          <strong className="mt-1 block text-base font-semibold tabular-nums text-foreground sm:text-lg">
+            {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : "—"}
+          </strong>
+          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+            {!sealed
+              ? (it ? "Copia non stimata" : "Copy not estimated")
+              : mv != null
+                ? (it ? "Stima TrackDash" : "TrackDash estimate")
+                : sold != null
+                  ? (it ? "Vendite concluse · non stima" : "Completed sales · not an estimate")
+                  : (it ? "Valore in osservazione" : "Value under observation")}
+          </p>
         </div>
-        <strong className="min-w-0 whitespace-nowrap pl-6 text-left text-sm font-semibold tabular-nums text-foreground sm:pl-0 sm:text-right sm:text-base">
-          {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : "—"}
-        </strong>
-      </div>
-      <p className="mt-1.5 pl-6 text-[10px] leading-relaxed text-muted-foreground">
-        {!sealed
-          ? (it ? "Valore della copia non stimato: non sigillata" : "Copy value not estimated: not sealed")
-          : mv != null
-            ? (it ? "Stima TrackDash · copie sigillate · spedizione esclusa" : "TrackDash estimate · sealed copies · shipping excluded")
-            : sold != null
-              ? (it ? "Da vendite concluse, non una stima · spedizione esclusa" : "Completed sales reference, not an estimate · shipping excluded")
-              : (it ? "Valore in osservazione · spedizione esclusa" : "Value under observation · shipping excluded")}
-      </p>
-
-      <div className="my-3 h-px bg-sky-200/75 dark:bg-sky-800/50" />
-
-      <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-3">
-        <div className="inline-flex min-w-0 items-start gap-2">
-          <Tag className="mt-0.5 size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Offerta sul mercato" : "Market offer"}</p>
+        <div className="min-w-0 border-l border-sky-200/75 pl-3 dark:border-sky-800/50">
+          <p className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-foreground/85 sm:text-xs">
+            <Tag className="size-3.5 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+            <span>{it ? "Offerta sul mercato" : "Market offer"}</span>
+          </p>
+          <strong className="mt-1 block text-base font-semibold tabular-nums text-foreground sm:text-lg">
+            {ask != null ? formatMoney(ask) : "—"}
+          </strong>
+          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+            {ask == null
+              ? (it ? "Nessuna offerta osservata" : "No observed offer")
+              : historical
+                ? (it ? "Ultima offerta osservata" : "Last observed offer")
+                : (it ? "Verificata di recente" : "Recently verified")}
+          </p>
         </div>
-        <strong className="min-w-0 whitespace-nowrap pl-6 text-left text-sm font-semibold tabular-nums text-foreground sm:pl-0 sm:text-right sm:text-base">
-          {ask != null ? formatMoney(ask) : "—"}
-        </strong>
       </div>
-      <p className="mt-1.5 pl-6 text-[10px] leading-relaxed text-muted-foreground">
-        {ask == null
-          ? (it ? "Nessuna offerta osservata" : "No offer observed")
-          : historical
-            ? (it ? `Ultima offerta osservata${formattedDate ? ` · ${formattedDate}` : ""} · disponibilità da verificare · spedizione esclusa` : `Last observed offer${formattedDate ? ` · ${formattedDate}` : ""} · availability unverified · shipping excluded`)
-            : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
+      <p className="mt-2 border-t border-sky-200/75 pt-2 text-[10px] leading-snug text-muted-foreground dark:border-sky-800/50">
+        {it ? "Spedizione esclusa" : "Shipping excluded"}
+        {historical && ask != null ? (it ? " · disponibilità da verificare" : " · availability unverified") : null}
+        {!sealed ? (it ? " · riferimenti della Release, non della copia" : " · Release references, not a copy valuation") : null}
       </p>
-
       {comparison && trendPercent != null ? (
         <div className={cn(
-          "mt-3 rounded-xl border px-3 py-2.5",
+          "mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-2.5 py-2",
           trendPercent > 0
             ? "border-emerald-200/80 bg-emerald-50/90 dark:border-emerald-800/55 dark:bg-emerald-950/30"
             : "border-border/60 bg-white/65 dark:bg-background/40",
         )}>
-          <p className="text-[10px] font-medium leading-snug text-muted-foreground">
-            {it ? "Andamento vendite" : "Completed-sales trend"} · {comparison.windowMonths} {it ? "mesi vs" : "months vs"} {comparison.windowMonths} {it ? "mesi" : "months"}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium tabular-nums text-foreground">
-              {formatMoney(comparison.previousAverageEUR)} → {formatMoney(comparison.recentAverageEUR)}
-            </span>
-            <TrendIndicator value={trendPercent} className="text-[11px]" />
-          </div>
+          <span className="text-[10px] font-medium text-muted-foreground">
+            {it ? "Vendite concluse" : "Completed sales"} · {comparison.windowMonths}+{comparison.windowMonths} {it ? "mesi" : "months"}
+          </span>
+          <span className="text-xs font-semibold tabular-nums text-foreground">
+            {formatMoney(comparison.previousAverageEUR)} → {formatMoney(comparison.recentAverageEUR)}
+          </span>
+          <TrendIndicator value={trendPercent} className="text-[11px]" />
         </div>
       ) : null}
     </MarketPricePanelShell>

@@ -282,7 +282,9 @@ if (!analyticsSource.includes("marketValue ?? observedPrice")) {
 if (!analyticsSource.includes("marketValue != null") || !analyticsSource.includes("personalGainEUR")) {
   errors.push("Personal Collection performance is no longer restricted to canonical Market Value")
 }
-if (!collectionScreen.includes("Valore della copia non stimato")) {
+if (!collectionScreen.includes("Copia non stimata") ||
+    !collectionScreen.includes('const sealed = entry.item.condition === "Sealed"') ||
+    !collectionScreen.includes("const mv = sealed ? entry.marketValue : null")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
 }
 if (!collectionScreen.includes("Riferimento mercato") ||
@@ -436,11 +438,13 @@ if (!collectionScreen.includes("Riferimento mercato") ||
     !collectionScreen.includes("const mainPrice = mv ?? sold")) {
   errors.push("Collection previews must have identical source-aware market and ASK rows, with dated historical ASK")
 }
-if (!collectionScreen.includes("flex h-full min-w-0 flex-row") ||
-    collectionScreen.includes("flex h-full min-w-0 flex-col sm:flex-row") ||
-    !collectionScreen.includes("w-[clamp(96px,27vw,148px)]") ||
-    !collectionScreen.includes("grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto]")) {
-  errors.push("Collection cards must keep a compact image-left, information-right layout on mobile with prices wrapping inside the content column")
+if (!collectionScreen.includes("grid-cols-[42%_minmax(0,1fr)]") ||
+    !collectionScreen.includes("sm:grid-cols-[36%_minmax(0,1fr)]") ||
+    !collectionScreen.includes("<div className=\"grid grid-cols-2\">") ||
+    !collectionScreen.includes("Spedizione esclusa") ||
+    !collectionScreen.includes("CollectionMarketValue entry={entry} it={it}") ||
+    collectionScreen.includes("flex h-full min-w-0 flex-col sm:flex-row")) {
+  errors.push("Collection previews must enlarge the image at left and place market and offer values side by side in the full-width card panel")
 }
 if (!productDetailScreen.includes("md:grid-cols-[176px_minmax(0,1fr)]")) {
   errors.push("Catalog Release previews must preserve the image-above mobile layout")
