@@ -37,7 +37,7 @@ export function MarketSignalInline({
     return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
   }
   if (!signal && compactPreview) {
-    return <PreviewPricePanel it={it} valueEUR={null} askingEUR={null} historical={false} soldCount={0} />
+    return <PreviewPricePanel it={it} valueEUR={null} askingEUR={null} historical={false} observedAt={null} soldCount={0} />
   }
   if (!signal) return null
 
@@ -64,6 +64,7 @@ export function MarketSignalInline({
         valueEUR={hasValue ? signal.valueEUR : null}
         askingEUR={hasAsk ? askPrice : null}
         historical={askHistorical}
+        observedAt={signal.historicalAskObservedAt}
         soldCount={signal.soldUnits ?? 0}
       />
     )
@@ -147,14 +148,19 @@ export function MarketSignalInline({
 // Fixed two-row, source-aware preview panel shared by every catalogue Release.
 // SOLD information is supplemental; an asking price never becomes Market Value.
 function PreviewPricePanel({
-  it, valueEUR, askingEUR, historical, soldCount,
+  it, valueEUR, askingEUR, historical, observedAt, soldCount,
 }: {
   it: boolean
   valueEUR: number | null
   askingEUR: number | null
   historical: boolean
+  observedAt?: string | null
   soldCount: number
 }) {
+  const observedDate = observedAt && Number.isFinite(Date.parse(observedAt))
+    ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(observedAt))
+    : null
+
   return (
     <MarketPricePanelShell>
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
@@ -181,7 +187,7 @@ function PreviewPricePanel({
 
       {historical && askingEUR != null ? (
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          {it ? "Ultimo prezzo rilevato · disponibilità da verificare" : "Last observed price · availability unverified"}
+          {it ? "Ultimo prezzo rilevato" : "Last observed price"}{observedDate ? ` · ${observedDate}` : ""} · {it ? "disponibilità da verificare" : "availability unverified"}
         </p>
       ) : null}
       {soldCount > 0 ? (
