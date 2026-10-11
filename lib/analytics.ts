@@ -9,7 +9,7 @@ import type {
   ReleaseMarketSignalMap,
   ReleaseMarketSignalView,
 } from "@/lib/market/view-types"
-import { collectorMarketTrend, observedMarketKnownPurchaseCost, observedMarketPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketKnownPurchaseCost, observedMarketPrice, observedMarketReferencePrice } from "@/lib/market/presentation"
 import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
@@ -66,7 +66,9 @@ export function enrichCollection(
       const marketSignal = marketSignals[release.id] ?? null
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
-      const observedPrice = comparableCondition ? observedMarketPrice(marketSignal) : null
+      // Indicative collection fallback may use a DATED historical kit-only ASK;
+      // current purchase targets in Wishlist still require fresh evidence.
+      const observedPrice = comparableCondition ? observedMarketReferencePrice(marketSignal) : null
       const marketReferenceValue = marketValue ?? observedPrice
       const marketReferenceKind = marketValue != null ? "estimated" : observedPrice != null ? "observed" : null
       const marketTrend = comparableCondition ? collectorMarketTrend(marketSignal) : null
