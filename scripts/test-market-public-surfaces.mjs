@@ -168,8 +168,8 @@ if (!marketOverview.includes("Prezzi del solo kit · spedizione esclusa.") ||
     marketOverview.includes("bg-emerald-50")) {
   errors.push("Release overview must be one neutral two-row kit-only display, with historic offer date and separate shipping")
 }
-if (!analyticsSource.includes("observedMarketReferencePrice(marketSignal)") ||
-    !analyticsSource.includes("marketValue ?? observedPrice")) {
+if (!wishlistAnalytics.includes("observedMarketReferencePrice(marketSignal)") ||
+    !wishlistAnalytics.includes("marketValue ?? observedPrice")) {
   errors.push("Indicative sealed Collection must include dated kit-only ASK reference where MV is absent")
 }
 if (!analyticsSource.includes("observedMarketKnownPurchaseCost(marketSignal)")) {
