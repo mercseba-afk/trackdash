@@ -59,6 +59,8 @@ export async function getNotificationsAction(limit = 30): Promise<AppNotificatio
   const { data, error } = await supabase
     .from("notifications")
     .select("id,type,title,body,href,entity_type,entity_id,metadata,available_at,read_at,created_at")
+    .eq("user_id", user.id)
+    .is("read_at", null)
     .lte("available_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(safeLimit)
@@ -75,6 +77,7 @@ export async function getUnreadNotificationCountAction(): Promise<number> {
   const { count, error } = await supabase
     .from("notifications")
     .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
     .is("read_at", null)
     .lte("available_at", new Date().toISOString())
 
@@ -90,6 +93,7 @@ export async function markNotificationReadAction(id: string) {
   const { error } = await supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
+    .eq("user_id", user.id)
     .eq("id", id)
     .is("read_at", null)
 
@@ -104,6 +108,7 @@ export async function markAllNotificationsReadAction() {
   const { error } = await supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
+    .eq("user_id", user.id)
     .is("read_at", null)
     .lte("available_at", new Date().toISOString())
 
