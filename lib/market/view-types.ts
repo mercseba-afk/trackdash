@@ -26,9 +26,13 @@ export interface ReleaseMarketSignalView {
   observedPriceAt: string | null
   observedPriceChannel: "retail" | "marketplace" | null
   observedShippingEUR: number | null
+  /** ISO ship-from country of the selected current listing, if supplied by its source. */
+  observedAskOriginCountry: string | null
   /** Last observed asking price (kit only), kept as dated historical evidence. */
   historicalAskItemEUR: number | null
   historicalAskShippingEUR: number | null
+  /** ISO origin of the same latest stored historical listing, never inferred from EBAY_IT. */
+  historicalAskOriginCountry: string | null
   historicalAskObservedAt: string | null
   /** Last observed item+shipping amount, NEVER an Italian landed-cost guarantee. */
   historicalAskItemPlusShippingEUR: number | null
