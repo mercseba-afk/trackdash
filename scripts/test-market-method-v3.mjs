@@ -3,6 +3,7 @@ import { applyAskTrend, computeCurrentMarketSignal } from "../lib/market/pipelin
 import { applyPublicMarketPublicationPolicy } from "../lib/market/pipeline/market-publication-policy.ts"
 import { selectCurrentSoldEvidence } from "../lib/market/pipeline/sold-selection.ts"
 import { getCollectorSoldTrendComparison } from "../lib/market/collector-sold-trend-comparison.ts"
+import { isKnownExtraEuAsk, observedAskOriginCountry } from "../lib/market/presentation.ts"
 import { observedMarketPrice, observedMarketKnownShipping, observedMarketKnownPurchaseCost } from "../lib/market/presentation.ts"
 
 let passed = 0
@@ -427,6 +428,33 @@ ok("Unconfirmed or international-only shipping NEVER creates a final acquisition
   assert.equal(observedMarketKnownShipping(unknown), null)
   assert.equal(observedMarketPrice({ startingItemPriceEUR: null, startingEffectiveCostEUR: 58.56, startingCostBasis: "delivered" }), null)
   assert.equal(observedMarketKnownPurchaseCost({ ...unknown, startingEffectiveCostEUR: 29 }), null)
+})
+
+ok("ASK country is the seller's real origin, not the EBAY_IT marketplace", () => {
+  const historicalJapan = {
+    startingItemPriceEUR: null,
+    historicalAskItemEUR: 46.36,
+    historicalAskOriginCountry: "JP",
+    observedAskOriginCountry: null,
+  }
+  assert.equal(observedAskOriginCountry(historicalJapan), "JP")
+  assert.equal(isKnownExtraEuAsk(historicalJapan), true)
+  assert.equal(isKnownExtraEuAsk({ ...historicalJapan, historicalAskOriginCountry: "IT" }), false)
+  assert.equal(isKnownExtraEuAsk({ ...historicalJapan, historicalAskOriginCountry: null }), false)
+  assert.equal(isKnownExtraEuAsk({ ...historicalJapan, historicalAskOriginCountry: "DE" }), false)
+})
+
+ok("A new Italian selected offer removes the prior Japanese import warning", () => {
+  const updated = {
+    startingItemPriceEUR: 22,
+    observedAskOriginCountry: "IT",
+    historicalAskItemEUR: 46.36,
+    historicalAskOriginCountry: "JP",
+  }
+  assert.equal(observedAskOriginCountry(updated), "IT")
+  assert.equal(isKnownExtraEuAsk(updated), false)
+  assert.equal(isKnownExtraEuAsk({ ...updated, observedAskOriginCountry: "US" }), true)
+  assert.equal(isKnownExtraEuAsk({ ...updated, observedAskOriginCountry: null }), false)
 })
 
 console.log(`${passed} passed, 0 failed`)
