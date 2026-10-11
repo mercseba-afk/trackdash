@@ -281,8 +281,10 @@ if (!analyticsSource.includes("marketValue != null") || !analyticsSource.include
 if (!collectionScreen.includes("Valore della copia non stimato")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
 }
-if (!collectionScreen.includes("Mercato osservato · sigillato") || !collectionScreen.includes("Riferimenti storici disponibili")) {
-  errors.push("Collection does not distinguish historical market context from missing data")
+if (!collectionScreen.includes("Riferimento mercato · kit sigillato") ||
+    !collectionScreen.includes("Valore in osservazione") ||
+    !collectionScreen.includes("Ultimo osservato")) {
+  errors.push("Collection must distinguish a missing value from verified SOLD and dated historical ASK")
 }
 
 const publicMarket = fs.readFileSync("lib/market/public.ts", "utf8")
@@ -379,8 +381,10 @@ if (!dashboardMarket.includes("isEditoriallyPositive")) {
 if (!dashboardScreen.includes("entry.observedPrice") || !dashboardScreen.includes("observedMarketDisplayLabel(entry.marketSignal, it)")) {
   errors.push("Dashboard recent additions are not using the condition-aware Collection market reference")
 }
-if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") || !collectionScreen.includes("observedMarketDisplayKind(signal)")) {
-  errors.push("ASK/SOLD approximation semantics are not shared across Dashboard and Collection")
+if (!dashboardScreen.includes("observedMarketDisplayKind(entry.marketSignal)") ||
+    !collectionScreen.includes("observedMarketReferencePrice(signal)") ||
+    !collectionScreen.includes("const mainPrice = mv ?? sold")) {
+  errors.push("Dashboard and Collection must preserve ASK vs SOLD vs MV reference semantics")
 }
 if (dashboardMarket.includes("askTrendWindowDays")) {
   errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
