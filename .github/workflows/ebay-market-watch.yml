@@ -3,7 +3,8 @@ name: eBay Market Watch
 on:
   schedule:
     - cron: '41 */3 * * *'
-  # One-time validation on workflow changes; production cadence uses schedule.
+  # Re-run the protected market-watch smoke check after Production is READY.
+  # Regular execution remains the three-hour schedule.
   push:
     branches: [main]
     paths:
