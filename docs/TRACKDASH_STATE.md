@@ -1,11 +1,21 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-10-10  
+> **Last updated:** 2026-10-11  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
 ---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — ONE KIT-ONLY PRICE BASIS + DOCUMENTED SHIPPING, FAIL CLOSED
+
+- Approved live-site safety policy: **Market Value, completed SOLD averages, current seller ASK, and Collection indicative sealed total all show prices of the KIT ONLY in EUR, excluding shipping**. ASK remains an asking price, not SOLD or MV. Collection can use a clearly labeled fallback kit-only ASK where MV is missing, without adding a shipping surcharge to the physical value of the owned copy. Costs of acquisition are a *separate* dimension: item + shipping actually documented for the same TTL-valid, Europe-first selected offer, and possibly separately verified import charges. NEVER call item+shipping an all-in landed-Italy quote unless all cost components and destination are proven.
+- Live read-only audit: 176 public available Mini4WD Releases; **10 numeric canonical MV, all 10 exactly match respective kit-only SOLD anchors** (no stored MV repricing needed); **54 SOLD references**; 43 materialized starting prices but most stale. On 2026-10-11, only **one fresh offer row within 72 hours**, and **zero** matches a valid Europe-first canonical `starting_offer_candidate_id`. Public ASK must not fallback to a random fresh marketplace item (possibly Japan/extra-EU) or present old offers as currently purchasable.
+- Dyna-Hawk 95467 verified: previous SOLD window average **€12.45** and recent SOLD average **€14.92**, both kit-only; +19.86% sold-price change, NOT acquisition performance. Older Oct 1 active offer snapshot: **item €46.36 + documented shipping €12.20 = €58.56**, NOT fresh and NOT guaranteed final delivery-to-Italy cost. Wider sold history records mean shipping €9.46 but the 5 current-window sales have no comparable shipping sample; NEVER transfer that shipping average to them.
+- Shared public `observedMarketPrice` now returns only `startingItemPriceEUR` from the source-selected TTL-fresh offer; a separate `observedMarketKnownPurchaseCost` returns item+shipping ONLY on `startingCostBasis='delivered'` with numeric, arithmetically consistent shipping for the same offer. `startingFreshObservedOffer` no longer falls back to arbitrary fresh offers if the canonical candidate is absent or expired (fail-closed Europe-first).
+- The Release detail shows separately **SOLD average of kit** and **selected ASK of kit**, then known shipping/item+shipping subtotal only when verified, else «Spedizione da verificare». Release family preview, Market, Dashboard and other shared price surfaces consume the kit-only helper. Catalog already used kit-only item prices; Collection summary clearly labels its MV/ASK blended kit-only reference **indicative**, not guaranteed resale proceeds.
+- Wishlist keeps an independent kit-only ASK for market information but confirms **target reached only against documented item+shipping**. Unknown shipping = no target-reached status. Its «Spostato nella collezione» workflow no longer fabricates paid cost from Wishlist budget or live ASK; records unknown acquisition price as 0 pending user entry.
+- PR #392 combines verified SOLD trend disclosure (before→after) with these semantic/projection fixes; no change to the Market Method v4 weighting, pricing cron, source adapters, published Market Values, or database. Tests assert uniform kit-only display, documented shipping arithmetic, no extra-UE offer fallback, safe Wishlist targets, real SOLD trend provenance, and historical price stability. Published status must be verified separately after merge.
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — TRANSPARENT SOLD TREND COMPARISONS IN COLLECTION
 
