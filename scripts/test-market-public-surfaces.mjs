@@ -434,7 +434,7 @@ if (!collectionScreen.includes("Riferimento mercato · kit sigillato") ||
 }
 const marketOfferQuery = fs.readFileSync("lib/db/queries/market.ts", "utf8")
 const offerOrigin = fs.readFileSync("lib/market/offer-origin.ts", "utf8")
-if (!marketOfferQuery.includes("marketCandidates.rawPayload") ||
+if (!marketOfferQuery.includes('admin.from("market_candidates")') && !marketOfferQuery.includes('.from("market_candidates")') ||
     !marketOfferQuery.includes("priceSources.marketRegion") ||
     !offerOrigin.includes("itemLocationCountry") ||
     !publicProjection.includes("currentAskOrigin: classifyOfferOrigin(") ||
