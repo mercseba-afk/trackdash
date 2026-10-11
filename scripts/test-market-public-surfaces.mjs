@@ -161,13 +161,15 @@ if (!publicProjection.includes("historicalAskItemEUR: histItem") ||
     !publicProjection.includes("observedOffer ? null : [...observedOffers]")) {
   errors.push("Dated historical ASK must survive active offer TTL separately, with a strict 180-day evidence horizon")
 }
-if (!marketOverview.includes("Prezzi del solo kit · spedizione esclusa.") ||
-    !marketOverview.includes("Disponibilità da verificare") ||
+if (!marketOverview.includes("Prezzi del solo kit · ") ||
+    !marketOverview.includes("spedizione esclusa") ||
     !marketOverview.includes("historicalAskShippingEUR") ||
-    marketOverview.includes("bg-amber-50") ||
-    marketOverview.includes("bg-emerald-50")) {
-  errors.push("Release overview must be one neutral two-row kit-only display, with historic offer date and separate shipping")
+    !marketOverview.includes("isKnownExtraEuAsk(signal)") ||
+    !marketOverview.includes("Spedizione indicata:") ||
+    !marketOverview.includes("Disponibilità da verificare")) {
+  errors.push("Release market box needs kit-only labels, concise shipping and seller-origin checks")
 }
+
 const datedCollectionAnalytics = fs.readFileSync("lib/analytics.ts", "utf8")
 if (!datedCollectionAnalytics.includes("observedMarketReferencePrice(marketSignal)") ||
     !datedCollectionAnalytics.includes("marketValue ?? observedPrice")) {
