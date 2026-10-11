@@ -26,6 +26,12 @@ export interface ReleaseMarketSignalView {
   observedPriceAt: string | null
   observedPriceChannel: "retail" | "marketplace" | null
   observedShippingEUR: number | null
+  /** Last observed asking price (kit only), kept as dated historical evidence. */
+  historicalAskItemEUR: number | null
+  historicalAskShippingEUR: number | null
+  historicalAskObservedAt: string | null
+  /** Last observed item+shipping amount, NEVER an Italian landed-cost guarantee. */
+  historicalAskItemPlusShippingEUR: number | null
   retailSourceCount: number
   activeOfferCount: number
   currentOfferCount: number

@@ -12,7 +12,8 @@ import {
   observedMarketDisplayLabel,
   observedMarketDisplayPrice,
   observedMarketDisplayEvidenceLabel,
-  observedMarketPrice,
+  observedMarketReferencePrice,
+  observedMarketReferenceIsHistorical,
 } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
@@ -44,7 +45,8 @@ export function MarketSignalInline({
   const hasObservedPrice = observedPrice != null && observedPrice > 0
   // Only TTL-verified, currently purchasable offers may appear as ASK.
   // Never let a stale materialized retail/active anchor obscure a real SOLD.
-  const askPrice = observedMarketPrice(signal)
+  const askPrice = observedMarketReferencePrice(signal)
+  const askHistorical = observedMarketReferenceIsHistorical(signal)
   const hasAsk = askPrice != null && askPrice > 0
   const soldPrice = signal.soldAnchorEUR
   const hasSold = soldPrice != null && soldPrice > 0
@@ -67,7 +69,7 @@ export function MarketSignalInline({
         ) : (
           <>
             {hasSold ? (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-emerald-900">
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-1.5 text-foreground">
                 <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
                   <BadgeCheck className="size-3 shrink-0" />
                   <span>{it ? "Vendite concluse" : "Completed sales"}</span>
@@ -76,10 +78,10 @@ export function MarketSignalInline({
               </div>
             ) : null}
             {hasAsk ? (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-2.5 py-1.5 text-amber-900">
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-1.5 text-foreground">
                 <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em]">
                   <Tag className="size-3 shrink-0" />
-                  <span>{it ? "Prezzo richiesto · kit" : "Asking price · kit"}</span>
+                  <span>{askHistorical ? (it ? "Ultimo ASK · kit" : "Last ASK · kit") : (it ? "Prezzo richiesto · kit" : "Asking price · kit")}</span>
                 </span>
                 <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
               </div>
@@ -99,22 +101,24 @@ export function MarketSignalInline({
     <div className="flex flex-col gap-1">
       {showDualReferences ? (
         <div className="grid gap-1.5">
-          <div className="flex items-center justify-between gap-3 rounded-lg bg-emerald-50 px-2.5 py-2 text-emerald-900">
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-2 text-foreground">
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
               <BadgeCheck className="size-3 shrink-0" />
               <span>{it ? "Vendite concluse" : "Completed sales"}</span>
             </span>
             <strong className="shrink-0 text-sm font-semibold tabular-nums">≈ {formatMoney(soldPrice!)}</strong>
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900">
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-2 text-foreground">
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
               <Tag className="size-3 shrink-0" />
-              <span>{it ? "Prezzo richiesto · kit" : "Asking price · kit"}</span>
+              <span>{askHistorical ? (it ? "Ultimo ASK · kit" : "Last ASK · kit") : (it ? "Prezzo richiesto · kit" : "Asking price · kit")}</span>
             </span>
             <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
           </div>
           <span className="text-[10px] leading-tight text-muted-foreground">
-            {it ? "Entrambi si riferiscono al prezzo del kit, senza spedizione." : "Both are kit-only prices, excluding shipping."}
+            {askHistorical
+              ? (it ? "Ultimo ASK osservato, non necessariamente attivo · prezzi del solo kit, senza spedizione." : "Last observed ASK, not necessarily active · kit-only prices, excluding shipping.")
+              : (it ? "Prezzi del solo kit · spedizione esclusa." : "Kit-only prices · shipping excluded.")}
           </span>
         </div>
       ) : hasValue ? (
@@ -128,8 +132,8 @@ export function MarketSignalInline({
             <span
               className={
                 observedKind === "sold"
-                  ? "inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-emerald-800"
-                  : "inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-amber-800"
+                  ? "inline-flex items-center gap-1 rounded-full bg-muted/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-foreground"
+                  : "inline-flex items-center gap-1 rounded-full bg-muted/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-foreground"
               }
             >
               {observedKind === "sold" ? <BadgeCheck className="size-2.5" /> : <Tag className="size-2.5" />}
@@ -146,7 +150,7 @@ export function MarketSignalInline({
             {observedTrend != null ? <TrendIndicator value={observedTrend} className="text-xs" /> : null}
           </div>
           {observedEvidence ? (
-            <span className={observedKind === "sold" ? "text-[11px] text-emerald-700" : "text-[11px] text-amber-700"}>
+            <span className={observedKind === "sold" ? "text-[11px] text-muted-foreground" : "text-[11px] text-muted-foreground"}>
               {observedEvidence}
               {observedKind === "ask" ? (it ? " · richiesta, non vendita" : " · asking price, not a sale") : ""}
             </span>
