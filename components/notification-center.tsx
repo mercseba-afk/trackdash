@@ -17,11 +17,9 @@ import {
 import {
   getNotificationsAction,
   getUnreadNotificationCountAction,
-  getCatalogExpansionNoticeAction,
   markAllNotificationsReadAction,
   markNotificationReadAction,
   type AppNotification,
-  type CatalogExpansionNotice,
 } from "@/lib/actions/notifications"
 import { createClient } from "@/lib/supabase/client"
 import { useStore } from "@/lib/store"
@@ -203,48 +201,6 @@ function NotificationRow({
   )
 }
 
-function CatalogExpansionRow({
-  notice,
-  it,
-  onOpen,
-}: {
-  notice: CatalogExpansionNotice
-  it: boolean
-  onOpen: () => void
-}) {
-  if (notice.count <= 0) return null
-  const shown = notice.names.slice(0, 3)
-  const names = shown.join(", ")
-  const remaining = Math.max(0, notice.count - shown.length)
-  const body = it
-    ? `${names}${remaining > 0 ? ` e altre ${remaining} famiglie` : ""} ${notice.count === 1 ? "è in arrivo" : "sono in arrivo"}.`
-    : `${names}${remaining > 0 ? ` and ${remaining} more families` : ""} ${notice.count === 1 ? "is" : "are"} coming soon.`
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="mb-1 flex w-full items-start gap-3 rounded-xl border border-brand/15 bg-brand/5 px-3 py-3 text-left transition-colors hover:bg-brand/10"
-    >
-      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
-        <PackagePlus className="size-4" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{it ? "Catalogo in espansione" : "Catalog expanding"}</span>
-          <span className="rounded-full bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-brand shadow-sm">
-            {it ? "Fissata" : "Pinned"}
-          </span>
-        </span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">{body}</span>
-        <span className="mt-1.5 block text-[11px] font-medium text-brand">
-          {it ? "Nuove famiglie vengono aggiunte progressivamente →" : "New families are added progressively →"}
-        </span>
-      </span>
-    </button>
-  )
-}
-
 export function NotificationCenter() {
   const { user } = useStore()
   const { locale } = useI18n()
@@ -254,24 +210,20 @@ export function NotificationCenter() {
   const [rows, setRows] = React.useState<AppNotification[]>([])
   const [unread, setUnread] = React.useState(0)
   const [loading, setLoading] = React.useState(false)
-  const [catalogExpansion, setCatalogExpansion] = React.useState<CatalogExpansionNotice>({ count: 0, names: [] })
 
   const refresh = React.useCallback(async () => {
     if (!user) {
       setRows([])
       setUnread(0)
-      setCatalogExpansion({ count: 0, names: [] })
       return
     }
     try {
-      const [nextRows, nextUnread, nextExpansion] = await Promise.all([
+      const [nextRows, nextUnread] = await Promise.all([
         getNotificationsAction(),
         getUnreadNotificationCountAction(),
-        getCatalogExpansionNoticeAction(),
       ])
       setRows(nextRows)
       setUnread(nextUnread)
-      setCatalogExpansion(nextExpansion)
     } catch {
       // The shell must stay usable if notifications are temporarily unavailable.
     }
@@ -294,8 +246,11 @@ export function NotificationCenter() {
 
     const onFocus = () => void refresh()
     window.addEventListener("focus", onFocus)
+    // Opening a conversation directly also acknowledges associated bell alerts.
+    window.addEventListener("trackdash:messaging-read", onFocus)
     return () => {
       window.removeEventListener("focus", onFocus)
+      window.removeEventListener("trackdash:messaging-read", onFocus)
       void supabase.removeChannel(channel)
     }
   }, [refresh, user])
@@ -313,7 +268,7 @@ export function NotificationCenter() {
 
   async function openNotification(notification: AppNotification) {
     if (!notification.readAt) {
-      setRows((current) => current.map((row) => row.id === notification.id ? { ...row, readAt: new Date().toISOString() } : row))
+      setRows((current) => current.filter((row) => row.id !== notification.id))
       setUnread((current) => Math.max(0, current - 1))
       try { await markNotificationReadAction(notification.id) } catch { void refresh() }
     }
@@ -322,8 +277,7 @@ export function NotificationCenter() {
   }
 
   async function markAll() {
-    const now = new Date().toISOString()
-    setRows((current) => current.map((row) => ({ ...row, readAt: row.readAt ?? now })))
+    setRows([])
     setUnread(0)
     try { await markAllNotificationsReadAction() } catch { void refresh() }
   }
@@ -355,13 +309,12 @@ export function NotificationCenter() {
           ) : null}
         </div>
         <div className="max-h-[min(65vh,32rem)] overflow-y-auto p-1.5">
-          {loading && rows.length === 0 && catalogExpansion.count === 0 ? (
+          {loading && rows.length === 0 ? (
             <div className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground"><Loader2 className="size-4 animate-spin" />{it ? "Caricamento…" : "Loading…"}</div>
-          ) : rows.length === 0 && catalogExpansion.count === 0 ? (
+          ) : rows.length === 0 ? (
             <div className="px-4 py-8 text-center"><Bell className="mx-auto mb-2 size-5 text-muted-foreground" /><p className="text-sm font-medium">{it ? "Tutto tranquillo" : "All quiet"}</p><p className="mt-1 text-xs text-muted-foreground">{it ? "Le offerte e gli aggiornamenti importanti compariranno qui." : "Offers and important updates will appear here."}</p></div>
           ) : (
             <>
-              <CatalogExpansionRow notice={catalogExpansion} it={it} onOpen={() => { setOpen(false); router.push("/catalog") }} />
               {rows.map((notification) => (
                 <NotificationRow key={notification.id} notification={notification} it={it} onOpen={(row) => void openNotification(row)} />
               ))}

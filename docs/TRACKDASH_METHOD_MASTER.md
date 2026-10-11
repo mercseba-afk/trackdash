@@ -119,6 +119,8 @@ Regole permanenti di presentazione:
 - ASK deve essere mostrato come prezzo richiesto, senza prefisso `≈`; SOLD come riferimento da vendite concluse con `≈`.
 - **Dettaglio Release / dettaglio copia:** mostrare in primo piano SOLO **Vendite concluse** (SOLD, ≈) e **Prezzo richiesto più basso** (ASK TTL-valido), quando presenti; non ripetere il Market Value come terza cifra se corrisponde al SOLD. Se né SOLD né ASK sono disponibili, mantenere il fallback al Market Value canonico, quando esiste, oppure «Mercato in osservazione». È una scelta di presentazione, NON una sostituzione del Market Value in Collection, Market, Wishlist e altri calcoli. Nessun trend numerico aggiuntivo nel box mercato del dettaglio.
 
+- **Anteprima della Collection (non il dettaglio):** mostrare la cifra principale utile a quella copia (MV per sigillati; in alternativa un SOLO riferimento di mercato corrente, ASK o SOLD con semantica distinta), poi **trend collezionistico canonico con direzione esplicita** «Mercato in crescita / Mercato in calo / Mercato stabile» e percentuale, SOLO quando esiste `trendPercent` affidabile. Prezzo effettivamente pagato in testo molto piccolo, opzionale. NON mostrare qui `personalGainEUR` (+0,72 €/−0,08 €), doppioni ASK aggiuntivi, `askTrendPercent` o altri indicatori tecnici; guadagno/perdita personale e dati completi stanno nel dettaglio della copia. Non inventare trend o svalutazioni per copie aperte: il mercato di riferimento riguarda kit nuovi/sigillati.
+
 Freschezza:
 - non introdurre cache/snapshot indipendenti per una singola superficie mercato;
 - Catalogo, Release detail, Collezione, Dashboard, Scanner e Market devono consumare la stessa snapshot pubblica condivisa;

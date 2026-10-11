@@ -1,5 +1,6 @@
 "use server"
 
+import { sql } from "drizzle-orm"
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { withUserContext } from "@/lib/db/rls"
 import {
@@ -168,6 +169,18 @@ export async function markConversationReadAction(conversationId: string) {
     const conversation = await getConversationForUser(user.id, conversationId, tx)
     if (!conversation) throw new Error("Conversation not found")
     await markConversationRead(user.id, conversationId, tx)
+    // Reading the actual conversation acknowledges the matching bell alerts,
+    // even when the user opened Messages directly rather than via the bell.
+    // Keep history (read_at), never delete offers or transaction records.
+    const href = `/messages?conversation=${conversationId}`
+    await tx.execute(sql`
+      update public.notifications
+      set read_at = now()
+      where user_id = ${user.id}::uuid
+        and read_at is null
+        and available_at <= now()
+        and (href = ${href} or href like ${href + "&%"})
+    `)
   })
 }
 

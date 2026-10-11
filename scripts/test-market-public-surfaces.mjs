@@ -365,6 +365,48 @@ const wishlistScreen = fs.readFileSync("components/screens/wishlist-screen.tsx",
 if (!wishlistPage.includes("fetchCatalogProductsByIds") || !wishlistScreen.includes("enrichWishlist(wishlist, marketSignals, catalogProducts)")) {
   errors.push("Wishlist is not resolved against the canonical catalog")
 }
+// Collection preview: the collectible market movement matters more than
+// tiny personal profit deltas. Copy paid amount stays discreet and the
+// underlying canonical market trend is never recomputed here.
+const compactCollection = collectionScreen.split("function CollectionMarketValue(")[1]?.split("function EditDialog(")[0] ?? ""
+if (!compactCollection.includes("Mercato in crescita") ||
+    !compactCollection.includes("Mercato in calo") ||
+    !compactCollection.includes("<TrendIndicator value={collectorTrend}")) {
+  errors.push("Collection cards must show legible canonical collector market direction and percent")
+}
+if (compactCollection.includes("personalGainEUR") ||
+    compactCollection.includes("observedDirection") ||
+    compactCollection.includes("hasReliableObservedPriceTrend")) {
+  errors.push("Collection card still shows distracting purchase profit or ASK trend")
+}
+if (!collectionScreen.includes("entry.item.acquisitionPrice > 0 ? (") ||
+    !collectionScreen.includes('text-[10px] leading-tight text-muted-foreground')) {
+  errors.push("Collection paid cost must be subtle and optional")
+}
+
+// Notification bell: unread only, and reading the matching conversation
+// acknowledges offer alerts even when Messages is opened directly.
+const notificationsAction = fs.readFileSync("lib/actions/notifications.ts", "utf8")
+const center = fs.readFileSync("components/notification-center.tsx", "utf8")
+const messagingAction = fs.readFileSync("lib/actions/messaging.ts", "utf8")
+const unreadFetch = notificationsAction.split("export async function getNotificationsAction")[1]?.split("export async function getUnreadNotificationCountAction")[0] ?? ""
+if (!unreadFetch.includes('.eq("user_id", user.id)') ||
+    !unreadFetch.includes('.is("read_at", null)')) {
+  errors.push("Notification bell is still loading already read alerts or other users' notifications")
+}
+if (center.includes("CatalogExpansionRow") ||
+    center.includes("getCatalogExpansionNoticeAction") ||
+    !center.includes("setRows((current) => current.filter((row) => row.id !== notification.id))") ||
+    !center.includes('window.addEventListener("trackdash:messaging-read", onFocus)')) {
+  errors.push("Notification bell must dismiss read alerts, avoid permanent pinned notices and sync conversation reads")
+}
+if (!messagingAction.includes("update public.notifications") ||
+    !messagingAction.includes("and read_at is null") ||
+    !messagingAction.includes("where user_id =") ||
+    !messagingAction.includes("href =")) {
+  errors.push("Opening the conversation directly must acknowledge matching collector notifications")
+}
+
 const storeSource = fs.readFileSync("lib/store.tsx", "utf8")
 if (storeSource.includes("getProductById") || storeSource.includes("primaryRelease")) {
   errors.push("Client store still resolves wishlist transfers through the local catalog")
