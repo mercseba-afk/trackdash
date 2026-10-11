@@ -152,7 +152,7 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "Il riferimento della collezione usa le stime disponibili e, in alternativa, l'ultimo prezzo richiesto osservato per il solo kit, anche se l'annuncio non è più verificato come attivo. Nessuna spedizione viene sommata al valore delle copie. Le singole vendite concluse senza una stima restano visibili nel dettaglio Release, ma non vengono sommate al totale. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
+      ? "Il riferimento della collezione usa le stime disponibili e, in alternativa, l'ultima offerta osservata, anche se l'annuncio non è più verificato come attivo. La spedizione è esclusa dal valore delle copie. Le singole vendite concluse senza una stima restano visibili nel dettaglio Release, ma non vengono sommate al totale. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
       : "The Collection reference uses Market Value when available, otherwise the last observed kit-only asking price, even when the listing is no longer verified as active. Shipping is never added to the value of owned copies. Completed sales without an estimate remain visible on Release detail but are not added to the total. We do not apply arbitrary discounts to Opened, Built, Used or Incomplete copies. USD, JPY and GBP purchases are normalized to EUR using historical ECB rates."}
   </p>
 ) : null}
@@ -207,16 +207,16 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                 const remove = async () => { try { await removeFromCollection(entry.item.id); setShares((current) => current.filter((item) => item.collectionItemId !== entry.item.id)); toast.success(it ? `Rimosso ${entry.product.name}` : `Removed ${entry.product.name}`) } catch (error) { toast.error(error instanceof Error ? error.message : it ? "Impossibile rimuovere questo elemento" : "Couldn't remove this item") } }
                 return (
                   <Card key={entry.item.id} className="group min-w-0 overflow-hidden rounded-[22px] border-border/70 py-0 shadow-[0_8px_28px_rgba(15,23,42,0.045)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
-                    <div className="flex h-full min-w-0 flex-col sm:flex-row">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative block h-44 w-full shrink-0 overflow-hidden border-b border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:h-auto sm:min-h-48 sm:w-36 sm:border-b-0 sm:border-r">
+                    <div className="flex h-full min-w-0 flex-row">
+                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative block h-36 w-[clamp(96px,27vw,148px)] shrink-0 self-start overflow-hidden border-r border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:h-48">
                         <ProductImage product={entry.product} release={entry.release} className="h-full w-full rounded-none bg-transparent transition-transform duration-300 group-hover:scale-[1.025]" />
                       </Link>
-                      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+                      <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-4">
                         <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
                           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
                           <h2 className="mt-1 line-clamp-2 text-base font-semibold leading-snug tracking-tight transition-colors group-hover:text-brand">{entry.release.editionName}</h2>
                         </Link>
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2.5">
+                        <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <Badge variant="secondary" className="h-5 rounded-full px-2 text-[9px] font-medium">{conditionLabel(entry.item.condition, it)}</Badge>
                             {entry.marketSignal?.soldUnits != null && entry.marketSignal.soldUnits > 0 ? (
@@ -237,7 +237,7 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                             </Button>
                           </div>
                         </div>
-                        <div className="mt-3 w-full min-w-0">
+                        <div className="mt-2.5 w-full min-w-0">
                           <CollectionMarketValue entry={entry} it={it} />
                         </div>
                         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/55 pt-3">
@@ -287,7 +287,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"}</p>
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
   {summary.marketReferenceCount}/{summary.sealedCount} {it ? "copie sigillate con un riferimento di mercato disponibile" : "sealed copies with an available market reference"}.
-  <span> {it ? "Il totale è indicativo: combina stime e ultimi prezzi richiesti osservati del solo kit, anche se non più verificati come attivi. Non include spedizione e non è un ricavo garantito. Copie aperte, montate, usate o incomplete restano escluse." : "The total is indicative: it combines estimates and last observed kit-only asking prices, including listings no longer verified as active. No shipping or guaranteed resale proceeds. Opened, built, used or incomplete copies remain excluded."}</span>
+  <span> {it ? "Il totale è indicativo: combina stime e ultime offerte osservate, anche se non più verificate come attive. Non include spedizione e non è un ricavo garantito. Copie aperte, montate, usate o incomplete restano escluse." : "The total is indicative: it combines estimates and last observed kit-only asking prices, including listings no longer verified as active. No shipping or guaranteed resale proceeds. Opened, built, used or incomplete copies remain excluded."}</span>
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
@@ -325,13 +325,13 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
   const trendPercent = comparison ? entry.marketTrend : null
 
   return (
-    <MarketPricePanelShell className="space-y-0">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
+    <MarketPricePanelShell className="space-y-0 p-2.5 sm:p-3.5">
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-3">
         <div className="inline-flex min-w-0 items-start gap-2">
           <Coins className="mt-0.5 size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Riferimento mercato · kit sigillato" : "Market reference · sealed kit"}</p>
+          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Riferimento mercato" : "Market reference"}</p>
         </div>
-        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
+        <strong className="min-w-0 whitespace-nowrap pl-6 text-left text-sm font-semibold tabular-nums text-foreground sm:pl-0 sm:text-right sm:text-base">
           {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : "—"}
         </strong>
       </div>
@@ -339,29 +339,29 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         {!sealed
           ? (it ? "Valore della copia non stimato: non sigillata" : "Copy value not estimated: not sealed")
           : mv != null
-            ? (it ? "Stima TrackDash" : "TrackDash estimate")
+            ? (it ? "Stima TrackDash · copie sigillate · spedizione esclusa" : "TrackDash estimate · sealed copies · shipping excluded")
             : sold != null
-              ? (it ? "Riferimento da vendite concluse, non una stima" : "Completed sales reference, not an estimate")
-              : (it ? "Valore in osservazione" : "Value under observation")}
+              ? (it ? "Da vendite concluse, non una stima · spedizione esclusa" : "Completed sales reference, not an estimate · shipping excluded")
+              : (it ? "Valore in osservazione · spedizione esclusa" : "Value under observation · shipping excluded")}
       </p>
 
       <div className="my-3 h-px bg-sky-200/75 dark:bg-sky-800/50" />
 
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3">
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-3">
         <div className="inline-flex min-w-0 items-start gap-2">
           <Tag className="mt-0.5 size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Prezzo richiesto · solo kit" : "Asking price · kit only"}</p>
+          <p className="text-[11px] font-semibold leading-snug text-foreground/85">{it ? "Offerta sul mercato" : "Market offer"}</p>
         </div>
-        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
+        <strong className="min-w-0 whitespace-nowrap pl-6 text-left text-sm font-semibold tabular-nums text-foreground sm:pl-0 sm:text-right sm:text-base">
           {ask != null ? formatMoney(ask) : "—"}
         </strong>
       </div>
       <p className="mt-1.5 pl-6 text-[10px] leading-relaxed text-muted-foreground">
         {ask == null
-          ? (it ? "Nessun prezzo osservato" : "No asking price observed")
+          ? (it ? "Nessuna offerta osservata" : "No offer observed")
           : historical
-            ? (it ? `Ultimo osservato${formattedDate ? ` · ${formattedDate}` : ""} · da verificare` : `Last observed${formattedDate ? ` · ${formattedDate}` : ""} · unverified`)
-            : (it ? "Offerta verificata di recente" : "Recently verified offer")}
+            ? (it ? `Ultima offerta osservata${formattedDate ? ` · ${formattedDate}` : ""} · disponibilità da verificare · spedizione esclusa` : `Last observed offer${formattedDate ? ` · ${formattedDate}` : ""} · availability unverified · shipping excluded`)
+            : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
       </p>
 
       {comparison && trendPercent != null ? (

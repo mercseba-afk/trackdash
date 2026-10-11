@@ -110,13 +110,13 @@ if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
 
 const marketInline = fs.readFileSync("components/market-signal-inline.tsx", "utf8")
 const productDetailScreen = fs.readFileSync("components/screens/product-detail-screen.tsx", "utf8")
-if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Prezzo richiesto")) {
+if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Offerta sul mercato")) {
   errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
 }
 if (!marketInline.includes("<PreviewPricePanel") ||
     !marketInline.includes("Valore di mercato") ||
-    !marketInline.includes("Prezzo richiesto") ||
-    !marketInline.includes("Ultimo prezzo rilevato") ||
+    !marketInline.includes("Offerta sul mercato") ||
+    !marketInline.includes("Ultima offerta osservata") ||
     !marketInline.includes("vendite concluse")) {
   errors.push("Release previews must keep identical plain-language market/ask rows with optional sale evidence")
 }
@@ -151,7 +151,7 @@ if (!marketOverview.includes("const reference = sold ?? mv") ||
     !marketOverview.includes("observedMarketReferencePrice(signal)")) {
   errors.push("Release detail must preserve a single SOLD-first or MV-fallback kit reference")
 }
-if (!marketOverview.includes("Prezzo richiesto · solo kit") || !marketOverview.includes("Vendite concluse")) {
+if (!marketOverview.includes("Offerta sul mercato") || !marketOverview.includes("Vendite concluse")) {
   errors.push("Release detail must keep the two primary collector-facing price labels")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
@@ -168,7 +168,7 @@ if (!publicProjection.includes("historicalAskItemEUR: histItem") ||
 }
 if (!marketOverview.includes("bg-muted/30") ||
     !marketOverview.includes("Spedizione esclusa") ||
-    !marketOverview.includes("Ultimo osservato") ||
+    !marketOverview.includes("Ultima offerta osservata") ||
     !marketOverview.includes("historicalAskShippingEUR") ||
     !marketOverview.includes("observedMarketOfferOrigin(signal)") ||
     !marketOverview.includes('origin === "extra_eu"') ||
@@ -285,9 +285,9 @@ if (!analyticsSource.includes("marketValue != null") || !analyticsSource.include
 if (!collectionScreen.includes("Valore della copia non stimato")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
 }
-if (!collectionScreen.includes("Riferimento mercato · kit sigillato") ||
+if (!collectionScreen.includes("Riferimento mercato") ||
     !collectionScreen.includes("Valore in osservazione") ||
-    !collectionScreen.includes("Ultimo osservato")) {
+    !collectionScreen.includes("Ultima offerta osservata")) {
   errors.push("Collection must distinguish a missing value from verified SOLD and dated historical ASK")
 }
 
@@ -430,11 +430,20 @@ if (!collectionScreen.includes("CollectionMarketValue entry={entry} it={it}") ||
     !collectionScreen.includes('entry.marketSignal.soldUnits > 0')) {
   errors.push("Collection must show an evidence badge only when real SOLD exists")
 }
-if (!collectionScreen.includes("Riferimento mercato · kit sigillato") ||
-    !collectionScreen.includes("Prezzo richiesto · solo kit") ||
-    !collectionScreen.includes("Ultimo osservato") ||
+if (!collectionScreen.includes("Riferimento mercato") ||
+    !collectionScreen.includes("Offerta sul mercato") ||
+    !collectionScreen.includes("Ultima offerta osservata") ||
     !collectionScreen.includes("const mainPrice = mv ?? sold")) {
   errors.push("Collection previews must have identical source-aware market and ASK rows, with dated historical ASK")
+}
+if (!collectionScreen.includes("flex h-full min-w-0 flex-row") ||
+    collectionScreen.includes("flex h-full min-w-0 flex-col sm:flex-row") ||
+    !collectionScreen.includes("w-[clamp(96px,27vw,148px)]") ||
+    !collectionScreen.includes("grid grid-cols-1 gap-1 sm:grid-cols-[minmax(0,1fr)_auto]")) {
+  errors.push("Collection cards must keep a compact image-left, information-right layout on mobile with prices wrapping inside the content column")
+}
+if (!productDetailScreen.includes("md:grid-cols-[176px_minmax(0,1fr)]")) {
+  errors.push("Catalog Release previews must preserve the image-above mobile layout")
 }
 const marketOfferQuery = fs.readFileSync("lib/db/queries/market.ts", "utf8")
 const offerOrigin = fs.readFileSync("lib/market/offer-origin.ts", "utf8")
