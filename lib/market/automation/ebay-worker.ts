@@ -469,10 +469,9 @@ async function finishJob(client: SupabaseClient, jobId: string, success: boolean
 
   if (!success) return
 
-  // eBay ASK is a slow collector-market lane. The daily cron is only a
-  // dispatcher: each Release gets a sparse 4/6/12-week cadence according to
-  // its adaptive activity tier after the generic queue function has promoted
-  // or demoted the job.
+  // eBay active ASK uses its own 3/7/30-day cadence, independently from
+  // slower exact retail scanning. A successful job always recalculates its
+  // next due date; failures never masquerade as successful verification.
   const { data: queue, error: queueError } = await client
     .from("market_scan_queue")
     .select("activity_tier")
