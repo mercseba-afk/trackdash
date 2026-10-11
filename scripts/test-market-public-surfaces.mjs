@@ -173,7 +173,7 @@ if (!datedCollectionAnalytics.includes("observedMarketReferencePrice(marketSigna
     !datedCollectionAnalytics.includes("marketValue ?? observedPrice")) {
   errors.push("Indicative sealed Collection must include dated kit-only ASK reference where MV is absent")
 }
-if (!analyticsSource.includes("observedMarketKnownPurchaseCost(marketSignal)")) {
+if (!datedCollectionAnalytics.includes("observedMarketKnownPurchaseCost(marketSignal)")) {
   errors.push("Wishlist purchase target must keep using fresh, verified item+shipping cost")
 }
 const priceBasis = fs.readFileSync("lib/market/presentation.ts", "utf8")
