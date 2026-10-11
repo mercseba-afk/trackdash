@@ -553,6 +553,14 @@ Non trattare tutto come genericamente `global` se la regione è nota.
 
 ---
 
+# UI SEMPLICE E RIFERIMENTI ASK OSSERVATI (2026-10-11, FIX LIVE)
+
+- **Una base unica** in OGNI Release: SOLD, ASK e Market Value sono **prezzi del solo kit, spedizione esclusa**. Per 95467 Dyna-Hawk: SOLD ≈ €14,92 e **ultimo ASK osservato €46,36**, NON €58,56 (questo è €46,36 articolo + €12,20 spedizione indicata). La spedizione è sempre informazione separata, anche in presenza di importi storici; non stimare IVA/dogana.
+- **Una sola card neutra** («Mercato»), con al massimo due righe: «Vendite concluse» e «Prezzo richiesto osservato», entrambe con kit-only EUR. Nessuna alternanza di box verdi/gialli, nessuna spiegazione tecnica ripetitiva. In calce «Prezzi del solo kit · spedizione esclusa» e, se abbiamo ASK, «Offerta osservata [data]», «Spedizione indicata +€X (non inclusa)» oppure «Spedizione da verificare», più un breve richiamo agli oneri extra-UE.
+- La **freschezza dell'annuncio** e l'**esistenza di un ultimo prezzo osservato** sono concetti distinti: il dato ASK storico non deve scomparire soltanto perché è scaduto il TTL per considerarlo *attualmente acquistabile*. L'interfaccia può presentarlo come «Ultimo prezzo richiesto osservato · disponibilità da verificare», con data reale e orizzonte di evidenza **max 180 giorni**, dalla stessa `market_offer_states`, senza inventare prezzo o quantità. Non chiamarlo «annuncio attivo», «disponibile da» né usarlo per la valutazione v4/scan.
+- La Collection mostra un totale **indicativo** delle copie sigillate (MV quando esiste; in alternativa ultimo prezzo richiesto osservato *solo kit*, opportunamente dichiarato anche se il venditore potrebbe non essere più attivo). Prezzo pagato e guadagno personale rimangono distinti; shipping non entra mai nel valore della copia. La Wishlist confronta i target di acquisto **solo con prezzi correnti e spese di spedizione documentate**, e non riutilizza ASK storici per segnalare offerte.
+- Se non esistono MV né ASK entro l'orizzonte, usare il SOLD solo come **evidenza consultabile** (non come valore fittizio portafoglio). Nessuna modifica a Market Method v4, pesi, colonne canoniche o cron. Questo fix è di proiezione/presentazione, non di stima.
+
 # REGOLA DEFINITIVA DI COMPARABILITÀ (2026-10-11)
 
 **Sono due dimensioni economiche, NON due stime concorrenti:**
