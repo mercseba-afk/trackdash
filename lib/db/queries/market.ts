@@ -1,6 +1,7 @@
 import "server-only"
 
-import { and, eq, inArray, sql } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
+import { createAdminClient } from "@/lib/supabase/admin"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
@@ -10,7 +11,6 @@ import {
 import {
   marketEstimates,
   marketOfferStates,
-  marketCandidates,
   priceSources,
   marketReleaseMonthlySignals,
   marketReleaseSignals,
@@ -121,7 +121,7 @@ export async function listCurrentObservedOffers(
         inArray(marketOfferStates.availability, ["in_stock", "low_stock"]),
       )
 
-  return db
+  const offers = await db
     .select({
       candidateId: marketOfferStates.candidateId,
       releaseId: marketOfferStates.releaseId,
@@ -132,13 +132,39 @@ export async function listCurrentObservedOffers(
       effectiveCostEUR: marketOfferStates.effectiveCostEUR,
       costBasis: marketOfferStates.costBasis,
       lastCheckedAt: marketOfferStates.lastCheckedAt,
-      originCountry: sql<string | null>`${marketCandidates.rawPayload} ->> 'itemLocationCountry'`,
       sourceMarketRegion: priceSources.marketRegion,
     })
     .from(marketOfferStates)
-    .leftJoin(marketCandidates, eq(marketCandidates.id, marketOfferStates.candidateId))
     .leftJoin(priceSources, eq(priceSources.id, marketOfferStates.sourceId))
     .where(where)
+
+  // market_candidates is private (no public read privileges). Never join it
+  // with the public Drizzle connection: a permission error otherwise blanks
+  // all pricing surfaces, including perfectly valid SOLD-based Market Values.
+  // Enrich only origin metadata with the service client; fail closed to
+  // unknown origin if this optional lookup is unavailable.
+  const origins = new Map<string, string>()
+  const ids = [...new Set(offers.map((row) => row.candidateId).filter(Boolean))]
+  try {
+    const admin = createAdminClient()
+    for (let offset = 0; offset < ids.length; offset += 200) {
+      const { data, error } = await admin
+        .from("market_candidates")
+        .select("id,raw_payload")
+        .in("id", ids.slice(offset, offset + 200))
+      if (error) throw error
+      for (const row of data ?? []) {
+        const payload = row.raw_payload
+        const country = payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).itemLocationCountry : null
+        if (typeof country === "string" && /^[A-Z]{2}$/.test(country)) origins.set(row.id, country)
+      }
+    }
+  } catch (error) {
+    console.error("[public-market] optional origin enrichment failed", error instanceof Error ? error.message : String(error))
+  }
+
+  return offers.map((row) => ({ ...row, originCountry: origins.get(row.candidateId) ?? null }))
 }
 
 export async function getMarketMonthlySignalsForRelease(
