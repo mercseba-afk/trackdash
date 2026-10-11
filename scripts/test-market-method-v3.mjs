@@ -3,6 +3,7 @@ import { applyAskTrend, computeCurrentMarketSignal } from "../lib/market/pipelin
 import { applyPublicMarketPublicationPolicy } from "../lib/market/pipeline/market-publication-policy.ts"
 import { selectCurrentSoldEvidence } from "../lib/market/pipeline/sold-selection.ts"
 import { getCollectorSoldTrendComparison } from "../lib/market/collector-sold-trend-comparison.ts"
+import { observedMarketPrice, observedMarketKnownShipping, observedMarketKnownPurchaseCost } from "../lib/market/presentation.ts"
 
 let passed = 0
 function ok(name, fn) {
@@ -400,6 +401,32 @@ ok("No implied baseline from stale, ASK, mismatched or unsupported SOLD evidence
   for (const [raw, captured, persisted] of mismatch) {
     assert.equal(getCollectorSoldTrendComparison(raw, captured, persisted), null)
   }
+})
+
+ok("Public market always shows the kit-only price and a distinct documented shipping quote", () => {
+  const dynaObservedOffer = {
+    startingItemPriceEUR: 46.36,
+    startingEffectiveCostEUR: 58.56,
+    startingCostBasis: "delivered",
+    observedShippingEUR: 12.20,
+  }
+  assert.equal(observedMarketPrice(dynaObservedOffer), 46.36)
+  assert.equal(observedMarketKnownShipping(dynaObservedOffer), 12.20)
+  assert.equal(observedMarketKnownPurchaseCost(dynaObservedOffer), 58.56)
+})
+
+ok("Unconfirmed or international-only shipping NEVER creates a final acquisition quote", () => {
+  const unknown = {
+    startingItemPriceEUR: 12.0,
+    startingEffectiveCostEUR: null,
+    startingCostBasis: "item_only",
+    observedShippingEUR: null,
+  }
+  assert.equal(observedMarketPrice(unknown), 12)
+  assert.equal(observedMarketKnownPurchaseCost(unknown), null)
+  assert.equal(observedMarketKnownShipping(unknown), null)
+  assert.equal(observedMarketPrice({ startingItemPriceEUR: null, startingEffectiveCostEUR: 58.56, startingCostBasis: "delivered" }), null)
+  assert.equal(observedMarketKnownPurchaseCost({ ...unknown, startingEffectiveCostEUR: 29 }), null)
 })
 
 console.log(`${passed} passed, 0 failed`)
