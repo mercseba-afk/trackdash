@@ -143,7 +143,7 @@ if (!marketOverview.includes("Valore stimato")) {
 if (!marketOverview.includes("observedMarketReferencePrice") || !marketOverview.includes("soldAnchorEUR")) {
   errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
-if (!marketOverview.includes("} : hasValue ? (")) {
+if (!marketOverview.includes(") : hasValue ? (")) {
   errors.push("Release detail must not show a duplicate Market Value beside SOLD or current ASK")
 }
 if (!marketOverview.includes("Prezzo richiesto osservato") || !marketOverview.includes("Vendite concluse")) {
