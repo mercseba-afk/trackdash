@@ -64,7 +64,7 @@ async function isTrustedGithubAction(token: string): Promise<boolean> {
       return !!key && key.kid === header.kid && key.kty === "RSA" && (!key.alg || key.alg === "RS256")
     })
     if (!jwk) return false
-    const publicKey = createPublicKey({ key: jwk as JsonWebKey, format: "jwk" })
+    const publicKey = createPublicKey({ key: jwk as import("node:crypto").JsonWebKey, format: "jwk" })
     return verifySignature(
       "RSA-SHA256",
       Buffer.from(`${encodedHeader}.${encodedClaims}`),
