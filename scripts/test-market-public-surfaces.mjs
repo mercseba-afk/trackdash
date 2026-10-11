@@ -278,10 +278,10 @@ if (
   errors.push("Public market service can expose a current-offer anchor after its supporting channel has no fresh offers")
 }
 
-const startingEffectiveIndex = marketPresentation.indexOf("startingEffectiveCostEUR")
-const startingItemIndex = marketPresentation.indexOf("startingItemPriceEUR", startingEffectiveIndex)
-if (startingEffectiveIndex < 0 || startingItemIndex < 0 || startingEffectiveIndex > startingItemIndex) {
-  errors.push("Shared market presentation must prefer fresh delivered cost before fresh item-only price")
+if (!marketPresentation.includes("return signal?.startingItemPriceEUR ?? null") ||
+    !marketPresentation.includes("observedMarketKnownPurchaseCost") ||
+    !marketPresentation.includes('startingCostBasis !== "delivered"')) {
+  errors.push("Shared presentation must use kit-only ASK and separate any known item+shipping quote")
 }
 if (
   marketPresentation.includes("?? signal?.activeAnchorEUR") ||
