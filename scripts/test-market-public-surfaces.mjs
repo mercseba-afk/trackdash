@@ -265,6 +265,13 @@ if (publicMarket.includes("unstable_cache") || publicMarket.includes("listCached
 if (!publicMarket.includes("marketContextEvidenceCount") || !publicMarket.includes("listSafeMarketContextEvidence")) {
   errors.push("Public market service is not carrying safe historical context evidence through the trusted server boundary")
 }
+// A fresh offer can still be Japan-only or a legacy row. Never bypass the
+// Europe-first canonical source selection to fabricate a public "from" price.
+if (!publicMarket.includes("if (!startingCandidateId) return null") ||
+    !publicMarket.includes("fresh.find((row) => row.candidateId === startingCandidateId) ?? null") ||
+    publicMarket.includes("return fresh.sort((a, b) =>")) {
+  errors.push("Public ASK may not fallback to an arbitrary fresh (possibly extra-EU) offer")
+}
 if (
   !publicMarket.includes("const startingItemPriceEUR = numberOrNull(observedOffer?.itemPriceEUR)") ||
   !publicMarket.includes("const startingEffectiveCostEUR = numberOrNull(observedOffer?.effectiveCostEUR)")
