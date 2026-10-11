@@ -15,6 +15,7 @@ import {
   RETAIL_OFFER_MAX_AGE_HOURS,
 } from "@/lib/market/pipeline/market-publication-policy"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } from "@/lib/market/collector-sold-trend-comparison"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -89,6 +90,52 @@ async function listSafeMarketContextEvidence(
   return [...counts.entries()].map(([releaseId, evidenceCount]) => ({ releaseId, evidenceCount }))
 }
 
+
+interface StoredTrendAuditRow {
+  release_id: string
+  captured_at: string
+  raw_payload: unknown
+}
+
+// Source-owned, read-only provenance. Never disclose raw audit payloads to the
+// client; project only two verified sold-window averages and sample sizes.
+// This filters to explicitly documented trends instead of guessing baselines
+// from a current Market Value or an unrelated active asking price.
+async function listCollectorTrendAuditRows(releaseIds?: string[]): Promise<StoredTrendAuditRow[]> {
+  if (releaseIds && !releaseIds.length) return []
+  const client = createAdminClient()
+  let query = client
+    .from("market_aggregate_observations")
+    .select("release_id,captured_at,raw_payload")
+    .eq("condition", "new_complete_unbuilt")
+    .eq("attribution_status", "release_exact")
+    .not("raw_payload->trend_evidence", "is", null)
+  if (releaseIds?.length) query = query.in("release_id", releaseIds)
+  const { data, error } = await query
+  if (error) throw new Error(`load verified collector-trend provenance: ${error.message}`)
+  return (data ?? []) as StoredTrendAuditRow[]
+}
+
+function publishedSoldTrendComparison(
+  signal: MarketReleaseSignal | null | undefined,
+  audits: StoredTrendAuditRow[],
+): CollectorSoldTrendComparison | null {
+  if (!signal || signal.trendBasis !== "sold" || signal.trendPercent == null) return null
+  const trend = {
+    percent: numberOrNull(signal.trendPercent),
+    windowMonths: signal.trendWindowMonths,
+    basis: signal.trendBasis,
+    updatedAt: signal.trendUpdatedAt instanceof Date
+      ? signal.trendUpdatedAt.toISOString()
+      : signal.trendUpdatedAt ? String(signal.trendUpdatedAt) : null,
+  } as const
+
+  for (const row of audits) {
+    const valid = getCollectorSoldTrendComparison(row.raw_payload, row.captured_at, trend)
+    if (valid) return valid
+  }
+  return null
+}
 
 interface RecentSoldActivity {
   units: number
@@ -187,6 +234,7 @@ export function toPublicMarketSignalView(
   recentSoldActivity: RecentSoldActivity | null = null,
   observedOffers: CurrentObservedOfferRow[] = [],
   marketContextEvidenceCount = 0,
+  soldTrendComparison: CollectorSoldTrendComparison | null = null,
 ): ReleaseMarketSignalView | null {
   if (!signal) return null
 
@@ -268,6 +316,7 @@ export function toPublicMarketSignalView(
       : signal.trendUpdatedAt
         ? String(signal.trendUpdatedAt)
         : null,
+    soldTrendComparison,
     askTrendPercent: numberOrNull(signal.askTrendPercent),
     askTrendWindowDays:
       signal.askTrendWindowDays != null &&
@@ -282,17 +331,19 @@ export function toPublicMarketSignalView(
 export async function getPublicMarketSignalForRelease(
   releaseId: string,
 ): Promise<ReleaseMarketSignalView | null> {
-  const [row, monthlyRows, observedOffers, contextRows] = await Promise.all([
+  const [row, monthlyRows, observedOffers, contextRows, trendAuditRows] = await Promise.all([
     getMarketSignalForRelease(releaseId),
     getMarketMonthlySignalsForRelease(releaseId, undefined, 6),
     listCurrentObservedOffers([releaseId]),
     listSafeMarketContextEvidence([releaseId]),
+    listCollectorTrendAuditRows([releaseId]),
   ])
   return toPublicMarketSignalView(
     row,
     deriveRecentSoldActivity(monthlyRows),
     observedOffers,
     contextRows[0]?.evidenceCount ?? 0,
+    publishedSoldTrendComparison(row, trendAuditRows),
   )
 }
 
@@ -303,11 +354,12 @@ export async function getPublicMarketSignalMap(
   // cache the full map independently from exact Release views: after a market
   // recompute, Catalog, Collection, Dashboard, Scanner and Release detail must
   // all resolve the same market_release_signals state.
-  const [rows, monthlyRows, observedOffers, contextRows] = await Promise.all([
+  const [rows, monthlyRows, observedOffers, contextRows, trendAuditRows] = await Promise.all([
     listMarketSignals(releaseIds),
     listMarketMonthlySignals(releaseIds),
     listCurrentObservedOffers(releaseIds),
     listSafeMarketContextEvidence(releaseIds),
+    listCollectorTrendAuditRows(releaseIds),
   ])
 
   const monthlyByRelease = new Map<string, MarketReleaseMonthlySignal[]>()
@@ -325,6 +377,12 @@ export async function getPublicMarketSignalMap(
   }
 
   const contextByRelease = new Map(contextRows.map((row) => [row.releaseId, row.evidenceCount]))
+  const trendsByRelease = new Map<string, StoredTrendAuditRow[]>()
+  for (const row of trendAuditRows) {
+    const bucket = trendsByRelease.get(row.release_id) ?? []
+    bucket.push(row)
+    trendsByRelease.set(row.release_id, bucket)
+  }
   const result: ReleaseMarketSignalMap = {}
 
   for (const row of rows) {
@@ -335,6 +393,7 @@ export async function getPublicMarketSignalMap(
       recentSoldActivity,
       releaseObservedOffers,
       contextByRelease.get(row.releaseId) ?? 0,
+      publishedSoldTrendComparison(row, trendsByRelease.get(row.releaseId) ?? []),
     )
     if (view) result[row.releaseId] = view
   }
