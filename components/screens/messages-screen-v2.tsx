@@ -410,15 +410,13 @@ export function MessagesScreenV2() {
 
           {selected.status === "accepted" ? (
             <>
-              <details className="group rounded-xl border bg-muted/15">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium">
-                  <span>{it ? "Offerta e compravendita" : "Offer and transaction"}</span>
-                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-open:rotate-90" />
-                </summary>
-                <div className="border-t p-3 sm:p-4">
-                  <DealPanel conversation={selected} locale={it ? "it" : "en"} onActivity={refreshConversations} />
+              <section aria-label={it ? "Offerte e compravendita" : "Offers and transaction"} className="rounded-2xl border border-brand/25 bg-brand/[0.055] p-2 shadow-sm sm:p-3">
+                <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                  <h2 className="text-sm font-semibold text-foreground">{it ? "Offerte e compravendita" : "Offers and transaction"}</h2>
+                  <span className="text-[11px] text-muted-foreground">{it ? "Sempre visibili nella conversazione" : "Always visible in this conversation"}</span>
                 </div>
-              </details>
+                <DealPanel conversation={selected} locale={it ? "it" : "en"} onActivity={refreshConversations} />
+              </section>
 
               <div className="flex min-h-[420px] max-h-[62vh] flex-col gap-3 overflow-y-auto rounded-2xl border bg-muted/15 p-3 sm:p-4">
                 {loadingMessages ? (
@@ -427,7 +425,7 @@ export function MessagesScreenV2() {
                   <div className="m-auto flex max-w-sm flex-col items-center gap-2 text-center text-muted-foreground">
                     <span className="grid size-11 place-items-center rounded-full bg-background shadow-sm"><MessageCircle className="size-5" /></span>
                     <p className="text-sm font-medium text-foreground">{it ? "La chat è aperta" : "Chat is open"}</p>
-                    <p className="text-sm leading-relaxed">{it ? "Scrivetevi qui per accordarvi sui dettagli. Offerte e conferme restano nella sezione dedicata sopra." : "Use this chat to agree on details. Offers and confirmations stay in the dedicated section above."}</p>
+                    <p className="text-sm leading-relaxed">{it ? "Scrivetevi qui per accordarvi sui dettagli. Le offerte e le conferme sono già visibili in questa conversazione." : "Use this chat to agree on details. Offers and confirmations are visible in this conversation."}</p>
                   </div>
                 ) : messages.map((message) => {
                   const mine = message.senderId === user?.id
