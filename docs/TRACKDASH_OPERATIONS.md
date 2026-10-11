@@ -673,3 +673,10 @@ Therefore the current regular Admin/cron refresh remains unchanged:
 **Retail 4 + eBay Active 4 + Recompute 8**.
 
 Do not add a SOLD-research worker to cron until a real provider/source passes the readiness gate.
+
+
+---
+
+## eBay Active weekly verification — 2026-10-11 (pending Production QA)
+
+The eBay Active queue uses its own adaptive cadence based on whether a recent active listing exists: fresh active eBay ASK = HOT 72h, NORMAL/COLD 168h; no fresh active eBay ASK = HOT 168h, NORMAL 336h, COLD 720h. Exact retail remains unchanged at 28/42/84 days. Normal eBay verification therefore falls below the 15-day current-marketplace TTL. A new CRON_SECRET-protected `/api/cron/ebay-scan` route supports independent bounded batches of four jobs. Vercel Hobby does NOT allow three-hour native cron jobs. GitHub Actions `.github/workflows/ebay-market-watch.yml` is the eight-times-daily scheduler, invoking the four-job protected endpoint using short-lived GitHub OIDC JWTs signed by GitHub (strict issuer, audience, repository ID, exact main-branch workflow and scheduled event checks). The original CRON_SECRET also remains supported. Combined nominal capacity is 8 × 4 + 4 = 36 eBay jobs/day, enough for 169 jobs over a week when executions succeed. Observe first live scheduled runs before rescheduling the existing enabled queue; parked rows must remain untouched. The rollout must reschedule existing enabled eBay queue rows safely; disabled/2099 parked rows must never be activated. Repricing method and historical ASK projections are unchanged.

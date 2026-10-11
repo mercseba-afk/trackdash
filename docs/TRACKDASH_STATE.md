@@ -8236,3 +8236,8 @@ Next SEO monitoring actions:
 3. re-inspect representative family + exact Release URLs;
 4. watch for the first Search Analytics impressions once settled data reaches 2026-10-02+;
 5. use those real impressions/queries to choose the next content/internal-linking SEO work.
+
+
+## 2026-10-11 — eBay weekly cadence rollout (not yet Production certified)
+
+A dedicated eBay-only dispatcher and independent active-ASK 3/7-day versus no-active-ASK 7/14/30-day cadence are prepared to replace the 28/42/84 day eBay ACTIVE policy. Vercel is confirmed Hobby: a 3-hour Vercel cron is not deployable. A separate GitHub Actions scheduled workflow now requests a short-lived GitHub OIDC token to authenticate the separate eBay dispatcher every three hours. This is pending Production merge, actual first scheduled-run verification, and guarded rollout of existing enabled queue dates. Do not claim 7-day coverage until those gates pass. Retail remains on existing cadence. A successful production rollout requires: PR verification, Vercel READY/live SHA alignment, safe redistribution of 169 enabled eBay jobs, and inspection of the Dyna-Hawk GX 95467 first new scan. Existing ASK expires for current availability after 15 days; historical dated kit-only ASK remains context, not availability. No Market Method v4 change and no fabricated import estimates.

@@ -53,6 +53,21 @@ export function collectorScanIntervalHours(tier: string): number {
     ?? COLLECTOR_SCAN_INTERVAL_HOURS.normal
 }
 
-// Backward-compatible lane alias. Both eBay Active and exact retail use the
-// same slow collector-market cadence; the cron remains a dispatcher only.
-export const ebayCollectorScanIntervalHours = collectorScanIntervalHours
+// eBay ASK needs a faster refresh than exact-retail page polling: public offers
+// expire after 15 days, so NORMAL must be checked comfortably within that TTL.
+// Keep retail on its independent slow collector cadence above.
+export const EBAY_ACTIVE_SCAN_INTERVAL_HOURS = {
+  hot: 3 * 24,
+  normal: 7 * 24,
+  cold: 30 * 24,
+} as const
+
+export function ebayCollectorScanIntervalHours(tier: string, hasFreshActiveOffer = true): number {
+  // A visible, recently verified active ASK is never allowed to drift beyond
+  // seven days between planned checks. Thin/no-offer markets can be polled
+  // less often without claiming that a stale listing is currently active.
+  if (hasFreshActiveOffer) return tier === "hot" ? 3 * 24 : 7 * 24
+  if (tier === "cold") return 30 * 24
+  if (tier === "hot") return 7 * 24
+  return 14 * 24
+}

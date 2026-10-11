@@ -469,19 +469,28 @@ async function finishJob(client: SupabaseClient, jobId: string, success: boolean
 
   if (!success) return
 
-  // eBay ASK is a slow collector-market lane. The daily cron is only a
-  // dispatcher: each Release gets a sparse 4/6/12-week cadence according to
-  // its adaptive activity tier after the generic queue function has promoted
-  // or demoted the job.
+  // eBay active ASK uses its own 3/7/30-day cadence, independently from
+  // slower exact retail scanning. A successful job always recalculates its
+  // next due date; failures never masquerade as successful verification.
   const { data: queue, error: queueError } = await client
     .from("market_scan_queue")
-    .select("activity_tier")
+    .select("activity_tier,release_id,source_id")
     .eq("id", jobId)
     .single()
   fail(queueError, "load finished eBay scan cadence")
   if (!queue) throw new Error("EBAY_SCAN_CADENCE_JOB_NOT_FOUND")
 
-  const intervalHours = ebayCollectorScanIntervalHours(queue.activity_tier)
+  const freshBoundary = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+  const { count: freshActiveOfferCount, error: freshOffersError } = await client
+    .from("market_offer_states")
+    .select("id", { count: "exact", head: true })
+    .eq("release_id", queue.release_id)
+    .eq("source_id", queue.source_id)
+    .in("availability", ["in_stock", "low_stock"])
+    .gte("last_checked_at", freshBoundary)
+  fail(freshOffersError, "check recently verified eBay offers for next cadence")
+
+  const intervalHours = ebayCollectorScanIntervalHours(queue.activity_tier, (freshActiveOfferCount ?? 0) > 0)
   const nextScanAt = new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString()
   const { error: cadenceError } = await client
     .from("market_scan_queue")

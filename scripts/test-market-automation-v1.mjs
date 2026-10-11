@@ -146,14 +146,17 @@ ok("collector-market cadence reacts to meaningful ASK moves and market availabil
   assert.equal(marketActivityMateriallyChanged(base, { ...base, currentOfferCount: 0 }), true)
 })
 
-ok("eBay collector cadence stays sparse even for materially active Releases", () => {
-  assert.equal(ebayCollectorScanIntervalHours("hot"), 28 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("normal"), 42 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("cold"), 84 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("unknown"), 42 * 24)
+ok("eBay fresh active ASK is rechecked within seven days; no-offer markets are slower", () => {
+  assert.equal(ebayCollectorScanIntervalHours("hot", true), 3 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("normal", true), 7 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("cold", true), 7 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("unknown", true), 7 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("hot", false), 7 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("normal", false), 14 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("cold", false), 30 * 24)
 })
 
-ok("exact retail uses the same sparse collector cadence", () => {
+ok("exact retail retains its independent sparse collector cadence", () => {
   assert.equal(collectorScanIntervalHours("hot"), 28 * 24)
   assert.equal(collectorScanIntervalHours("normal"), 42 * 24)
   assert.equal(collectorScanIntervalHours("cold"), 84 * 24)
