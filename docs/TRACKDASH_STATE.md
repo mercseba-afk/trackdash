@@ -1,11 +1,19 @@
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
-> **Last updated:** 2026-10-11  
+> **Last updated:** 2026-10-12  
 > This file is the cross-chat continuity source for the current TrackDash state.  
 > Before changing production data/code, re-verify GitHub `main`, Vercel Production and live Supabase where the value can have changed since this snapshot.
 
 ---
+
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — SLOW MINI 4WD eBAY CADENCE / HOURLY DUE DISPATCH
+
+- **Previous verified baseline:** `main` and Production READY both `da2536c601defd48d91b7387b655a75d7f8ca147`, including PR #410's one-Release eBay worker and orphan-run cleanup. No pricing method changes.
+- **Live queue audit at 2026-10-12:** 169 enabled eBay Active jobs, 7 due/claimable at observed sample; 43 jobs last successfully scanned before Oct 1, all scheduled by Oct 13; zero locks/failures. A short-term spike of 129 jobs due Oct 12–15 exceeds the prior 9/day capacity; 418 generic retail due rows are not runnable exact-product endpoints.
+- **Operational adjustment:** GitHub OIDC-protected watch dispatches one due eBay Release **hourly** (24/day) plus the daily Vercel market cron (one more). This is dispatcher throughput only, not hourly rescanning of any item. Conservatively adapt per-Release cadence to 7/10/12 days with a recent active ASK and 14/30/45 days without. The 15-day ASK TTL stays intact.
+- **Safety:** no forced full refresh, no DB migration, no queue reshuffle, no source activation, no eBay retry, no change to Market Method v4, SOLD/MV/ASK, JAN release matching or Collections. Future successes rephase individual targets. The 60-second timeout mitigation remains one Release per function.
+- **Verification gate:** full `pnpm verify`, Vercel Preview READY, merge, and `trackdash.it/api/version` confirmation required before declaring live. After release, watch hourly jobs, oldest due job age and 60-second timeouts.
 
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-11 — CATALOGUE + COLLECTION UI REDESIGN LIVE ON PRODUCTION
 

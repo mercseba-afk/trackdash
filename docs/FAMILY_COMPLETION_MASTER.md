@@ -108,10 +108,13 @@ Never display SOLD 0 as a statement that no sales occurred.
 
 The daily cron is a dispatcher only; it does not imply daily Release scans.
 
-Recurring eBay Active and exact-retail Market Watch cadence:
-- HOT: **28 days**
-- NORMAL: **42 days**
-- COLD: **84 days**
+The recurring cron is a dispatcher, not a per-Release daily scan. As of 2026-10-12, independent collector intervals are:
+
+- **eBay Active with recent verified ASK:** HOT 7d / NORMAL 10d / COLD 12d (before 15-day ASK expiry).
+- **eBay Active without recent verified ASK:** HOT 14d / NORMAL 30d / COLD 45d.
+- **Exact retail:** HOT 28d / NORMAL 42d / COLD 84d.
+
+The eBay GitHub workflow runs hourly but claims **only one due Release**; it does not scan the whole Catalog hourly or bulk reset existing due times.
 
 Cadence escalates only on material evidence (for example a >=5% canonical/retail price move or a meaningful availability change), not routine listing-count churn.
 
