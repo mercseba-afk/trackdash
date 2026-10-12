@@ -32,7 +32,9 @@ jobs:
           token="$(curl -fsS --retry 2 --max-time 15 \
             -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=trackdash-ebay-scan" | jq -er '.value')"
-          status="$(curl -sS --retry 2 --max-time 100 -o result.json -w '%{http_code}' \
+          # Do not retry a potentially timed-out POST-like scan: a retry may
+          # claim another batch while the previous Vercel function is dying.
+          status="$(curl -sS --max-time 75 -o result.json -w '%{http_code}' \
             -H "Authorization: Bearer ${token}" \
             -H 'Accept: application/json' \
             "${SCAN_URL}")"
