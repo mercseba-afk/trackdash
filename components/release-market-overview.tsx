@@ -61,7 +61,7 @@ export function ReleaseMarketOverview({
           </div>
           <div className="flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">{it ? "Offerta sul mercato" : "Market offer"}</p>
+              <p className="text-sm font-medium">{it ? "Prezzo richiesto" : "Asking price"}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {ask == null
                   ? (it ? "Nessuna offerta osservata" : "No offer observed")
