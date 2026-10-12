@@ -6,6 +6,9 @@
 
 This document is the persistent operational contract for catalog/family work.
 
+> **Market coverage automation continuation (2026-10-12):** `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md` is the active phased plan. Do not bulk-enroll unavailable families or shared Item Numbers without a globally unique JAN/independently verified Release identity. The previously worded "Prezzo minimo richiesto" / ask fallback text below is historical and is superseded for public Catalog by the current two-row **Riferimento mercato** (canonical MV, else labelled SOLD-only) and **Prezzo richiesto** (one seller or median of 2+). Collection valuation follows its separate latest policy in `docs/TRACKDASH_METHOD_MASTER.md`.
+
+
 ## Single Source of Truth — mandatory
 
 Catalog, Release pages, Collection, scanner and PWA/app MUST project the same canonical Release identity.
