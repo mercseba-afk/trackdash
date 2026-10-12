@@ -22,6 +22,11 @@ export interface ReleaseMarketSignalView {
   activeHighEUR: number | null
   soldAnchorEUR: number | null
   startingItemPriceEUR: number | null
+  /** Display-only asking median; never a purchase listing, SOLD or canonical MV. */
+  representativeAskItemEUR?: number | null
+  representativeAskSellerCount?: number
+  representativeAskOrigin?: OfferOrigin
+  representativeAskObservedAt?: string | null
   startingEffectiveCostEUR: number | null
   startingCostBasis: "delivered" | "item_only" | null
   observedPriceAt: string | null
