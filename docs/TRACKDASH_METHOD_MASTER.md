@@ -1,3 +1,19 @@
+## PREZZO RICHIESTO — REGOLA AGGIORNATA 2026-10-12 (SUPERSEDE LA SOGLIA 3 / EUROPE-FIRST QUI SOTTO)
+
+**Principio definitivo:** `Riferimento mercato` e `Prezzo richiesto` sono due grandezze distinte. Il primo è MV consolidato o riferimento esplicito da vendite concluse; il secondo misura **quanto chiedono i venditori**, non quanto viene realmente pagato. Non imporre all'ASK i gate di conferma geografica o numero vendite usati dal Market Value.
+
+**Regola automatica, sul campione disponibile di venditori identificati:**
+- **0 venditori correnti verificabili:** nessun nuovo ASK rappresentativo (`null`/—); un precedente riferimento storico può continuare a comparire **solo se esplicitamente datato e segnalato come non verificato** dalla presentazione già esistente, senza fingere che l'annuncio sia attivo.
+- **1 venditore:** mostra il **prezzo richiesto osservato** di quell'unico venditore; se ha più annunci validi, prendi la sua richiesta minima. Etichetta `Prezzo di 1 venditore`, mai `mediana`.
+- **2 o più venditori indipendenti:** **mediana** in centesimi interi dei prezzi del solo kit, un voto per venditore; con 2 è la media aritmetica dei loro due prezzi. Etichetta `Mediana di N venditori`.
+
+Gli annunci **globali ed extra-UE sono inclusi** (non mischiare *regole di acquisto* con *statistica dei prezzi richiesti*). Comunicare la provenienza: se tutte le offerte provengono da fuori UE, `annunci extra-UE`; se le provenienze sono miste/sconosciute, `annunci internazionali / provenienza da verificare`. Solo campioni di annunci integralmente con origine UE verificata possono essere definiti `UE`. L'ASK è **solo kit**, senza importazione/spedizione; una mediana non ha una spedizione unica attribuibile.
+
+Il dato segue la normale scansione eBay/retail, ricalcolato a lettura sullo stato corrente con TTL, senza nuovi cron né azioni manuali. Restano obbligatori matching alla Release esatta, kit nuovo/completo, candidato accepted, disponibilità verificata, seller e listing ID affidabili, deduplica per listing e seller, TTL e prezzi EUR validi. Nessuna modifica a Market Method v4, SOLD, MV, selezione ASK acquistabile di Wishlist, totale indicativo Collection, market offers o database. **Questa sezione sostituisce** la precedente richiesta di >=3 seller e il filtro Europe-first sulla *statistica di ASK visualizzata*, non le regole conservative di acquisto o di valutazione.
+
+
+---
+
 ## PREZZO RICHIESTO RAPPRESENTATIVO — 2026-10-12 (ASK MEDIAN PROJECTION)
 
 **Motivazione:** una singola inserzione giapponese da €13,39 non deve rappresentare l'intero asking market della Manta Ray Mk.II Black Special #95466 quando TrackDash osserva vari venditori, molti più costosi. L'ASK non è una vendita e non è un Market Value; nessuna formula deve "valorizzare" artificialmente una Release.

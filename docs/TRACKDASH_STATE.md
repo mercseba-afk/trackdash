@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — ASK 1 SELLER / MEDIAN 2+ GLOBAL (PENDING DEPLOY)
+
+- **Verified baseline** GitHub main and Production READY `0b0c2754de333e8a9ff89f3525103a957a21ea63` (PR #413), on which the displayed asking-price median previously needed >=3 sellers and exclusively preferred EU groups.
+- **User-approved adjustment:** one verified seller (with any number of listings) publishes that seller's **observed lowest current ASK**, explicitly labelled a one-seller quote; two or more independent sellers publish the **median in EUR cents** of each seller's lowest currently observed listing. 0 verified fresh sellers produces no new representative price. The existing explicitly dated historical ASK presentation is preserved when current listing evidence is missing.
+- **International asking sample allowed:** include EU, Japan, US and unknown-origin accepted listings in one sample. Explain `annunci extra-UE` when the entire pool is non-EU, and `annunci internazionali / provenienza da verificare` for mixed/unknown-origin pool. This is a **seller asking-price statistic**, not EU landed-price or Market Value evidence.
+- **Still required:** accepted exact Release, new complete kit, stable listing+seller identity, de-dup by seller and item ID, in-stock, current TTL (15d), no shipping/duties in headline. A single seller's multiple listings never count as independent sellers.
+- **Unchanged:** Market Method v4, MV, SOLD, Wishlist purchase eligibility and landed quotes, Collection total and copy condition logic, canonical `starting*` selected offer, Price Guard and automatic scheduled scans, Supabase data/database schema, marketplace source eligibility and catalog card structure. After scans, public server projection recalculates at request time with fresh offers. No manual curation or forced scans required.
+- **Verification gate:** full isolated `pnpm verify`, Preview READY on final head, PR merge, Production READY and live `/api/version` match. This checkpoint supersedes prior >=3/europe-only ASK display guidance below, but not Europe-first valuation/buying policy.
+
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — REPRESENTATIVE ASKING PRICE / MEDIAN (AWAITING PREVIEW & PRODUCTION)
 
 - Verified live baseline: GitHub main and Production `434dd79e18c63aa1b03723958ad8857579dc3d2d`. Market Method v4, current ASK starting selection and Collection valuation from PR #412 unchanged.

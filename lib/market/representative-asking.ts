@@ -32,11 +32,11 @@ function median(values: number[]): number {
 // Pure projection algorithm; it is NOT a new eBay scan and it NEVER writes
 // canonical Market Value, asking snapshots, collection values or queue jobs.
 //
-// Require at least THREE distinct verified sellers for a robust median. EU
-// source takes priority, but unknown-origin listings are eligible for this
-// EU-comparable group only with a verified Italian delivery quote. When no
-// European sample exists, an international median is allowed only as an
-// informational asking-price benchmark, explicitly marked non-EU in UI.
+// Asking prices describe seller expectations, NOT Market Value or European
+// landed cost. One verified seller => that seller's actual lowest current
+// quote. Two or more => median of independent sellers' current kit-only asks,
+// including international sellers, with geographic provenance disclosed.
+// Never use geography to silently discard legitimate asking-price evidence.
 export function representativeAskingMedian(
   candidates: RepresentativeAskCandidate[],
   asOf = new Date(),
@@ -52,26 +52,23 @@ export function representativeAskingMedian(
     if (!old || Date.parse(old.checkedAt) < timestamp) byListing.set(offer.listingKey, offer)
   }
 
-  const values = [...byListing.values()]
-  const eu = values.filter((x) => x.origin === "eu" || (x.origin === "unknown" && x.deliveredToItaly))
-  const other = values.filter((x) => x.origin === "extra_eu")
-  const unknown = values.filter((x) => x.origin === "unknown" && !x.deliveredToItaly)
-  // Never mix a Europe-comparable sample with cheaper international item-only
-  // prices; never fill a thin European pool with foreign sellers.
-  const chosen = eu.length > 0 ? eu : other.length > 0 ? other : unknown
-  const origin: OfferOrigin = eu.length > 0 ? "eu" : other.length > 0 ? "extra_eu" : "unknown"
-
-  // A seller may publish many listings at different prices. Their lowest
-  // verified available kit is one market quote, not multiple independent votes.
+  // Each independently identified seller has one vote, regardless of number
+  // of listings or their eBay country domains. This is an informational market
+  // sample, so we do NOT discard Japan/US offers when EU ones also exist.
   const bySeller = new Map<string, RepresentativeAskCandidate>()
-  for (const offer of chosen) {
+  for (const offer of byListing.values()) {
     const seller = offer.sellerFingerprint!
     const previous = bySeller.get(seller)
     if (!previous || offer.itemPriceEUR! < previous.itemPriceEUR!) bySeller.set(seller, offer)
   }
-  if (bySeller.size < 3) return null
+  if (bySeller.size === 0) return null
 
   const independent = [...bySeller.values()]
+  // Geographic label describes this ENTIRE sample, not just one listing.
+  // Mixed or unknown origins never claim that all sellers ship from the EU.
+  const origins = new Set(independent.map((offer) => offer.origin))
+  const origin: OfferOrigin = origins.size === 1 ? independent[0].origin : "unknown"
+  // One known seller is an actual asking price; two or more produce a median.
   // Use integer cents to avoid floating-point half-cent instability.
   const valueCents = median(independent.map((x) => Math.round(x.itemPriceEUR! * 100)))
   const last = independent.map((x) => x.checkedAt).sort().at(-1)!
