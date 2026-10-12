@@ -114,15 +114,23 @@ if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vend
   errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
 }
 if (!marketInline.includes("<PreviewPricePanel") ||
-    !marketInline.includes("Valore di mercato") ||
+    !marketInline.includes("Riferimento mercato") ||
     !marketInline.includes("Prezzo richiesto") ||
     !marketInline.includes("Ultima offerta osservata") ||
     !marketInline.includes("vendite concluse")) {
   errors.push("Release previews must keep identical plain-language market/ask rows with optional sale evidence")
 }
 if (!marketInline.includes("const askPrice = observedMarketReferencePrice(signal)") ||
-    !marketInline.includes("const hasSold = soldPrice != null && soldPrice > 0")) {
-  errors.push("Release previews must show verified SOLD independently of fresh TTL-valid ASK")
+    !marketInline.includes("const hasSold = soldPrice != null && soldPrice > 0") ||
+    !marketInline.includes("soldEUR={hasSold ? soldPrice : null}") ||
+    !marketInline.includes("marketReferenceEUR = valueEUR ?? (soldCount > 0 ? soldEUR : null)") ||
+    !marketInline.includes("riferimento, non stima") ||
+    marketInline.includes('it ? "Valore di mercato" : "Market value"')) {
+  errors.push("Catalog cards must prioritize canonical MV, expose SOLD-only as a non-estimate in the FIRST market row, and never confuse SOLD with ASK")
+}
+if (!marketInline.includes("const soldCountText = it") ||
+    marketInline.includes('rounded-full border border-emerald-200/70 bg-emerald-50/80 px-2 py-1')) {
+  errors.push("Completed-sale evidence must be attached to the market-reference row, not a detached badge below the asking-price row")
 }
 if (marketInline.includes("?? signal.retailAnchorEUR") ||
     marketInline.includes("?? signal.activeAnchorEUR")) {
@@ -141,18 +149,22 @@ if (!productDetailScreen.includes("compactPreview />")) {
 if (productDetailScreen.includes("compactPilot") || productDetailScreen.includes("d3b4ad34-05ac-592e-ad93-fab4cfde0a5a")) {
   errors.push("Compact Release preview is still scoped to a single family instead of being global")
 }
-if (!marketOverview.includes("Valore stimato")) {
-  errors.push("Shared market overview lost its rare estimated-value-only fallback")
+if (!marketOverview.includes("Stima TrackDash")) {
+  errors.push("Shared market overview must distinguish canonical estimates from weaker SOLD-only references")
 }
 if (!marketOverview.includes("observedMarketReferencePrice") || !marketOverview.includes("soldAnchorEUR")) {
   errors.push("Shared market overview does not expose ASK and completed-sale references separately")
 }
-if (!marketOverview.includes("const reference = sold ?? mv") ||
-    !marketOverview.includes("observedMarketReferencePrice(signal)")) {
-  errors.push("Release detail must preserve a single SOLD-first or MV-fallback kit reference")
+if (!marketOverview.includes("const reference = mv ?? sold") ||
+    !marketOverview.includes("observedMarketReferencePrice(signal)") ||
+    !marketOverview.includes("riferimento, non stima")) {
+  errors.push("Release detail must prefer canonical MV, then use SOLD only as a clearly identified weaker reference")
 }
-if (!marketOverview.includes("Prezzo richiesto") || !marketOverview.includes("Vendite concluse")) {
-  errors.push("Release detail must keep the two primary collector-facing price labels")
+if (!marketOverview.includes("Riferimento mercato") ||
+    !marketOverview.includes("Prezzo richiesto") ||
+    !marketOverview.includes("vendita conclusa") ||
+    !marketOverview.includes("vendite concluse")) {
+  errors.push("Release detail must retain separate market-reference and seller-ASK rows, with real completed-sale count")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
   errors.push("Release price card must not show distracting numeric trend values beside SOLD and ASK")

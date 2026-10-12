@@ -1,3 +1,17 @@
+## Catalog price-evidence coverage audit and SOLD-only card remediation — 2026-10-12
+
+**Source:** read-only Supabase `public.product_releases`, `products.metadata.launch_status`, `market_release_signals`, `market_scan_queue` and `market_candidates`. Counts are snapshot-dependent and never represent guaranteed current marketplace supply.
+
+- Full verified/public Mini4WD rows: **240**; only **164** belong to families with `launch_status='available'`. The other 76 are `coming_soon` (61) or archived/unlaunched (15 with null launch). **58 lacking a canonical signal all belong to those not-yet-available/archived groups**. Do not bulk-enroll them or claim the available Catalog is missing 58 signal rows.
+- **Available Mini4WD Catalog (164):** canonical MV 10, SOLD evidence 50 (40 without MV), current ASK snapshots 50, at least one of MV/SOLD/current ASK 75, and **89 without any of those three**. All 164 have a canonical signal, so the principal coverage gap is evidence acquisition rather than absent signal creation.
+- eBay enrollment: **138 of 164** available verified public Releases are in the enabled automatic eBay Active queue; **26 are deliberately non-enabled** and include shared Item Numbers, distinguishable reissues, conflicting/unknown JAN and editions without stable item numbers. **Do not bulk-enable shared identities** to make price coverage look better: false exact-Release matches are worse than missing asking prices. Use individual exact edition/JAN proof or compliant exact-page research to upgrade safely.
+- Latest sample: 17 due enabled eBay Releases, none overdue by >24h. Many release signals were last computed Oct 1; this is not evidence of a broken cron when scheduled cadence is intentionally 7–45 days and no material change has been ingested.
+- **Neo-Tridagger ZMC Next (Smoke), #92280:** 1 accepted exact closed Yahoo Japan auction dated Feb 8 2026, JPY 9000, canonical SOLD-only reference **EUR 48.58**, but MV NULL (one source/one transaction), no current verified ASK, and one Mercari offer `needs_review` because sealed state and EU landed costs could not be established. eBay Active is enabled, last success Oct 1 and next scheduled Oct 13; these gates are working as intended.
+- **UI remediation:** every Catalog preview keeps the identical two price rows; the first becomes `Riferimento mercato` (MV estimate first; otherwise clearly labelled approx. SOLD-only reference, count and `riferimento, non stima`), and the second remains `Prezzo richiesto`. A completed-sale icon and count belong under the first row, NEVER below the asking-price row. Release detail adopts MV-before-SOLD with the same explicit SOLD-only label. No canonical MV, Collection valuation, SOLD/ASK data, database, source policies, scan schedules or queue jobs change.
+- **Next evidence-investment priority:** new exact-Release completed-sale sources, safe item-number/JAN disambiguation for 26 parked rows, and seller-verified current listings for the 89 no-evidence available Releases. Per-Release scans alone cannot create authentic SOLD records because eBay Browse only fetches ASK; use licensed/runnable SOLD acquisition where supported.
+
+---
+
 # TRACKDASH — OPERATIONS
 
 > Persistent operational reference for commands, buttons, cron jobs and workers.  

@@ -1,3 +1,16 @@
+## UNIFORM CATALOG MARKET REFERENCE — 2026-10-12
+
+The two-row Catalog Release preview must agree with the Collection and Release detail about source semantics.
+
+1. **Riferimento mercato** / **Market reference**: published, canonical `valueEUR` has priority. If MV is null but `soldAnchorEUR>0` and `soldUnits>0`, display `≈ SOLD anchor` as a **documented completed-sale reference**, with the count in the SAME first-row header area and a concise `riferimento, non stima` caption. One real sale is a clue, not a market-wide valuation. No sale/MV means `—`.
+2. **Prezzo richiesto** / **Asking price**: a separate, automatically updated seller request (single seller or seller-deduped median) selected by the existing projection, or a clearly dated historical asking price. SOLD is **never** displayed as an ASK; a badge for SOLD is never visually placed underneath the ASK row.
+3. ALL Releases preserve the same two price slots and design, whether both, one or neither data sources exist. DO NOT manipulate canonical Market Value, widen price gates, or use ASK to invent SOLD.
+4. Reference text is descriptive only and does NOT influence the Collection's sealed-only indicative total, canonical Market Value, Wishlist buying quote, estimated gain or scan cadence.
+
+Audited #92280 Neo-Tridagger ZMC Next (Smoke): 1 accepted ended Yahoo Japan auction (JPY 9000, Feb 8 2026, EUR 48.58 SOLD-only reference), 0 current ASK, null canonical MV. The Catalog first slot should show `≈ 48,58 € · 1 vendita conclusa, riferimento, non stima`, and the asking slot `—`.
+
+---
+
 ## REGRESSION: EBAY LISTING KEY MUST CAPTURE NUMERIC ID (2026-10-12)
 
 The representative seller median builds unique listing identities from `market_candidates.external_listing_id` / `source_record_key`. Normalize different eBay ID formats using a **captured** 12-digit ID (`([0-9]{12})`) and stable `ebay:ID` key. Bare `ID`, `v1|ID|0`, `ebay:v1|ID|0` must map to the same listing; *different* IDs must always remain distinct. Never index `regexMatch[1]` if the regex lacks a capture group, or all listings will share `ebay:undefined` and median seller count collapses to one.

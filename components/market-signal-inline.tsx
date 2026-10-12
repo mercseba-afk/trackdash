@@ -38,7 +38,7 @@ export function MarketSignalInline({
     return <span className="text-xs text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</span>
   }
   if (!signal && compactPreview) {
-    return <PreviewPricePanel it={it} valueEUR={null} askingEUR={null} historical={false} observedAt={null} soldCount={0} />
+    return <PreviewPricePanel it={it} valueEUR={null} soldEUR={null} askingEUR={null} historical={false} observedAt={null} soldCount={0} />
   }
   if (!signal) return null
 
@@ -63,6 +63,7 @@ export function MarketSignalInline({
       <PreviewPricePanel
         it={it}
         valueEUR={hasValue ? signal.valueEUR : null}
+        soldEUR={hasSold ? soldPrice : null}
         askingEUR={hasAsk ? askPrice : null}
         historical={askHistorical}
         observedAt={signal.representativeAskObservedAt ?? signal.historicalAskObservedAt}
@@ -150,16 +151,22 @@ export function MarketSignalInline({
 // Fixed two-row, source-aware preview panel shared by every catalogue Release.
 // SOLD information is supplemental; an asking price never becomes Market Value.
 function PreviewPricePanel({
-  it, valueEUR, askingEUR, historical, observedAt, sellerCaption, soldCount,
+  it, valueEUR, soldEUR, askingEUR, historical, observedAt, sellerCaption, soldCount,
 }: {
   it: boolean
   valueEUR: number | null
+  soldEUR: number | null
   askingEUR: number | null
   historical: boolean
   observedAt?: string | null
   sellerCaption?: string | null
   soldCount: number
 }) {
+  const marketReferenceEUR = valueEUR ?? (soldCount > 0 ? soldEUR : null)
+  const soldOnlyReference = valueEUR == null && marketReferenceEUR != null
+  const soldCountText = it
+    ? `${soldCount} ${soldCount === 1 ? "vendita conclusa" : "vendite concluse"}`
+    : `${soldCount} completed ${soldCount === 1 ? "sale" : "sales"}`
   const observedDate = observedAt && Number.isFinite(Date.parse(observedAt))
     ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(observedAt))
     : null
@@ -167,12 +174,25 @@ function PreviewPricePanel({
   return (
     <MarketPricePanelShell>
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
-        <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
-          <TrendingUp className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          {it ? "Valore di mercato" : "Market value"}
-        </span>
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
+            <TrendingUp className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+            {it ? "Riferimento mercato" : "Market reference"}
+          </span>
+          {soldOnlyReference ? (
+            <span className="ml-6 inline-flex flex-wrap items-center gap-x-1.5 text-[10px] leading-snug text-muted-foreground">
+              <BadgeCheck className="size-3 shrink-0 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />
+              <span>{soldCountText} · {it ? "riferimento, non stima" : "reference, not an estimate"}</span>
+            </span>
+          ) : valueEUR != null ? (
+            <span className="ml-6 text-[10px] leading-snug text-muted-foreground">
+              {it ? "Stima TrackDash" : "TrackDash estimate"}
+              {soldCount > 0 ? ` · ${soldCountText}` : ""}
+            </span>
+          ) : null}
+        </div>
         <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
-          {valueEUR != null ? `≈ ${formatMoney(valueEUR)}` : "—"}
+          {marketReferenceEUR != null ? `≈ ${formatMoney(marketReferenceEUR)}` : "—"}
         </strong>
       </div>
 
@@ -196,14 +216,8 @@ function PreviewPricePanel({
             ? (it ? "Ultima offerta osservata" : "Last observed offer") + (observedDate ? ` · ${observedDate}` : "") + (it ? " · disponibilità da verificare · spedizione esclusa" : " · availability unverified · shipping excluded")
             : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
         </p>
-      ) : valueEUR != null ? (
+      ) : marketReferenceEUR != null ? (
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}</p>
-      ) : null}
-      {soldCount > 0 ? (
-        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-200/70 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-medium text-emerald-800 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-300">
-          <BadgeCheck className="size-3.5 shrink-0" aria-hidden="true" />
-          {it ? `${soldCount} ${soldCount === 1 ? "vendita conclusa" : "vendite concluse"}` : `${soldCount} completed ${soldCount === 1 ? "sale" : "sales"}`}
-        </p>
       ) : null}
       {valueEUR == null && askingEUR == null && soldCount === 0 ? (
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
