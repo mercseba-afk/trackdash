@@ -2,6 +2,7 @@ import "server-only"
 
 import { and, eq, inArray } from "drizzle-orm"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { normalizeMarketListingKey } from "@/lib/market/representative-asking"
 import type { InferSelectModel } from "drizzle-orm"
 import { db } from "../index"
 import {
@@ -171,10 +172,9 @@ export async function listCurrentObservedOffers(
         // eBay may store v1|123456789012|0 and legacy 123456789012 for
         // the SAME listing. Normalize its numeric item ID before deduping.
         const externalId = row.external_listing_id ?? row.source_record_key ?? ""
-        const ebayId = /[0-9]{12}/.exec(externalId)
         candidates.set(row.id, {
           originCountry: knownCountry,
-          listingKey: ebayId ? `ebay:${ebayId[1]}` : (externalId ? String(externalId) : null),
+          listingKey: normalizeMarketListingKey(externalId),
           sellerFingerprint: row.seller_fingerprint ?? null,
           acceptedExactKit: row.decision === "accepted" &&
             row.condition === condition && row.is_lot === false && row.is_complete === true &&
