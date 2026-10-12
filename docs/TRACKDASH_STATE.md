@@ -1,3 +1,10 @@
+## Market coverage automation work checkpoint — 2026-10-12 evening
+
+- Roadmap: `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md`. Feature branch `feat/market-coverage-health-baseline-20261012` adds repeatable read-only KPI SQL at `scripts/market-coverage-health.sql`, executed unchanged against live Supabase: available/public/verified Mini4WD 164, with MV 10, SOLD 50, TTL-valid accepted ASK 48, union 74, no evidence 90. Former 75/164 is an earlier, not directly comparable ASK snapshot. eBay 138 enabled, identity-parked 26; distinct runnable retail Releases 7; validated but inactive retail Releases 28; overdue 24h 0; 5 historical 60-second timeout run failures (past day) and one unclosed running scan row. No Market Method or source policy changed.
+- Existing daily Health Watch automation `6ac3a50c70a48191b390a7337392d03a` revised with TTL/identity/runnable queue gates. Delivery notifications still disabled in user task settings. Production/main as audited: `479faf8ec43f5a462bef6358469e97c2ef044963`, READY; external `/api/version` check unavailable. **No feature branch merged/deployed yet** until CI and Preview.
+
+---
+
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
