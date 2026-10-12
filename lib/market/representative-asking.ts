@@ -19,7 +19,7 @@ export interface RepresentativeAskCandidate {
 export function normalizeMarketListingKey(externalId: string | null | undefined): string | null {
   const raw = externalId?.trim() ?? ""
   if (!raw) return null
-  const match = /(?:^|\\|)([0-9]{12})(?:\\||$)/.exec(raw)
+  const match = /(?:^|\|)([0-9]{12})(?:\||$)/.exec(raw)
   return match ? `ebay:${match[1]}` : raw
 }
 
