@@ -8350,3 +8350,6 @@ A dedicated eBay-only dispatcher and independent active-ASK 3/7-day versus no-ac
 
 
 **RCJaz/Hobby source gate (2026-10-12)**: 4 external read-only requests from Vercel sandbox `iad1` (RCJaz #18074/#94692, Hobby Search #95335/#94716) all `403 Just a moment...` Cloudflare challenge. Both policies remain planned, no scanning enabled, no price ingestion. Any source promotion requires truly working authorised Production-runtime canary. See roadmap for details. Stage 3 rejection baseline: 611 `ITEM_NUMBER_NOT_IN_TITLE` rejection reason entries across eBay source markets, not 611 proven missed listings.
+
+
+**QA checkpoint** (12 Oct): GH branch `82c26f65d...` Typecheck and branch verify SUCCESS, Vercel Preview deployment `dpl_xgsgKWCzVu3ZaJnyWjzFv83L2dAa` READY, direct HTTPS `/api/version` 200 for both existing Production `479faf8ec4...` and Preview `82c26f65d...`, Production and Preview `/` and `/market` 200. Unauthenticated smoke only; no signed-in Collection/Wishlist assertion. Stage 4 parked cohort: 19 shared-item missing JAN, 3 shared-item duplicate JAN, 4 missing Item Number — none mass-eligible. Stage 5 eBay Marketplace Insights is restricted/not open to new users per official eBay API documentation; auto SOLD connector still unproven. New master-doc checkpoint commit will need final SHA CI/Preview.
