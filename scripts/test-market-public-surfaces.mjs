@@ -160,8 +160,11 @@ if (!marketOverview.includes("const reference = mv ?? sold") ||
     !marketOverview.includes("riferimento, non stima")) {
   errors.push("Release detail must prefer canonical MV, then use SOLD only as a clearly identified weaker reference")
 }
-if (!marketOverview.includes("Prezzo richiesto") || !marketOverview.includes("Vendite concluse")) {
-  errors.push("Release detail must keep the two primary collector-facing price labels")
+if (!marketOverview.includes("Riferimento mercato") ||
+    !marketOverview.includes("Prezzo richiesto") ||
+    !marketOverview.includes("vendita conclusa") ||
+    !marketOverview.includes("vendite concluse")) {
+  errors.push("Release detail must retain separate market-reference and seller-ASK rows, with real completed-sale count")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
   errors.push("Release price card must not show distracting numeric trend values beside SOLD and ASK")
