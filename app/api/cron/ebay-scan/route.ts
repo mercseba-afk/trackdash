@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await runEbayActiveMarketScanBatch(4)
+    const result = await runEbayActiveMarketScanBatch(1)
     return NextResponse.json({ ok: result.failed === 0, result })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
