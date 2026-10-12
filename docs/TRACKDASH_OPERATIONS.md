@@ -736,3 +736,8 @@ Protected GitHub Actions run `38142120165` succeeded against Production with 1 e
 
 
 **Stage 2 access gate (2026-10-12):** RCJaz and Hobby Search were tested read-only in Vercel region iad1 on two independently verified endpoint URLs each. All responded 403 Cloudflare challenge; `adapter_status=planned` remains unchanged for both. Never bypass anti-bot, promote to READY or create sold data based on this result. RCJaz is parser-prepared but not runnable from Vercel until authorised site access succeeds. Hobby Search also has only generic parser support. No data, grant, cron or user-facing changes made in this canary.
+
+
+**Identity audit:** of 26 safely parked (not eBay enrolled) verified/available public Mini4WD Releases, 19 share Item Number and have no JAN, 3 have shared item + duplicate JAN, 4 lack an Item Number (read-only Supabase 2026-10-12). No blanket re-enrollment.
+
+**Release/test gate:** after initial feature branch SQL, GitHub branch CI `pnpm verify` and Typecheck passed, Vercel Preview READY; direct read-only HTTPS `/api/version` and public homepage/Mercato returned HTTP 200 on both Preview and pre-merge Production. User-only surfaces were not tested with credentials. Live feature still only SQL/docs, and no source policies, pricing, cron, worker or DB schema changed. Final branch update requires another Preview ready check before merge.
