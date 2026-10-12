@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import {
   observedMarketKnownShipping,
+  representativeAskingCaption,
   observedMarketOfferOrigin,
   observedMarketReferenceIsHistorical,
   observedMarketReferencePrice,
@@ -29,8 +30,13 @@ export function ReleaseMarketOverview({
   const ask = observedMarketReferencePrice(signal)
   const historical = observedMarketReferenceIsHistorical(signal)
   const origin = observedMarketOfferOrigin(signal)
-  const shipping = historical ? signal?.historicalAskShippingEUR : observedMarketKnownShipping(signal)
-  const observedAt = historical ? signal?.historicalAskObservedAt : signal?.observedPriceAt
+  // A median does not correspond to a single shipping quote. Do not attach
+  // the canonically selected offer's shipping price to an aggregate.
+  const representative = representativeAskingCaption(signal, it)
+  const shipping = representative ? null
+    : historical ? signal?.historicalAskShippingEUR : observedMarketKnownShipping(signal)
+  const observedAt = representative ? signal?.representativeAskObservedAt
+    : historical ? signal?.historicalAskObservedAt : signal?.observedPriceAt
   const date = observedAt && Number.isFinite(Date.parse(observedAt))
     ? new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", {
         day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
@@ -65,7 +71,9 @@ export function ReleaseMarketOverview({
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {ask == null
                   ? (it ? "Nessuna offerta osservata" : "No offer observed")
-                  : historical
+                  : representative
+                    ? `${representative}${date ? ` · ${date}` : ""}`
+                    : historical
                     ? (it
                       ? `Ultima offerta osservata${date ? ` · ${date}` : ""} · da verificare`
                       : `Last observed offer${date ? ` · ${date}` : ""} · unverified`)
