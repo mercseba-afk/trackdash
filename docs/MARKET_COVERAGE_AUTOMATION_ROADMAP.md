@@ -1,7 +1,7 @@
 # TrackDash — Market Coverage & Automation Roadmap
 
 > Authoritative cross-chat implementation plan — 2026-10-12.  
-> Status: **APPROVED FOR PHASED EXECUTION; technical phases not yet implemented.**  
+> Status: **IMPLEMENTATION IN PROGRESS — Stage 0 SQL audited; Stage 1 Health Watch rule update applied, delivery/Preview pending.**  
 > Read this file together with `docs/TRACKDASH_STATE.md`, `docs/TRACKDASH_METHOD_MASTER.md`, `docs/TRACKDASH_OPERATIONS.md` and `docs/FAMILY_COMPLETION_MASTER.md` before changing code, cron, source policies or Supabase.
 >
 > Repository: `mercseba-afk/trackdash`; production `https://trackdash.it`; Supabase project `piwogtdkfozbiakyjnvk`. Always rediscover GitHub main / live Vercel Production SHA rather than assuming the baseline below is still deployed.
@@ -109,8 +109,8 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 
 | Stage | Status on 2026-10-12 | Merge/Production proof | Next action |
 |---|---|---|---|
-| 0 Baseline/KPI | Audited manually; durable metric service pending | None | Implement runnable read-only KPI audit |
-| 1 Health Watch | Existing daily watch enabled; coverage rules pending; notification delivery needs confirmation | None | Enhance watch and test alerts |
+| 0 Baseline/KPI | Read-only KPI SQL added on feature branch, re-run against live Supabase 2026-10-12; Preview/merge pending | Feature commit `7dff9d5`; no Production release | Run verify, Preview gate, then merge |
+| 1 Health Watch | Existing daily automation updated 2026-10-12 with scoped TTL-aware coverage, safe due queues and failure gates; notification delivery still disabled | Automation ID `6ac3a50c70a48191b390a7337392d03a`; no app deploy | Check next dry-run/delivery; enable notifications in app |
 | 2 Retail canaries | RCJaz/Hobby parsed/enrolled but **not READY** | None | RCJaz 1–3 exact live canaries |
 | 3 eBay discovery | Existing active worker 4 markets, fixed matching/timeout behaviour | Existing Production | Safe query benchmark and dry-run |
 | 4 Shared identity | 26 available Releases not eBay-enabled, rightly protected | None | Evidence-led identity audit |
@@ -118,3 +118,12 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 | 6 Monitoring/QA | Existing full verify + manual audits | Reassess each stage | Publish coverage deltas after each stage |
 
 **Next-chat start:** Continue TrackDash. Read this roadmap and all four master files, inspect latest GitHub main and Production version, start Stage 0 then Stage 1; proceed sequentially, with automatic cross-checkpoint updates, no skipping failed gates or unsafe bulk activation.
+
+### Implementation checkpoint — 2026-10-12 evening, Stage 0/1
+
+- GitHub `main` and Vercel Production `READY` both point to `479faf8ec43f5a462bef6358469e97c2ef044963`; `/api/version` could not be independently fetched from the external audit environment. Do not claim version route verified.
+- New audit in branch `feat/market-coverage-health-baseline-20261012`: `scripts/market-coverage-health.sql`. SQL file **was fetched back from that GitHub branch and executed unchanged read-only in production Supabase**, results: **164 available verified public Releases; MV 10; SOLD 50; TTL-valid accepted ASK 48; union 74 (45.1%); empty 90; eBay eligible/enabled 138; deliberately parked 26; retail runnable 7 distinct Releases; verified but inactive retail 28 distinct Releases; due >24h 0; oldest currently due ~15.1h; failed scan runs in 24h 5; stuck running >20m 1**. Source-level last successes are included. Total retail *queue rows* may be 8 even when distinct runnable Releases are 7. The earlier 75/164 snapshot used a different ASK definition/time: 74 is a fresh stricter TTL/accepted-offer baseline, not proof of market coverage loss.
+- Five completed failures correspond to previous 60-second eBay timeout jobs recovered at 2026-10-12 06:51 UTC. A later `running` row began 17:01 UTC and remained unfinished during the audit; check lock/worker recovery before manual intervention. Successful scans at 03:41, 06:59 and 07:40 UTC demonstrate not all lanes are broken.
+- Daily TrackDash Health Watch automation edited **in place**, retains Europe/Rome ~07:05, detects confirmed evidence loss, backlog/locks and false positives. `notifications_enabled=false`, `email_enabled=false` at audit: this service cannot force-deliver notification until the user enables notifications. Price Guard unmodified.
+- No source policies, scan enrollment, Market Method, SOLD, MV, ASK, user data, secrets or cron settings were changed. No RCJaz/Hobby Search promotion before verified exact-source canaries.
+- **Stage 0 gate remains open** until full `pnpm verify` and Preview/Production verification where relevant. **Stage 1 gate remains open** until one parked case and one real incident are confirmed in a dry-run and notification delivery is enabled/verified.
