@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { representativeAskingMedian } from "../lib/market/representative-asking.ts"
+import { normalizeMarketListingKey, representativeAskingMedian } from "../lib/market/representative-asking.ts"
 import {
   observedMarketPrice,
   observedMarketReferencePrice,
@@ -34,6 +34,30 @@ const mantaOffers = [
   build("jsmarket", 69.27),
   build("astatine", 71.88),
 ]
+// Real exact-Release eBay IDs persisted for #95466 on 2026-10-11.
+// Regress the Production incident: an uncaptured regex group once normalized
+// all eleven distinct IDs to "ebay:undefined", dropping eight sellers.
+const mantaListingIds = [
+  "166299557532", "167947430516", "375234252635",
+  "117453957818", "366439416661", "205188159186",
+  "267629243198", "158060247623", "158095195216",
+  "204924066265", "255130570752",
+]
+assert.equal(mantaListingIds.length, mantaOffers.length)
+const keys = mantaListingIds.map((id) => normalizeMarketListingKey(`v1|${id}|0`))
+assert.equal(new Set(keys).size, 11, "Every persisted real eBay ID must remain distinct")
+assert.ok(keys.every((key) => key && key !== "ebay:undefined"))
+assert.equal(normalizeMarketListingKey(`ebay:v1|166299557532|0`), "ebay:166299557532")
+assert.equal(normalizeMarketListingKey("166299557532"), "ebay:166299557532")
+assert.equal(normalizeMarketListingKey("v1|166299557532|0"), "ebay:166299557532")
+assert.equal(normalizeMarketListingKey(""), null)
+assert.equal(normalizeMarketListingKey(null), null)
+const mantaActualIds = representativeAskingMedian(mantaOffers.map((offer, i) => ({
+  ...offer, listingKey: keys[i],
+})), now)
+assert.equal(mantaActualIds?.sellerCount, 9, "Correctly captured IDs must retain nine independently identified sellers")
+assert.equal(mantaActualIds?.itemPriceEUR, 32.67, "Manta #95466 must not silently fall back to a single €21.96 listing")
+
 const manta = representativeAskingMedian(mantaOffers, now)
 assert.equal(manta?.itemPriceEUR, 32.67)
 assert.equal(manta?.sellerCount, 9)
@@ -124,4 +148,4 @@ const none = representativeAskingMedian([
 assert.equal(none, null, "Zero current verified sellers yields no representative asking price")
 assert.equal(representativeAskingMedian([], now), null)
 
-console.log("ASK projection: 1 seller observed, 2+ seller median, mixed international origin, Manta 95466 €32.67, TTL, MV/Wishlist isolation — PASS")
+console.log("ASK projection: all 11 real Manta listing IDs -> 9 sellers -> €32.67, 0/1/2+/global sellers, MV/Wishlist isolation — PASS")
