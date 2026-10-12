@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { observedMarketOfferOrigin, observedMarketReferenceIsHistorical, observedMarketReferencePrice } from "@/lib/market/presentation"
+import { observedMarketOfferOrigin, observedMarketReferenceIsHistorical, observedMarketReferencePrice, representativeAskingCaption } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -319,6 +319,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
   const mainPrice = mv ?? sold
   const ask = observedMarketReferencePrice(signal)
   const historical = observedMarketReferenceIsHistorical(signal)
+  const medianCaption = representativeAskingCaption(signal, it)
   const comparison = sealed ? signal?.soldTrendComparison : null
   const trendPercent = comparison ? entry.marketTrend : null
 
@@ -354,7 +355,9 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
           <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
             {ask == null
               ? (it ? "Nessuna offerta osservata" : "No observed offer")
-              : historical
+              : medianCaption
+                ? medianCaption
+                : historical
                 ? (it ? "Ultima offerta osservata" : "Last observed offer")
                 : (it ? "Verificata di recente" : "Recently verified")}
           </p>
