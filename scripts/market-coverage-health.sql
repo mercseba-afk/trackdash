@@ -113,11 +113,12 @@ SELECT coverage.*,
     WHERE status = 'failed' AND started_at >= now() - interval '24 hours') AS run_failures_24h,
   (SELECT count(*) FROM public.market_scan_runs
     WHERE status = 'running' AND started_at <= now() - interval '20 minutes') AS stuck_running_20m,
-  (SELECT count(*) FROM public.market_candidates mc JOIN cohort c
-    ON c.id = mc.resolved_release_id
+  (SELECT count(*) FROM public.market_candidates mc
     WHERE mc.decision = 'needs_review'
       AND mc.last_observed_at >= now() - interval '30 days'
-      AND mc.original_source = 'ebay_active_public') AS needs_review_ebay_30d,
+      AND mc.original_source IN ('EBAY_IT','EBAY_DE','EBAY_GB','EBAY_US')
+      AND EXISTS (SELECT 1 FROM cohort c WHERE c.id = mc.resolved_release_id
+        OR c.id = ANY(mc.possible_release_ids))) AS needs_review_ebay_30d,
   (SELECT max(last_success_at) FROM source_success) AS source_last_success_any,
   (SELECT jsonb_object_agg(slug, last_success_at ORDER BY slug) FROM source_success)
     AS source_last_success_by_slug
