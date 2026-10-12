@@ -72,10 +72,11 @@ export function representativeAskingMedian(
   if (bySeller.size < 3) return null
 
   const independent = [...bySeller.values()]
-  const value = median(independent.map((x) => x.itemPriceEUR!))
+  // Use integer cents to avoid floating-point half-cent instability.
+  const valueCents = median(independent.map((x) => Math.round(x.itemPriceEUR! * 100)))
   const last = independent.map((x) => x.checkedAt).sort().at(-1)!
   return {
-    itemPriceEUR: Math.round((value + Number.EPSILON) * 100) / 100,
+    itemPriceEUR: Math.round(valueCents) / 100,
     sellerCount: independent.length,
     origin,
     observedAt: last,
