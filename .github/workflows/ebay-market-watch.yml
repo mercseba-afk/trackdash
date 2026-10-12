@@ -2,9 +2,11 @@ name: eBay Market Watch
 
 on:
   schedule:
-    - cron: '41 */3 * * *'
-  # Re-run the protected market-watch smoke check after Production is READY.
-  # Regular execution remains the three-hour schedule.
+    - cron: '41 * * * *'
+  # Dispatch up to ONE due Release hourly; individual Mini 4WD Releases
+  # retain a 7–45-day adaptive scan interval. More frequent dispatch does NOT
+  # rescan every Release hourly, and failed scans are never auto-retried.
+  # Push remains the protected post-deployment smoke check.
   push:
     branches: [main]
     paths:
