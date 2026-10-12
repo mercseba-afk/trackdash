@@ -106,6 +106,35 @@ ok("full-history and stale sold evidence stay historical, not current value", ()
   assert.equal(canFeedCurrentSoldAnchor(recentWindow, "2026-09-14"), true)
 })
 
+ok("scheduled eBay endpoints keep one Release per 60-second invocation", () => {
+  const ebayCron = readFileSync(new URL("../app/api/cron/ebay-scan/route.ts", import.meta.url), "utf8")
+  const dailyCron = readFileSync(new URL("../app/api/cron/market-scan/route.ts", import.meta.url), "utf8")
+  const admin = readFileSync(new URL("../lib/actions/admin.ts", import.meta.url), "utf8")
+  const workflow = readFileSync(new URL("../.github/workflows/ebay-market-watch.yml", import.meta.url), "utf8")
+  for (const source of [ebayCron, dailyCron, admin]) {
+    assert.match(source, /runEbayActiveMarketScanBatch\(1\)/)
+    assert.doesNotMatch(source, /runEbayActiveMarketScanBatch\(4\)/)
+  }
+  assert.match(ebayCron, /maxDuration = 60/)
+  assert.match(workflow, /--max-time 75/)
+  assert.doesNotMatch(workflow, /curl -sS --retry/)
+})
+
+ok("eBay worker restores stale run telemetry and parallelizes market searches without loosening lifecycle guards", () => {
+  const worker = readFileSync(new URL("../lib/market/automation/ebay-worker.ts", import.meta.url), "utf8")
+  assert.match(worker, /await closeStaleScanRuns\(client\)/)
+  assert.match(worker, /status: "failed"/)
+  assert.match(worker, /\.eq\("status", "running"\)/)
+  assert.match(worker, /\.is\("finished_at", null\)/)
+  assert.match(worker, /\.eq\("targets_succeeded", 0\)/)
+  assert.match(worker, /\.lt\("started_at", staleBefore\)/)
+  assert.match(worker, /Promise\.all\(MARKETPLACES\.map/)
+  assert.match(worker, /for \(const \{ marketplace, rows, error \} of marketplaceResults\)/)
+  assert.match(worker, /complete: rows\.length < marketplaceLimit/)
+  assert.match(worker, /planMissingEbayOffers/)
+  assert.match(worker, /SHARED_ITEM_NUMBER_REQUIRES_RELEASE_REVIEW/)
+})
+
 ok("default pilot plan always includes RCJAZ and excludes internal TrackDash scanning", () => {
   const policies = defaultPilotSourcePolicies([
     { slug: "trackdash_confirmed_sales", sourceType: "marketplace", isActive: true },

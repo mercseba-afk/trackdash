@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   try {
     const [exactPagesResult, ebayActiveResult, recomputeResult] = await Promise.allSettled([
       runExactPageMarketScanBatch(4),
-      runEbayActiveMarketScanBatch(4),
+      runEbayActiveMarketScanBatch(1),
       runMarketRecomputeBatch(8),
     ])
 

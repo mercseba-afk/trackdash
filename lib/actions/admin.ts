@@ -132,7 +132,7 @@ export async function runAdminMarketRefreshAction() {
 
   const [exactPagesResult, ebayActiveResult, recomputeResult] = await Promise.allSettled([
     runExactPageMarketScanBatch(4),
-    runEbayActiveMarketScanBatch(4),
+    runEbayActiveMarketScanBatch(1),
     runMarketRecomputeBatch(8),
   ])
 
