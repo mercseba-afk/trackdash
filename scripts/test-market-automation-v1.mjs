@@ -175,14 +175,28 @@ ok("collector-market cadence reacts to meaningful ASK moves and market availabil
   assert.equal(marketActivityMateriallyChanged(base, { ...base, currentOfferCount: 0 }), true)
 })
 
-ok("eBay fresh active ASK is rechecked within seven days; no-offer markets are slower", () => {
-  assert.equal(ebayCollectorScanIntervalHours("hot", true), 3 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("normal", true), 7 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("cold", true), 7 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("unknown", true), 7 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("hot", false), 7 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("normal", false), 14 * 24)
-  assert.equal(ebayCollectorScanIntervalHours("cold", false), 30 * 24)
+ok("eBay current ASK is refreshed within 15-day TTL without repeatedly scanning quiet Mini 4WDs", () => {
+  assert.equal(ebayCollectorScanIntervalHours("hot", true), 7 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("normal", true), 10 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("cold", true), 12 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("unknown", true), 10 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("hot", false), 14 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("normal", false), 30 * 24)
+  assert.equal(ebayCollectorScanIntervalHours("cold", false), 45 * 24)
+  assert.ok(ebayCollectorScanIntervalHours("cold", true) < 15 * 24, "current-ASK refresh must precede public 15d TTL")
+})
+
+ok("eBay hourly dispatcher only scans one due Release per call, without retries or changing queue eligibility", () => {
+  const workflow = readFileSync(new URL("../.github/workflows/ebay-market-watch.yml", import.meta.url), "utf8")
+  const route = readFileSync(new URL("../app/api/cron/ebay-scan/route.ts", import.meta.url), "utf8")
+  const worker = readFileSync(new URL("../lib/market/automation/ebay-worker.ts", import.meta.url), "utf8")
+  assert.match(workflow, /cron: '41 \* \* \* \*'/)
+  assert.doesNotMatch(workflow, /cron: '41 \*\/3/)
+  assert.match(route, /runEbayActiveMarketScanBatch\(1\)/)
+  assert.match(worker, /trackdash_claim_ebay_active_jobs/)
+  assert.match(worker, /p_lock_minutes: 10/)
+  assert.match(workflow, /--max-time 75/)
+  assert.doesNotMatch(workflow, /curl -sS --retry/)
 })
 
 ok("exact retail retains its independent sparse collector cadence", () => {
