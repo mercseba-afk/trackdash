@@ -1,3 +1,11 @@
+## Read-only market coverage & Health Watch KPI audit (2026-10-12)
+
+Reusable query: `scripts/market-coverage-health.sql`; safe to execute as a **read-only SELECT** against Supabase. Strict universe = Mini4WD `launch_status=available`, verified/public Release, canonical `new_complete_unbuilt`. Current ASK comes only from accepted, in-stock/low-stock `market_offer_states` within channel TTL (marketplace 360h; retail 744h), not historical ASK snapshots. Distinct-release union counts prevent MV/SOLD/ASK double counting. Separate metrics: 138 eBay enabled / 26 intentionally identity-parked, 7 distinct runnable retail Releases, 28 distinct verified-but-not-READY retailer Releases (2026-10-12 snapshot). **Do not count** ~400 unverified `imodellini_public` / `pieroni_public` queue placeholders as actionable due work.
+
+First verified audit: 164 total, 74 with evidence, 90 empty, MV 10 / SOLD 50 / current ASK 48, 0 due >24h, five repaired/past 60s scan timeout runs, one still-`running` scan row at 17:01 UTC. Watch is not a pricing engine; do not auto-promote planned retailers or treat a missed ASK TTL as corrupted Market Value. Health Watch prompt updated 2026-10-12; notifications remain disabled and require user app settings for delivery. The audit SQL is read-only and does not require schema migrations or privileged grants. Stage 0/1 continue through full verification / Preview according to roadmap.
+
+---
+
 ## Catalog price-evidence coverage audit and SOLD-only card remediation — 2026-10-12
 
 **Source:** read-only Supabase `public.product_releases`, `products.metadata.launch_status`, `market_release_signals`, `market_scan_queue` and `market_candidates`. Counts are snapshot-dependent and never represent guaranteed current marketplace supply.
