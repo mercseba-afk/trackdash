@@ -26,7 +26,7 @@ export function ReleaseMarketOverview({
   const it = locale === "it"
   const sold = signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0 ? signal.soldAnchorEUR : null
   const mv = signal?.valueEUR != null && signal.valueEUR > 0 ? signal.valueEUR : null
-  const reference = sold ?? mv
+  const reference = mv ?? sold
   const ask = observedMarketReferencePrice(signal)
   const historical = observedMarketReferenceIsHistorical(signal)
   const origin = observedMarketOfferOrigin(signal)
@@ -52,12 +52,12 @@ export function ReleaseMarketOverview({
             <div className="min-w-0">
               <p className="text-sm font-medium">{it ? "Riferimento mercato" : "Market reference"}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {sold != null
-                  ? (it
-                    ? `Vendite concluse · ${signal?.soldUnits ?? 0} ${signal?.soldUnits === 1 ? "vendita" : "vendite"}`
-                    : `Completed sales · ${signal?.soldUnits ?? 0} ${signal?.soldUnits === 1 ? "sale" : "sales"}`)
-                  : mv != null
-                    ? (it ? "Valore stimato TrackDash" : "TrackDash estimated value")
+                {mv != null
+                  ? (it ? "Stima TrackDash" : "TrackDash estimate")
+                  : sold != null
+                    ? (it
+                      ? `${signal?.soldUnits ?? 0} ${signal?.soldUnits === 1 ? "vendita conclusa" : "vendite concluse"} · riferimento, non stima`
+                      : `${signal?.soldUnits ?? 0} completed ${signal?.soldUnits === 1 ? "sale" : "sales"} · reference, not an estimate`)
                     : (it ? "Nessuna vendita osservata" : "No completed sales observed")}
               </p>
             </div>
