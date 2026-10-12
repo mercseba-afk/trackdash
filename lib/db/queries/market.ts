@@ -152,6 +152,7 @@ export async function listCurrentObservedOffers(
     listingKey: string | null
     sellerFingerprint: string | null
     acceptedExactKit: boolean
+    resolvedReleaseId: string | null
   }>()
   const ids = [...new Set(offers.map((row) => row.candidateId).filter(Boolean))]
   try {
@@ -170,7 +171,7 @@ export async function listCurrentObservedOffers(
         // eBay may store v1|123456789012|0 and legacy 123456789012 for
         // the SAME listing. Normalize its numeric item ID before deduping.
         const externalId = row.external_listing_id ?? row.source_record_key ?? ""
-        const ebayId = /(?:^|\\|)([0-9]{12})(?:\\||$)/.exec(externalId)
+        const ebayId = /[0-9]{12}/.exec(externalId)
         candidates.set(row.id, {
           originCountry: knownCountry,
           listingKey: ebayId ? `ebay:${ebayId[1]}` : (externalId ? String(externalId) : null),
@@ -178,6 +179,7 @@ export async function listCurrentObservedOffers(
           acceptedExactKit: row.decision === "accepted" &&
             row.condition === condition && row.is_lot === false && row.is_complete === true &&
             typeof row.resolved_release_id === "string",
+          resolvedReleaseId: row.resolved_release_id ?? null,
         })
       }
     }
@@ -192,7 +194,7 @@ export async function listCurrentObservedOffers(
       originCountry: candidate?.originCountry ?? null,
       listingKey: candidate?.listingKey ?? null,
       sellerFingerprint: candidate?.sellerFingerprint ?? null,
-      acceptedExactKit: Boolean(candidate?.acceptedExactKit),
+      acceptedExactKit: Boolean(candidate?.acceptedExactKit && candidate.resolvedReleaseId === row.releaseId),
     }
   })
 }
