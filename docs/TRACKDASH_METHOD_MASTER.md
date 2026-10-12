@@ -1,3 +1,12 @@
+## REGRESSION: EBAY LISTING KEY MUST CAPTURE NUMERIC ID (2026-10-12)
+
+The representative seller median builds unique listing identities from `market_candidates.external_listing_id` / `source_record_key`. Normalize different eBay ID formats using a **captured** 12-digit ID (`([0-9]{12})`) and stable `ebay:ID` key. Bare `ID`, `v1|ID|0`, `ebay:v1|ID|0` must map to the same listing; *different* IDs must always remain distinct. Never index `regexMatch[1]` if the regex lacks a capture group, or all listings will share `ebay:undefined` and median seller count collapses to one.
+
+Audited live #95466: 11 current exact eligible offers from 9 sellers, 16.13 EUR one-sale reference, representative **32.67 EUR** asking median (9 sellers). The temporary diagnostic was removed; no change to canonical Market Value, Wishlist purchase quote, Collection valuation, or Market Method v4.
+
+
+---
+
 ## PREZZO RICHIESTO — REGOLA AGGIORNATA 2026-10-12 (SUPERSEDE LA SOGLIA 3 / EUROPE-FIRST QUI SOTTO)
 
 **Principio definitivo:** `Riferimento mercato` e `Prezzo richiesto` sono due grandezze distinte. Il primo è MV consolidato o riferimento esplicito da vendite concluse; il secondo misura **quanto chiedono i venditori**, non quanto viene realmente pagato. Non imporre all'ASK i gate di conferma geografica o numero vendite usati dal Market Value.
