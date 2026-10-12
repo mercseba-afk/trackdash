@@ -569,24 +569,35 @@ async function scanJob(
     }
   }
 
-  for (const marketplace of MARKETPLACES) {
+  // Search the four independent marketplaces concurrently, then consume
+  // results in the original IT/DE/GB/US order. A slow marketplace must not
+  // consume the entire 60-second Vercel function budget by itself.
+  // Failed/truncated markets remain non-authoritative for offer lifecycle.
+  const marketplaceResults = await Promise.all(MARKETPLACES.map(async (marketplace) => {
     try {
       const rows = await searchEbayActiveListings(input, marketplace, marketplaceLimit, { deliveryCountry: "IT" })
-      rawByMarketplace[marketplace] = (rawByMarketplace[marketplace] ?? 0) + rows.length
-      fetched.push(...rows)
-      fetchStates.push({
-        marketplace,
-        succeeded: true,
-        // A full page can be truncated; absence is authoritative only when the
-        // response proves that this page exhausted the query.
-        complete: rows.length < marketplaceLimit,
-        itemIds: new Set(rows.map((row) => row.itemId)),
-      })
+      return { marketplace, rows, error: null }
     } catch (error) {
-      marketplaceFailures += 1
-      sourceErrors.push(`${marketplace}:${shortError(error)}`)
-      fetchStates.push({ marketplace, succeeded: false, complete: false, itemIds: new Set() })
+      return { marketplace, rows: [] as EbayBrowseListing[], error: shortError(error) }
     }
+  }))
+  for (const { marketplace, rows, error } of marketplaceResults) {
+    if (error != null) {
+      marketplaceFailures += 1
+      sourceErrors.push(`${marketplace}:${error}`)
+      fetchStates.push({ marketplace, succeeded: false, complete: false, itemIds: new Set<string>() })
+      continue
+    }
+    rawByMarketplace[marketplace] = (rawByMarketplace[marketplace] ?? 0) + rows.length
+    fetched.push(...rows)
+    fetchStates.push({
+      marketplace,
+      succeeded: true,
+      // A full page can be truncated; absence is authoritative only when the
+      // response proves that this page exhausted the query.
+      complete: rows.length < marketplaceLimit,
+      itemIds: new Set(rows.map((row) => row.itemId)),
+    })
   }
   if (!fetched.length && marketplaceFailures === MARKETPLACES.length) {
     throw new Error(`EBAY_ALL_MARKETPLACES_FAILED:${sourceErrors.join("|")}`)
@@ -903,6 +914,25 @@ export async function runEbayActiveMarketScanForRelease(input: TargetedEbayScanI
   }
 }
 
+// A serverless timeout cannot execute a catch/finally block. On the next
+// authorized scan, close orphan run metadata older than the worker's hard
+// execution limit. This changes neither queue jobs nor market evidence.
+async function closeStaleScanRuns(client: SupabaseClient): Promise<void> {
+  const staleBefore = new Date(Date.now() - 15 * 60_000).toISOString()
+  const { error } = await client
+    .from("market_scan_runs")
+    .update({
+      status: "failed",
+      finished_at: new Date().toISOString(),
+      error_summary: "STALE_SCAN_RUN_TIMEOUT_RECOVERED: worker interrupted; no market prices changed by recovery",
+    })
+    .eq("status", "running")
+    .is("finished_at", null)
+    .eq("targets_succeeded", 0)
+    .lt("started_at", staleBefore)
+  fail(error, "close stale scan runs")
+}
+
 export async function runEbayActiveMarketScanBatch(limit = 2): Promise<EbayRunResult> {
   if (!ebayBrowseConfigured()) {
     return {
@@ -922,6 +952,7 @@ export async function runEbayActiveMarketScanBatch(limit = 2): Promise<EbayRunRe
   // source adapter readiness remain additional fail-closed gates.
   if (!ebayScheduledMarketWritesAllowed()) throw new Error("EBAY_SCHEDULED_MARKET_WRITES_DISABLED")
   const client = createAdminClient()
+  await closeStaleScanRuns(client)
   const repo = new MarketR3Repository(client)
   const safeLimit = Math.max(1, Math.min(limit, 4))
   const { data: claimed, error: claimError } = await client.rpc("trackdash_claim_ebay_active_jobs", {
