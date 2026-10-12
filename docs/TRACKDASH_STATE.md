@@ -1,3 +1,10 @@
+## Market coverage automation work checkpoint — 2026-10-12 evening
+
+- Roadmap: `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md`. Feature branch `feat/market-coverage-health-baseline-20261012` adds repeatable read-only KPI SQL at `scripts/market-coverage-health.sql`, executed unchanged against live Supabase: available/public/verified Mini4WD 164, with MV 10, SOLD 50, TTL-valid accepted ASK 48, union 74, no evidence 90. Former 75/164 is an earlier, not directly comparable ASK snapshot. eBay 138 enabled, identity-parked 26; distinct runnable retail Releases 7; validated but inactive retail Releases 28; overdue 24h 0; 5 historical 60-second timeout run failures (past day) and one unclosed running scan row; 20 eBay review candidates (30d, available verified cohort; corrected source provenance). No Market Method or source policy changed.
+- Existing daily Health Watch automation `6ac3a50c70a48191b390a7337392d03a` revised with TTL/identity/runnable queue gates. Delivery notifications still disabled in user task settings. Production/main as audited: `479faf8ec43f5a462bef6358469e97c2ef044963`, READY; external `/api/version` check unavailable. **No feature branch merged/deployed yet** until CI and Preview.
+
+---
+
 # TRACKDASH — PROJECT STATE
 
 > Persistent operational snapshot.  
@@ -8340,3 +8347,9 @@ A dedicated eBay-only dispatcher and independent active-ASK 3/7-day versus no-ac
 - Production queue replan changed only 169 enabled eBay Active jobs. 253 disabled eBay Active jobs remained parked; all enabled jobs received new adaptive intervals. Retail/SOLD queues, source prices and valuation method v4 were unchanged.
 - The separate GitHub Actions scheduled invocation every three hours is configured and one authenticated production execution has been proven end-to-end. Observe scheduled-event run health; an initial push test run 38141871180 occurred before PR #397's code reached Production and failed authorization, then the post-deploy rerun succeeded.
 - The eBay cadence is fresh-active HOT 3d and NORMAL/COLD 7d; without fresh active ASK it is HOT 7d, NORMAL 14d, COLD 30d. Vercel Hobby's only native cron remains the original daily market scan.
+
+
+**RCJaz/Hobby source gate (2026-10-12)**: 4 external read-only requests from Vercel sandbox `iad1` (RCJaz #18074/#94692, Hobby Search #95335/#94716) all `403 Just a moment...` Cloudflare challenge. Both policies remain planned, no scanning enabled, no price ingestion. Any source promotion requires truly working authorised Production-runtime canary. See roadmap for details. Stage 3 rejection baseline: 611 `ITEM_NUMBER_NOT_IN_TITLE` rejection reason entries across eBay source markets, not 611 proven missed listings.
+
+
+**QA checkpoint** (12 Oct): GH branch `82c26f65d...` Typecheck and branch verify SUCCESS, Vercel Preview deployment `dpl_xgsgKWCzVu3ZaJnyWjzFv83L2dAa` READY, direct HTTPS `/api/version` 200 for both existing Production `479faf8ec4...` and Preview `82c26f65d...`, Production and Preview `/` and `/market` 200. Unauthenticated smoke only; no signed-in Collection/Wishlist assertion. Stage 4 parked cohort: 19 shared-item missing JAN, 3 shared-item duplicate JAN, 4 missing Item Number — none mass-eligible. Stage 5 eBay Marketplace Insights is restricted/not open to new users per official eBay API documentation; auto SOLD connector still unproven. New master-doc checkpoint commit will need final SHA CI/Preview.
