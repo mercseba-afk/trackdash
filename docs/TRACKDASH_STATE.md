@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — REPRESENTATIVE ASKING PRICE / MEDIAN (AWAITING PREVIEW & PRODUCTION)
+
+- Verified live baseline: GitHub main and Production `434dd79e18c63aa1b03723958ad8857579dc3d2d`. Market Method v4, current ASK starting selection and Collection valuation from PR #412 unchanged.
+- User observed Manta #95466's requested price €13.39 derived from a single JP item-only offer, whereas 11 accepted current listing rows represented 9 unique sellers across JP/US/MY; most requested higher prices, including high asks above €69.
+- Implementation in `lib/market/representative-asking.ts`: dynamic median of seller-deduplicated current verified exact-Release asks when >=3 independent sellers are available, Europe-first by certified UE origin/valid Italian delivery quote. Extra-UE median is display-only, marked explicitly extra-UE. Do not mix EU and Japan-origin prices. Two or fewer sellers keep a single actual observed asking price with its freshness semantics. Unknown/ambiguous seller/listing identities fail closed. Item-only EUR medians computed in integer cents.
+- Verified expected Manta sample: €32.67 international asking median from 9 sellers, **separate** from €16.13 one-sale SOLD reference (not Market Value). The Collection total is not changed by this display-only ASK median. Physical kit shipping/duties never become part of the median.
+- Server adds private candidate seller/listing IDs exclusively to internal `CurrentObservedOfferRow` for dedup; only aggregated price, seller count, origin and last observation date are sent to client. Canonical `observedMarketPrice` and `starting* EUR` continue for Wishlist purchase logic and canonical fallback.
+- Safety: no DB writes/migrations, cron/scan cadence edits, pricing engine changes, sold ingestion changes, account/Collection changes, queue changes, or seller identifiers exposed in public. Modify the existing two-price card's second amount and provenance subtitle only. No new UI card type.
+- Verification required: full `pnpm verify` and isolated representative-asking test, final-head Vercel Preview READY, squash merge, Production READY and live /api/version proof.
+
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — COLLECTION TOTAL & PREZZO RICHIESTO (PENDING RELEASE)
 
 - **Audited previous baseline:** GitHub `main` and Vercel Production `8da9daa453c458f6277af2521d44fe5cef219945` READY; Supabase market signals and individual Collection copies verified read-only. The 4 matching copies are Sealed, quantity 1, and reference items 95425/95450/95466/95467.
