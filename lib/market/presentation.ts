@@ -43,7 +43,9 @@ export function observedMarketKnownShipping(
 export function observedMarketReferencePrice(
   signal?: ReleaseMarketSignalView | null,
 ): number | null {
-  return observedMarketPrice(signal) ??
+  return (signal?.representativeAskItemEUR != null && signal.representativeAskItemEUR > 0
+      ? signal.representativeAskItemEUR : null) ??
+    observedMarketPrice(signal) ??
     (signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
       ? signal.historicalAskItemEUR : null)
 }
@@ -51,7 +53,8 @@ export function observedMarketReferencePrice(
 export function observedMarketReferenceIsHistorical(
   signal?: ReleaseMarketSignalView | null,
 ): boolean {
-  return observedMarketPrice(signal) == null &&
+  return signal?.representativeAskItemEUR == null &&
+    observedMarketPrice(signal) == null &&
     signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
 }
 
@@ -61,9 +64,30 @@ export function observedMarketOfferOrigin(
   signal?: ReleaseMarketSignalView | null,
 ): "eu" | "extra_eu" | "unknown" {
   if (observedMarketReferencePrice(signal) == null) return "unknown"
+  if (signal?.representativeAskItemEUR != null && signal.representativeAskItemEUR > 0) {
+    return signal.representativeAskOrigin ?? "unknown"
+  }
   return observedMarketReferenceIsHistorical(signal)
     ? signal?.historicalAskOrigin ?? "unknown"
     : signal?.currentAskOrigin ?? "unknown"
+}
+
+// Consistent compact subtitle for the same two-row market card. The price
+// shown may be a median of distinct sellers, not one arbitrary cheapest listing.
+export function representativeAskingCaption(
+  signal: ReleaseMarketSignalView | null | undefined,
+  it: boolean,
+): string | null {
+  const sellers = signal?.representativeAskSellerCount ?? 0
+  if (signal?.representativeAskItemEUR == null || sellers < 3) return null
+  const region = signal.representativeAskOrigin === "extra_eu"
+    ? (it ? " · annunci extra-UE" : " · non-EU listings")
+    : signal.representativeAskOrigin === "unknown"
+      ? (it ? " · provenienza da verificare" : " · origin unknown")
+      : ""
+  return it
+    ? `Mediana di ${sellers} venditori${region}`
+    : `Median of ${sellers} sellers${region}`
 }
 
 export type ObservedMarketDisplayKind = "ask" | "sold"
@@ -94,6 +118,7 @@ export function observedMarketDisplayLabel(
   if (observedMarketDisplayKind(signal) === "sold") {
     return it ? "Prezzo da vendite concluse" : "Price from completed sales"
   }
+  if (representativeAskingCaption(signal, it)) return representativeAskingCaption(signal, it)!
   if (observedMarketReferenceIsHistorical(signal)) {
     return it ? "Ultimo prezzo richiesto osservato · solo kit" : "Last observed asking price · kit only"
   }

@@ -17,6 +17,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } from "@/lib/market/collector-sold-trend-comparison"
 import { classifyOfferOrigin } from "@/lib/market/offer-origin"
+import { representativeAskingMedian } from "@/lib/market/representative-asking"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -235,6 +236,27 @@ export function toPublicMarketSignalView(
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
   const freshOffers = freshObservedOffers(observedOffers)
   const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId)
+  // Presentation-only median from current exact-Release listing evidence.
+  // This cannot change the canonically selected shopping offer or Market Value.
+  const representativeAsk = representativeAskingMedian(freshOffers.map((offer) => {
+    const itemPriceEUR = numberOrNull(offer.itemPriceEUR)
+    const shippingEUR = numberOrNull(offer.shippingEUR)
+    const effectiveCostEUR = numberOrNull(offer.effectiveCostEUR)
+    const deliveredToItaly = offer.costBasis === "delivered" &&
+      itemPriceEUR != null && itemPriceEUR > 0 &&
+      shippingEUR != null && shippingEUR >= 0 &&
+      effectiveCostEUR != null && effectiveCostEUR > 0 &&
+      Math.abs(itemPriceEUR + shippingEUR - effectiveCostEUR) <= 0.025
+    return {
+      listingKey: offer.listingKey,
+      sellerFingerprint: offer.sellerFingerprint,
+      itemPriceEUR,
+      origin: classifyOfferOrigin(offer.originCountry, offer.sourceMarketRegion),
+      deliveredToItaly,
+      checkedAt: offer.lastCheckedAt instanceof Date ? offer.lastCheckedAt.toISOString() : String(offer.lastCheckedAt),
+      acceptedExactKit: offer.acceptedExactKit,
+    }
+  }))
   // A formerly observed ASK is valuable historical evidence, NOT proof that
   // its listing is still purchasable. Preserve its dated KIT-ONLY component
   // separately, without feeding stale quotes into the current-offer pipeline.
@@ -295,6 +317,10 @@ export function toPublicMarketSignalView(
     activeHighEUR: activeOfferCount > 0 ? numberOrNull(signal.activeHighEUR) : null,
     soldAnchorEUR,
     startingItemPriceEUR: startingItemPriceEUR != null && startingItemPriceEUR > 0 ? startingItemPriceEUR : null,
+    representativeAskItemEUR: representativeAsk?.itemPriceEUR ?? null,
+    representativeAskSellerCount: representativeAsk?.sellerCount ?? 0,
+    representativeAskOrigin: representativeAsk?.origin ?? "unknown",
+    representativeAskObservedAt: representativeAsk?.observedAt ?? null,
     startingEffectiveCostEUR: startingEffectiveCostEUR != null && startingEffectiveCostEUR > 0 ? startingEffectiveCostEUR : null,
     startingCostBasis:
       observedOffer?.costBasis === "delivered" || observedOffer?.costBasis === "item_only"
