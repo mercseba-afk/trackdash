@@ -1,3 +1,17 @@
+## PREZZO RICHIESTO RAPPRESENTATIVO — 2026-10-12 (ASK MEDIAN PROJECTION)
+
+**Motivazione:** una singola inserzione giapponese da €13,39 non deve rappresentare l'intero asking market della Manta Ray Mk.II Black Special #95466 quando TrackDash osserva vari venditori, molti più costosi. L'ASK non è una vendita e non è un Market Value; nessuna formula deve "valorizzare" artificialmente una Release.
+
+**Regola pubblica:** il secondo numero nelle card sempre uniformi si chiama **Prezzo richiesto**. Quando esistono **almeno 3 venditori distinti verificati** con kit nuovo/completo, Release esatta, annuncio accettato, disponibilità in stock e ultimo controllo entro la TTL corrente (15 giorni marketplace), il prezzo richiesto mostrato è la **mediana in EUR dei prezzi del solo kit, un voto per venditore** (per venditori con più inserzioni valide si considera la richiesta minima di quel venditore). Gli annunci duplicati tra marketplace e i record v1/legacy dello stesso ID non contano due volte. Mediana e arrotondamenti si calcolano in centesimi interi. Annunci non accettati/lotto/edizione ambigua/scaduti non entrano nel campione.
+
+**Geografia Europe-first senza forzature:** preferenza esclusiva a prezzi con provenienza UE verificata o con origine ignota ma preventivo kit+spedizione verso l'Italia documentato per quella stessa offerta. Se c'è anche solo una quotazione EU-comparable non si mescolano i prezzi globali/extra-UE per forzare tre venditori; in tal caso si mantiene il singolo prezzo selezionato canonico o l'ultimo ASK storico con data. Solo in ASSENZA di un campione europeo, almeno tre venditori extra-UE possono produrre una mediana **informativa internazionale**, sempre con avviso extra-UE/spedizione e importazione escluse. Se mancano 3 venditori affidabili, le superfici mantengono il precedente riferimento singolo con data, mai un finto prezzo medio.
+
+**Separazione permanente:** la mediana è prodotta a lettura dei `market_offer_states` persistiti, già alimentati dal cron eBay/retail; si aggiorna automaticamente dopo le scansioni e decade quando le osservazioni superano la TTL. Non scrive Market Method v4 / `market_release_signals`, ASK storico e trend, condizioni di Collection, selezione di acquisto della Wishlist né prezzi del venditore. `startingItemPriceEUR` e `observedMarketPrice` rimangono esattamente il riferimento canonico acquistabile con spedizione calcolabile; `representativeAskItemEUR` è una proiezione distinta, solo lettura, accompagnata da `sellerCount`, data e provenienza. Mai associare alla mediana la spedizione di una singola offerta. **Il totale della Collection resta basato su MV → SOLD → ASK canonico UE-comparabile**, non sulla mediana dei prezzi richiesti.
+
+**Audit live 95466 (12/10/2026):** 11 inserzioni attuali, 9 venditori distinti (due venditori con inserzioni multiple), origine JP/US/MY, nessun preventivo spedizione Italia documentato: **mediana ASK internazionale €32,67** (non €13,39). Canonical SOLD anchor resta €16,13 da una sola vendita (NON MV). Nessuno di questi numeri è garanzia di realizzo.
+
+---
+
 ## COLLECTION REFERENCE — REVISED 2026-10-12 (OVERRIDES EARLIER OCT 11 ASK FALLBACK)
 
 The **Collection's indicative sealed-copy total** is a separate, transparent, *non-canonical* reference. It must never overwrite or derive the canonical `market_release_signals.market_value_eur` or per-copy personal gain. When a physical copy is **Sealed**:
