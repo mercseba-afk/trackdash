@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — MANTA #95466 ASK SELLER-COUNT BUG (PENDING PRODUCTION)
+
+- User observed **Riferimento mercato €16.13** (one genuine completed sale) with **Prezzo richiesto €21.96, Prezzo di 1 venditore**, despite accepted Oct 11 eBay offers covering 11 listings from 9 distinct sellers.
+- Read-only live SQL verified exact Release, 11 live `market_offer_states` rows, 9 distinct `seller_fingerprint`, matched/new/complete. Production SSR RSC for #95466 had `currentOfferCount=11` but `representativeAskSellerCount=1` and `representativeAskItemEUR=21.96`. Temporary aggregate-only Production diagnostic confirmed **stored 11 / fresh 11 / metadata seller 11 / exact 11 / representative sellers 1**.
+- **Root cause:** `lib/db/queries/market.ts` used `/[0-9]{12}/.exec(externalId)` but accessed `match[1]` **without a capture group**. Every valid eBay record thus received the same `listingKey="ebay:undefined"`, silently deduplicating unrelated offers. Correct to a reusable tested normalization helper with **captured** 12-digit numeric eBay ID and delimiter support.
+- Regression uses the actual eleven eBay item IDs and seller multiplicities for the 95466 sample, asserting 11 unique listing keys → 9 distinct sellers → **€32.67** current international ASK median. Also verifies bare ID vs `v1|ID|0` equivalence, blanks, historic and global 0/1/2+ seller rules.
+- Removed temporary diagnostic immediately in fix branch. **No mutation** to market DB, Market Method v4, SOLD, canonical MV, Collection valuation, Wishlist, scan cadence or source matching. This is a public ASK de-duplication key correction.
+- Release gate: full `pnpm verify`, Vercel final-head Preview READY, merge, Production READY and `/api/version` verification, then live public #95466 HTML must show median €32.67 and nine sellers with current data.
+
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — ASK 1 SELLER / MEDIAN 2+ GLOBAL (PENDING DEPLOY)
 
 - **Verified baseline** GitHub main and Production READY `0b0c2754de333e8a9ff89f3525103a957a21ea63` (PR #413), on which the displayed asking-price median previously needed >=3 sellers and exclusively preferred EU groups.

@@ -12,6 +12,17 @@ export interface RepresentativeAskCandidate {
   acceptedExactKit: boolean
 }
 
+// Stable eBay item identifier across Browse v1/legacy API formats.
+// IMPORTANT: capturing group [1] must contain the 12-digit listing ID,
+// never undefined. A missing capture previously collapsed every listing into
+// the same "ebay:undefined" key, producing a false one-seller quote.
+export function normalizeMarketListingKey(externalId: string | null | undefined): string | null {
+  const raw = externalId?.trim() ?? ""
+  if (!raw) return null
+  const match = /(?:^|\|)([0-9]{12})(?:\||$)/.exec(raw)
+  return match ? `ebay:${match[1]}` : raw
+}
+
 export interface RepresentativeAsk {
   itemPriceEUR: number
   sellerCount: number
