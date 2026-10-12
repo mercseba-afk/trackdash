@@ -40,6 +40,10 @@ export interface CurrentObservedOfferRow {
   /** Seller's verified shipping origin, never eBay marketplace country. */
   originCountry: string | null
   sourceMarketRegion: string | null
+  /** Private, server-side-only metadata for deduplicated representative ASK. */
+  listingKey: string | null
+  sellerFingerprint: string | null
+  acceptedExactKit: boolean
 }
 
 // Normalized completed-sale observations only. Candidate/raw listing evidence stays
@@ -143,28 +147,54 @@ export async function listCurrentObservedOffers(
   // all pricing surfaces, including perfectly valid SOLD-based Market Values.
   // Enrich only origin metadata with the service client; fail closed to
   // unknown origin if this optional lookup is unavailable.
-  const origins = new Map<string, string>()
+  const candidates = new Map<string, {
+    originCountry: string | null
+    listingKey: string | null
+    sellerFingerprint: string | null
+    acceptedExactKit: boolean
+  }>()
   const ids = [...new Set(offers.map((row) => row.candidateId).filter(Boolean))]
   try {
     const admin = createAdminClient()
     for (let offset = 0; offset < ids.length; offset += 200) {
       const { data, error } = await admin
         .from("market_candidates")
-        .select("id,raw_payload")
+        .select("id,raw_payload,source_record_key,external_listing_id,seller_fingerprint,decision,condition,is_lot,is_complete,resolved_release_id")
         .in("id", ids.slice(offset, offset + 200))
       if (error) throw error
       for (const row of data ?? []) {
         const payload = row.raw_payload
         const country = payload && typeof payload === "object" && !Array.isArray(payload)
           ? (payload as Record<string, unknown>).itemLocationCountry : null
-        if (typeof country === "string" && /^[A-Z]{2}$/.test(country)) origins.set(row.id, country)
+        const knownCountry = typeof country === "string" && /^[A-Z]{2}$/.test(country) ? country : null
+        // eBay may store v1|123456789012|0 and legacy 123456789012 for
+        // the SAME listing. Normalize its numeric item ID before deduping.
+        const externalId = row.external_listing_id ?? row.source_record_key ?? ""
+        const ebayId = /(?:^|\\|)([0-9]{12})(?:\\||$)/.exec(externalId)
+        candidates.set(row.id, {
+          originCountry: knownCountry,
+          listingKey: ebayId ? `ebay:${ebayId[1]}` : (externalId ? String(externalId) : null),
+          sellerFingerprint: row.seller_fingerprint ?? null,
+          acceptedExactKit: row.decision === "accepted" &&
+            row.condition === condition && row.is_lot === false && row.is_complete === true &&
+            typeof row.resolved_release_id === "string",
+        })
       }
     }
   } catch (error) {
     console.error("[public-market] optional origin enrichment failed", error instanceof Error ? error.message : String(error))
   }
 
-  return offers.map((row) => ({ ...row, originCountry: origins.get(row.candidateId) ?? null }))
+  return offers.map((row) => {
+    const candidate = candidates.get(row.candidateId)
+    return {
+      ...row,
+      originCountry: candidate?.originCountry ?? null,
+      listingKey: candidate?.listingKey ?? null,
+      sellerFingerprint: candidate?.sellerFingerprint ?? null,
+      acceptedExactKit: Boolean(candidate?.acceptedExactKit),
+    }
+  })
 }
 
 export async function getMarketMonthlySignalsForRelease(
