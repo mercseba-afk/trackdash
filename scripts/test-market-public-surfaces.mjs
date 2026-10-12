@@ -110,12 +110,12 @@ if (!collectionItemScreen.includes("ReleaseMarketOverview")) {
 
 const marketInline = fs.readFileSync("components/market-signal-inline.tsx", "utf8")
 const productDetailScreen = fs.readFileSync("components/screens/product-detail-screen.tsx", "utf8")
-if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Offerta sul mercato")) {
+if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vendite concluse") || !marketInline.includes("Prezzo richiesto")) {
   errors.push("Compact market UI does not support distinct SOLD + ASK references for Release previews")
 }
 if (!marketInline.includes("<PreviewPricePanel") ||
     !marketInline.includes("Valore di mercato") ||
-    !marketInline.includes("Offerta sul mercato") ||
+    !marketInline.includes("Prezzo richiesto") ||
     !marketInline.includes("Ultima offerta osservata") ||
     !marketInline.includes("vendite concluse")) {
   errors.push("Release previews must keep identical plain-language market/ask rows with optional sale evidence")
@@ -151,7 +151,7 @@ if (!marketOverview.includes("const reference = sold ?? mv") ||
     !marketOverview.includes("observedMarketReferencePrice(signal)")) {
   errors.push("Release detail must preserve a single SOLD-first or MV-fallback kit reference")
 }
-if (!marketOverview.includes("Offerta sul mercato") || !marketOverview.includes("Vendite concluse")) {
+if (!marketOverview.includes("Prezzo richiesto") || !marketOverview.includes("Vendite concluse")) {
   errors.push("Release detail must keep the two primary collector-facing price labels")
 }
 if (marketOverview.includes("TrendIndicator") || marketOverview.includes("askTrendPercent")) {
@@ -177,8 +177,9 @@ if (!marketOverview.includes("bg-muted/30") ||
 }
 const datedCollectionAnalytics = fs.readFileSync("lib/analytics.ts", "utf8")
 if (!datedCollectionAnalytics.includes("observedMarketReferencePrice(marketSignal)") ||
-    !datedCollectionAnalytics.includes("marketValue ?? observedPrice")) {
-  errors.push("Indicative sealed Collection must include dated kit-only ASK reference where MV is absent")
+    !datedCollectionAnalytics.includes("sealedCollectionReference(marketSignal)") ||
+    !datedCollectionAnalytics.includes("portfolioReference?.valueEUR ?? null")) {
+  errors.push("Collection must preserve display-only historical ASK but value owned sealed copies using safe MV/SOLD/qualified current ASK")
 }
 if (!datedCollectionAnalytics.includes("observedMarketKnownPurchaseCost(marketSignal)")) {
   errors.push("Wishlist purchase target must keep using fresh, verified item+shipping cost")
@@ -274,10 +275,11 @@ if (releaseScreen.includes("ExternalAvailabilityCard") || releaseScreen.includes
 
 const collectionScreen = fs.readFileSync("components/screens/collection-screen.tsx", "utf8")
 if (!collectionScreen.includes("summary.marketReferenceValue") || !collectionScreen.includes("summary.marketReferenceCount")) {
-  errors.push("Collection headline total must clearly distinguish Market Value from dated observed kit-only ASK references")
+  errors.push("Collection headline must use its source-aware indicative sealed-copy reference total")
 }
-if (!analyticsSource.includes("marketValue ?? observedPrice")) {
-  errors.push("Collection market reference no longer prefers canonical Market Value before dated observed kit-only ASK")
+if (!analyticsSource.includes("sealedCollectionReference(marketSignal)") ||
+    !analyticsSource.includes("const portfolioReference = comparableCondition")) {
+  errors.push("Collection total must apply the new source-checked kit-only sealed valuation policy")
 }
 if (!analyticsSource.includes("marketValue != null") || !analyticsSource.includes("personalGainEUR")) {
   errors.push("Personal Collection performance is no longer restricted to canonical Market Value")
@@ -287,6 +289,22 @@ if (!collectionScreen.includes("Copia non stimata") ||
     !collectionScreen.includes("const mv = sealed ? entry.marketValue : null")) {
   errors.push("Collection does not explain that non-sealed physical copies are not automatically valued")
 }
+const collectionReferencePolicy = fs.readFileSync("lib/market/collection-valuation.ts", "utf8")
+if (!collectionReferencePolicy.includes('kind: "estimated"') ||
+    !collectionReferencePolicy.includes('kind: "sold"') ||
+    !collectionReferencePolicy.includes('kind: "observed"') ||
+    !collectionReferencePolicy.includes('signal.currentAskOrigin === "extra_eu"') ||
+    !collectionReferencePolicy.includes('signal.startingCostBasis === "delivered"') ||
+    !collectionReferencePolicy.includes("signal.startingItemPriceEUR") ||
+    collectionReferencePolicy.includes("historicalAskItemEUR ??")) {
+  errors.push("Sealed portfolio must prefer MV then documented SOLD then only Europe-comparable current asks; historical ASK is display-only")
+}
+if (!collectionScreen.includes("summary.soldReferenceCount") ||
+    !collectionScreen.includes("summary.observedPriceCount") ||
+    !collectionScreen.includes("Prezzo richiesto")) {
+  errors.push("Collection must explain estimate, sold and qualified asking-price contributions to its indicative total")
+}
+
 if (!collectionScreen.includes("Riferimento mercato") ||
     !collectionScreen.includes("Valore in osservazione") ||
     !collectionScreen.includes("Ultima offerta osservata")) {
@@ -433,10 +451,10 @@ if (!collectionScreen.includes("CollectionMarketValue entry={entry} it={it}") ||
   errors.push("Collection must show an evidence badge only when real SOLD exists")
 }
 if (!collectionScreen.includes("Riferimento mercato") ||
-    !collectionScreen.includes("Offerta sul mercato") ||
+    !collectionScreen.includes("Prezzo richiesto") ||
     !collectionScreen.includes("Ultima offerta osservata") ||
     !collectionScreen.includes("const mainPrice = mv ?? sold")) {
-  errors.push("Collection previews must have identical source-aware market and ASK rows, with dated historical ASK")
+  errors.push("Collection previews must have uniform source-aware Market reference and Prezzo richiesto rows")
 }
 if (!collectionScreen.includes("grid-cols-[42%_minmax(0,1fr)]") ||
     !collectionScreen.includes("sm:grid-cols-[36%_minmax(0,1fr)]") ||
