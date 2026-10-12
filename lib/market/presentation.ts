@@ -72,19 +72,23 @@ export function observedMarketOfferOrigin(
     : signal?.currentAskOrigin ?? "unknown"
 }
 
-// Consistent compact subtitle for the same two-row market card. The price
-// shown may be a median of distinct sellers, not one arbitrary cheapest listing.
+// A current single-seller quote is an observed ASK (not a median).
+// Two or more verified independent seller quotes produce their median;
+// the geographic qualifier describes the whole sample, never an EU sale.
 export function representativeAskingCaption(
   signal: ReleaseMarketSignalView | null | undefined,
   it: boolean,
 ): string | null {
   const sellers = signal?.representativeAskSellerCount ?? 0
-  if (signal?.representativeAskItemEUR == null || sellers < 3) return null
+  if (signal?.representativeAskItemEUR == null || sellers < 1) return null
   const region = signal.representativeAskOrigin === "extra_eu"
     ? (it ? " · annunci extra-UE" : " · non-EU listings")
     : signal.representativeAskOrigin === "unknown"
-      ? (it ? " · provenienza da verificare" : " · origin unknown")
+      ? (it ? " · annunci internazionali / provenienza da verificare" : " · international / mixed or unknown origin")
       : ""
+  if (sellers === 1) {
+    return it ? `Prezzo di 1 venditore${region}` : `One seller's asking price${region}`
+  }
   return it
     ? `Mediana di ${sellers} venditori${region}`
     : `Median of ${sellers} sellers${region}`
