@@ -257,6 +257,19 @@ export function toPublicMarketSignalView(
       acceptedExactKit: offer.acceptedExactKit,
     }
   }))
+  // Temporary read-only diagnostic: aggregate counts only, no seller/listing
+  // identifiers or sensitive fields. Remove after tracing preview sampling.
+  if (signal.releaseId === "b2805fb7-cdd3-5dbf-a724-f73d54702844") {
+    console.info("[ask-sampling-diagnostic]", JSON.stringify({
+      stored: observedOffers.length,
+      fresh: freshOffers.length,
+      sellerIdentified: freshOffers.filter((x) => Boolean(x.sellerFingerprint)).length,
+      listingIdentified: freshOffers.filter((x) => Boolean(x.listingKey)).length,
+      acceptedExact: freshOffers.filter((x) => x.acceptedExactKit).length,
+      sellerCount: representativeAsk?.sellerCount ?? 0,
+      median: representativeAsk?.itemPriceEUR ?? null,
+    }))
+  }
   // A formerly observed ASK is valuable historical evidence, NOT proof that
   // its listing is still purchasable. Preserve its dated KIT-ONLY component
   // separately, without feeding stale quotes into the current-offer pipeline.
