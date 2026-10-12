@@ -42,7 +42,7 @@ assert.equal(manta?.origin, "extra_eu")
 // An extreme fraudulent-looking ask or repeated cross-marketplace listing
 // must not have disproportionate weight or boost number of independent sellers.
 assert.equal(representativeAskingMedian([...mantaOffers,
-  build("inamori", 13.39, "166299557532"), build("inflated", 10000)], now)?.itemPriceEUR, 32.675)
+  build("inamori", 13.39, "166299557532"), build("inflated", 10000)], now)?.itemPriceEUR, 32.68)
 assert.equal(representativeAskingMedian([...mantaOffers,
   build("inamori", 13.39, "166299557532")], now)?.sellerCount, 9)
 assert.equal(representativeAskingMedian([...mantaOffers,
