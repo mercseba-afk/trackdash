@@ -1,3 +1,21 @@
+## COLLECTION REFERENCE — REVISED 2026-10-12 (OVERRIDES EARLIER OCT 11 ASK FALLBACK)
+
+The **Collection's indicative sealed-copy total** is a separate, transparent, *non-canonical* reference. It must never overwrite or derive the canonical `market_release_signals.market_value_eur` or per-copy personal gain. When a physical copy is **Sealed**:
+
+1. Prefer the exact Release's published canonical **Market Value**, kit-only.
+2. If MV is unavailable, accept the canonical exact-Release **SOLD anchor** with `sold_units > 0` as an **indicative completed-sale reference** even when it is one thin sale; it is **NOT** a new MV or an independently verified European selling price. The Collection summary counts these weak references separately.
+3. If MV/SOLD are unavailable, use **only current, TTL-qualified, canonically selected ASK** when its origin is explicitly EU, OR when origin is unknown but the same offer carries a consistent item+shipping quote verified for delivery in Italy. Never use a known extra-EU origin as a European owned-kit valuation, even when delivery costs are only partly known.
+4. **Never** use historical/expired ASK to value a copy. It remains visible and dated in the Release / Collection card as shopping context, not a portfolio calculation. Never promote sold references to canonical MV. No guessed shipping, import duty or condition-based multipliers.
+
+Per-source tally `marketValueCount` / `soldReferenceCount` / `observedPriceCount` is exposed under the stable overall headline **Valore indicativo · copie sigillate**. Entries without safe evidence are excluded, not valued at zero. The returned total is an *evidence-based indicative reference*, not guaranteed resale income.
+
+**Audited case, Oct 12 2026:** user's four Sealed Releases: 95467 Dyna MV €14.92, 95450 Proto-Emperor MV €12.72, 95466 Manta Ray exact 1 SOLD €16.13 (a Japan-origin €13.39 ASK without shipping does not set portfolio value), 95425 Avante 2018 re-release selected kit ASK €16.05 with verified €11.31 shipment to Italy (shipping excluded from portfolio value); indicative combined reference **€59.82** at this snapshot. Previous €57.08 was €14.92 + €12.72 + €13.39 + €16.05 and prioritized Japan-only ASK over a documented sale for 95466. Older ~€140 headline added some kit+shipping advertised asks and is not a comparable historical market collapse. Future scans can change the totals.
+
+**UI terminology:** retain the identical two-price market layout everywhere; second label is **Prezzo richiesto** / **Asking price**, not Offerta sul mercato / Market offer. A quote can be lower than the completed-sale reference because seller asking and sold transaction are different measurements. Continue to indicate historical freshness and extra-EU shipping caveats separately.
+
+
+---
+
 # TRACKDASH — METODO OPERATIVO MASTER
 
 > Mini 4WD vertical state / continuation index: `docs/MINI4WD_VERTICAL.md`

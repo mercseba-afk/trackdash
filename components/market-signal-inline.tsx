@@ -84,7 +84,7 @@ export function MarketSignalInline({
           <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-2.5 py-2 text-foreground">
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.07em]">
               <Tag className="size-3 shrink-0" />
-              <span>{askHistorical ? (it ? "Ultima offerta osservata" : "Last observed offer") : (it ? "Offerta sul mercato" : "Market offer")}</span>
+              <span>{it ? "Prezzo richiesto" : "Asking price"}</span>
             </span>
             <strong className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(askPrice!)}</strong>
           </div>
@@ -178,7 +178,7 @@ function PreviewPricePanel({
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
         <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
           <Tag className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          {it ? "Offerta sul mercato" : "Market offer"}
+          {it ? "Prezzo richiesto" : "Asking price"}
         </span>
         <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
           {askingEUR != null ? formatMoney(askingEUR) : "—"}
