@@ -53,21 +53,25 @@ export function collectorScanIntervalHours(tier: string): number {
     ?? COLLECTOR_SCAN_INTERVAL_HOURS.normal
 }
 
-// eBay ASK needs a faster refresh than exact-retail page polling: public offers
-// expire after 15 days, so NORMAL must be checked comfortably within that TTL.
-// Keep retail on its independent slow collector cadence above.
+// Slow Mini 4WD market: dispatch may run hourly, but it only claims *due*
+// Releases. This is per-Release refresh cadence, not worker frequency.
+// Current eBay ASK expires after 15 days, so even COLD Releases with an
+// observed live offer must be rechecked in <=12 days, leaving delay margin.
+// Retail keeps its independent, much slower 28/42/84-day schedule.
 export const EBAY_ACTIVE_SCAN_INTERVAL_HOURS = {
-  hot: 3 * 24,
-  normal: 7 * 24,
-  cold: 30 * 24,
+  hot: 7 * 24,
+  normal: 10 * 24,
+  cold: 12 * 24,
 } as const
 
 export function ebayCollectorScanIntervalHours(tier: string, hasFreshActiveOffer = true): number {
-  // A visible, recently verified active ASK is never allowed to drift beyond
-  // seven days between planned checks. Thin/no-offer markets can be polled
-  // less often without claiming that a stale listing is currently active.
-  if (hasFreshActiveOffer) return tier === "hot" ? 3 * 24 : 7 * 24
-  if (tier === "cold") return 30 * 24
-  if (tier === "hot") return 7 * 24
-  return 14 * 24
+  if (hasFreshActiveOffer) {
+    return EBAY_ACTIVE_SCAN_INTERVAL_HOURS[tier as MarketActivityTier]
+      ?? EBAY_ACTIVE_SCAN_INTERVAL_HOURS.normal
+  }
+  // No recent verified offer: conserve requests on quiet/empty markets.
+  // Still retry HOT Releases earlier, while respecting that ASK is not SOLD.
+  if (tier === "cold") return 45 * 24
+  if (tier === "hot") return 14 * 24
+  return 30 * 24
 }
