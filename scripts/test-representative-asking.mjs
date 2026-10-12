@@ -70,25 +70,58 @@ const europe = representativeAskingMedian([
   build("shop3", 30, "c", "extra_eu"),
   build("shop4", 18.5, "d", "eu"),
 ], now)
-assert.equal(europe?.itemPriceEUR, 18.5)
-assert.equal(europe?.sellerCount, 3)
-assert.equal(europe?.origin, "eu")
+assert.equal(europe?.itemPriceEUR, 18.96)
+assert.equal(europe?.sellerCount, 4)
+assert.equal(europe?.origin, "unknown", "Mixed EU/extra-EU/unknown offers must not be labelled European")
+assert.match(representativeAskingCaption({
+  representativeAskItemEUR: europe?.itemPriceEUR,
+  representativeAskSellerCount: europe?.sellerCount,
+  representativeAskOrigin: europe?.origin,
+}, true) ?? "", /Mediana di 4 venditori.*annunci internazionali/)
 
-assert.equal(representativeAskingMedian([
+const internationalWithEU = representativeAskingMedian([
   build("shop1", 10, "x", "eu"),
   build("foreign1", 20), build("foreign2", 30), build("foreign3", 40),
-], now), null, "One EU seller must not borrow three foreign sellers for an EU median")
+], now)
+assert.equal(internationalWithEU?.itemPriceEUR, 25, "Seller ASK includes international offers, no geographic exclusion")
+assert.equal(internationalWithEU?.sellerCount, 4)
+assert.equal(internationalWithEU?.origin, "unknown", "A mixed global sample cannot claim EU or exclusively extra-EU origin")
 assert.equal(representativeAskingMedian([
   build("old1", 10, "a", "eu", { checkedAt: "2026-09-01T00:00:00Z" }),
   build("old2", 20, "b", "eu", { checkedAt: "2026-09-01T00:00:00Z" }),
   build("old3", 30, "c", "eu", { checkedAt: "2026-09-01T00:00:00Z" }),
 ], now), null, "Expired listings must not appear current")
-assert.equal(representativeAskingMedian([
+const oneSeller = representativeAskingMedian([
   build("one", 10), build("one", 20, "other"), build("one", 30, "third"),
-], now), null, "3 listings from 1 seller never become a median")
-assert.equal(representativeAskingMedian([
+], now)
+assert.equal(oneSeller?.itemPriceEUR, 10, "One verified seller contributes their actual lowest asking price")
+assert.equal(oneSeller?.sellerCount, 1, "Multiple offers from one seller are not a multi-seller median")
+assert.match(representativeAskingCaption({
+  representativeAskItemEUR: oneSeller?.itemPriceEUR,
+  representativeAskSellerCount: oneSeller?.sellerCount,
+  representativeAskOrigin: oneSeller?.origin,
+}, true) ?? "", /Prezzo di 1 venditore.*extra-UE/)
+
+const twoSellers = representativeAskingMedian([build("one", 18), build("two", 25)], now)
+assert.equal(twoSellers?.itemPriceEUR, 21.5, "With 2 sellers the median is their arithmetic midpoint")
+assert.equal(twoSellers?.sellerCount, 2)
+assert.match(representativeAskingCaption({
+  representativeAskItemEUR: twoSellers?.itemPriceEUR,
+  representativeAskSellerCount: twoSellers?.sellerCount,
+  representativeAskOrigin: twoSellers?.origin,
+}, true) ?? "", /Mediana di 2 venditori/)
+const twoAccepted = representativeAskingMedian([
   build("a", 1, "a", "eu", { acceptedExactKit: false }),
   build("b", 2, "b", "eu"), build("c", 3, "c", "eu"),
-], now), null, "Only 2 accepted sellers")
+], now)
+assert.equal(twoAccepted?.itemPriceEUR, 2.5, "Only the two accepted listings may enter the median")
+assert.equal(twoAccepted?.sellerCount, 2)
 
-console.log("Automated seller-deduped asking median: exact Manta sample €32.67, Europe-first, TTL, no MV/shopping leakage — PASS")
+const none = representativeAskingMedian([
+  build("wrong", 1, "bad", "eu", { acceptedExactKit: false }),
+  build("expired", 50, "old", "eu", { checkedAt: "2026-09-01T00:00:00Z" }),
+], now)
+assert.equal(none, null, "Zero current verified sellers yields no representative asking price")
+assert.equal(representativeAskingMedian([], now), null)
+
+console.log("ASK projection: 1 seller observed, 2+ seller median, mixed international origin, Manta 95466 €32.67, TTL, MV/Wishlist isolation — PASS")
