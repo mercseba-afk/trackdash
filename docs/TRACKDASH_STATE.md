@@ -7,6 +7,16 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — COLLECTION TOTAL & PREZZO RICHIESTO (PENDING RELEASE)
+
+- **Audited previous baseline:** GitHub `main` and Vercel Production `8da9daa453c458f6277af2521d44fe5cef219945` READY; Supabase market signals and individual Collection copies verified read-only. The 4 matching copies are Sealed, quantity 1, and reference items 95425/95450/95466/95467.
+- **Issue:** headline €57.08 used canonical MV for Proto (€12.72) and Dyna (€14.92), and selected ASK for Avante 2018 (€16.05) and Manta €13.39 (seller origin JP, no documented shipping). Yet Manta has a real one-sale SOLD reference €16.13; the total previously preferred a lower Japan-only ASK. A €140 prior value mixed ask/shipping benchmarks and cannot be compared directly.
+- **Planned narrowly scoped fix:** unify public heading **Prezzo richiesto** / **Asking price** in Catalog, Collection and shared Release market details; retain stable rows. Use safe, explicitly mixed indicative portfolio reference: published MV first; exact completed-sale anchor with count second (never called MV); EU-origin current ASK or unknown-origin current ASK with verified item+Italy-delivery quote third. Reject historic ASK or Japan/US item-only ASK from portfolio total, without hiding those offers in card details.
+- **Audited expected example:** €14.92 + €12.72 + €16.13 + €16.05 = **€59.82** (no shipping added) at that snapshot. This is a limited-evidence reference, NOT the true liquidation value, and the future amount may change with scans.
+- **Guardrails:** no Supabase migrations/write, no Market Method v4, SOLD/MV/ASK canonical algorithm, scans, retailer policy, Wishlist shopping-target cost, message/offer/Collection storage changes. Preserve personal gain only on MV, and never value opened, built or used copies as Sealed.
+- **Publication gates:** full verify including scenario tests of the 4 copies, Vercel final-head Preview READY, merge, Production READY and live `/api/version` confirmation. Do not claim this is live before these pass.
+
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — SLOW MINI 4WD eBAY CADENCE / HOURLY DUE DISPATCH
 
 - **Previous verified baseline:** `main` and Production READY both `da2536c601defd48d91b7387b655a75d7f8ca147`, including PR #410's one-Release eBay worker and orphan-run cleanup. No pricing method changes.
