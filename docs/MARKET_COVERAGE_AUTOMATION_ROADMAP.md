@@ -111,7 +111,7 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 |---|---|---|---|
 | 0 Baseline/KPI | Read-only KPI SQL added on feature branch, re-run against live Supabase 2026-10-12; Preview/merge pending | Feature commit `7dff9d5`; no Production release | Run verify, Preview gate, then merge |
 | 1 Health Watch | Existing daily automation updated 2026-10-12 with scoped TTL-aware coverage, safe due queues and failure gates; notification delivery still disabled | Automation ID `6ac3a50c70a48191b390a7337392d03a`; no app deploy | Check next dry-run/delivery; enable notifications in app |
-| 2 Retail canaries | RCJaz/Hobby parsed/enrolled but **not READY** | None | RCJaz 1–3 exact live canaries |
+| 2 Retail canaries | **Blocked by live 403 anti-bot** in Vercel iad1 canary for RCJaz and Hobby; both remain NOT READY | Four read-only HTTP canaries 2026-10-12; no DB/source policy writes | Seek authorised access or alternate exact public provider; never bypass protections |
 | 3 eBay discovery | Existing active worker 4 markets, fixed matching/timeout behaviour | Existing Production | Safe query benchmark and dry-run |
 | 4 Shared identity | 26 available Releases not eBay-enabled, rightly protected | None | Evidence-led identity audit |
 | 5 Automated SOLD | Not implemented; no proven runnable connector | None | Legitimate source feasibility and POC |
@@ -127,3 +127,19 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 - Daily TrackDash Health Watch automation edited **in place**, retains Europe/Rome ~07:05, detects confirmed evidence loss, backlog/locks and false positives. `notifications_enabled=false`, `email_enabled=false` at audit: this service cannot force-deliver notification until the user enables notifications. Price Guard unmodified.
 - No source policies, scan enrollment, Market Method, SOLD, MV, ASK, user data, secrets or cron settings were changed. No RCJaz/Hobby Search promotion before verified exact-source canaries.
 - **Stage 0 gate remains open** until full `pnpm verify` and Preview/Production verification where relevant. **Stage 1 gate remains open** until one parked case and one real incident are confirmed in a dry-run and notification delivery is enabled/verified.
+
+
+### Stage 2 factual block — 2026-10-12 Vercel canary
+
+A minimal **read-only Vercel Node 24 sandbox in `iad1`**, without credentials or bypass, requested actual verified endpoint URLs with the same TrackDash user agent. Four HTTPS GETs all returned `HTTP 403`, content type HTML, title `Just a moment...` and Cloudflare challenge markup:
+
+- `rcjaz_public`, #18074, `www.rcjaz.com/...90059083.html` — 403, challenge.
+- `rcjaz_public`, #94692, `www.rcjaz.com/...90012922.html` — 403, challenge.
+- `hobby_search_1999_public`, #95335, `www.1999.co.jp/10460640` — 403, challenge.
+- `hobby_search_1999_public`, #94716, `www.1999.co.jp/10098463` — 403, challenge.
+
+This is **NOT** a successful Production-Lambda parser test, and no `adapter_status` or queue configuration was changed. Source activation fails gate safely because pages were never accessible. No prices or SELL-THROUGH were extracted/invented. Follow up only via permitted access, a documented source API, authorised data feed or genuinely accessible other source. Repeated Cloudflare challenges should not trigger automated bypass attempts. RCJaz/Hobby Search remain `planned`.
+
+### Stage 3 preliminary rejection baseline (no discovery code change)
+
+Ebay current `market_candidates.original_source` is `EBAY_IT/DE/GB/US`, not `ebay_active_public`; review KPI was corrected accordingly after first read-only test. Last-30-day available-cohort `needs_review` candidates: **20**. Across all eBay markets 611 rejected candidate reason entries were `ITEM_NUMBER_NOT_IN_TITLE` (30 days). **These are broad-search rejections, not proof that 611 exact listings were lost.** Need an API-backed audited query benchmark before new production queries or additional markets.
