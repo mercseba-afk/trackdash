@@ -10,6 +10,7 @@ import type {
   ReleaseMarketSignalView,
 } from "@/lib/market/view-types"
 import { collectorMarketTrend, observedMarketKnownPurchaseCost, observedMarketPrice, observedMarketReferencePrice } from "@/lib/market/presentation"
+import { sealedCollectionReference, type CollectionReferenceKind } from "@/lib/market/collection-valuation"
 import { getProductById, resolveRelease } from "@/lib/data/corrected-products"
 
 // Human label for a release as owned, e.g. "1990 Original" or "2026 Reissue".
@@ -36,7 +37,7 @@ export interface EnrichedCollectionItem {
   marketValue: number | null
   observedPrice: number | null
   marketReferenceValue: number | null
-  marketReferenceKind: "estimated" | "observed" | null
+  marketReferenceKind: CollectionReferenceKind | null
   marketTrend: number | null
   /** Personal performance uses the persisted EUR purchase basis. For foreign
    * currencies that basis exists only when a dated ECB reference conversion
@@ -66,11 +67,13 @@ export function enrichCollection(
       const marketSignal = marketSignals[release.id] ?? null
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
-      // Indicative collection fallback may use a DATED historical kit-only ASK;
-      // current purchase targets in Wishlist still require fresh evidence.
+      // The UI may still show the last dated ASK on the Release card, but
+      // the portfolio only sums canonically estimated MV, exact completed-sale
+      // references or genuinely comparable current ASK (in that order).
       const observedPrice = comparableCondition ? observedMarketReferencePrice(marketSignal) : null
-      const marketReferenceValue = marketValue ?? observedPrice
-      const marketReferenceKind = marketValue != null ? "estimated" : observedPrice != null ? "observed" : null
+      const portfolioReference = comparableCondition ? sealedCollectionReference(marketSignal) : null
+      const marketReferenceValue = portfolioReference?.valueEUR ?? null
+      const marketReferenceKind = portfolioReference?.kind ?? null
       const marketTrend = comparableCondition ? collectorMarketTrend(marketSignal) : null
       const acquisitionBasisEUR = item.acquisitionPriceEUR ?? null
       const canCalculatePersonalPerformance =
@@ -112,6 +115,7 @@ export interface PortfolioSummary {
   marketReferenceValue: number
   marketReferenceCount: number
   observedPriceCount: number
+  soldReferenceCount: number
   /** Sum of purchase prices with a trustworthy EUR basis (native or historical FX). */
   acquisitionCost: number
   acquisitionCostCount: number
@@ -131,6 +135,7 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
   const referenced = enriched.filter((entry) => entry.marketReferenceValue != null)
   const marketReferenceValue = referenced.reduce((sum, entry) => sum + (entry.marketReferenceValue ?? 0), 0)
   const observedPriceCount = referenced.filter((entry) => entry.marketReferenceKind === "observed").length
+  const soldReferenceCount = referenced.filter((entry) => entry.marketReferenceKind === "sold").length
 
   const normalizedPurchases = enriched.filter(
     (entry) => entry.item.acquisitionPriceEUR != null && entry.item.acquisitionPriceEUR > 0,
@@ -166,6 +171,7 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
     marketReferenceValue,
     marketReferenceCount: referenced.length,
     observedPriceCount,
+    soldReferenceCount,
     acquisitionCost,
     acquisitionCostCount: normalizedPurchases.length,
     trackedAcquisitionCost,
