@@ -341,7 +341,7 @@ Admin, Vercel daily cron and protected GitHub eBay watch batch (bounded at one R
 
 `runEbayActiveMarketScanBatch(1)`
 
-The worker itself retains a hard upper bound of 4 for intentional non-cron callers, but shared serverless routes should not claim four sequential eBay jobs inside a 60-second function. The scheduled 3-hour GitHub workflow does not retry an HTTP request after a timeout: retries could start a second run after the first one has claimed work.
+The worker itself retains a hard upper bound of 4 for intentional non-cron callers, but shared serverless routes should not claim four sequential eBay jobs inside a 60-second function. The scheduled GitHub workflow does not retry an HTTP request after a timeout: retries could start a second run after the first one has claimed work.
 
 To reduce wall time while preserving country ordering and marketplace lifecycle safety, the four Browse keyword searches (IT/DE/GB/US) execute concurrently. Their results are consumed in deterministic IT→DE→GB→US order; an unsuccessful or truncated marketplace never proves offer absence. Failed/joined listing identity still fails closed.
 
@@ -600,7 +600,7 @@ A chat explanation is not sufficient project documentation.
 
 Current Admin market button:
 
-**Retail 4 + eBay Active 4 + Recompute 8**
+**Retail 4 + eBay Active 1 + Recompute 8**
 
 Current recompute ordering:
 
@@ -675,13 +675,28 @@ Current operational gate:
 Revalidation safety:
 if an existing candidate is reassigned to a different Release, the database trigger marks it for revalidation and disables its existing valuation point. The SOLD ingestion path must respect that state, route the candidate to review, and must not clear the guard by writing a fresh eligible point.
 
-Therefore the current regular Admin/cron refresh remains unchanged:
-**Retail 4 + eBay Active 4 + Recompute 8**.
+Therefore the current regular Admin/cron refresh uses bounded eBay work:
+**Retail 4 + eBay Active 1 + Recompute 8**.
 
 Do not add a SOLD-research worker to cron until a real provider/source passes the readiness gate.
 
 
 ---
+
+## eBay Active hourly dispatcher and slower per-Release refresh — 2026-10-12
+
+**Separation of frequency:** the protected GitHub Actions eBay watch dispatches **one due Release each hour** (`41 * * * *`). The separate Vercel daily market cron also dispatches at most one eBay Release. Nominal capacity is **24 + 1 = 25 due Releases/day**, *not* 25 scans per Release. Claims require an enabled, due, unlocked queue item and READY source. Keep one job per serverless function and no HTTP retries after timeout.
+
+**Adaptive per-Release eBay scan interval, applied only after each successful scan:**
+
+| Evidence | HOT | NORMAL | COLD |
+|---|---:|---:|---:|
+| Fresh verified active ASK | 7 days | 10 days | 12 days |
+| No fresh verified active ASK | 14 days | 30 days | 45 days |
+
+eBay current-ASK evidence expires at 15 days: even COLD with active offers is planned for <=12 days, leaving time for GitHub schedule jitter. No-offer Release checks are intentionally sparse. Activity tier changes on material market evidence, not listing-count churn. Exact retail remains 28/42/84 days. Pricing, SOLD, MV, shipping and JAN/Item matching remain unchanged.
+
+**No bulk queue reschedule:** pre-existing `next_scan_at` timestamps remain intact; each success chooses the new interval and spreads due work organically. A few dozen transient overdue jobs can accrue during Oct 12–15's due-date spike; review age >24h before forcing any action. Parked jobs, inactive sources and 2099 placeholders must never be activated by this change. This Oct 12 checkpoint supersedes the cadence and capacity numbers in the historical Oct 11 section below.
 
 ## eBay Active weekly verification — 2026-10-11 (Production validated)
 
