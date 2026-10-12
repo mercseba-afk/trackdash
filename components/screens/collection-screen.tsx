@@ -6,7 +6,7 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { observedMarketReferenceIsHistorical, observedMarketReferencePrice } from "@/lib/market/presentation"
+import { observedMarketOfferOrigin, observedMarketReferenceIsHistorical, observedMarketReferencePrice } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -152,8 +152,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "Il riferimento della collezione usa le stime disponibili e, in alternativa, l'ultima offerta osservata, anche se l'annuncio non è più verificato come attivo. La spedizione è esclusa dal valore delle copie. Le singole vendite concluse senza una stima restano visibili nel dettaglio Release, ma non vengono sommate al totale. Per copie Nuove/Aperte, Montate, Usate o Incomplete non applichiamo svalutazioni arbitrarie. Gli acquisti in USD, JPY e GBP vengono normalizzati in EUR con il cambio storico ECB."
-      : "The Collection reference uses Market Value when available, otherwise the last observed kit-only asking price, even when the listing is no longer verified as active. Shipping is never added to the value of owned copies. Completed sales without an estimate remain visible on Release detail but are not added to the total. We do not apply arbitrary discounts to Opened, Built, Used or Incomplete copies. USD, JPY and GBP purchases are normalized to EUR using historical ECB rates."}
+      ? "Il valore indicativo delle copie sigillate usa in ordine: Market Value consolidato; riferimento da vendite concluse della Release esatta (anche una sola vendita, non una stima); infine un prezzo richiesto recente con provenienza europea o consegna in Italia verificata. Non sommiamo vecchi annunci, richieste extra-UE senza confronto affidabile, spedizione o oneri d'importazione. Le copie aperte, montate, usate o incomplete sono escluse, senza inventare svalutazioni. Gli acquisti in valuta estera usano il cambio storico ECB."
+      : "The sealed-copy indicative reference uses canonical Market Value first, exact completed-sale evidence next (even one sale is a reference, not an estimate), and then only a recent European asking price or an offer with verified Italian delivery. Historical asks and non-comparable extra-EU quotes cannot inflate or depress the total; shipping and import duties are excluded. Opened, built, used or incomplete copies are not automatically valued. Foreign-currency purchases use historical ECB rates."}
   </p>
 ) : null}
             </div>
@@ -287,7 +287,10 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"}</p>
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
   {summary.marketReferenceCount}/{summary.sealedCount} {it ? "copie sigillate con un riferimento di mercato disponibile" : "sealed copies with an available market reference"}.
-  <span> {it ? "Il totale è indicativo: combina stime e ultime offerte osservate, anche se non più verificate come attive. Non include spedizione e non è un ricavo garantito. Copie aperte, montate, usate o incomplete restano escluse." : "The total is indicative: it combines estimates and last observed kit-only asking prices, including listings no longer verified as active. No shipping or guaranteed resale proceeds. Opened, built, used or incomplete copies remain excluded."}</span>
+  <span> {it
+    ? `${summary.marketValueCount} stime · ${summary.soldReferenceCount} riferimenti da vendite · ${summary.observedPriceCount} prezzi richiesti verificati. Prezzi del solo kit, spedizione esclusa. Una vendita isolata è solo un riferimento, non una stima né un ricavo garantito.`
+    : `${summary.marketValueCount} estimates · ${summary.soldReferenceCount} completed-sale references · ${summary.observedPriceCount} verified asking prices. Kit only, shipping excluded. A single sale is a reference, not a valuation or guaranteed resale proceeds.`}
+  </span>
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
@@ -343,7 +346,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         <div className="min-w-0 border-l border-sky-200/75 pl-3 dark:border-sky-800/50">
           <p className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-foreground/85 sm:text-xs">
             <Tag className="size-3.5 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <span>{it ? "Offerta sul mercato" : "Market offer"}</span>
+            <span>{it ? "Prezzo richiesto" : "Asking price"}</span>
           </p>
           <strong className="mt-1 block text-base font-semibold tabular-nums text-foreground sm:text-lg">
             {ask != null ? formatMoney(ask) : "—"}
@@ -360,6 +363,9 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
       <p className="mt-2 border-t border-sky-200/75 pt-2 text-[10px] leading-snug text-muted-foreground dark:border-sky-800/50">
         {it ? "Spedizione esclusa" : "Shipping excluded"}
         {historical && ask != null ? (it ? " · disponibilità da verificare" : " · availability unverified") : null}
+        {ask != null && observedMarketOfferOrigin(signal) === "extra_eu"
+          ? (it ? " · extra-UE, costi d'importazione da verificare" : " · non-EU, import costs unknown")
+          : null}
         {!sealed ? (it ? " · riferimenti della Release, non della copia" : " · Release references, not a copy valuation") : null}
       </p>
       {comparison && trendPercent != null ? (
