@@ -2,9 +2,9 @@
 
 > Authoritative cross-chat implementation plan — 2026-10-12.  
 > Status: **APPROVED FOR PHASED EXECUTION; technical phases not yet implemented.**  
-> Read this file together with \`docs/TRACKDASH_STATE.md\`, \`docs/TRACKDASH_METHOD_MASTER.md\`, \`docs/TRACKDASH_OPERATIONS.md\` and \`docs/FAMILY_COMPLETION_MASTER.md\` before changing code, cron, source policies or Supabase.
+> Read this file together with `docs/TRACKDASH_STATE.md`, `docs/TRACKDASH_METHOD_MASTER.md`, `docs/TRACKDASH_OPERATIONS.md` and `docs/FAMILY_COMPLETION_MASTER.md` before changing code, cron, source policies or Supabase.
 >
-> Repository: \`mercseba-afk/trackdash\`; production \`https://trackdash.it\`; Supabase project \`piwogtdkfozbiakyjnvk\`. Always rediscover GitHub main / live Vercel Production SHA rather than assuming the baseline below is still deployed.
+> Repository: `mercseba-afk/trackdash`; production `https://trackdash.it`; Supabase project `piwogtdkfozbiakyjnvk`. Always rediscover GitHub main / live Vercel Production SHA rather than assuming the baseline below is still deployed.
 
 ## User-approved objective
 
@@ -16,7 +16,7 @@
 
 | Metric | Observed | Definition |
 |---|---:|---|
-| Available, verified public Mini 4WD Releases | **164** | Categories \`mini4wd\`, product \`metadata.launch_status='available'\`, Release public and verified |
+| Available, verified public Mini 4WD Releases | **164** | Categories `mini4wd`, product `metadata.launch_status='available'`, Release public and verified |
 | At least one of MV, SOLD evidence or current ASK | **75** (45.7%) | Union, not sum |
 | Without MV/SOLD/current ASK | **89** | Evidence coverage opportunity |
 | Canonical published MV | **10** | Subset of 75 |
@@ -26,7 +26,7 @@
 | Available without enabled eBay Active queue | **26/164** | Mostly shared Item Number / unreliable distinction: not mass-eligible |
 | RCJaz verified endpoint on available Release | **22** | Of 89 empty, **10** have an endpoint |
 | Hobby Search / 1999 verified endpoint on available Release | **7** | Of 89 empty, **3** have an endpoint |
-| Source adapter statuses | **4 ready, 10 planned, 9 manual, 1 internal** | Other registered sources may have no policy. \`price_sources.is_active\` alone **does not** mean runnable |
+| Source adapter statuses | **4 ready, 10 planned, 9 manual, 1 internal** | Other registered sources may have no policy. `price_sources.is_active` alone **does not** mean runnable |
 | eBay Active markets scanned | **IT, DE, GB, US** | Via official Browse API, existing 1-Release bounded cron |
 | Existing SOLD collection | Yahoo Japan closed, eBay Product Research, Mercari, Mandarake and curated manual history | These are **not** continuously running automated SOLD workers |
 
@@ -36,10 +36,10 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 
 ### Stage 0 — Baseline, boundaries and observability (FIRST)
 
-- [ ] Re-check live GitHub main, Production deployment \`READY\`, \`/api/version\`, relevant master docs and open PRs. No blind release.
-- [ ] Run a **read-only** dynamic Supabase baseline across available/public/verified Mini 4WD Releases: one canonical \`new_complete_unbuilt\` signal per Release; count MV, SOLD, current ASK, stale/historical ASK, no evidence, recent accepted candidates, source counts, editions with shared Item Number/JAN, due eBay and *actually runnable* retail.
-- [ ] Reconcile 164/75/89 snapshot with current data. Do not mistake \`coming_soon\`/archived for available.
-- [ ] Create/test reusable KPI query/service definition: \`coverage_total\`, \`coverage_with_any_evidence\`, \`coverage_sold\`, \`coverage_current_ask\`, \`coverage_mv\`, \`coverage_empty\`, \`ebay_enabled\`, \`ebay_parked_identity\`, \`retail_runnable\`, \`retail_validated_but_inactive\`, \`due_over_24h\`, \`oldest_due_age\`, \`run_failures\`, \`needs_review\`, \`source_last_success\`. Counts must be scoped and mutually comparable.
+- [ ] Re-check live GitHub main, Production deployment `READY`, `/api/version`, relevant master docs and open PRs. No blind release.
+- [ ] Run a **read-only** dynamic Supabase baseline across available/public/verified Mini 4WD Releases: one canonical `new_complete_unbuilt` signal per Release; count MV, SOLD, current ASK, stale/historical ASK, no evidence, recent accepted candidates, source counts, editions with shared Item Number/JAN, due eBay and *actually runnable* retail.
+- [ ] Reconcile 164/75/89 snapshot with current data. Do not mistake `coming_soon`/archived for available.
+- [ ] Create/test reusable KPI query/service definition: `coverage_total`, `coverage_with_any_evidence`, `coverage_sold`, `coverage_current_ask`, `coverage_mv`, `coverage_empty`, `ebay_enabled`, `ebay_parked_identity`, `retail_runnable`, `retail_validated_but_inactive`, `due_over_24h`, `oldest_due_age`, `run_failures`, `needs_review`, `source_last_success`. Counts must be scoped and mutually comparable.
 - [ ] Establish a stable before/after snapshot for each stage so we can prove new, **correct** coverage—not just higher candidate counts. No PII/seller identities in Health Watch reports.
 
 **Gate:** baseline rerunnable, no side effects, no accidental price-method changes; visible report clearly distinguishes zero results from missing scanner support.
@@ -47,31 +47,31 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 ### Stage 1 — Upgrade existing TrackDash Health Watch (EARLY)
 
 - [ ] Extend the existing daily **TrackDash Health Watch** condition-watch automation (Europe/Rome ~07:00) to check market coverage alongside cron/run/lock/recompute. Check execution after actual cron; don't fire on normal schedules.
-- [ ] Alert on **real regressions**: coverage drop without documented staleness/expiry, newly published available Releases lacking market signal/enrollment after a reasonable grace period, eligible eBay due jobs older than 24h, stagnant due backlog across successive successful crons, jobs \`running\` too long, repeated 60s timeout, actual runnable retail blocked, unexpectedly failed configured READY adapter, source canaries failing, persistent identity reviews requiring action, Production/main code divergence, recompute blocked after a successful dispatch.
+- [ ] Alert on **real regressions**: coverage drop without documented staleness/expiry, newly published available Releases lacking market signal/enrollment after a reasonable grace period, eligible eBay due jobs older than 24h, stagnant due backlog across successive successful crons, jobs `running` too long, repeated 60s timeout, actual runnable retail blocked, unexpectedly failed configured READY adapter, source canaries failing, persistent identity reviews requiring action, Production/main code divergence, recompute blocked after a successful dispatch.
 - [ ] Keep automatic de-duplication of repetitive alerts and identify sources/Releases impacted. Record counts and delta since previous measurement. Never alert for manual/planned/parked jobs as though runnable, old canonical ASK when public TTL projection hides it, or shared-Item-Number scans intentionally disabled.
 - [ ] Price Guard remains a **separate** quality monitor for MV/ASK/SOLD corruption, misclassification, double-counting, FX, geographic confusion; Health Watch must not modify prices or security grants.
-- [ ] Verify notification delivery. At the 2026-10-12 automation audit the existing Health Watch showed \`notifications_enabled=false\` / \`email_enabled=false\`, despite being \`is_enabled=true\`; user may need to turn on alerts in app settings. Do not claim users receive alerts unless delivery is actually enabled.
+- [ ] Verify notification delivery. At the 2026-10-12 automation audit the existing Health Watch showed `notifications_enabled=false` / `email_enabled=false`, despite being `is_enabled=true`; user may need to turn on alerts in app settings. Do not claim users receive alerts unless delivery is actually enabled.
 - [ ] Optional weekly **coverage progress** report can be added once measurement is stable, without spamming daily no-change notifications.
 
 **Gate:** dry-run reports are accurate; one real failure and one deliberately parked source are classified correctly; no repetitive false alarm.
 
 ### Stage 2 — Promote existing exact-retail adapters, first RCJaz
 
-- [ ] Audit **RCJaz \`rcjaz_public\`**: source \`adapter_status='planned'\` even though exact endpoint and parser/enrollment groundwork exists. There are **22** verified endpoints for available Releases, **10** currently without market evidence. Overall source inventory has ~36 verified endpoint rows, but some are non-available.
+- [ ] Audit **RCJaz `rcjaz_public`**: source `adapter_status='planned'` even though exact endpoint and parser/enrollment groundwork exists. There are **22** verified endpoints for available Releases, **10** currently without market evidence. Overall source inventory has ~36 verified endpoint rows, but some are non-available.
 - [ ] Check live Vercel canary with safely selected exact URLs: real HTTP status, Cloudflare/403 behaviour, currency, exact Release Item Number/JAN/edition, stock/price/sold-out, parser determinism, cross-region shipping caveats. **Respect access restrictions; do not bypass anti-bot.**
 - [ ] Validate that a successful parser stores the correct candidate/offer and triggers canonical recompute. No fabricated SOLD when retail stock changes; retail out-of-stock is not a completed-sale transaction by itself.
-- [ ] Only if canary passes, use reviewed minimal Supabase migration/source policy change to \`ready\` with tightly-scoped matching enabled endpoint-backed jobs, bounded batch size and timeouts. Run 1–3 canaries, inspect before/after signals, then expand gradually to previously verified endpoints.
+- [ ] Only if canary passes, use reviewed minimal Supabase migration/source policy change to `ready` with tightly-scoped matching enabled endpoint-backed jobs, bounded batch size and timeouts. Run 1–3 canaries, inspect before/after signals, then expand gradually to previously verified endpoints.
 - [ ] If RCJaz cannot be reliably accessed in Vercel, **do not mark ready**. Document actual blocker and proceed with other sources; keep user informed.
 - [ ] Repeat for **Hobby Search / 1999** (7 available verified endpoints, 3 from empty cohort) **only after implementing a dedicated reliable parser if generic parser is insufficient**. Other planned/manual retailers follow by verified achievable yield and stable ToS-compliant access, not by row count.
-- [ ] Audit enabled \`pieroni_public\`, \`imodellini_public\`, \`modellismo_gandolfi_public\` source output and source-level yield. Do not mistake generic queue placeholders for runnable endpoint URLs.
+- [ ] Audit enabled `pieroni_public`, `imodellini_public`, `modellismo_gandolfi_public` source output and source-level yield. Do not mistake generic queue placeholders for runnable endpoint URLs.
 
 **Gate per source:** reproducible canary + tests, source READY only after functioning in **Production runtime**, no incorrect Release matches, no false availability/SOLD, scans finish under runtime limits, database/recompute remains healthy, and measurable useful evidence uplift.
 
 ### Stage 3 — Improve official eBay Browse discovery **without increasing per-Release cadence**
 
-- [ ] Read existing four-market \`ebay-worker.ts\` and \`ebay-browse-adapter.ts\`. Baseline search is \`Tamiya ITEM_NUMBER + edition_name\`; it sometimes misses Japanese/local title variants despite correct item numbers. Look at real high-frequency rejection reasons (\`ITEM_NUMBER_NOT_IN_TITLE\` alone appears many times) and distinguish broad false-positive search from true missing offers.
+- [ ] Read existing four-market `ebay-worker.ts` and `ebay-browse-adapter.ts`. Baseline search is `Tamiya ITEM_NUMBER + edition_name`; it sometimes misses Japanese/local title variants despite correct item numbers. Look at real high-frequency rejection reasons (`ITEM_NUMBER_NOT_IN_TITLE` alone appears many times) and distinguish broad false-positive search from true missing offers.
 - [ ] Benchmark a **small audited set**: both popular and 10–20 empty Releases, different vintages and duplicate Item Numbers. In preview/dry-run test alternate queries: exact Item Number, normalized model/edition terms, verified JAN where usable, selective Japanese/English edition synonyms, direct known listing ID refresh. Never accept by query term alone: the exact-Release classifier always decides.
-- [ ] Measure incremental unique correct offers / accepted Releas​es per API call; log per-query source and overlap. Dedup by stable eBay listing ID and seller without reintroducing \`ebay:undefined\` or inflated median samples.
+- [ ] Measure incremental unique correct offers / accepted Releas​es per API call; log per-query source and overlap. Dedup by stable eBay listing ID and seller without reintroducing `ebay:undefined` or inflated median samples.
 - [ ] Consider more official Browse marketplace IDs (FR/ES/NL etc.) **only if API support, credentials, delivery context and measured marginal yield are adequate**. Do not multiply API calls by number of variants × markets without strict budgets/rate limits and a hard 60s execution limit.
 - [ ] Keep one Release per worker invocation, hourly dispatcher for due work, adaptive 7–45-day Release cadence, exact-JAN quarantine for shared item numbers, and source error isolation. Preserve TTL and completed-run/lock recovery.
 - [ ] Prefer **selective discovery escalation** for the 74 already eBay-enabled empty Releases after baseline search yields no matching results, versus repeatedly deep scanning every populated Release. Never auto-retry a timed-out HTTP request that may already have claimed a job.
@@ -81,7 +81,7 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 ### Stage 4 — Handle the 26 identity-parked available Releases safely
 
 - [ ] Inventory each identity issue: shared Item Number with multiple editions; missing/duplicate JAN; year/packaging/production wave confusion; not enough exact evidence.
-- [ ] Verify independently usable identifiers from reliable catalog/official documentation and physical packaging where available. Sibling JAN must fail closed; ambiguous listings remain \`needs_review\`.
+- [ ] Verify independently usable identifiers from reliable catalog/official documentation and physical packaging where available. Sibling JAN must fail closed; ambiguous listings remain `needs_review`.
 - [ ] Enable automatic eBay jobs **only** for Releases whose exact target can be distinguished by structured JAN/item details using existing gate or improved audited matching. Create persistent provenance and negative tests for wrong reissues.
 - [ ] For cases with no independent identifier, retain quarantine and pursue exact retail pages or independent SOLD research; do not silently merge distinct editions or manufacture prices.
 
@@ -92,17 +92,17 @@ Previous Catalog UI phase is **already complete**: published MV first, else hone
 - [ ] Main blocker for robust canonical Market Value: current automated eBay Browse obtains **ASK not SOLD**. Existing Yahoo closed, eBay Product Research, Mercari, Mandarake records are mainly from prior captured research and not ongoing automated adapters.
 - [ ] Evaluate usable official/contractually licensed APIs, data exports or authorised sources for actual completed transactions. For each assess permissions, cost, availability, stable sale ID, sold timestamp, final paid price vs an unsold ask, conditions, seller dedup, country, shipping and exact Release/JAN evidence.
 - [ ] Proof-of-concept **one source + a small audited Release set** in read-only mode; reject unverifiable "disappeared listing = sold", auctions without award evidence, reused item-number ambiguity and resold duplicate records.
-- [ ] Integrate source into existing canonical evidence ingestion \`market_candidates\` / \`price_points\` / aggregate pipeline with idempotent keys, automatic recompute queue and Market Method v4 unmodified. Respect rate limits and evidence retention.
+- [ ] Integrate source into existing canonical evidence ingestion `market_candidates` / `price_points` / aggregate pipeline with idempotent keys, automatic recompute queue and Market Method v4 unmodified. Respect rate limits and evidence retention.
 - [ ] If no legitimate machine-readable SOLD source is accessible, document this limitation explicitly. Keep the existing **SOLD-only visual reference** from legitimate manual/captured sales; don't promise zero-manual automatic SOLD otherwise.
 
 **Gate:** demonstrated legally obtainable genuine completed sales, idempotent daily/periodic refresh, safe provenance, precise currency/edition filters and no false Market Value.
 
 ### Stage 6 — Operational finish / repeatable measurement
 
-- [ ] After each source/stage, update this plan's per-step status, \`docs/TRACKDASH_STATE.md\`, \`docs/TRACKDASH_OPERATIONS.md\`, \`docs/TRACKDASH_METHOD_MASTER.md\`, source/Release completion masters as applicable. Leave exact GitHub PR, commit and Production version in the checkpoint.
-- [ ] Run full \`pnpm verify\` in isolated environment; Preview on **final branch SHA** must be READY; only then PR merge and Production deploy. Verify live \`/api/version\`, Catalog/Manta #95466 and sold-only Neo-Tridagger #92280, Collection/Wishlist semantics, source workers and no runtime errors.
+- [ ] After each source/stage, update this plan's per-step status, `docs/TRACKDASH_STATE.md`, `docs/TRACKDASH_OPERATIONS.md`, `docs/TRACKDASH_METHOD_MASTER.md`, source/Release completion masters as applicable. Leave exact GitHub PR, commit and Production version in the checkpoint.
+- [ ] Run full `pnpm verify` in isolated environment; Preview on **final branch SHA** must be READY; only then PR merge and Production deploy. Verify live `/api/version`, Catalog/Manta #95466 and sold-only Neo-Tridagger #92280, Collection/Wishlist semantics, source workers and no runtime errors.
 - [ ] Dynamic coverage report after each release: **baseline 75/164 → new count** with verifiable new Release IDs and source, sold evidence separately, missing 89 trending down. Value remains truthful even if no genuine price exists for some rare Releases.
-- [ ] Recheck queue health over multiple natural cron cycles; only mark a source \`stable\` after successful repeated automatic runs. One successful manual trial does not certify automation.
+- [ ] Recheck queue health over multiple natural cron cycles; only mark a source `stable` after successful repeated automatic runs. One successful manual trial does not certify automation.
 - [ ] Do not claim all sources fully automated while manual/planned policies remain; report outstanding legal/technical source blockers by name.
 
 ## Implementation control / progress ledger
