@@ -337,9 +337,15 @@ and cannot alone define or lower the European observed price.
 
 # 4. EBAY ACTIVE MARKET SCAN
 
-Admin batch:
+Admin, Vercel daily cron and protected GitHub eBay watch batch (bounded at one Release per invocation):
 
-`runEbayActiveMarketScanBatch(4)`
+`runEbayActiveMarketScanBatch(1)`
+
+The worker itself retains a hard upper bound of 4 for intentional non-cron callers, but shared serverless routes should not claim four sequential eBay jobs inside a 60-second function. The scheduled 3-hour GitHub workflow does not retry an HTTP request after a timeout: retries could start a second run after the first one has claimed work.
+
+To reduce wall time while preserving country ordering and marketplace lifecycle safety, the four Browse keyword searches (IT/DE/GB/US) execute concurrently. Their results are consumed in deterministic IT→DE→GB→US order; an unsuccessful or truncated marketplace never proves offer absence. Failed/joined listing identity still fails closed.
+
+A serverless runtime timeout can terminate JavaScript without a catch/finally. At the start of the next authorized eBay worker call, scan-run metadata older than 15 minutes and still `running`, unfinished and with zero succeeded is marked `failed` with `STALE_SCAN_RUN_TIMEOUT_RECOVERED`. This does not touch market candidates, price signals or queue jobs. It prevents stale `running` telemetry from persisting indefinitely; it is **not** a substitute for investigating persistent timeouts.
 
 Purpose:
 
