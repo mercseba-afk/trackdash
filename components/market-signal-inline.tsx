@@ -15,6 +15,7 @@ import {
   observedMarketDisplayEvidenceLabel,
   observedMarketReferencePrice,
   observedMarketReferenceIsHistorical,
+  representativeAskingCaption,
 } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
@@ -64,7 +65,8 @@ export function MarketSignalInline({
         valueEUR={hasValue ? signal.valueEUR : null}
         askingEUR={hasAsk ? askPrice : null}
         historical={askHistorical}
-        observedAt={signal.historicalAskObservedAt}
+        observedAt={signal.representativeAskObservedAt ?? signal.historicalAskObservedAt}
+        sellerCaption={representativeAskingCaption(signal, it)}
         soldCount={signal.soldUnits ?? 0}
       />
     )
@@ -148,13 +150,14 @@ export function MarketSignalInline({
 // Fixed two-row, source-aware preview panel shared by every catalogue Release.
 // SOLD information is supplemental; an asking price never becomes Market Value.
 function PreviewPricePanel({
-  it, valueEUR, askingEUR, historical, observedAt, soldCount,
+  it, valueEUR, askingEUR, historical, observedAt, sellerCaption, soldCount,
 }: {
   it: boolean
   valueEUR: number | null
   askingEUR: number | null
   historical: boolean
   observedAt?: string | null
+  sellerCaption?: string | null
   soldCount: number
 }) {
   const observedDate = observedAt && Number.isFinite(Date.parse(observedAt))
@@ -187,7 +190,9 @@ function PreviewPricePanel({
 
       {askingEUR != null ? (
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          {historical
+          {sellerCaption
+            ? sellerCaption + (observedDate ? ` · ${observedDate}` : "") + (it ? " · spedizione esclusa" : " · shipping excluded")
+            : historical
             ? (it ? "Ultima offerta osservata" : "Last observed offer") + (observedDate ? ` · ${observedDate}` : "") + (it ? " · disponibilità da verificare · spedizione esclusa" : " · availability unverified · shipping excluded")
             : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
         </p>
