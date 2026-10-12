@@ -12,6 +12,11 @@
 
 ---
 
+## Next implementation queue — Market Coverage & Automation, approved 2026-10-12
+
+**Read first:** `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md`. Its phases and gates are the authoritative plan for Health Watch coverage telemetry, existing RCJaz/Hobby Search source activation, improved official eBay searches, safe edition/JAN enrichment and feasibility of genuinely automated SOLD. Preserve Market Method v4, clean distinctions between MV/SOLD/ASK and existing exact-Release protections. Do not mark a planned/manual source as executable without a successful Production-runtime canary. Initial coverage baseline 75/164 available Mini4WD Releases with evidence; 89 without. Update the roadmap progress ledger with each verified PR/Production release.
+
+
 # TRACKDASH — OPERATIONS
 
 > Persistent operational reference for commands, buttons, cron jobs and workers.  

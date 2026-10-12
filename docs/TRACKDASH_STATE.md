@@ -7,6 +7,17 @@
 
 ---
 
+## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — USER-APPROVED MARKET COVERAGE AUTOMATION ROADMAP
+
+**Authoritative next-work queue:** `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md` (phases 0–6, exact quality/release gates, durable progress ledger). User approved systematically enabling genuine runnable retail sources, improving automatic official eBay discovery, addressing safely parked Release identities, studying legitimate auto-SOLD ingestion and enhancing TrackDash Health Watch.
+
+- Work sequentially: **0 baseline/measurement → 1 Health Watch → 2 RCJaz live canary, then Hobby Search → 3 selective eBay discovery → 4 safe JAN/edition enrollment → 5 legitimate SOLD source POC → 6 stabilization/coverage verification**.
+- Pre-change Mini 4WD available/public/verified evidence baseline: **164** Releases, **75** with any MV/SOLD/current ASK, **89** with none, **10** consolidated MV, **50** with SOLD, **50** current ASK; **138** enabled eBay jobs and **26** deliberately not enabled for identity reasons. RCJaz: 22 available verified endpoints, 10 belonging to currently empty Releases. Hobby Search: 7 available verified endpoints, 3 currently empty.
+- Source policy truth: **4 ready** adapters (eBay active, iModellini, Pieroni, Gandolfi), **10 planned**, **9 manual**, **1 internal**. The mere existence of 29 source records or `is_active=true` does not mean automated coverage. No manual/planned source is to be promoted without verified production canary.
+- Current Health Watch exists but is missing coverage KPIs; inspect whether user notifications are actually enabled before saying alerts will arrive. Separate existing Price Guard's price-integrity check from health/coverage supervision.
+- This checkpoint is a ROADMAP, not a claim that scanner/source/Health Watch software has been implemented. The only repository modifications in this docs task are the roadmap and pointers. Re-verify latest main/Production SHA at the start of the implementation chat; do not reuse historic "pending deployment" wording from older checkpoints.
+
+
 ## LATEST AUTHORITATIVE CHECKPOINT — 2026-10-12 — MANTA #95466 ASK SELLER-COUNT BUG (PENDING PRODUCTION)
 
 - User observed **Riferimento mercato €16.13** (one genuine completed sale) with **Prezzo richiesto €21.96, Prezzo di 1 venditore**, despite accepted Oct 11 eBay offers covering 11 listings from 9 distinct sellers.
