@@ -69,17 +69,17 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       <DashboardMarketOverview products={catalogProducts} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dashboard.collectionValue")} value={summary.marketValueCount > 0 ? <>≈ {formatMoney(summary.marketValue)}</> : "—"} icon={Coins} accent hint={<span>{summary.marketValueCount}/{summary.sealedCount} {it ? "sigillate con Market Value" : "sealed with Market Value"}</span>} />
+        <StatCard label={t("dashboard.collectionValue")} value={summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"} icon={Coins} accent hint={<span>{summary.marketReferenceCount}/{summary.sealedCount} {it ? "sigillate con riferimento" : "sealed with market reference"} · {summary.marketValueCount} MV / {summary.soldReferenceCount} SOLD / {summary.observedPriceCount} ASK</span>} />
         <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati sufficienti non ancora disponibili" : "Not enough data yet"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
       </div>
 
-      {summary.marketValueCount < summary.sealedCount || summary.sealedCount < summary.count || summary.gainCount < summary.marketValueCount ? (
+      {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.soldReferenceCount > 0 || summary.observedPriceCount > 0 ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "La stima della collezione usa solo copie Sigillate con un Market Value canonico disponibile. Copie aperte, montate, usate o incomplete restano escluse dal totale finché non esistono evidenze specifiche per condizione."
-            : "The collection estimate uses only Sealed copies with an available canonical Market Value. Opened, built, used or incomplete copies stay outside the total until condition-specific evidence exists."}
+            ? "Il valore indicativo della collezione usa solo copie sigillate: prima le stime Market Value, poi i riferimenti da vendite concluse e infine i prezzi richiesti correnti e confrontabili. Le vendite isolate sono riferimenti, non stime. Prezzi richiesti storici o extra-UE non confrontabili e copie aperte, montate, usate o incomplete restano esclusi dal totale."
+            : "The indicative collection total includes sealed copies only: canonical Market Value first, then completed-sale references, then current comparable asking prices. Single sales are references, not estimates. Historical or non-comparable non-EU asks and opened, built, used or incomplete copies stay out of the total."}
         </p>
       ) : null}
 
@@ -90,13 +90,13 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           {top.length === 0 ? (
-            <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Nessun elemento della collezione ha ancora un Valore stimato disponibile." : "No collection item has an Estimated value available yet."}</p>
+            <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Nessun elemento sigillato ha ancora un riferimento di mercato utilizzabile." : "No sealed collection item has a usable market reference yet."}</p>
           ) : top.map((entry, index) => (
             <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
               <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
-              <div className="text-right"><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue!)}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
+              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{entry.marketReferenceKind === "estimated" ? (it ? "Stima TrackDash" : "TrackDash estimate") : entry.marketReferenceKind === "sold" ? (it ? "Vendite concluse · non stima" : "Completed sales · not an estimate") : (it ? "Prezzo richiesto verificato" : "Verified asking price")}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
             </Link>
           ))}
         </CardContent>
@@ -113,8 +113,8 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
               <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="group flex flex-col gap-1.5">
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
-                {entry.marketValue != null ? (
-                  <p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketValue)}</p>
+                {entry.marketReferenceValue != null ? (
+                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{entry.marketReferenceKind === "estimated" ? (it ? "Stima TrackDash" : "TrackDash estimate") : entry.marketReferenceKind === "sold" ? (it ? "Vendite concluse · non stima" : "Completed sales · not an estimate") : (it ? "Prezzo richiesto verificato" : "Verified asking price")}</p></div>
                 ) : entry.item.condition !== "Sealed" ? (
                   <p className="text-[11px] text-muted-foreground">{it ? "Valore copia non stimato" : "Copy value not estimated"}</p>
                 ) : entry.observedPrice != null ? (
