@@ -1,3 +1,10 @@
+### Release checkpoint — 2026-10-13, Production HTTP smoke automation (candidate PR)
+
+- 2026-10-12 Production quota cleared: Deployment `dpl_7DN2CXyb7DFVNJd4B5jYT7hJULRm` READY and `trackdash.it` aligned with merged main `3d510320240f1308105c901a8c0182e07bd48469`. End-user browser tested `/api/version` plus seven HTML routes: all eight returned HTTP 200 / marker OK. Collection and Wishlist were **only** HTTP-reachable; authenticated data/UX were not validated by the script.
+- A PR (pending CI/Preview/merge, **not yet live**) adds `.github/workflows/production-smoke.yml`, `scripts/smoke-production.mjs` and local negative-path unit cases included in `pnpm verify`.
+- After **every push to `main`**, GitHub Actions waits up to 12m for an exact `/api/version` SHA, then GET-checks homepage, Catalog, Market, Manta Ray 95466, Neo-Tridagger 92280, Collection and Wishlist. Fails on stale code, 404 or invalid public content, never requests authenticated data, scans or prices. GitHub Actions may need workflow-run permission; do not interpret pending PR as deployed.
+- Roadmap remains Stage 1 notification delivery/dry-run, Stage 2 authorised retailer access (403 blocked), Stage 3 audited eBay discovery, then identity/SOLD gates; **no changes to Market Method v4, source READY states, scan cadence, enrollment or Supabase**.
+
 # TrackDash — Market Coverage & Automation Roadmap
 
 > Authoritative cross-chat implementation plan — 2026-10-12.  
