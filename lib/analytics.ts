@@ -209,10 +209,11 @@ export function breakdownBy(
   return Array.from(map.values()).sort((a, b) => b.value - a.value)
 }
 
+/** Most valuable owned sealed copies, using exactly the same valuation basis as portfolioSummary. */
 export function topValued(enriched: EnrichedCollectionItem[], n = 5): EnrichedCollectionItem[] {
-  return enriched
-    .filter((entry) => entry.marketValue != null)
-    .sort((a, b) => (b.marketValue ?? 0) - (a.marketValue ?? 0))
+  return [...enriched]
+    .filter((entry) => entry.marketReferenceValue != null)
+    .sort((a, b) => (b.marketReferenceValue ?? 0) - (a.marketReferenceValue ?? 0))
     .slice(0, n)
 }
 
