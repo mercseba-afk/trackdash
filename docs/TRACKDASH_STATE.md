@@ -1,3 +1,9 @@
+## LATEST IMPLEMENTATION CHECKPOINT — 2026-10-13 — AUTOMATIC PRODUCTION HTTP SMOKE (PR CANDIDATE)
+
+Previous user-validated live checkpoint: GitHub main = Vercel Production `3d510320240f1308105c901a8c0182e07bd48469`, deployment `dpl_7DN2CXyb7DFVNJd4B5jYT7hJULRm` READY; user browser HTTP smoke 8/8 passed (`/api/version`, five public HTML pages, Collection/Wishlist HTTP reachability). CSS/font preload warnings are non-blocking. Private Collection/Wishlist user data and interactions remain outside this unauthenticated test.
+
+New work on branch `feat/production-http-smoke-20261013` (must pass CI, final Preview and merge before claiming live): read-only GitHub Actions workflow triggered by `main` push, waits for exact Production commit and checks those eight routes, with negative-path tests in `pnpm verify`. No Supabase/price/SOLD/ASK/MV/source/enrollment changes. Continue `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md` Stage 1 notification verification and Stage 2/3 safely after gate.
+
 ## Market coverage automation work checkpoint — 2026-10-12 evening
 
 - Roadmap: `docs/MARKET_COVERAGE_AUTOMATION_ROADMAP.md`. Feature branch `feat/market-coverage-health-baseline-20261012` adds repeatable read-only KPI SQL at `scripts/market-coverage-health.sql`, executed unchanged against live Supabase: available/public/verified Mini4WD 164, with MV 10, SOLD 50, TTL-valid accepted ASK 48, union 74, no evidence 90. Former 75/164 is an earlier, not directly comparable ASK snapshot. eBay 138 enabled, identity-parked 26; distinct runnable retail Releases 7; validated but inactive retail Releases 28; overdue 24h 0; 5 historical 60-second timeout run failures (past day) and one unclosed running scan row; 20 eBay review candidates (30d, available verified cohort; corrected source provenance). No Market Method or source policy changed.
