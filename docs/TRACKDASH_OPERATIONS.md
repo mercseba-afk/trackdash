@@ -1,3 +1,30 @@
+## P0.1 candidate — 2026-10-14 — Cron outcomes and safe diagnostics
+
+- Dedicated branch `fix/cron-reliability-p01-20261014`, based on main `181a5c6380857d146d903112e96603ad75e1e287`; independent of pending PR #423 and stacked #424. This is a candidate, not a Production release.
+- Restores the real `maxDuration = 60` export in the daily market route (literal backslash-n sequences had left it inside a comment). Preserves authentication, the daily/Admin workers and their existing batch sizes, scheduling, matching, TTL and Market Method.
+- Both cron routes report explicit `not_configured`, `no_work`, `success`, `partial`, `failed` outcomes. Fulfilled worker promises containing failed jobs are unsuccessful. Configuration-only failures return HTTP 503; job failures/partial cycles return HTTP 500; idle/success returns HTTP 200. Partial means actual completed work plus an unhealthy lane/job, not merely that a Promise rejected.
+- GitHub eBay Market Watch retains hourly schedule, main-only OIDC trust, one Release, 75s HTTP timeout and no scan retry. Diagnostics print only validated HTTP/curl codes, fixed reasons, known statuses and aggregate counts. Token masking, no shell tracing, no raw response/error/header logging, response-file cleanup. Supports the old Production success/idle payload until this candidate is deployed.
+- Adds `pnpm cron:test` to `pnpm verify`: real route handlers with substituted worker imports, authenticated/unauthorized/OIDC cases, worker outcomes/exceptions, HTTP 402/503/504 and other failures, invalid responses, timeout, and the actual workflow shell with fake curl. No real scanners or DB clients are loaded by these tests.
+- No Supabase writes/migrations, user-data changes, source-policy changes, pricing changes, cache/polling work or scanner migration. P0.2 and later work require another user confirmation.
+- Local validation: `pnpm verify` PASS (including 13 cron reliability tests and all existing market/scanner/collection/SEO/compliance regressions); separate `pnpm typecheck` PASS; `git diff --check` PASS. Node 24.19.0 / pnpm 11.25.0 locally, frozen lockfile unchanged; GitHub CI targets Node 22 / pnpm 10. Catalog reports 13 existing non-fatal manifest warnings; live Collection/Wishlist FK checks were skipped without a DB connection. No claim of live runtime or authenticated UI validation.
+- Release gate: full verify + Typecheck, final exact-SHA Preview READY and smoke before merge; no merge or Production action in this task. If Preview is unavailable, leave the PR open and record the blocker in issue #425.
+
+### P0.1 response contract
+
+The canonical reporting helpers live in `lib/market/automation/cron-outcome.ts`.
+
+| Outcome | `ok` | `partial` | HTTP |
+| --- | --- | --- | --- |
+| Not configured, with no successful work | false | false | 503 |
+| No due work | true | false | 200 |
+| All attempted work succeeded | true | false | 200 |
+| Some work succeeded and another job/lane is unhealthy | false | true | 500 |
+| Failure with no successful work | false | false | 500 |
+
+A thrown worker is a lane failure even when its job counters are unknown/zero. A fulfilled result is validated (`attempted = succeeded + failed`, non-negative safe integers); it is not automatically a success. eBay `configured:false` is not idle. Retail review/accepted counts retain the worker's existing semantics; this change does not reinterpret evidence decisions. Daily responses retain named lane results, and the eBay response retains `result` for authorized callers. Raw exception messages are replaced by fixed diagnostic codes. The cron consumer must inspect HTTP and the application outcome; HTTP 500 after partial work must NEVER cause an immediate scan retry.
+
+`node --experimental-strip-types scripts/ebay-market-watch-diagnostics.mjs BODY_FILE HTTP_CODE CURL_EXIT` is the workflow's offline response validator. HTTP 402 is labelled `HOSTING_UNAVAILABLE_OR_PAUSED`, an operational hint rather than proof of an account quota or suspension reason. HTML, malformed JSON, auth failures, inconsistent counts and network errors fail closed without printing their bodies. It does not make requests, inspect secrets, claim jobs or write the DB. Worker-internal source warnings and existing source/job success decisions remain unchanged; `ok:true` is not proof that every external marketplace answered.
+
 ## Automatic Production HTTP smoke (PR candidate 2026-10-13)
 
 GitHub workflow `.github/workflows/production-smoke.yml` runs after each push to `main` and via manual `workflow_dispatch`; waits at most 12 minutes for `https://trackdash.it/api/version` to match **the exact push SHA**, then GET-checks 7 HTML paths (homepage, Catalog, Market, #95466, #92280, Collection, Wishlist), reports a pass/fail GitHub Actions job and summary. Total 8 checks including the version. `scripts/test-smoke-production.mjs` runs automatically during `pnpm verify` to simulate stale Production, 404 and login-gated routes. No credentials, POST, scan triggers or DB writes. GitHub smoke is distinct from Market Price Guard and Health Watch, and does not inspect authenticated Collection/Wishlist data or visual layout. If a build is queued/quota-blocked, the job fails clearly rather than falsely declaring the old Production healthy. Keep workflow on reviewed main branch only; branch candidate requires CI/Preview/Production checks before release.
