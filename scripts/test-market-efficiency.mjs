@@ -23,6 +23,7 @@ const sold = { valueEUR: null, soldAnchorEUR: 16.13, soldUnits: 1, startingItemP
 const original = { dyna: mv, manta: sold }
 assert.equal(samePublicMarketSignals(original, original), true)
 assert.equal(samePublicMarketSignals(original, { dyna: { ...mv }, manta: { ...sold } }), true)
+assert.equal(samePublicMarketSignals(original, { manta: { ...sold }, dyna: { ...mv } }), true, "Row order alone must not force a redraw")
 assert.equal(samePublicMarketSignals(original, { dyna: { ...mv, valueEUR: 15.20 }, manta: sold }), false, "MV change propagates")
 assert.equal(samePublicMarketSignals(original, { dyna: mv, manta: { ...sold, soldAnchorEUR: 20.00 } }), false, "SOLD change propagates")
 assert.equal(samePublicMarketSignals(original, { dyna: mv, manta: { ...sold, startingItemPriceEUR: null } }), false, "ASK disappearance/TTL propagates")
