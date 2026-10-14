@@ -3,6 +3,7 @@
 import * as React from "react"
 import { getPublicMarketSignalsAction } from "@/lib/actions/market"
 import type { ReleaseMarketSignalMap, ReleaseMarketSignalView } from "@/lib/market/view-types"
+import { PUBLIC_MARKET_ACTIVE_POLL_MS, samePublicMarketSignals, shouldRefreshPublicMarket } from "@/lib/market/refresh-policy"
 
 const MarketSignalsContext = React.createContext<ReleaseMarketSignalMap>({})
 
@@ -15,32 +16,41 @@ export function MarketSignalsProvider({
 }) {
   const [signals, setSignals] = React.useState(initialSignals)
   const latestRequest = React.useRef(0)
+  const lastAttemptAt = React.useRef(0)
 
   const refresh = React.useCallback(async () => {
     // A slower previous request must not overwrite a newer canonical snapshot.
     const requestId = ++latestRequest.current
     try {
       const next = await getPublicMarketSignalsAction()
-      if (requestId === latestRequest.current) setSignals(next)
+      if (requestId === latestRequest.current) {
+        setSignals((current) => samePublicMarketSignals(current, next) ? current : next)
+      }
     } catch (error) {
       console.error("Failed to refresh public R3 market signals:", error)
     }
   }, [])
 
   React.useEffect(() => {
-    const interval = window.setInterval(() => void refresh(), 60_000)
-    const onFocus = () => void refresh()
-    const onVisibilityChange = () => {
-      // Mobile/PWA resume is not guaranteed to dispatch window focus.
-      if (!document.hidden) void refresh()
+    // The server-rendered initial map is already current. Avoid a duplicate
+    // request immediately after hydration or on back-to-back focus/visibility.
+    lastAttemptAt.current = Date.now()
+    const requestRefresh = () => {
+      const now = Date.now()
+      if (!shouldRefreshPublicMarket(lastAttemptAt.current, now, document.hidden)) return
+      lastAttemptAt.current = now
+      void refresh()
     }
-    window.addEventListener("focus", onFocus)
-    document.addEventListener("visibilitychange", onVisibilityChange)
+    // Background tabs/PWAs never poll. Foreground tabs retain periodic updates;
+    // returning after a pause triggers refresh without waiting for the interval.
+    const interval = window.setInterval(requestRefresh, PUBLIC_MARKET_ACTIVE_POLL_MS)
+    window.addEventListener("focus", requestRefresh)
+    document.addEventListener("visibilitychange", requestRefresh)
     return () => {
       ++latestRequest.current
       window.clearInterval(interval)
-      window.removeEventListener("focus", onFocus)
-      document.removeEventListener("visibilitychange", onVisibilityChange)
+      window.removeEventListener("focus", requestRefresh)
+      document.removeEventListener("visibilitychange", requestRefresh)
     }
   }, [refresh])
 
