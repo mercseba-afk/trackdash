@@ -2,7 +2,7 @@ name: Typecheck
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, fix/cross-surface-portfolio-refresh-20261013]
 
 permissions:
   contents: read
