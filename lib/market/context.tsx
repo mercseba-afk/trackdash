@@ -14,11 +14,14 @@ export function MarketSignalsProvider({
   children: React.ReactNode
 }) {
   const [signals, setSignals] = React.useState(initialSignals)
+  const latestRequest = React.useRef(0)
 
   const refresh = React.useCallback(async () => {
+    // A slower previous request must not overwrite a newer canonical snapshot.
+    const requestId = ++latestRequest.current
     try {
       const next = await getPublicMarketSignalsAction()
-      setSignals(next)
+      if (requestId === latestRequest.current) setSignals(next)
     } catch (error) {
       console.error("Failed to refresh public R3 market signals:", error)
     }
@@ -27,10 +30,17 @@ export function MarketSignalsProvider({
   React.useEffect(() => {
     const interval = window.setInterval(() => void refresh(), 60_000)
     const onFocus = () => void refresh()
+    const onVisibilityChange = () => {
+      // Mobile/PWA resume is not guaranteed to dispatch window focus.
+      if (!document.hidden) void refresh()
+    }
     window.addEventListener("focus", onFocus)
+    document.addEventListener("visibilitychange", onVisibilityChange)
     return () => {
+      ++latestRequest.current
       window.clearInterval(interval)
       window.removeEventListener("focus", onFocus)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
     }
   }, [refresh])
 
