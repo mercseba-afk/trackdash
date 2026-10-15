@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createPublicKey, timingSafeEqual, verify as verifySignature } from "node:crypto"
 import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worker"
+import { summarizeCronCycle, summarizeCronWorker } from "@/lib/market/automation/cron-outcome"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -83,12 +84,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 })
   }
 
-  try {
-    const result = await runEbayActiveMarketScanBatch(1)
-    return NextResponse.json({ ok: result.failed === 0, result })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.error("[ebay-scan-cron]", message)
-    return NextResponse.json({ ok: false, error: message.slice(0, 500) }, { status: 500 })
-  }
+  const [settled] = await Promise.allSettled([runEbayActiveMarketScanBatch(1)])
+  const report = summarizeCronWorker(settled)
+  const { httpStatus, ...outcome } = summarizeCronCycle([report])
+  if (!report.ok) console.error("[ebay-scan-cron]", { status: report.status, error: report.error, summary: report.summary })
+  return NextResponse.json({
+    ...outcome,
+    ...(report.error ? { error: report.error } : {}),
+    ...(settled.status === "fulfilled" ? { result: settled.value } : {}),
+  }, { status: httpStatus })
 }
