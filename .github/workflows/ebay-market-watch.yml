@@ -25,22 +25,34 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Request scoped GitHub OIDC token and run bounded TrackDash scan
         shell: bash
         env:
           SCAN_URL: https://trackdash.it/api/cron/ebay-scan
         run: |
           set -euo pipefail
+          # Tokens and untrusted responses must never reach tracing/raw logs.
+          set +x
           token="$(curl -fsS --retry 2 --max-time 15 \
             -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=trackdash-ebay-scan" | jq -er '.value')"
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=trackdash-ebay-scan" 2>/dev/null | jq -er '.value' 2>/dev/null)" || {
+            echo 'OIDC_TOKEN_REQUEST_FAILED'
+            exit 1
+          }
+          echo "::add-mask::${token}"
+          trap 'rm -f result.json' EXIT
           # Do not retry a potentially timed-out POST-like scan: a retry may
           # claim another batch while the previous Vercel function is dying.
+          curl_exit=0
           status="$(curl -sS --max-time 75 -o result.json -w '%{http_code}' \
             -H "Authorization: Bearer ${token}" \
             -H 'Accept: application/json' \
-            "${SCAN_URL}")"
+            "${SCAN_URL}" 2>/dev/null)" || curl_exit=$?
           unset token
-          jq '{ok, summary: .result | {attempted, succeeded, failed, acceptedListings, reviewListings}}' result.json
-          test "${status}" = "200"
-          jq -e '.ok == true' result.json >/dev/null
+          node --experimental-strip-types scripts/ebay-market-watch-diagnostics.mjs result.json "${status}" "${curl_exit}"
