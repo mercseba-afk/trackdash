@@ -246,6 +246,20 @@ else
   exit "$MOCK_CURL_EXIT"
 fi
 `, { mode: 0o755 })
+  // Build environments need not provide system jq. Simulate only its OIDC
+  // token extraction contract so the shell fixture is fully self-contained.
+  // The real GitHub Actions workflow and its authentication stay unchanged.
+  writeFileSync(join(bin, "jq"), `#!/usr/bin/env node
+const fs = require("node:fs")
+if (process.argv[2] !== "-er" || process.argv[3] !== ".value") process.exit(2)
+try {
+  const value = JSON.parse(fs.readFileSync(0, "utf8")).value
+  if (typeof value !== "string" || value.length === 0) process.exit(4)
+  process.stdout.write(value + "\\n")
+} catch {
+  process.exit(4)
+}
+`, { mode: 0o755 })
   try {
     const successful = JSON.stringify({ ok: true, status: "success", partial: false, result: counts(1) })
     for (const [http, body, curlExit, success] of [
