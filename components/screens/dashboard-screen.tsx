@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import { Boxes, Coins, Layers, TrendingUp, ArrowRight, Heart, Sparkles } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
@@ -92,7 +93,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
           {top.length === 0 ? (
             <p className="px-2 py-4 text-sm text-muted-foreground">{it ? "Nessun elemento sigillato ha ancora un riferimento di mercato utilizzabile." : "No sealed collection item has a usable market reference yet."}</p>
           ) : top.map((entry, index) => (
-            <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
+            <Link key={entry.item.id} href={releasePublicPath(entry.product, entry.release, locale)} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-accent">
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
               <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
@@ -110,7 +111,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
         <CardContent>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {recent.map((entry) => (
-              <Link key={entry.item.id} href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="group flex flex-col gap-1.5">
+              <Link key={entry.item.id} href={releasePublicPath(entry.product, entry.release, locale)} className="group flex flex-col gap-1.5">
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
                 {entry.marketReferenceValue != null ? (
@@ -140,7 +141,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
           {wl.length === 0 ? <p className="text-sm text-muted-foreground">{t("dashboard.noWishlist")}</p> : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {wl.slice(0, 3).map((entry) => (
-                <Link key={entry.item.id} href={entry.release ? `/catalog/${entry.product.id}/releases/${entry.release.id}` : `/catalog/${entry.product.id}`} className="flex items-center gap-3 rounded-lg border border-border p-2 hover:bg-accent">
+                <Link key={entry.item.id} href={entry.release ? releasePublicPath(entry.product, entry.release, locale) : productPublicPath(entry.product, locale)} className="flex items-center gap-3 rounded-lg border border-border p-2 hover:bg-accent">
                   <ProductImage product={entry.product} release={entry.release} size="sm" className="h-12 w-16 shrink-0" />
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><div className="mt-1 flex items-center gap-1.5">{(entry.release?.rarity ?? entry.product.rarity) ? <RarityBadge rarity={(entry.release?.rarity ?? entry.product.rarity)!} /> : null}{entry.belowTarget && <Badge className="bg-success text-white">{t("dashboard.target")}</Badge>}</div></div>
                   <div className="text-right">{entry.marketValue != null ? <p className="text-sm font-semibold tabular-nums">{formatMoney(entry.marketValue)}</p> : entry.currentPrice != null ? <><p className="text-[10px] text-muted-foreground">{observedMarketAskLabel(entry.marketSignal, it)}</p><p className="text-sm font-semibold tabular-nums">{formatMoney(entry.currentPrice)}</p></> : <p className="text-xs text-muted-foreground">—</p>}{entry.item.targetPrice && <p className="text-xs text-muted-foreground">{t("wishlist.target")} {formatMoney(entry.item.targetPrice)}</p>}</div>

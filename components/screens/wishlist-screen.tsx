@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import { Check, Heart, Target, Trash2 } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
@@ -72,7 +73,7 @@ export function WishlistScreen({ catalogProducts }: { catalogProducts: Product[]
 
 function WishlistRow({ entry, onRemove, onAcquire }: { entry: EnrichedWishlistItem; onRemove: () => void; onAcquire: () => void }) {
   const { locale, t } = useI18n(); const it = locale === "it"; const meta = PRIORITY_META[entry.item.priority]
-  const href = entry.release ? `/catalog/${entry.product.id}/releases/${entry.release.id}` : `/catalog/${entry.product.id}`
+  const href = entry.release ? releasePublicPath(entry.product, entry.release, locale) : productPublicPath(entry.product, locale)
   return (
     <Card className="overflow-hidden py-0"><div className="flex items-stretch gap-3 p-3 sm:gap-4">
       <Link href={href} className="shrink-0"><ProductImage product={entry.product} release={entry.release} size="sm" className="h-20 w-28 sm:h-24 sm:w-36" /></Link>

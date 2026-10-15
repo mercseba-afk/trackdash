@@ -114,11 +114,6 @@ export default async function ProductPage({ params }: { params: ProductPageParam
   const requestedPath = locale === "en" ? `/en/catalog/${id}` : `/catalog/${id}`
   if (requestedPath !== canonicalPath) permanentRedirect(canonicalPath)
 
-  const localizedCopy = await getCatalogLocalizedCopy(product.id).catch((error) => {
-    console.error("Failed to load localized catalog copy:", error)
-    return null
-  })
-
   if (product.catalogLaunchStatus === "coming_soon") {
     return (
       <PublicShell>
@@ -129,10 +124,19 @@ export default async function ProductPage({ params }: { params: ProductPageParam
     )
   }
 
-  const allProducts = await fetchCatalogProducts().catch((error) => {
-    console.error("Failed to load catalog for related products:", error)
-    return []
-  })
+  // Both reads depend on product identity, but not on each other. Keep the
+  // existing per-read fallbacks; early exits above do not need either query.
+  const [localizedCopy, allProducts] = await Promise.all([
+    getCatalogLocalizedCopy(product.id).catch((error) => {
+      console.error("Failed to load localized catalog copy:", error)
+      return null
+    }),
+    fetchCatalogProducts().catch((error) => {
+      console.error("Failed to load catalog for related products:", error)
+      return []
+    }),
+  ])
+
   const related = getRelatedProducts(product, 4, allProducts)
   const canonicalUrl = `${SITE_URL}${canonicalPath}`
   const structuredData = {
