@@ -1,3 +1,32 @@
+## P0.2 single-push authorization — 2026-10-15 — PREVIEW ONLY
+
+- Supersedes the billing blocker below: user verified the Vercel dashboard after the previous Preview: Included Credit $0.22/$20.00, remaining $19.78, infrastructure subtotal $0.22 entirely covered, current extra/on-demand $0, displayed billed total $20.00 for Pro. Exact billing-period dates were not supplied; do not infer them. This is a user-verified pre-build snapshot, not a live post-build balance.
+- User explicitly authorizes exactly one commit/push on the existing PR #424 branch and its automatic Preview. Spend Management remains budget $200 / Pause Off, unchanged; this setting does not enforce the desired $20 total monthly budget. No merge, Production deployment, billing change, real scan, database write or Market Method change.
+- Commit scope remains the three reviewed files only. Require fresh full verify, separate Typecheck and targeted cache/efficiency tests before publication, then GitHub CI and exact-SHA Preview READY plus read-only HTTP smoke. Record the final commit, deployment and verification outcome in issue #425 after this single push; do not make a second documentation push to record those results. Authenticated/PWA QA and actual CPU savings remain unverified until performed/measured.
+
+---
+
+## P0.2 pre-push checkpoint — 2026-10-15 — WAITING FOR BILLING VERIFICATION
+
+- User conditionally authorized one commit/push to the existing PR #424 branch and only its automatic Preview; no merge or Production release. Rechecked PR head `048f9f0f5f694660d3d717a30d631d370ba107b2` and main `3a2c844556cec3ca46b5bca2973aa87c65b68805`: unchanged. Local diff remains exactly the two cache corrections, regression tests and this operations document.
+- Fresh full `pnpm verify` passed, including 13 cache lifecycle tests and 13 cron tests. Recovery expiry and newer-snapshot precedence remain covered. No real scanners or database writes.
+- Billing gate FAILED TO VERIFY: the Vercel charges API for the intended team returned HTTP 404 `costs_not_found`; neither current Included Credit nor absence of overage is established. Requested the user's current post-Preview usage, billing period and extra/overage amounts. No commit, push or new build until that prerequisite is satisfied; recheck remote SHAs again before eventual publication.
+- Existing Preview is not evidence for these local corrections. Final-SHA CI/READY/HTTP smoke remain pending after the authorized push; authenticated and native PWA QA remain outstanding. No other PR, Production, Supabase, scanner, matching, TTL or Market Method changes.
+
+---
+
+## P0.2 isolated validation — 2026-10-15 — LOCAL ONLY, NOT RELEASED
+
+- Review target: PR #424 `048f9f0f5f694660d3d717a30d631d370ba107b2`, based on released main `3a2c844556cec3ca46b5bca2973aa87c65b68805`; #423 and #426 are merged. Existing Preview `dpl_DYzjytPJ4Frh5psiFHYzQZjXYUFf` is READY on that exact PR SHA. No push, merge, build, deployment, scans or database writes are authorized in this validation.
+- Reproduced with deterministic tests: sequential requests to one expired shared entry each trigger a full uncached projection (five requests, five reads); historical-only expiry also bypasses the data cache unnecessarily. These are test counts, not Production measurements.
+- Local correction: one process-local recovery result/failure per stale public snapshot, retained for at most the existing 60s cache interval; reapply offer/history deadlines on every return. Changed shared snapshots take precedence. Historical-only expiry is pure removal with no recovery query. No scanner frequency, price rule, matching or TTL change. Failed recovery can suppress ASK until the next eligible attempt; MV/SOLD remain last-known. This is not distributed deduplication and does not eliminate Next background revalidation work.
+- Cache lifecycle coverage grows from 10 to 13 tests: sequential success/failure and timed recovery, historical-only expiry, retained recovery ASK expiry and changed-snapshot precedence. All fixtures remain test-only.
+- Runtime limitation: generic web fetch cannot access the Preview; shell HTTP is rejected by the outbound proxy before reaching Vercel (CONNECT 403, HTTP 000). This is not an application 403. Do not use an authentication bypass link. Authenticated QA and native mobile/PWA timing remain unverified; prior checkpoint HTTP smoke is historical evidence only.
+- Manual read-only gate: open the exact Preview and confirm `/api/version`; authenticate normally, ensure OAuth stays on the Preview hostname, compare existing sealed-copy Dashboard/Collection totals and MV/SOLD/ASK labels; navigate Catalog/Release/Wishlist; use DevTools Preserve log to confirm 120s visible polling, no hidden HTTP polls, one coalesced resume attempt after 60s, and offline/error recovery. Observe a naturally expiring ASK without modifying real evidence; verify current ASK disappears while MV/SOLD persist. Do not export cookies/tokens/HARs with secrets. If login redirects to Production, stop Preview QA and record the redirect without changing Auth configuration.
+- No measured CPU/cost reduction or current billing balance is asserted. `$0.18/$20` predates the Preview. Before any future release, require current usage and spend-control verification against the user's $20 total monthly Pro budget, plus approval for publishing local corrections and their eventual exact-SHA Preview.
+
+---
+
 ## P0.2 reconciliation checkpoint — 2026-10-15 — GitHub PR #424
 
 - Production/main previously verified at `3a2c844556cec3ca46b5bca2973aa87c65b68805`: P0.1 PR #426 merged as `7f612b50dfbeba844798943b25d5a1485c96eae1`, and cross-surface PR #423 merged as `3a2c844556cec3ca46b5bca2973aa87c65b68805`. Previous entries claiming those PRs are open are historical.

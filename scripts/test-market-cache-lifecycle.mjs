@@ -182,11 +182,12 @@ test("installed Next cache: shared cold/hit, 60s stale revalidation failure, exp
   value = { r: project([offer("a", 10), offer("b", 20, BASE)]) }
   assert.equal((await request()).r.representativeAskItemEUR, 20, "surviving seller, canonical re-projection")
   fail = true
-  assert.equal((await request()).r.representativeAskItemEUR, null)
+  assert.equal((await request()).r.representativeAskItemEUR, 20, "reuse already verified, still-valid recovery within 60s")
   clock.now += 60_000
   const originalError = console.error; console.error = () => {}
   try { assert.equal((await request()).r.representativeAskItemEUR, null) } finally { console.error = originalError }
   fail = false
+  assert.equal((await request()).r.representativeAskItemEUR, null, "failed recovery is throttled while SWR recovers")
   assert.equal((await request()).r.representativeAskItemEUR, 20)
   const recovered = reads
   assert.equal((await request()).r.representativeAskItemEUR, 20)
@@ -258,6 +259,77 @@ test("concurrent expiry reads share one in-flight canonical read; a cold cache e
   assert.equal(results[1].r.representativeAskItemEUR, 20)
   const cold = loader(clock, { "next/cache": { unstable_cache: () => async () => { throw Error("cold cache unavailable") } }, "./public": {} })
   await assert.rejects(cold("lib/market/public-cached.ts").getCachedPublicMarketSignalMap(), /cold cache unavailable/)
+})
+
+test("sequential requests for the same expired cache entry do not repeat recovery reads", async () => {
+  const clock = { now: BASE }, { project } = projection(clock)
+  const expired = { r: project([offer("a", 10)]) }
+  clock.now += 501
+  let calls = 0, fail = false
+  const load = loader(clock, {
+    "next/cache": { unstable_cache: () => async () => structuredClone(expired) },
+    "./public": { getPublicMarketSignalMap: async () => {
+      calls++
+      if (fail) throw Error("simulated outage")
+      return { r: project([offer("b", 20, BASE)]) }
+    } },
+  })
+  const cached = load("lib/market/public-cached.ts").getCachedPublicMarketSignalMap
+  for (let i = 0; i < 5; i++) assert.equal((await cached()).r.representativeAskItemEUR, 20)
+  assert.equal(calls, 1, "sequential requests share a bounded recovery result")
+  clock.now += 60_001; fail = true
+  for (let i = 0; i < 5; i++) {
+    const safe = await cached()
+    assert.equal(safe.r.startingItemPriceEUR, null)
+    assert.equal(safe.r.valueEUR, 30)
+    assert.equal(safe.r.soldAnchorEUR, 25)
+  }
+  assert.equal(calls, 2, "failed recovery is also bounded")
+  clock.now += 60_001; fail = false
+  assert.equal((await cached()).r.representativeAskItemEUR, 20)
+  assert.equal(calls, 3, "recovery resumes after the existing cache interval")
+})
+
+test("historical-only expiry does not bypass the shared data cache", async () => {
+  const clock = { now: BASE }
+  const snapshot = { r: { valueEUR: 30, historicalAskItemEUR: 10, historicalAskObservedAt: iso(BASE - 181 * DAY) } }
+  let calls = 0
+  const load = loader(clock, {
+    "next/cache": { unstable_cache: () => async () => structuredClone(snapshot) },
+    "./public": { getPublicMarketSignalMap: async () => { calls++; return snapshot } },
+  })
+  const safe = await load("lib/market/public-cached.ts").getCachedPublicMarketSignalMap()
+  assert.equal(safe.r.historicalAskItemEUR, null)
+  assert.equal(safe.r.valueEUR, 30)
+  assert.equal(calls, 0)
+})
+
+test("bounded recovery expires its own ASK and never overrides a changed cache snapshot", async () => {
+  const clock = { now: BASE }, { project } = projection(clock)
+  let snapshot = { r: project([offer("a", 10)]) }, calls = 0
+  clock.now += 501
+  const load = loader(clock, {
+    "next/cache": { unstable_cache: () => async () => structuredClone(snapshot) },
+    "./public": { getPublicMarketSignalMap: async () => {
+      calls++
+      return { r: project([offer("b", 20, BASE - 15 * DAY + 1000)]) }
+    } },
+  })
+  const cached = load("lib/market/public-cached.ts").getCachedPublicMarketSignalMap
+  assert.equal((await cached()).r.representativeAskItemEUR, 20)
+  clock.now += 500
+  const expired = await cached()
+  assert.equal(expired.r.startingItemPriceEUR, null)
+  assert.equal(expired.r.representativeAskItemEUR, null)
+  assert.equal(expired.r.valueEUR, 30)
+  assert.equal(expired.r.soldAnchorEUR, 25)
+  assert.equal(calls, 1)
+  snapshot = { r: { ...project([offer("c", 40, BASE)]), valueEUR: 45 } }
+  assert.equal((await cached()).r.valueEUR, 45, "new shared data takes precedence")
+  assert.equal((await cached()).r.representativeAskItemEUR, 40)
+  snapshot = { r: { ...snapshot.r, offersValidUntil: iso(BASE) } }
+  await cached()
+  assert.equal(calls, 2, "changed expired cache entry is not masked by old recovery")
 })
 
 test("provider: 120s polling, focus coalescing, unchanged snapshots, out-of-order responses, unmount", async () => {
