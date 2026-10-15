@@ -11,7 +11,7 @@ import { ScrollRevealController } from "@/components/scroll-reveal-controller"
 import { StoreProvider } from "@/lib/store"
 import { I18nProvider, type AppLocale } from "@/lib/i18n"
 import { MarketSignalsProvider } from "@/lib/market/context"
-import { getPublicMarketSignalMap } from "@/lib/market/public"
+import { getCachedPublicMarketSignalMap } from "@/lib/market/public-cached"
 import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -83,7 +83,7 @@ export default async function RootLayout({
   let initialMarketSignals: ReleaseMarketSignalMap = {}
 
   try {
-    initialMarketSignals = await getPublicMarketSignalMap()
+    initialMarketSignals = await getCachedPublicMarketSignalMap()
   } catch (error) {
     console.error("Failed to bootstrap public R3 market signals:", error)
   }
