@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { releasePublicPath } from "@/lib/seo/catalog-paths"
 import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus, Search, Sparkles, Tag, Trash2, TrendingUp } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
@@ -208,11 +209,11 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                 return (
                   <Card key={entry.item.id} className="group min-w-0 overflow-hidden rounded-[22px] border-border/70 py-0 shadow-[0_8px_28px_rgba(15,23,42,0.045)] transition-all duration-200 hover:border-brand/25 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
                     <div className="grid grid-cols-[42%_minmax(0,1fr)] border-b border-border/50 sm:grid-cols-[36%_minmax(0,1fr)]">
-                      <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="relative block min-h-40 overflow-hidden border-r border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:min-h-44">
+                      <Link href={releasePublicPath(entry.product, entry.release, locale)} className="relative block min-h-40 overflow-hidden border-r border-border/50 bg-gradient-to-br from-white to-sky-50/50 sm:min-h-44">
                         <ProductImage product={entry.product} release={entry.release} className="absolute inset-0 h-full w-full rounded-none bg-transparent transition-transform duration-300 group-hover:scale-[1.025]" />
                       </Link>
                       <div className="flex min-w-0 flex-col justify-center gap-2 p-3 sm:p-4">
-                        <Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} className="min-w-0">
+                        <Link href={releasePublicPath(entry.product, entry.release, locale)} className="min-w-0">
                           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.10em] text-brand">#{entry.release.itemNumber ?? "—"} · {entry.displayYear ?? "—"}</p>
                           <h2 className="mt-1 line-clamp-3 text-[15px] font-semibold leading-snug tracking-tight transition-colors group-hover:text-brand sm:text-base">{entry.release.editionName}</h2>
                         </Link>
@@ -235,7 +236,7 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
                         <CollectionItemPhotosButton collectionItemId={entry.item.id} initialCount={entry.item.photos?.length ?? 0} />
                       </div>
                       <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border/60 bg-background/80 p-0.5">
-                        <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={`/catalog/${entry.product.id}/releases/${entry.release.id}`} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
+                        <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand" render={<Link href={releasePublicPath(entry.product, entry.release, locale)} />} aria-label={it ? "Apri release" : "Open release"} title={it ? "Apri release" : "Open release"}>
                           <Eye className="size-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="size-8 rounded-lg bg-muted/70 text-foreground hover:bg-muted" aria-label={t("common.edit")} title={it ? "Modifica copia" : "Edit copy"} onClick={() => setEditing(entry)}>
