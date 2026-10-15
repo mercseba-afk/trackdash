@@ -10,6 +10,8 @@ export type ReleaseMarketRegime =
 export type ReleaseMarketConfidence = "low" | "medium" | "high"
 
 export interface ReleaseMarketSignalView {
+  /** Inclusive deadline of this offer projection; a clock change requires re-projection, not a TTL extension. */
+  offersValidUntil?: string | null
   marketRegime: ReleaseMarketRegime
   valueEUR: number | null
   lowEUR: number | null

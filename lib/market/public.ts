@@ -13,6 +13,7 @@ import {
 import {
   MARKETPLACE_OFFER_MAX_AGE_HOURS,
   RETAIL_OFFER_MAX_AGE_HOURS,
+  currentOfferExpiryAtMs,
 } from "@/lib/market/pipeline/market-publication-policy"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } from "@/lib/market/collector-sold-trend-comparison"
@@ -234,8 +235,9 @@ export function toPublicMarketSignalView(
   const rawRetailAnchorEUR = numberOrNull(signal.retailAnchorEUR)
   const rawActiveAnchorEUR = numberOrNull(signal.activeAnchorEUR)
   const soldAnchorEUR = numberOrNull(signal.soldAnchorEUR)
-  const freshOffers = freshObservedOffers(observedOffers)
-  const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId)
+  const asOf = new Date()
+  const freshOffers = freshObservedOffers(observedOffers, asOf)
+  const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId, asOf)
   // Presentation-only median from current exact-Release listing evidence.
   // This cannot change the canonically selected shopping offer or Market Value.
   const representativeAsk = representativeAskingMedian(freshOffers.map((offer) => {
@@ -256,11 +258,21 @@ export function toPublicMarketSignalView(
       checkedAt: offer.lastCheckedAt instanceof Date ? offer.lastCheckedAt.toISOString() : String(offer.lastCheckedAt),
       acceptedExactKit: offer.acceptedExactKit,
     }
-  }))
+  }), asOf)
   // A formerly observed ASK is valuable historical evidence, NOT proof that
   // its listing is still purchasable. Preserve its dated KIT-ONLY component
   // separately, without feeding stale quotes into the current-offer pipeline.
-  const nowMs = Date.now()
+  const nowMs = asOf.getTime()
+  // Counts/anchors can change at ANY offer expiry, not only the selected ASK's
+  // expiry. The representative median also retains its existing 15-day window
+  // for retail quotes. Publish deadlines only; never candidate/seller identities.
+  const offerDeadlines = freshOffers.flatMap((offer) => {
+    const observedAt = new Date(offer.lastCheckedAt).toISOString()
+    return [
+      currentOfferExpiryAtMs({ channel: offer.channel === "marketplace" ? "marketplace" : "retail", observedAt }),
+      Date.parse(observedAt) + MARKETPLACE_OFFER_MAX_AGE_HOURS * 3_600_000,
+    ].filter((deadline): deadline is number => deadline != null && deadline >= nowMs)
+  })
   const historicalOffer = observedOffer ? null : [...observedOffers]
     .filter((offer) => {
       const price = numberOrNull(offer.itemPriceEUR)
@@ -305,6 +317,7 @@ export function toPublicMarketSignalView(
   if (!hasMarketEvidence) return null
 
   return {
+    offersValidUntil: offerDeadlines.length ? new Date(Math.min(...offerDeadlines)).toISOString() : null,
     marketRegime: signal.marketRegime as ReleaseMarketRegime,
     valueEUR: valueEUR != null && valueEUR > 0 ? valueEUR : null,
     lowEUR: numberOrNull(signal.lowEUR),
