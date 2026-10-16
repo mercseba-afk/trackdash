@@ -28,4 +28,3 @@ export function bufferedPublication(client: SupabaseClient) {
   } })
   return { client: reader, writes }
 }
-
