@@ -9,7 +9,8 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "feat/hotwheels-*": false
+      "feat/hotwheels-*": false,
+      "fix/p06b-admin-read-grants-20261016": false
     }
   }
 }
