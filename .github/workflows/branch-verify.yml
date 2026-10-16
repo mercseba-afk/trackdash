@@ -23,3 +23,23 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - name: Verify P0.6B column grants in isolated PostgreSQL
+        if: hashFiles('proposals/p06b-admin-read-grants.sql') != ''
+        run: |
+          set -euo pipefail
+          docker run --detach --name trackdash-p06-isolated --network none \
+            --env POSTGRES_HOST_AUTH_METHOD=trust \
+            postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+          ready=false
+          for attempt in $(seq 1 30); do
+            if docker exec trackdash-p06-isolated pg_isready --username postgres; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          pnpm admin:grants:postgres:test
+      - name: Remove isolated P0.6B database container
+        if: always() && hashFiles('proposals/p06b-admin-read-grants.sql') != ''
+        run: docker rm --force --volumes trackdash-p06-isolated || true

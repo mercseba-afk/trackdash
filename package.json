@@ -42,7 +42,8 @@
     "market:cache:test": "node --experimental-strip-types scripts/test-market-cache-lifecycle.mjs",
     "market:efficiency:test": "node --experimental-strip-types scripts/test-market-efficiency.mjs",
     "market:ui:test": "node scripts/test-market-ui.mjs",
-    "market:ui:browser": "node scripts/test-market-ui-browser.mjs"
+    "market:ui:browser": "node scripts/test-market-ui-browser.mjs",
+    "admin:grants:postgres:test": "node scripts/test-admin-read-grants-postgres.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
