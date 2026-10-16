@@ -37,6 +37,7 @@ jobs:
           docker exec trackdash-p06-isolated pg_isready --username postgres
           pnpm ebay:erasure:postgres:test
           pnpm ebay:erasure:e2e:test
+          pnpm ebay:erasure:restore:test
       - name: Remove isolated eBay erasure containers
         if: always() && hashFiles('proposals/p06a-recovery-and-fence.sql') != ''
         run: |

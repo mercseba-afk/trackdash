@@ -1,5 +1,7 @@
 # P0.6A — recupero automatico implementato, non attivato
 
+> Aggiornamento A2/A3: [P06A_A23_REVIEW.md](P06A_A23_REVIEW.md), configurazioni effettive Vault/logging e prove sintetiche di restore. A2/A3 restano **aperti**, rilascio **NO-GO**. Nessuna modifica alla logica A1 o a Production.
+
 > A1: ingress suppression DB implementata e testata, vedi `P06A_A1_REVIEW.md`. A2–A5 restano aperti; nessuna attivazione o servizio esterno aggiunto. Le ipotesi multi-provider del preflight precedente non sono una soluzione selezionata.
 
 > Preflight finale: `P06A_PREFLIGHT.md`. Rilascio bloccato da reintroduzione ingestion dimostrata, indipendenza operativa non implementata e gate schema/runtime/DR. Il meccanismo locale non è una garanzia operativa già attiva.

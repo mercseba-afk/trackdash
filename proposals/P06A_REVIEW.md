@@ -1,5 +1,7 @@
 # P0.6A — rapporto tecnico per revisione Draft
 
+> Aggiornamento A2/A3: [P06A_A23_REVIEW.md](P06A_A23_REVIEW.md), configurazioni effettive Vault/logging e prove sintetiche di restore. A2/A3 restano **aperti**, rilascio **NO-GO**. Nessuna modifica alla logica A1 o a Production.
+
 > Chiusura locale A1: `P06A_A1_REVIEW.md` aggiorna SQL, enforcement ingressi, chiavi private e matrice di regressione. A2–A5 e il NO-GO complessivo restano. Le descrizioni storiche di sole due proposte/sei tabelle non includono la terza proposta A1, mai applicata in Production.
 
 > Preflight 16/10: **NO-GO rilascio**. Vedi `P06A_PREFLIGHT.md` per confronto schema gestito, riproduzione della reintroduzione da ingestion, architettura worker/monitor e rollout/rollback. La modalità monitor attuale non è un dominio indipendente. Le verifiche funzionali sotto non chiudono quei gate.

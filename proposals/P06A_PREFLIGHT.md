@@ -1,5 +1,7 @@
 # P0.6A — preflight finale PR #430, 16 ottobre 2026
 
+> Aggiornamento A2/A3: [P06A_A23_REVIEW.md](P06A_A23_REVIEW.md), configurazioni effettive Vault/logging e prove sintetiche di restore. A2/A3 restano **aperti**, rilascio **NO-GO**. Nessuna modifica alla logica A1 o a Production.
+
 > Aggiornamento A1: protezione persistente implementata e verificata in `P06A_A1_REVIEW.md`. Il riproduttore è ora un gate di sicurezza A1 e deve terminare 0; il controllo negativo torna rosso senza protezione. Le sezioni sotto conservano la fotografia pre-correzione cd39318 e i gate A2–A5. Rilascio complessivo ancora **NO-GO**; nessun servizio esterno introdotto.
 
 **Esito: NO-GO per il rilascio.** Il preflight è completato come revisione e riproduzione dei rischi; i blocchi elencati sotto non sono risolti dall'esito positivo della suite funzionale. Questo documento integra e prevale sulle formulazioni di readiness del rapporto precedente. Nessuna autorizzazione a migrare, attivare servizi o distribuire codice è stata esercitata.
