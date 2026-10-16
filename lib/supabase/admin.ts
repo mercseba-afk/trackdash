@@ -8,7 +8,7 @@ import { createClient } from "@supabase/supabase-js"
 // Supabase's current key model prefers sb_secret_* keys. The legacy
 // service_role JWT remains supported as a migration fallback for existing
 // environments, including TrackDash's original setup.
-export function createAdminClient() {
+export function createAdminClient(fetchImpl?: typeof fetch) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -18,6 +18,7 @@ export function createAdminClient() {
   }
 
   return createClient(url, key, {
+    ...(fetchImpl ? { global: { fetch: fetchImpl } } : {}),
     auth: {
       autoRefreshToken: false,
       persistSession: false,

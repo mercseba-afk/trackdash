@@ -4,12 +4,12 @@
     {
       "path": "/api/cron/market-scan",
       "schedule": "17 3 * * *"
-
     }
   ],
   "git": {
     "deploymentEnabled": {
-      "feat/hotwheels-*": false
+      "feat/hotwheels-*": false,
+      "fix/p06a-ebay-erasure-recovery-20261016": false
     }
   }
 }

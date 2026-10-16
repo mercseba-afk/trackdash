@@ -1,4 +1,5 @@
 import "server-only"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { SoldMarketEvidence } from "./market-model"
@@ -60,8 +61,8 @@ export function buildTrackDashMonthlySaleEvidence(events: SoldMarketEvidence[]):
 export async function loadConfirmedTrackDashSales(
   releaseId: string,
   condition: MarketCondition,
+  client: SupabaseClient = createAdminClient(),
 ): Promise<SoldMarketEvidence[]> {
-  const client = createAdminClient()
   const { data: source, error: sourceError } = await client
     .from("price_sources")
     .select("id")

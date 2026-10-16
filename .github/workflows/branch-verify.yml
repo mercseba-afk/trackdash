@@ -23,3 +23,24 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - name: Verify eBay erasure with real PostgreSQL and PostgREST
+        if: hashFiles('proposals/p06a-recovery-and-fence.sql') != ''
+        run: |
+          set -euo pipefail
+          docker run --detach --name trackdash-p06-isolated --network none \
+            --env POSTGRES_HOST_AUTH_METHOD=trust \
+            postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+          for attempt in $(seq 1 30); do
+            if docker exec trackdash-p06-isolated pg_isready --username postgres; then break; fi
+            sleep 1
+          done
+          docker exec trackdash-p06-isolated pg_isready --username postgres
+          pnpm ebay:erasure:postgres:test
+          pnpm ebay:erasure:e2e:test
+      - name: Remove isolated eBay erasure containers
+        if: always() && hashFiles('proposals/p06a-recovery-and-fence.sql') != ''
+        run: |
+          docker ps -a --format '{{.Names}}' | while IFS= read -r container; do
+            if [[ "$container" =~ ^trackdash-p06-rest-[0-9a-f]{10}$ ]]; then docker rm --force "$container"; fi
+          done
+          docker rm --force --volumes trackdash-p06-isolated || true
