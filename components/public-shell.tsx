@@ -26,7 +26,7 @@ const FOOTER_LINK_CLASS =
   "-mx-2 inline-flex min-h-10 items-center rounded-md px-2 text-foreground transition-colors hover:bg-brand-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
-  const { user } = useStore()
+  const { user, hydrated } = useStore()
   const { locale } = useI18n()
   const pathname = usePathname()
   const router = useRouter()
@@ -41,6 +41,18 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (user && currentPath === "/") router.replace("/dashboard")
   }, [currentPath, router, user])
+
+  // Preserve public content in server HTML, but never flash the visitor shell
+  // while an existing app session is being restored. Other routes are unchanged.
+  if (!hydrated && (currentPath === "/market" || currentPath === "/en/market")) {
+    return <>
+      <div data-market-session-loading role="status" className="grid min-h-svh place-items-center bg-background">
+        <span className="flex items-center gap-2"><Spinner aria-hidden="true" className="size-5" />{locale === "it" ? "Caricamento mercato…" : "Loading market…"}</span>
+      </div>
+      <noscript><style>{`[data-market-session-loading]{display:none!important}[data-market-session-content]{display:block!important}`}</style></noscript>
+      <div data-market-session-content hidden>{children}</div>
+    </>
+  }
 
   if (user && currentPath === "/") {
     return (

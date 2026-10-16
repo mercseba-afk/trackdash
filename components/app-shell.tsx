@@ -301,7 +301,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
 
           <div className="flex items-center gap-1.5">
             {hotWheelsPilotUser ? <CollectibleVerticalSwitch active={vertical} /> : null}
-            <PwaInstallButton />
+            {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
             <UserMenu />
           </div>
