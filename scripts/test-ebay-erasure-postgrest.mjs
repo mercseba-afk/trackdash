@@ -107,7 +107,7 @@ try{
  assert.equal(monitor.healthy,false);assert.equal(monitorAlarms.length,2);assert.notEqual(monitorAlarms[0].id,monitorAlarms[1].id)
  await tick();await worker.runErasureRecoveryTick(client,Date.now()+45000,report,async()=>{},true)
  const idleBefore=d.metrics.requests;await tick();assert.equal(d.metrics.requests-idleBefore,1)
- console.log('PASS independent heartbeat monitor detects successive outages; empty worker tick performs one ledger-only RPC')
+ console.log('PASS monitor mode detects successive heartbeat outages; empty worker tick performs one ledger-only RPC (infrastructure independence is a separate release gate)')
  // Full webhook path: genuine synthetic signature, real PostgREST, no real eBay calls.
  seed();globalThis.__p06HttpClient=client
  Object.assign(process.env,{EBAY_ENV:'production',EBAY_CLIENT_ID:'synthetic-client',EBAY_CLIENT_SECRET:'synthetic-client-secret',EBAY_MARKETPLACE_DELETION_ENDPOINT:'https://local.invalid/api/ebay/marketplace-account-deletion',EBAY_MARKETPLACE_DELETION_TOKEN:'synthetic-verification-token-1234567890'})

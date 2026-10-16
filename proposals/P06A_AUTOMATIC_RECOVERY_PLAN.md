@@ -1,5 +1,7 @@
 # P0.6A — recupero automatico implementato, non attivato
 
+> Preflight finale: `P06A_PREFLIGHT.md`. Rilascio bloccato da reintroduzione ingestion dimostrata, indipendenza operativa non implementata e gate schema/runtime/DR. Il meccanismo locale non è una garanzia operativa già attiva.
+
 Il piano precedente è stato implementato localmente. SQL, prove, costi, limiti e sequenza di rilascio sono in `P06A_REVIEW.md`. Nessun worker, cron, servizio, chiave o migrazione Production attivato. La Draft PR è una richiesta di revisione, non un'autorizzazione al rilascio.
 
 - Inbox persistente cifrata prima della prima modifica, HMAC versionato per idempotenza, decrittazione autenticata e purge del ciphertext al commit erase.

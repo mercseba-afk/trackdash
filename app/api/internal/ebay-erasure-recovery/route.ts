@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto"
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { deadlineFetch } from "@/lib/ebay/account-deletion-recovery"
+import { deadlineFetch, EbayRecoveryError } from "@/lib/ebay/account-deletion-recovery"
 import { validateInboxKeys } from "@/lib/ebay/erasure-inbox"
 import { runErasureRecoveryTick } from "@/lib/ebay/erasure-worker"
 export const dynamic = "force-dynamic"
@@ -25,5 +25,10 @@ export async function POST(request: Request) {
       if (!response.ok) throw Error("ALARM_FAILED")
     }, new URL(request.url).searchParams.get("mode") === "monitor")
     return NextResponse.json(result, { status: result.healthy ? 200 : 503 })
-  } catch { report("tick", "FAILED"); return new NextResponse(null, { status: 503 }) }
+  } catch (error) {
+    const code = error instanceof EbayRecoveryError && /^(?:[A-Z0-9]{5}|PGRST[0-9]{3}|DEADLINE)$/.test(error.sqlCode)
+      ? error.sqlCode : "FAILED"
+    report("tick", code)
+    return new NextResponse(null, { status: 503 })
+  }
 }

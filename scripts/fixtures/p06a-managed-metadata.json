@@ -1,0 +1,2055 @@
+{
+  "capturedOn": "2026-10-16",
+  "postgresVersion": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "managedBuild": "17.6.1.166",
+  "postgrestVersion": null,
+  "tables": [
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=arwDxtm/postgres",
+        "trackdash_app=r/postgres"
+      ],
+      "rls": true,
+      "name": "market_release_ask_snapshots",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "release_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "default": "'new_complete_unbuilt'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "snapshot_date",
+          "type": "date",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "typical_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "low_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "high_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "offer_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "computed_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "basis_version",
+          "type": "text",
+          "default": "'v4-eu-delivered-2026-10'::text",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_market_release_ask_snapshots_basis ON public.market_release_ask_snapshots USING btree (release_id, condition, basis_version, snapshot_date DESC)",
+        "CREATE UNIQUE INDEX market_release_ask_snapshots_pkey ON public.market_release_ask_snapshots USING btree (id)",
+        "CREATE UNIQUE INDEX market_release_ask_snapshots_unique ON public.market_release_ask_snapshots USING btree (release_id, condition, snapshot_date)",
+        "CREATE INDEX idx_market_release_ask_snapshots_release_date ON public.market_release_ask_snapshots USING btree (release_id, condition, snapshot_date DESC)"
+      ],
+      "policies": null,
+      "triggers": null,
+      "force_rls": false,
+      "constraints": [
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text, 'new_carded'::text])))",
+        "PRIMARY KEY (id)",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE CASCADE",
+        "UNIQUE (release_id, condition, snapshot_date)",
+        "CHECK (((offer_count >= 0) AND ((typical_eur IS NULL) OR (typical_eur > (0)::numeric)) AND ((low_eur IS NULL) OR (low_eur > (0)::numeric)) AND ((high_eur IS NULL) OR (high_eur > (0)::numeric)) AND (((low_eur IS NULL) AND (high_eur IS NULL)) OR ((low_eur IS NOT NULL) AND (high_eur IS NOT NULL) AND (low_eur <= high_eur)))))"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "anon=r/postgres",
+        "authenticated=r/postgres",
+        "trackdash_app=r/postgres",
+        "service_role=arw/postgres"
+      ],
+      "rls": true,
+      "name": "market_release_monthly_signals",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "release_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "default": "'new_complete_unbuilt'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "month",
+          "type": "date",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_regime",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_value_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "retail_anchor_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "active_anchor_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sold_anchor_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sold_units",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "retail_source_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "active_offer_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "confidence_score",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "algorithm_version",
+          "type": "text",
+          "default": "'r3'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "computed_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_method_version",
+          "type": "text",
+          "default": "'v3'::text",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_release_monthly_signals_pkey ON public.market_release_monthly_signals USING btree (id)",
+        "CREATE UNIQUE INDEX market_release_monthly_signals_unique ON public.market_release_monthly_signals USING btree (release_id, condition, month)",
+        "CREATE INDEX idx_market_release_monthly_signals_release_month ON public.market_release_monthly_signals USING btree (release_id, condition, month DESC)"
+      ],
+      "policies": [
+        {
+          "cmd": "SELECT",
+          "qual": "true",
+          "roles": [
+            "anon",
+            "authenticated"
+          ],
+          "tablename": "market_release_monthly_signals",
+          "permissive": "PERMISSIVE",
+          "policyname": "market_release_monthly_signals_public_read",
+          "schemaname": "public",
+          "with_check": null
+        }
+      ],
+      "triggers": null,
+      "force_rls": false,
+      "constraints": [
+        "CHECK (((confidence_score >= 0) AND (confidence_score <= 100)))",
+        "CHECK ((month = (date_trunc('month'::text, (month)::timestamp with time zone))::date))",
+        "PRIMARY KEY (id)",
+        "CHECK ((market_regime = ANY (ARRAY['retail_driven'::text, 'mixed_scarce'::text, 'secondary_market_driven'::text, 'insufficient'::text])))",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE CASCADE",
+        "UNIQUE (release_id, condition, month)"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "anon=r/postgres",
+        "authenticated=r/postgres",
+        "trackdash_app=r/postgres",
+        "service_role=arwd/postgres"
+      ],
+      "rls": true,
+      "name": "market_release_signals",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "release_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "default": "'new_complete_unbuilt'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_regime",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_value_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "low_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "high_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "confidence_score",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "confidence_label",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "retail_anchor_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "active_anchor_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sold_anchor_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "starting_offer_candidate_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "starting_item_price_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "starting_shipping_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "starting_effective_cost_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "starting_cost_basis",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "retail_source_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "active_offer_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "current_offer_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "sold_units",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "sold_source_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "sold_evidence_count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "shipping_known_ratio",
+          "type": "numeric(5,4)",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "trend_percent",
+          "type": "numeric(8,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "trend_window_months",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "algorithm_version",
+          "type": "text",
+          "default": "'r3'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "computed_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_method_version",
+          "type": "text",
+          "default": "'v4'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "sold_seller_count",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "active_low_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "active_high_eur",
+          "type": "numeric(12,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "ask_trend_percent",
+          "type": "numeric(8,2)",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "ask_trend_window_days",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "trend_basis",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "trend_updated_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_release_signals_pkey ON public.market_release_signals USING btree (id)",
+        "CREATE UNIQUE INDEX market_release_signals_release_condition_unique ON public.market_release_signals USING btree (release_id, condition)",
+        "CREATE INDEX idx_market_release_signals_release ON public.market_release_signals USING btree (release_id)"
+      ],
+      "policies": [
+        {
+          "cmd": "SELECT",
+          "qual": "true",
+          "roles": [
+            "anon",
+            "authenticated"
+          ],
+          "tablename": "market_release_signals",
+          "permissive": "PERMISSIVE",
+          "policyname": "market_release_signals_public_read",
+          "schemaname": "public",
+          "with_check": null
+        }
+      ],
+      "triggers": [
+        "CREATE TRIGGER market_release_signals_auto_enroll_scans AFTER INSERT ON public.market_release_signals FOR EACH ROW EXECUTE FUNCTION trackdash_auto_enroll_market_signal()"
+      ],
+      "force_rls": false,
+      "constraints": [
+        "CHECK ((((active_low_eur IS NULL) AND (active_high_eur IS NULL)) OR ((active_low_eur IS NOT NULL) AND (active_high_eur IS NOT NULL) AND (active_low_eur > (0)::numeric) AND (active_high_eur >= active_low_eur))))",
+        "CHECK ((((ask_trend_percent IS NULL) AND (ask_trend_window_days IS NULL)) OR ((ask_trend_percent IS NOT NULL) AND ((ask_trend_window_days >= 3) AND (ask_trend_window_days <= 30)))))",
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text])))",
+        "CHECK ((((confidence_score >= 0) AND (confidence_score <= 100)) AND (confidence_label = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text]))))",
+        "CHECK (((retail_source_count >= 0) AND (active_offer_count >= 0) AND (current_offer_count >= 0) AND (sold_units >= 0) AND (sold_source_count >= 0) AND (sold_evidence_count >= 0)))",
+        "PRIMARY KEY (id)",
+        "CHECK ((market_regime = ANY (ARRAY['retail_driven'::text, 'mixed_scarce'::text, 'secondary_market_driven'::text, 'insufficient'::text])))",
+        "UNIQUE (release_id, condition)",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE CASCADE",
+        "CHECK (((sold_seller_count IS NULL) OR (sold_seller_count >= 1)))",
+        "CHECK (((shipping_known_ratio >= (0)::numeric) AND (shipping_known_ratio <= (1)::numeric)))",
+        "CHECK (((starting_cost_basis IS NULL) OR (starting_cost_basis = ANY (ARRAY['delivered'::text, 'item_only'::text]))))",
+        "FOREIGN KEY (starting_offer_candidate_id) REFERENCES market_candidates(id) ON DELETE SET NULL",
+        "CHECK ((((trend_percent IS NULL) AND (trend_window_months IS NULL) AND (trend_basis IS NULL) AND (trend_updated_at IS NULL)) OR ((trend_percent IS NOT NULL) AND (trend_window_months = ANY (ARRAY[1, 3, 6, 12])) AND (trend_basis = ANY (ARRAY['sold'::text, 'market_value'::text])) AND (trend_updated_at IS NOT NULL))))",
+        "CHECK ((((market_value_eur IS NULL) OR (market_value_eur > (0)::numeric)) AND ((low_eur IS NULL) OR (low_eur > (0)::numeric)) AND ((high_eur IS NULL) OR (high_eur > (0)::numeric)) AND (((low_eur IS NULL) AND (high_eur IS NULL)) OR ((low_eur IS NOT NULL) AND (high_eur IS NOT NULL) AND (low_eur <= high_eur)))))"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=rDxtm/postgres",
+        "trackdash_app=r/postgres"
+      ],
+      "rls": true,
+      "name": "market_source_policies",
+      "columns": [
+        {
+          "acl": null,
+          "name": "source_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "source_family",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "scan_scope",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "independent_key",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "role",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "include_by_default",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "current_offer_capable",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "completed_sale_capable",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "unavailable_provides_context",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "default_interval_hours",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "priority",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "adapter_status",
+          "type": "text",
+          "default": "'manual'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_source_policies_pkey ON public.market_source_policies USING btree (source_id)",
+        "CREATE INDEX idx_market_source_policies_scope_priority ON public.market_source_policies USING btree (scan_scope, priority DESC)"
+      ],
+      "policies": null,
+      "triggers": null,
+      "force_rls": false,
+      "constraints": [
+        "CHECK ((adapter_status = ANY (ARRAY['ready'::text, 'manual'::text, 'planned'::text, 'internal'::text])))",
+        "CHECK ((default_interval_hours >= 24))",
+        "PRIMARY KEY (source_id)",
+        "CHECK ((role = ANY (ARRAY['structural_reference'::text, 'primary_marketplace'::text, 'secondary_marketplace'::text, 'retail_reference'::text, 'supporting_retail'::text, 'internal_sales'::text, 'other'::text])))",
+        "CHECK ((scan_scope = ANY (ARRAY['retail'::text, 'active_marketplace'::text, 'sold_research'::text])))",
+        "FOREIGN KEY (source_id) REFERENCES price_sources(id) ON DELETE CASCADE"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "anon=r/postgres",
+        "authenticated=r/postgres",
+        "trackdash_app=r/postgres",
+        "service_role=arwd/postgres"
+      ],
+      "rls": true,
+      "name": "price_sources",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "slug",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "name",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "source_type",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "is_active",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "origin",
+          "type": "text",
+          "default": "'external_market'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "ingestion_mode",
+          "type": "text",
+          "default": "'disabled'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_region",
+          "type": "text",
+          "default": "'global'::text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "merchant_key",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX price_sources_pkey ON public.price_sources USING btree (id)",
+        "CREATE UNIQUE INDEX price_sources_slug_unique ON public.price_sources USING btree (slug)"
+      ],
+      "policies": [
+        {
+          "cmd": "SELECT",
+          "qual": "true",
+          "roles": [
+            "anon",
+            "authenticated"
+          ],
+          "tablename": "price_sources",
+          "permissive": "PERMISSIVE",
+          "policyname": "price_sources_public_read",
+          "schemaname": "public",
+          "with_check": null
+        }
+      ],
+      "triggers": null,
+      "force_rls": false,
+      "constraints": [
+        "CHECK ((ingestion_mode = ANY (ARRAY['api'::text, 'licensed_feed'::text, 'public_web'::text, 'manual'::text, 'internal'::text, 'disabled'::text])))",
+        "CHECK ((market_region = ANY (ARRAY['europe'::text, 'japan'::text, 'north_america'::text, 'asia_pacific'::text, 'global'::text, 'internal'::text])))",
+        "CHECK ((origin = ANY (ARRAY['external_market'::text, 'trackdash_marketplace'::text, 'trackdash_transaction'::text, 'reference'::text])))",
+        "PRIMARY KEY (id)",
+        "UNIQUE (slug)"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=arw/postgres"
+      ],
+      "rls": true,
+      "name": "market_aggregate_observations",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "source_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "release_id",
+          "type": "uuid",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "item_number",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "possible_release_ids",
+          "type": "uuid[]",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "attribution_status",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "grain",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "period_start",
+          "type": "date",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "period_end",
+          "type": "date",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "query_key",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "query_description",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sales_count",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "seller_count",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "average_item_price",
+          "type": "numeric(12,2)",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "low_item_price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "high_item_price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "average_shipping",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "free_shipping_pct",
+          "type": "numeric(5,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "auction_sales_count",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "buy_it_now_sales_count",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "accepted_offer_sales_count",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "currency",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_average_eur",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_to_eur",
+          "type": "numeric(18,8)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_date",
+          "type": "date",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "evidence_grade",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "provenance_url",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "raw_payload",
+          "type": "jsonb",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "captured_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_aggregate_observations_pkey ON public.market_aggregate_observations USING btree (id)",
+        "CREATE UNIQUE INDEX market_aggregate_observations_unique ON public.market_aggregate_observations USING btree (source_id, query_key, period_start, period_end, item_number)",
+        "CREATE INDEX idx_market_aggregate_release_period ON public.market_aggregate_observations USING btree (release_id, condition, period_end DESC)",
+        "CREATE INDEX idx_market_aggregate_item_period ON public.market_aggregate_observations USING btree (item_number, period_end DESC)"
+      ],
+      "policies": null,
+      "triggers": [
+        "CREATE TRIGGER market_aggregate_observations_queue_recompute AFTER INSERT OR DELETE OR UPDATE ON public.market_aggregate_observations FOR EACH ROW EXECUTE FUNCTION trackdash_queue_recompute_from_aggregate()"
+      ],
+      "constraints": [
+        "CHECK ((attribution_status = ANY (ARRAY['release_exact'::text, 'release_matched'::text, 'item_pool'::text, 'ambiguous_release'::text])))",
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text])))",
+        "CHECK (((sales_count >= 1) AND ((seller_count IS NULL) OR (seller_count >= 1)) AND ((auction_sales_count IS NULL) OR (auction_sales_count >= 0)) AND ((buy_it_now_sales_count IS NULL) OR (buy_it_now_sales_count >= 0)) AND ((accepted_offer_sales_count IS NULL) OR (accepted_offer_sales_count >= 0))))",
+        "CHECK (((market_average_eur IS NULL) OR ((market_average_eur > (0)::numeric) AND (((currency = 'EUR'::text) AND (market_average_eur = average_item_price) AND (fx_rate_to_eur IS NULL) AND (fx_rate_date IS NULL)) OR ((currency <> 'EUR'::text) AND (fx_rate_to_eur IS NOT NULL) AND (fx_rate_to_eur > (0)::numeric) AND (fx_rate_date IS NOT NULL) AND (market_average_eur = round((average_item_price * fx_rate_to_eur), 2)))))))",
+        "CHECK ((evidence_grade = ANY (ARRAY['verified'::text, 'indicative'::text])))",
+        "CHECK ((grain = ANY (ARRAY['monthly'::text, 'rolling_window'::text, 'full_history'::text])))",
+        "CHECK ((((release_id IS NOT NULL) AND (attribution_status = ANY (ARRAY['release_exact'::text, 'release_matched'::text]))) OR ((release_id IS NULL) AND (attribution_status = ANY (ARRAY['item_pool'::text, 'ambiguous_release'::text])))))",
+        "PRIMARY KEY (id)",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE RESTRICT",
+        "FOREIGN KEY (source_id) REFERENCES price_sources(id) ON DELETE RESTRICT",
+        "UNIQUE (source_id, query_key, period_start, period_end, item_number)",
+        "CHECK ((period_end >= period_start))",
+        "CHECK (((average_item_price > (0)::numeric) AND ((low_item_price IS NULL) OR (low_item_price >= (0)::numeric)) AND ((high_item_price IS NULL) OR (high_item_price >= (0)::numeric)) AND (((low_item_price IS NULL) AND (high_item_price IS NULL)) OR ((low_item_price IS NOT NULL) AND (high_item_price IS NOT NULL) AND (low_item_price <= average_item_price) AND (average_item_price <= high_item_price))) AND ((average_shipping IS NULL) OR (average_shipping >= (0)::numeric)) AND ((free_shipping_pct IS NULL) OR ((free_shipping_pct >= (0)::numeric) AND (free_shipping_pct <= (100)::numeric)))))"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=arw/postgres"
+      ],
+      "rls": true,
+      "name": "market_candidates",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "scan_run_id",
+          "type": "uuid",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "source_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "source_record_key",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "external_listing_id",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "original_source",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "original_record_id",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "listing_url",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "title_raw",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "item_number_observed",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "possible_release_ids",
+          "type": "uuid[]",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "resolved_release_id",
+          "type": "uuid",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "currency",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "shipping_cost",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "shipping_basis",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "observation_type",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition_raw",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "inner_bags_sealed",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "box_condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "is_complete",
+          "type": "boolean",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "is_lot",
+          "type": "boolean",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "quantity",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "match_confidence",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "match_evidence",
+          "type": "text[]",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "seller_fingerprint",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "evidence_group_key",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sold_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sold_on",
+          "type": "date",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "listing_date",
+          "type": "date",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "decision",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "reason_codes",
+          "type": "text[]",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "review_notes",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "state_hash",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "needs_revalidation",
+          "type": "boolean",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "raw_payload",
+          "type": "jsonb",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "first_observed_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "last_observed_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_candidates_pkey ON public.market_candidates USING btree (id)",
+        "CREATE UNIQUE INDEX market_candidates_source_record_unique ON public.market_candidates USING btree (source_id, source_record_key)",
+        "CREATE UNIQUE INDEX market_candidates_identity_unique ON public.market_candidates USING btree (id, source_id, resolved_release_id)",
+        "CREATE INDEX idx_market_candidates_release ON public.market_candidates USING btree (resolved_release_id, decision)",
+        "CREATE INDEX idx_market_candidates_review ON public.market_candidates USING btree (decision, needs_revalidation, last_observed_at DESC)",
+        "CREATE INDEX idx_market_candidates_original_record ON public.market_candidates USING btree (original_source, original_record_id)"
+      ],
+      "policies": null,
+      "triggers": [
+        "CREATE TRIGGER market_candidates_release_revalidation BEFORE UPDATE OF resolved_release_id ON public.market_candidates FOR EACH ROW WHEN ((old.resolved_release_id IS DISTINCT FROM new.resolved_release_id)) EXECUTE FUNCTION market_candidate_release_revalidation()",
+        "CREATE TRIGGER trg_market_candidates_auto_enroll_rcjaz AFTER INSERT OR UPDATE OF decision, match_confidence, resolved_release_id, listing_url ON public.market_candidates FOR EACH ROW EXECUTE FUNCTION trackdash_auto_enroll_rcjaz_candidate()"
+      ],
+      "constraints": [
+        "CHECK (((decision <> 'accepted'::text) OR ((resolved_release_id IS NOT NULL) AND (match_confidence IS NOT NULL) AND (match_confidence = ANY (ARRAY['exact'::text, 'strong'::text])) AND (cardinality(match_evidence) > 0))))",
+        "CHECK ((box_condition = ANY (ARRAY['normal'::text, 'significantly_damaged'::text, 'unknown'::text])))",
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text])))",
+        "CHECK ((decision = ANY (ARRAY['accepted'::text, 'needs_review'::text, 'rejected'::text, 'duplicate'::text])))",
+        "UNIQUE (id, source_id, resolved_release_id)",
+        "CHECK ((inner_bags_sealed = ANY (ARRAY['yes'::text, 'no'::text, 'unknown'::text])))",
+        "CHECK (((match_confidence IS NULL) OR (match_confidence = ANY (ARRAY['exact'::text, 'strong'::text, 'ambiguous'::text, 'rejected'::text]))))",
+        "CHECK ((match_evidence <@ ARRAY['item_number_exact'::text, 'edition_name_exact'::text, 'release_year_stated'::text, 'reissue_stated'::text, 'chassis_stated'::text, 'color_variant_match'::text, 'packaging_generation_match'::text, 'image_reviewed'::text, 'official_reference_match'::text, 'verified_endpoint_match'::text, 'manual_override'::text]))",
+        "CHECK ((last_observed_at >= first_observed_at))",
+        "CHECK ((observation_type = ANY (ARRAY['sold_confirmed'::text, 'auction_awarded'::text, 'marketplace_sold'::text, 'active_listing'::text, 'retail_in_stock'::text, 'dealer_buyback'::text, 'retail_out_of_stock'::text, 'ended_unsold'::text, 'msrp_reference'::text, 'unknown'::text])))",
+        "PRIMARY KEY (id)",
+        "CHECK (((price IS NULL) OR (price >= (0)::numeric)))",
+        "CHECK (((quantity IS NULL) OR (quantity >= 1)))",
+        "FOREIGN KEY (resolved_release_id) REFERENCES product_releases(id) ON DELETE RESTRICT",
+        "FOREIGN KEY (scan_run_id) REFERENCES market_scan_runs(id) ON DELETE SET NULL",
+        "CHECK ((shipping_basis = ANY (ARRAY['excluded'::text, 'included_exact'::text, 'included_unknown'::text, 'buyer_paid'::text, 'unknown'::text])))",
+        "CHECK (((shipping_cost IS NULL) OR (shipping_cost >= (0)::numeric)))",
+        "FOREIGN KEY (source_id) REFERENCES price_sources(id) ON DELETE RESTRICT",
+        "UNIQUE (source_id, source_record_key)"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=arw/postgres"
+      ],
+      "rls": true,
+      "name": "market_monthly_source_stats",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "release_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "source_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "month",
+          "type": "date",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "query_key",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "query_description",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sales_count",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "seller_count",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "average_price",
+          "type": "numeric(12,2)",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "low_price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "high_price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "average_shipping",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "currency",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_average_eur",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_to_eur",
+          "type": "numeric(18,8)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_date",
+          "type": "date",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "evidence_grade",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "provenance_url",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "captured_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "raw_payload",
+          "type": "jsonb",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_monthly_source_stats_unique ON public.market_monthly_source_stats USING btree (release_id, source_id, month, condition, query_key)",
+        "CREATE UNIQUE INDEX market_monthly_source_stats_pkey ON public.market_monthly_source_stats USING btree (id)",
+        "CREATE INDEX idx_market_monthly_source_stats_release_month ON public.market_monthly_source_stats USING btree (release_id, condition, month DESC)",
+        "CREATE INDEX idx_market_monthly_source_stats_source_month ON public.market_monthly_source_stats USING btree (source_id, month DESC)"
+      ],
+      "policies": null,
+      "triggers": null,
+      "constraints": [
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text])))",
+        "CHECK (((sales_count >= 1) AND ((seller_count IS NULL) OR ((seller_count >= 1) AND (seller_count <= sales_count)))))",
+        "CHECK (((market_average_eur IS NULL) OR ((market_average_eur > (0)::numeric) AND (((currency = 'EUR'::text) AND (market_average_eur = average_price) AND (fx_rate_to_eur IS NULL) AND (fx_rate_date IS NULL)) OR ((currency <> 'EUR'::text) AND (fx_rate_to_eur IS NOT NULL) AND (fx_rate_to_eur > (0)::numeric) AND (fx_rate_date IS NOT NULL) AND (market_average_eur = round((average_price * fx_rate_to_eur), 2)))))))",
+        "CHECK ((evidence_grade = ANY (ARRAY['verified'::text, 'indicative'::text])))",
+        "CHECK ((month = (date_trunc('month'::text, (month)::timestamp with time zone))::date))",
+        "PRIMARY KEY (id)",
+        "CHECK (((average_price > (0)::numeric) AND ((low_price IS NULL) OR (low_price >= (0)::numeric)) AND ((high_price IS NULL) OR (high_price >= (0)::numeric)) AND (((low_price IS NULL) AND (high_price IS NULL)) OR ((low_price IS NOT NULL) AND (high_price IS NOT NULL) AND (low_price <= average_price) AND (average_price <= high_price))) AND ((average_shipping IS NULL) OR (average_shipping >= (0)::numeric))))",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE RESTRICT",
+        "FOREIGN KEY (source_id) REFERENCES price_sources(id) ON DELETE RESTRICT",
+        "UNIQUE (release_id, source_id, month, condition, query_key)"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=arw/postgres"
+      ],
+      "rls": true,
+      "name": "market_offer_states",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "candidate_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "release_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "source_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "channel",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "availability",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "seller_fingerprint",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "item_price",
+          "type": "numeric(12,2)",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "shipping_price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "currency",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "item_price_eur",
+          "type": "numeric(12,2)",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "shipping_eur",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "effective_cost_eur",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "cost_basis",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_to_eur",
+          "type": "numeric(18,8)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_date",
+          "type": "date",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "first_seen_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": [
+            "trackdash_app=r/postgres"
+          ],
+          "name": "last_checked_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "changed_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX market_offer_states_pkey ON public.market_offer_states USING btree (id)",
+        "CREATE UNIQUE INDEX market_offer_states_candidate_unique ON public.market_offer_states USING btree (candidate_id)",
+        "CREATE INDEX idx_market_offer_states_release_current ON public.market_offer_states USING btree (release_id, condition, channel, availability)",
+        "CREATE INDEX idx_market_offer_states_source ON public.market_offer_states USING btree (source_id, last_checked_at DESC)"
+      ],
+      "policies": [
+        {
+          "cmd": "SELECT",
+          "qual": "((condition = 'new_complete_unbuilt'::text) AND (availability = ANY (ARRAY['in_stock'::text, 'low_stock'::text])))",
+          "roles": [
+            "trackdash_app"
+          ],
+          "tablename": "market_offer_states",
+          "permissive": "PERMISSIVE",
+          "policyname": "market_offer_states_trackdash_runtime_read",
+          "schemaname": "public",
+          "with_check": null
+        }
+      ],
+      "triggers": null,
+      "constraints": [
+        "CHECK ((availability = ANY (ARRAY['in_stock'::text, 'low_stock'::text, 'preorder'::text, 'backorder'::text, 'out_of_stock'::text, 'discontinued'::text, 'unknown'::text])))",
+        "FOREIGN KEY (candidate_id, source_id, release_id) REFERENCES market_candidates(id, source_id, resolved_release_id) ON UPDATE CASCADE ON DELETE RESTRICT",
+        "UNIQUE (candidate_id)",
+        "CHECK ((channel = ANY (ARRAY['retail'::text, 'marketplace'::text])))",
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text])))",
+        "CHECK ((((cost_basis = 'delivered'::text) AND (shipping_eur IS NOT NULL) AND (shipping_eur >= (0)::numeric) AND (effective_cost_eur = (item_price_eur + shipping_eur))) OR ((cost_basis = 'item_only'::text) AND (effective_cost_eur IS NULL))))",
+        "PRIMARY KEY (id)",
+        "CHECK (((item_price > (0)::numeric) AND (item_price_eur > (0)::numeric)))",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE RESTRICT",
+        "CHECK (((shipping_price IS NULL) OR (shipping_price >= (0)::numeric)))",
+        "FOREIGN KEY (source_id) REFERENCES price_sources(id) ON DELETE RESTRICT",
+        "CHECK (((last_checked_at >= first_seen_at) AND (changed_at >= first_seen_at)))"
+      ]
+    },
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "authenticated=r/postgres",
+        "trackdash_app=r/postgres",
+        "service_role=arw/postgres"
+      ],
+      "rls": true,
+      "name": "price_points",
+      "columns": [
+        {
+          "acl": null,
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "candidate_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "release_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "source_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "observation_type",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "price",
+          "type": "numeric(12,2)",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "currency",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "shipping_cost",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "shipping_basis",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "valuation_price",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "normalized_price_eur",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_to_eur",
+          "type": "numeric(18,8)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "fx_rate_date",
+          "type": "date",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "inner_bags_sealed",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "box_condition",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "is_complete",
+          "type": "boolean",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "is_lot",
+          "type": "boolean",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "quantity",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "match_confidence",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "match_evidence",
+          "type": "text[]",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "evidence_group_key",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "valuation_eligible",
+          "type": "boolean",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "status",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "needs_revalidation",
+          "type": "boolean",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "sold_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "sold_on",
+          "type": "date",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "evidence_grade",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "quality_flags",
+          "type": "text[]",
+          "notnull": true
+        },
+        {
+          "acl": null,
+          "name": "market_price_eur",
+          "type": "numeric(12,2)",
+          "notnull": false
+        },
+        {
+          "acl": null,
+          "name": "market_price_basis",
+          "type": "text",
+          "notnull": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX price_points_pkey ON public.price_points USING btree (id)",
+        "CREATE UNIQUE INDEX price_points_candidate_unique ON public.price_points USING btree (candidate_id)",
+        "CREATE INDEX idx_price_points_release_condition ON public.price_points USING btree (release_id, condition)",
+        "CREATE INDEX idx_price_points_sold ON public.price_points USING btree (release_id, sold_on, sold_at)",
+        "CREATE INDEX idx_price_points_valuation ON public.price_points USING btree (release_id, condition, valuation_eligible, status, needs_revalidation, sold_on, sold_at)",
+        "CREATE INDEX idx_price_points_evidence_group ON public.price_points USING btree (release_id, condition, evidence_group_key)",
+        "CREATE INDEX idx_price_points_market_quality ON public.price_points USING btree (release_id, condition, valuation_eligible, evidence_grade, sold_on DESC)"
+      ],
+      "policies": [
+        {
+          "cmd": "SELECT",
+          "qual": "true",
+          "roles": [
+            "authenticated"
+          ],
+          "tablename": "price_points",
+          "permissive": "PERMISSIVE",
+          "policyname": "price_points_authenticated_read",
+          "schemaname": "public",
+          "with_check": null
+        }
+      ],
+      "triggers": [
+        "CREATE TRIGGER prevent_price_point_hard_delete BEFORE DELETE ON public.price_points FOR EACH ROW EXECUTE FUNCTION prevent_price_point_hard_delete()",
+        "CREATE TRIGGER price_points_queue_market_recompute AFTER INSERT OR DELETE OR UPDATE ON public.price_points FOR EACH ROW EXECUTE FUNCTION trackdash_queue_recompute_from_price_point()"
+      ],
+      "constraints": [
+        "CHECK ((box_condition = ANY (ARRAY['normal'::text, 'significantly_damaged'::text, 'unknown'::text])))",
+        "FOREIGN KEY (candidate_id) REFERENCES market_candidates(id) ON DELETE RESTRICT",
+        "FOREIGN KEY (candidate_id, source_id, release_id) REFERENCES market_candidates(id, source_id, resolved_release_id) ON UPDATE CASCADE ON DELETE RESTRICT",
+        "UNIQUE (candidate_id)",
+        "CHECK ((condition = ANY (ARRAY['new_complete_unbuilt'::text, 'built_complete'::text, 'incomplete_parts_custom'::text, 'unknown'::text])))",
+        "CHECK ((evidence_grade = ANY (ARRAY['verified'::text, 'indicative'::text])))",
+        "CHECK (((valuation_price IS NULL) OR ((currency = 'EUR'::text) AND (normalized_price_eur = valuation_price) AND (fx_rate_to_eur IS NULL) AND (fx_rate_date IS NULL)) OR ((currency <> 'EUR'::text) AND (fx_rate_to_eur IS NOT NULL) AND (fx_rate_to_eur > (0)::numeric) AND (fx_rate_date IS NOT NULL) AND (normalized_price_eur = round((valuation_price * fx_rate_to_eur), 2)))))",
+        "CHECK ((inner_bags_sealed = ANY (ARRAY['yes'::text, 'no'::text, 'unknown'::text])))",
+        "CHECK (((market_price_eur IS NULL) OR ((currency = 'EUR'::text) AND (fx_rate_to_eur IS NULL) AND (fx_rate_date IS NULL) AND (market_price_eur = round(\nCASE\n    WHEN ((market_price_basis = 'shipping_adjusted'::text) AND (shipping_basis = 'included_exact'::text)) THEN (price - shipping_cost)\n    ELSE price\nEND, 2))) OR ((currency <> 'EUR'::text) AND (fx_rate_to_eur IS NOT NULL) AND (fx_rate_to_eur > (0)::numeric) AND (fx_rate_date IS NOT NULL) AND (market_price_eur = round((\nCASE\n    WHEN ((market_price_basis = 'shipping_adjusted'::text) AND (shipping_basis = 'included_exact'::text)) THEN (price - shipping_cost)\n    ELSE price\nEND * fx_rate_to_eur), 2)))))",
+        "CHECK (((market_price_basis IS NULL) OR (market_price_basis = ANY (ARRAY['shipping_adjusted'::text, 'raw_sale'::text]))))",
+        "CHECK ((((market_price_eur IS NULL) AND (market_price_basis IS NULL)) OR ((market_price_eur IS NOT NULL) AND (market_price_eur > (0)::numeric) AND (market_price_basis IS NOT NULL))))",
+        "CHECK ((match_confidence = ANY (ARRAY['exact'::text, 'strong'::text])))",
+        "CHECK (((cardinality(match_evidence) > 0) AND (match_evidence <@ ARRAY['item_number_exact'::text, 'edition_name_exact'::text, 'release_year_stated'::text, 'reissue_stated'::text, 'chassis_stated'::text, 'color_variant_match'::text, 'packaging_generation_match'::text, 'image_reviewed'::text, 'official_reference_match'::text, 'manual_override'::text])))",
+        "CHECK ((observation_type = ANY (ARRAY['sold_confirmed'::text, 'auction_awarded'::text, 'marketplace_sold'::text])))",
+        "PRIMARY KEY (id)",
+        "CHECK ((price >= (0)::numeric))",
+        "CHECK ((quality_flags <@ ARRAY['seller_unknown'::text, 'shipping_unknown'::text, 'completeness_unconfirmed'::text, 'condition_inferred'::text, 'inner_bags_unknown'::text, 'box_condition_unknown'::text]))",
+        "CHECK (((quantity IS NULL) OR (quantity >= 1)))",
+        "FOREIGN KEY (release_id) REFERENCES product_releases(id) ON DELETE RESTRICT",
+        "CHECK ((shipping_basis = ANY (ARRAY['excluded'::text, 'included_exact'::text, 'included_unknown'::text, 'buyer_paid'::text, 'unknown'::text])))",
+        "CHECK (((shipping_cost IS NULL) OR (shipping_cost >= (0)::numeric)))",
+        "CHECK ((((shipping_basis = ANY (ARRAY['included_unknown'::text, 'unknown'::text])) AND (valuation_price IS NULL) AND (normalized_price_eur IS NULL)) OR ((shipping_basis = ANY (ARRAY['excluded'::text, 'buyer_paid'::text])) AND (valuation_price = price)) OR ((shipping_basis = 'included_exact'::text) AND (shipping_cost IS NOT NULL) AND (price >= shipping_cost) AND (valuation_price = (price - shipping_cost)))))",
+        "FOREIGN KEY (source_id) REFERENCES price_sources(id) ON DELETE RESTRICT",
+        "CHECK ((status = ANY (ARRAY['active'::text, 'excluded'::text, 'reversed'::text])))",
+        "CHECK (((valuation_eligible = false) OR ((status = 'active'::text) AND (needs_revalidation = false) AND (observation_type = ANY (ARRAY['sold_confirmed'::text, 'auction_awarded'::text, 'marketplace_sold'::text])) AND (condition <> ALL (ARRAY['built_complete'::text, 'incomplete_parts_custom'::text])) AND (match_confidence = ANY (ARRAY['exact'::text, 'strong'::text])) AND (cardinality(match_evidence) > 0) AND (is_complete IS DISTINCT FROM false) AND (is_lot IS DISTINCT FROM true) AND ((quantity IS NULL) OR (quantity = 1)) AND (evidence_group_key IS NOT NULL) AND (market_price_eur IS NOT NULL) AND (market_price_eur > (0)::numeric) AND (sold_on IS NOT NULL) AND (evidence_grade = ANY (ARRAY['verified'::text, 'indicative'::text])))))"
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "name": "authenticated",
+      "inherit": true,
+      "bypassrls": false,
+      "superuser": false
+    },
+    {
+      "name": "anon",
+      "inherit": true,
+      "bypassrls": false,
+      "superuser": false
+    },
+    {
+      "name": "service_role",
+      "inherit": true,
+      "bypassrls": true,
+      "superuser": false
+    },
+    {
+      "name": "authenticator",
+      "inherit": false,
+      "bypassrls": false,
+      "superuser": false
+    },
+    {
+      "name": "trackdash_app",
+      "inherit": true,
+      "bypassrls": false,
+      "superuser": false
+    }
+  ],
+  "logging": [
+    {
+      "name": "log_min_error_statement",
+      "setting": "error"
+    },
+    {
+      "name": "log_parameter_max_length",
+      "setting": "-1"
+    },
+    {
+      "name": "log_parameter_max_length_on_error",
+      "setting": "0"
+    },
+    {
+      "name": "log_statement",
+      "setting": "ddl"
+    },
+    {
+      "name": "pgaudit.log",
+      "setting": "none"
+    },
+    {
+      "name": "pgaudit.log_parameter",
+      "setting": "off"
+    }
+  ],
+  "migrationVersions": [
+    "20261016105840",
+    "20261011144454",
+    "20261011135621",
+    "20261011135600",
+    "20261010210720",
+    "20261010203508",
+    "20261010202705",
+    "20261010184043",
+    "20261010183918",
+    "20261010183702",
+    "20261009204117",
+    "20261009084713"
+  ],
+  "extensions": [
+    {
+      "name": "plpgsql",
+      "version": "1.0"
+    },
+    {
+      "name": "pg_stat_statements",
+      "version": "1.11"
+    },
+    {
+      "name": "uuid-ossp",
+      "version": "1.1"
+    },
+    {
+      "name": "pgcrypto",
+      "version": "1.3"
+    },
+    {
+      "name": "supabase_vault",
+      "version": "0.3.1"
+    }
+  ]
+}

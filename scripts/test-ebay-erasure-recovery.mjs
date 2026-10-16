@@ -64,3 +64,24 @@ assert.equal((await workerRoute.POST(request())).status,401)
 assert.equal(globalThis.__p06AdminCalls,0)
 delete process.env.EBAY_ERASURE_WORKER_ENABLED;delete globalThis.__p06AdminCalls
 console.log('PASS worker/monitor endpoint disabled by default and unauthorized requests never access the database')
+
+// A failure in the first recovery poll used to collapse PGRST303 to FAILED.
+// Keep only the allowlisted code, never the database error message/details.
+process.env.EBAY_ERASURE_WORKER_ENABLED='true'
+process.env.EBAY_ERASURE_RECOVERY_TOKEN='synthetic-recovery-token-for-isolated-test'
+process.env.EBAY_ERASURE_ALERT_URL='https://alarms.invalid/'
+process.env.EBAY_ERASURE_ALERT_TOKEN='synthetic-alert-token'
+globalThis.__p06Client={rpc(){const b={retry(){return b},abortSignal(){return Promise.resolve({error:{code:'PGRST303',message:message.identifiers.username,details:message.identifiers.eiasToken}})}};return b}}
+const tickLogs=[],originalInfo=console.info
+try{
+ console.info=(line)=>tickLogs.push(line)
+ response=await workerRoute.POST(new Request('https://local.invalid/recovery',{method:'POST',headers:{authorization:'Bearer '+process.env.EBAY_ERASURE_RECOVERY_TOKEN}}))
+ assert.equal(response.status,503)
+ assert.ok(tickLogs.some(line=>line==='[ebay-erasure-recovery] operation=tick code=PGRST303'))
+ for(const value of [...Object.values(message.identifiers),process.env.EBAY_ERASURE_RECOVERY_TOKEN,process.env.EBAY_ERASURE_ALERT_TOKEN])assert.ok(!JSON.stringify(tickLogs).includes(value))
+}finally{
+ console.info=originalInfo
+ for(const key of ['EBAY_ERASURE_WORKER_ENABLED','EBAY_ERASURE_RECOVERY_TOKEN','EBAY_ERASURE_ALERT_URL','EBAY_ERASURE_ALERT_TOKEN'])delete process.env[key]
+ delete globalThis.__p06Client;delete globalThis.__p06AdminCalls
+}
+console.log('PASS initial recovery poll preserves PGRST303 without personal data or secrets in diagnostics')
