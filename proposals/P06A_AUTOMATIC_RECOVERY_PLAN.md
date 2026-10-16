@@ -1,5 +1,7 @@
 # P0.6A — recupero automatico implementato, non attivato
 
+> A1: ingress suppression DB implementata e testata, vedi `P06A_A1_REVIEW.md`. A2–A5 restano aperti; nessuna attivazione o servizio esterno aggiunto. Le ipotesi multi-provider del preflight precedente non sono una soluzione selezionata.
+
 > Preflight finale: `P06A_PREFLIGHT.md`. Rilascio bloccato da reintroduzione ingestion dimostrata, indipendenza operativa non implementata e gate schema/runtime/DR. Il meccanismo locale non è una garanzia operativa già attiva.
 
 Il piano precedente è stato implementato localmente. SQL, prove, costi, limiti e sequenza di rilascio sono in `P06A_REVIEW.md`. Nessun worker, cron, servizio, chiave o migrazione Production attivato. La Draft PR è una richiesta di revisione, non un'autorizzazione al rilascio.

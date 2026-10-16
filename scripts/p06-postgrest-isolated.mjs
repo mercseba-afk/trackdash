@@ -2,6 +2,7 @@ import {spawn,spawnSync} from 'node:child_process'
 import {randomBytes,createHmac} from 'node:crypto'
 import {readFileSync} from 'node:fs'
 import {localDatabase} from './p06-local-postgres.mjs'
+import {suppressionFixture,suppressionVault} from './p06-suppression-fixture.mjs'
 export async function isolatedPostgrest(){
  const startedAt=new Date().toISOString()
  const d=localDatabase('p06r'),pg=process.env.P06_TEST_CONTAINER||'trackdash-p06-isolated',rest='trackdash-p06-rest-'+randomBytes(5).toString('hex')
@@ -20,7 +21,9 @@ export async function isolatedPostgrest(){
  d.sql(file==='0070_market_method_v2_recent_value_windows.sql'?readFileSync('supabase/migrations/'+file,'utf8').split('with src as (')[0]:file==='0096_market_audit_source_identity.sql'?readFileSync('supabase/migrations/'+file,'utf8').split('-- Explicit source geography.')[0]:readFileSync('supabase/migrations/'+file,'utf8'))}catch(e){throw Error('Schema fixture '+file+': '+e.message)}}
  const policy=readFileSync('supabase/migrations/0083_market_automation_v1_pilot.sql','utf8').match(/create table if not exists public\.market_source_policies \([\s\S]*?\n\);/)[0]
  d.sql(policy+`;grant usage on schema public to service_role,anon,authenticated;grant select on market_source_policies,product_releases to service_role;`)
- for(const file of ['p06a-ebay-erasure.sql','p06a-recovery-and-fence.sql'])d.sql(readFileSync('proposals/'+file,'utf8'))
+ suppressionVault(d)
+ for(const file of ['p06a-ebay-erasure.sql','p06a-recovery-and-fence.sql','p06a-ingress-suppression.sql'])d.sql(readFileSync('proposals/'+file,'utf8'))
+ suppressionFixture(d)
  d.sql('update trackdash_erasure.fence set guard_enabled=true;')
  const port=15000+randomBytes(2).readUInt16BE()%20000
  const nodePath='/tmp/p06-node-'+d.db

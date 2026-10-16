@@ -107,22 +107,26 @@ begin
   if coalesce(cardinality(identifiers),0)=0 then raise exception 'EBAY_ERASURE_INVALID'; end if;
   if not (select guard_enabled from trackdash_erasure.fence where singleton) then raise exception 'EBAY_GUARD_REQUIRED'; end if;
   update trackdash_erasure.fence set epoch=epoch+1 where singleton;
+  phase:='suppression';
+  perform trackdash_erasure.remember(identifiers);
   phase:='source_lookup';
   select array_agg(id) into ids from (
    select source_id as id from public.market_source_policies where source_family='ebay'
-   union select id from public.price_sources where slug like 'ebay_%') s;
+   union select id from public.price_sources where slug like 'ebay\_%' escape '\'
+   union select source_id from trackdash_erasure.erasure_sources()) s;
   phase:='candidates';
   with examined as materialized (
    select id,resolved_release_id,condition,seller_fingerprint,evidence_group_key,raw_payload,
    trackdash_erasure.redact(raw_payload,identifiers) as redacted
-   from public.market_candidates where source_id=any(ids)
+   ,trackdash_erasure.has_personal(to_jsonb(mc),identifiers) as has_personal
+   from public.market_candidates mc where source_id=any(ids) and trackdash_erasure.has_personal(to_jsonb(mc),identifiers)
   ), updated as (
    update public.market_candidates t set
     seller_fingerprint=case when trackdash_erasure.matches(t.seller_fingerprint,identifiers) then null else t.seller_fingerprint end,
     evidence_group_key=case when trackdash_erasure.matches(t.seller_fingerprint,identifiers) or trackdash_erasure.matches(t.evidence_group_key,identifiers) then null else t.evidence_group_key end,
     raw_payload=trackdash_erasure.redact(t.raw_payload,identifiers),updated_at=now()
    from examined x where t.id=x.id and (trackdash_erasure.matches(x.seller_fingerprint,identifiers)
-    or trackdash_erasure.matches(x.evidence_group_key,identifiers) or x.raw_payload is distinct from x.redacted)
+    or trackdash_erasure.matches(x.evidence_group_key,identifiers) or x.raw_payload is distinct from x.redacted or x.has_personal)
    returning t.id,t.resolved_release_id as release_id,t.condition
   ) select count(*),array_agg(id),coalesce(jsonb_agg(jsonb_build_object('release_id',release_id,'condition',condition)) filter(where release_id is not null),'[]')
    into c,candidates,changed from updated;
@@ -130,7 +134,7 @@ begin
   phase:='offers';
   with updated as (
    update public.market_offer_states set seller_fingerprint=null,updated_at=now()
-   where source_id=any(ids) and trackdash_erasure.matches(seller_fingerprint,identifiers)
+   where source_id=any(ids) and trackdash_erasure.has_personal(to_jsonb(market_offer_states),identifiers)
    returning release_id,condition
   ) select count(*),coalesce(jsonb_agg(jsonb_build_object('release_id',release_id,'condition',condition)),'[]') into o,changed from updated;
   affected:=affected||changed;
@@ -138,17 +142,17 @@ begin
   with updated as (
    update public.price_points set evidence_group_key=null,valuation_eligible=false,evidence_grade='indicative',
     quality_flags=case when 'seller_unknown'=any(quality_flags) then quality_flags else array_append(quality_flags,'seller_unknown') end,updated_at=now()
-   where source_id=any(ids) and (candidate_id=any(candidates) or trackdash_erasure.matches(evidence_group_key,identifiers))
+   where source_id=any(ids) and (candidate_id=any(candidates) or trackdash_erasure.has_personal(to_jsonb(price_points),identifiers))
    returning release_id,condition
   ) select count(*),coalesce(jsonb_agg(jsonb_build_object('release_id',release_id,'condition',condition)),'[]') into pp,changed from updated;
   affected:=affected||changed;
   phase:='aggregates';
   update public.market_aggregate_observations set raw_payload=trackdash_erasure.redact(raw_payload,identifiers),updated_at=now()
-   where source_id=any(ids) and raw_payload is distinct from trackdash_erasure.redact(raw_payload,identifiers);
+   where source_id=any(ids) and trackdash_erasure.has_personal(to_jsonb(market_aggregate_observations),identifiers);
   get diagnostics a=row_count;
   phase:='monthly';
   update public.market_monthly_source_stats set raw_payload=trackdash_erasure.redact(raw_payload,identifiers),updated_at=now()
-   where source_id=any(ids) and raw_payload is distinct from trackdash_erasure.redact(raw_payload,identifiers);
+   where source_id=any(ids) and trackdash_erasure.has_personal(to_jsonb(market_monthly_source_stats),identifiers);
   get diagnostics m=row_count;
   phase:='outbox';
   for record in select distinct v from jsonb_array_elements(affected) x(v) loop

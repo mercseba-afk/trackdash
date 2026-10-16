@@ -44,7 +44,7 @@
     "market:ui:test": "node scripts/test-market-ui.mjs",
     "market:ui:browser": "node scripts/test-market-ui-browser.mjs",
     "ebay:erasure:postgres:test": "node scripts/test-ebay-erasure-postgres.mjs",
-    "ebay:erasure:e2e:test": "node scripts/test-ebay-erasure-postgrest.mjs"
+    "ebay:erasure:e2e:test": "node scripts/test-ebay-erasure-postgrest.mjs && node scripts/test-ebay-erasure-ingress.mjs && node scripts/audit-p06a-preflight.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

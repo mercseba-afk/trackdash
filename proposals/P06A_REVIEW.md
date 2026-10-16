@@ -1,5 +1,7 @@
 # P0.6A — rapporto tecnico per revisione Draft
 
+> Chiusura locale A1: `P06A_A1_REVIEW.md` aggiorna SQL, enforcement ingressi, chiavi private e matrice di regressione. A2–A5 e il NO-GO complessivo restano. Le descrizioni storiche di sole due proposte/sei tabelle non includono la terza proposta A1, mai applicata in Production.
+
 > Preflight 16/10: **NO-GO rilascio**. Vedi `P06A_PREFLIGHT.md` per confronto schema gestito, riproduzione della reintroduzione da ingestion, architettura worker/monitor e rollout/rollback. La modalità monitor attuale non è un dominio indipendente. Le verifiche funzionali sotto non chiudono quei gate.
 
 Base ricontrollata: GitHub main e Vercel Production READY `f8e27c0f72458a4daeac7e98323981fb0cfeb4ce`. Branch `fix/p06a-ebay-erasure-recovery-20261016`, ripresa dalla patch locale precedente. P0.6B/PR #429 resta indipendente. Nessuna modifica a Production, credenziali esistenti, scanner, cron, Release o formule MV/SOLD/ASK. Questo codice non è attivato e non certifica il completamento delle notifiche storiche del 16 ottobre.

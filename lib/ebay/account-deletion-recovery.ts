@@ -116,7 +116,7 @@ function recoveryRpc(client: SupabaseClient, key: string, digest: string, deadli
       }).retry(false).abortSignal(AbortSignal.timeout(Math.max(1, Math.min(12_000, deadline - started))))
       if (result.error) {
         const sqlCode = /^(?:[A-Z0-9]{5}|PGRST[0-9]{3})$/.test(result.error.code ?? "") ? result.error.code : "UNKNOWN"
-        const phases = new Set(["register", "notification_lock", "source_lookup", "candidates", "offers", "price_points", "aggregates", "monthly", "outbox", "claim", "publish"])
+        const phases = new Set(["register", "notification_lock", "suppression", "source_lookup", "candidates", "offers", "price_points", "aggregates", "monthly", "outbox", "claim", "publish"])
         const phase = phases.has(result.error.details ?? "") ? result.error.details : operation
         throw new EbayRecoveryError(phase, sqlCode)
       }

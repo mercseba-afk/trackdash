@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {readFileSync} from 'node:fs'
 import {localDatabase} from './p06-local-postgres.mjs'
+import {suppressionFixture,suppressionVault} from './p06-suppression-fixture.mjs'
 const d=localDatabase('p06a'),q=v=>"'"+String(v).replaceAll("'","''")+"'"
 const key='1'.repeat(64),digest='a'.repeat(64),other='2'.repeat(64)
 const rpc=(action,data={},k=key)=>`select public.trackdash_ebay_erasure(${q(action)},${q(k)},${q(digest)},${q(JSON.stringify(action==='register'?{sealed:{keyId:'test'},...data}:data))}::jsonb);`
@@ -8,7 +9,7 @@ const asService=s=>'set role service_role;'+s
 const run=(a,data={},k=key)=>d.json(asService(rpc(a,data,k)))
 const release='00000000-0000-4000-8000-000000000009',condition='new_complete_unbuilt'
 const seed=()=>{
- d.sql(`truncate trackdash_erasure.notifications,trackdash_erasure.recomputes,trackdash_erasure.notification_work,public.market_candidates,public.market_offer_states,public.price_points,public.market_aggregate_observations,public.market_monthly_source_stats,public.price_sources,public.market_source_policies,public.product_releases,public.market_release_signals,public.market_release_monthly_signals,public.market_release_ask_snapshots cascade;
+ d.sql(`truncate trackdash_erasure.suppressed_candidates,trackdash_erasure.suppressed_identities,trackdash_erasure.notifications,trackdash_erasure.recomputes,trackdash_erasure.notification_work,public.market_candidates,public.market_offer_states,public.price_points,public.market_aggregate_observations,public.market_monthly_source_stats,public.price_sources,public.market_source_policies,public.product_releases,public.market_release_signals,public.market_release_monthly_signals,public.market_release_ask_snapshots cascade;
  insert into product_releases values('${release}');
  insert into price_sources values('00000000-0000-4000-8000-000000000001','ebay_active',true),('00000000-0000-4000-8000-000000000002','ebay_legacy',false),('00000000-0000-4000-8000-000000000003','retail',true);
  insert into market_source_policies values('00000000-0000-4000-8000-000000000001','ebay');
@@ -24,7 +25,7 @@ const erase=()=>run('erase',{identifiers:['synthetic-target']})
 const publication=claim=>({...claim,writes:[{table:'market_release_signals',row:{release_id:release,condition,market_value_eur:12.5}},{table:'market_release_ask_snapshots',row:{release_id:release,condition,snapshot_date:'2026-10-16',typical_eur:10}}]})
 const state=()=>d.json(`select jsonb_build_object('seller',(select seller_fingerprint from market_candidates where id='00000000-0000-4000-8000-000000000010'),'eligible',(select valuation_eligible from price_points),'job',(select state from trackdash_erasure.notifications where notification_key='${key}'));`)
 try{
- d.sql(readFileSync('scripts/fixtures/p06a-schema.sql','utf8'));d.sql(readFileSync('proposals/p06a-ebay-erasure.sql','utf8'));d.sql(readFileSync('proposals/p06a-recovery-and-fence.sql','utf8'));d.sql('update trackdash_erasure.fence set guard_enabled=true;')
+ d.sql(readFileSync('scripts/fixtures/p06a-schema.sql','utf8'));d.sql(readFileSync('proposals/p06a-ebay-erasure.sql','utf8'));d.sql(readFileSync('proposals/p06a-recovery-and-fence.sql','utf8'));suppressionVault(d);d.sql(readFileSync('proposals/p06a-ingress-suppression.sql','utf8'));suppressionFixture(d);d.sql('update trackdash_erasure.fence set guard_enabled=true;')
  seed();const out=erase();assert.equal(out.state,'erased');assert.equal(out.result.candidates,1);assert.equal(out.result.price_points,1);assert.equal(state().eligible,false)
  assert.equal(d.json(`select to_jsonb(seller_fingerprint) from market_candidates where id='00000000-0000-4000-8000-000000000011'`),'ebay:synthetic-target')
  assert.equal(run('erase',{identifiers:['synthetic-target']}).result.candidates,1)
@@ -44,6 +45,8 @@ try{
   d.sql(`create function public.p06_failure() returns trigger language plpgsql as $$begin raise exception 'synthetic phase failure';end$$;create trigger p06_failure before insert or update on ${name} for each statement execute function public.p06_failure();`)
   const failure=d.sql(asService(rpc('erase',{identifiers:['synthetic-target']})),true)
   assert.notEqual(failure.status,0)
+  assert.equal(d.json('select count(*) from trackdash_erasure.suppressed_identities'),0)
+  assert.equal(d.json('select count(*) from trackdash_erasure.suppressed_candidates'),0)
   const phase={market_candidates:'candidates',market_offer_states:'offers',price_points:'price_points',market_aggregate_observations:'aggregates',market_monthly_source_stats:'monthly','trackdash_erasure.notification_work':'outbox'}[table]
   assert.ok(failure.stderr.includes('DETAIL:  '+phase),failure.stderr)
   assert.ok(!failure.stderr.includes('synthetic phase failure'))
