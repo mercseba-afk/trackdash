@@ -50,9 +50,17 @@ function hasMarketEvidence(signal: ReleaseMarketSignalView): boolean {
 
 export function MarketScreen({ products }: { products: Product[] }) {
   const { locale } = useI18n()
-  const { user } = useStore()
+  const { user, hydrated } = useStore()
   const it = locale === "it"
   const marketSignals = useMarketSignals()
+  // The target can mount after session restoration or a Next.js navigation.
+  React.useEffect(() => {
+    if (!hydrated || window.location.hash !== "#live-market") return
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("live-market")?.scrollIntoView({ block: "start", behavior: "instant" })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hydrated, Boolean(user)])
   const marketPath = localizePublicPath("/market", locale)
   const liveLoginHref = `/login?next=${encodeURIComponent(`${marketPath}#live-market`)}`
   const liveSignupHref = `/signup?next=${encodeURIComponent(`${marketPath}#live-market`)}`
@@ -146,7 +154,8 @@ export function MarketScreen({ products }: { products: Product[] }) {
 
   return (
     <div className="flex flex-col gap-8 md:gap-10">
-      <section data-reveal="hero" className="relative overflow-hidden rounded-[28px] border border-[#d9e4f2] bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_58%,#f8fafc_100%)] px-5 py-8 shadow-[0_18px_50px_rgba(15,56,120,0.08)] md:px-8 md:py-12 lg:px-12 lg:py-14">
+      {!user ? <>
+      <section className="relative overflow-hidden rounded-[28px] border border-[#d9e4f2] bg-[linear-gradient(135deg,#f8fbff_0%,#eef5ff_58%,#f8fafc_100%)] px-5 py-8 shadow-[0_18px_50px_rgba(15,56,120,0.08)] md:px-8 md:py-12 lg:px-12 lg:py-14">
         <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full border-[28px] border-white/70" />
         <div className="pointer-events-none absolute -bottom-20 right-20 h-40 w-80 rotate-[-8deg] rounded-[999px] border border-[#c9dcf7] opacity-70" />
         <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
@@ -157,15 +166,9 @@ export function MarketScreen({ products }: { products: Product[] }) {
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-6 text-[#55708f] md:text-base md:leading-7">{copy.intro}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              {user ? (
-                <a href="#live-market" className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-                  {copy.explore} <ArrowRight className="size-4" />
-                </a>
-              ) : (
-                <Link href={liveSignupHref} className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
-                  {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
-                </Link>
-              )}
+              <Link href={liveSignupHref} className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">
+                {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
+              </Link>
               <Link href={localizePublicPath("/catalog", locale)} className="inline-flex h-11 items-center rounded-md border border-[#c9d9eb] bg-white px-4 text-sm font-semibold text-navy transition hover:bg-[#f4f8fd]">
                 {copy.catalog}
               </Link>
@@ -194,7 +197,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section data-reveal className="grid gap-6 rounded-[28px] border border-border bg-white p-5 md:p-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
+      <section className="grid gap-6 rounded-[28px] border border-border bg-white p-5 md:p-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
         <div>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">{copy.signalsKicker}</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-navy md:text-4xl">{copy.signalsTitle}</h2>
@@ -207,7 +210,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section data-reveal className="grid overflow-hidden rounded-[28px] border border-[#173f79] bg-navy text-white lg:grid-cols-[1fr_0.95fr]">
+      <section className="grid overflow-hidden rounded-[28px] border border-[#173f79] bg-navy text-white lg:grid-cols-[1fr_0.95fr]">
         <div className="p-6 md:p-9 lg:p-10">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8c8ff]">{copy.resultKicker}</p>
           <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-0.035em] md:text-4xl">{copy.resultTitle}</h2>
@@ -227,7 +230,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section data-reveal className="grid gap-6 rounded-[28px] border border-[#eadfca] bg-[#fffaf1] p-5 md:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-10">
+      <section className="grid gap-6 rounded-[28px] border border-[#eadfca] bg-[#fffaf1] p-5 md:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-10">
         <div>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a66a19]">{copy.limitedKicker}</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[#513712] md:text-4xl">{copy.limitedTitle}</h2>
@@ -243,7 +246,14 @@ export function MarketScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section data-reveal id="live-market" className="scroll-mt-28 rounded-[28px] border border-border bg-[#f8fafc] p-4 md:p-6 lg:p-8">
+      </> : (
+        <header>
+          <h1 className="text-3xl font-semibold tracking-tight text-navy">{it ? "Valori di mercato" : "Market values"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{rows.length} {it ? "Release con evidenze" : "Releases with evidence"} · {currentOffers} {it ? "annunci osservati" : "observed listings"}</p>
+        </header>
+      )}
+
+      <section id="live-market" className="scroll-mt-28 rounded-[28px] border border-border bg-[#f8fafc] p-4 md:p-6 lg:p-8">
         <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">{copy.liveKicker}</p>
@@ -255,12 +265,6 @@ export function MarketScreen({ products }: { products: Product[] }) {
         {user ? (
           <>
             <Alert className="mb-3 bg-white"><Info /><AlertTitle>{it ? "Come leggere questi dati" : "How to read this data"}</AlertTitle><AlertDescription>{it ? "Le richieste dei venditori negli annunci aiutano a leggere il mercato corrente, mentre il Valore stimato dà più peso alle vendite concluse. I trend compaiono solo quando c'è abbastanza storico comparabile." : "Seller asks in listings help describe the current market, while Estimated value gives more weight to completed sales. Trends appear only when there is enough comparable history."}</AlertDescription></Alert>
-            <Alert className="mb-5 border-brand/20 bg-brand-muted/40">
-              <TrendingUp />
-              <AlertTitle className="flex items-center gap-2">{copy.betaTitle}<Badge variant="outline" className="border-brand/25 bg-white text-brand">{it ? "Free durante la beta" : "Free during beta"}</Badge></AlertTitle>
-              <AlertDescription>{copy.betaBody}</AlertDescription>
-            </Alert>
-
             <Tabs defaultValue="values">
               <TabsList className="bg-white"><TabsTrigger value="values"><Activity data-icon="inline-start" />{it ? "Valori" : "Values"}</TabsTrigger><TabsTrigger value="trends"><TrendingUp data-icon="inline-start" />{it ? "Trend" : "Trends"}</TabsTrigger></TabsList>
               <TabsContent value="values" className="mt-4">
@@ -360,7 +364,7 @@ function MarketRow({ row, forming }: { row: Row; forming: boolean }) {
   const trend = collectorMarketTrend(row.signal)
   const hasExactReleaseImage = Boolean(row.release.images?.length)
   return (
-    <Link href={href} className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-[#f4f8fd]">
+    <Link href={href} prefetch={false} className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-[#f4f8fd]">
       <div className="relative h-12 w-16 shrink-0">
         <ProductImage
           product={row.product}
