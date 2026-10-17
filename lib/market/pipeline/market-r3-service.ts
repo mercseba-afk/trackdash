@@ -20,14 +20,17 @@ export async function recomputeReleaseMarketSignal(
   condition: MarketCondition = "new_complete_unbuilt",
   now = new Date(),
   repo = new MarketR3Repository(),
+  loadSales: typeof loadConfirmedTrackDashSales = loadConfirmedTrackDashSales,
 ): Promise<MarketSignalDraft> {
+  const publication = typeof repo.beginPublication === "function" ? await repo.beginPublication(releaseId, condition) : null
+  try {
   const asOfDate = now.toISOString().slice(0, 10)
 
   const [offers, granularExternal, aggregate, trackDashSales, askSnapshots, persistedTrend] = await Promise.all([
     repo.listCurrentOffers(releaseId, condition),
     repo.listGranularSoldEvidence(releaseId, condition),
     repo.listAggregateSoldEvidence(releaseId, condition),
-    loadConfirmedTrackDashSales(releaseId, condition),
+    loadSales(releaseId, condition),
     repo.listAskSnapshots(releaseId, condition),
     repo.getCollectorTrend(releaseId, condition),
   ])
@@ -81,5 +84,7 @@ export async function recomputeReleaseMarketSignal(
   await repo.upsertMonthlySoldSignals(releaseId, condition, signal)
   await repo.upsertAskSnapshot(releaseId, condition, signal, asOfDate)
 
+  await repo.finishPublication?.(publication, releaseId, condition)
   return signal
+  } finally { repo.cancelPublication?.(publication) }
 }

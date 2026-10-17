@@ -1,0 +1,59 @@
+# INACTIVE. Activate only after release approval, worker/monitor credentials and
+# GitHub Actions failure notifications have been tested. No scanner is called.
+name: eBay erasure recovery and independent DB check
+on:
+  schedule:
+    - cron: '3,8,13,18,23,28,33,38,43,48,53,58 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/main' && vars.P06A_ERASURE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    concurrency:
+      group: p06a-erasure-worker
+      cancel-in-progress: false
+    steps:
+      - name: One bounded recovery invocation, no automatic HTTP retry
+        env:
+          RECOVERY_URL: ${{ vars.EBAY_ERASURE_RECOVERY_URL }}
+          RECOVERY_TOKEN: ${{ secrets.EBAY_ERASURE_RECOVERY_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          # Reject arbitrary destinations and redirects; never print responses.
+          case "$RECOVERY_URL" in
+            https://trackdash.it/api/internal/ebay-erasure-recovery) ;;
+            *) echo 'RECOVERY_URL_INVALID'; exit 1 ;;
+          esac
+          test -n "$RECOVERY_TOKEN"
+          trap 'rm -f "$RUNNER_TEMP/erasure-result"' EXIT
+          status=$(curl -s --max-time 55 --output "$RUNNER_TEMP/erasure-result" --write-out '%{http_code}' \
+            --request POST --header "Authorization: Bearer $RECOVERY_TOKEN" "$RECOVERY_URL") || {
+              echo 'RECOVERY_TRANSPORT_FAILED'; exit 1;
+            }
+          unset RECOVERY_TOKEN
+          if [ "$status" != 200 ]; then echo 'RECOVERY_UNHEALTHY'; exit 1; fi
+  monitor:
+    # No needs: recover. Checks continue if Vercel/worker is down or blocked.
+    if: github.ref == 'refs/heads/main' && vars.P06A_ERASURE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Read-only Supabase health, no service-role or Vercel dependency
+        run: node ops/ebay-erasure/monitor.mjs
+        env:
+          EBAY_ERASURE_MONITOR_DB_URL: ${{ vars.EBAY_ERASURE_MONITOR_DB_URL }}
+          EBAY_ERASURE_MONITOR_API_KEY: ${{ vars.EBAY_ERASURE_MONITOR_API_KEY }}
+          EBAY_ERASURE_MONITOR_JWT: ${{ secrets.EBAY_ERASURE_MONITOR_JWT }}
+# GitHub failure notifications require an opted-in operator. A stopped/delayed
+# GitHub schedule itself has NO independent dead-man in this minimal design.

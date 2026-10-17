@@ -190,7 +190,28 @@ function statePayload(draft: OfferStateDraft, firstSeenAt: string, changedAt: st
 }
 
 export class MarketR3Repository {
-  constructor(private readonly client: SupabaseClient = createAdminClient()) {}
+  constructor(private client: SupabaseClient = createAdminClient()) {}
+
+  async beginPublication(releaseId: string, condition: MarketCondition) {
+    if (process.env.EBAY_ERASURE_FENCING_ENABLED !== "true") return null
+    const original = this.client
+    const { data, error } = await original.rpc("trackdash_market_fence", { p_action: "snapshot", p_data: { releaseId, condition } }).retry(false).abortSignal(AbortSignal.timeout(12_000))
+    if (error) throw new Error("MARKET_PUBLICATION_SNAPSHOT_FAILED")
+    const { bufferedPublication } = await import("./publication-buffer")
+    const buffered = bufferedPublication(original)
+    this.client = buffered.client
+    return { epoch: data.epoch, original, writes: buffered.writes }
+  }
+  async finishPublication(publication: Awaited<ReturnType<MarketR3Repository["beginPublication"]>>, releaseId: string, condition: MarketCondition) {
+    if (!publication) return
+    const { error } = await publication.original.rpc("trackdash_market_fence", {
+      p_action: "publish", p_data: { epoch: publication.epoch, releaseId, condition, writes: publication.writes },
+    }).retry(false).abortSignal(AbortSignal.timeout(12_000))
+    if (error) throw new Error("MARKET_PUBLICATION_REJECTED")
+  }
+  cancelPublication(publication: Awaited<ReturnType<MarketR3Repository["beginPublication"]>>) {
+    if (publication) this.client = publication.original
+  }
 
   async getCollectorTrend(
     releaseId: string,

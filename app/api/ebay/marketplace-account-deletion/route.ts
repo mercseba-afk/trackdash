@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { MarketR3Repository } from "@/lib/market/pipeline/market-r3-repository"
-import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-service"
-import type { MarketCondition } from "@/lib/market/pipeline/types"
+import { createErasureClient } from "@/lib/ebay/erasure-client"
 import {
   formatEbayDeletionFailure,
   type EbayDeletionRouteStage,
 } from "@/lib/ebay/account-deletion-diagnostics"
 import {
-  eraseEbayUserData,
   generateEbayDeletionChallenge,
   parseEbayDeletionNotification,
   verifyEbayNotificationSignature,
 } from "@/lib/ebay/account-deletion"
+
+import { beforeDeadline, deadlineFetch, EbayRecoveryError } from "@/lib/ebay/account-deletion-recovery"
+
+import { acceptEbayErasure } from "@/lib/ebay/erasure-acceptance"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.EBAY_ERASURE_ENABLED !== "true") return new NextResponse(null, { status: 503 })
+  const deadline = Date.now() + 45_000
+  const fetchWithDeadline = deadlineFetch(deadline, fetch, (operation, code, elapsed) => {
+    console.info(`[ebay-account-deletion] operation=${operation} code=${code} elapsed_ms=${elapsed}`)
+  })
   let stage: EbayDeletionRouteStage = "request_received"
   const markStage = (nextStage: EbayDeletionRouteStage) => {
     stage = nextStage
@@ -37,9 +42,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const rawBody = await request.text()
+    const rawBody = await beforeDeadline(request.text(), deadline)
     const signature = request.headers.get("x-ebay-signature") ?? ""
-    const verified = await verifyEbayNotificationSignature(rawBody, signature, fetch, markStage)
+    const verified = await verifyEbayNotificationSignature(rawBody, signature, fetchWithDeadline, markStage)
     if (!verified) {
       console.warn(formatEbayDeletionFailure(stage, new Error("EBAY_SIGNATURE_VERIFY_FAILED")))
       return new NextResponse(null, { status: 412 })
@@ -47,36 +52,15 @@ export async function POST(request: NextRequest) {
 
     const message = parseEbayDeletionNotification(JSON.parse(rawBody))
     markStage("payload_parsed")
-    const client = createAdminClient()
+    const client = createErasureClient("INGRESS",fetchWithDeadline)
     markStage("supabase_client_ok")
-    const result = await eraseEbayUserData(client, message.identifiers)
-    stage = "erasure_completed"
-    console.info(
-      `[ebay-account-deletion] stage=erasure_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length}`,
-    )
-
-    try {
-      if (result.affectedReleaseConditions.length > 0) {
-        const repo = new MarketR3Repository(client)
-        for (const affected of result.affectedReleaseConditions) {
-          await recomputeReleaseMarketSignal(
-            affected.releaseId,
-            affected.condition as MarketCondition,
-            new Date(),
-            repo,
-          )
-        }
-      }
-    } catch {
-      throw new Error("EBAY_RECOMPUTE_FAILED")
-    }
-    stage = "recompute_completed"
-    console.info(
-      `[ebay-account-deletion] stage=recompute_completed count=${result.affectedReleaseConditions.length}`,
-    )
-
-    return new NextResponse(null, { status: 204 })
+    await acceptEbayErasure(client, message, deadline)
+    return new NextResponse(null, { status: 202 })
   } catch (error) {
+    if (error instanceof EbayRecoveryError) {
+      console.error(`[ebay-account-deletion] failed operation=${error.operation} sql_code=${error.sqlCode}`)
+      return new NextResponse(null, { status: 503, headers: { "Retry-After": "30" } })
+    }
     const code = error instanceof Error ? error.message : "UNKNOWN"
     const failure = formatEbayDeletionFailure(stage, error)
     if (code.startsWith("EBAY_NOTIFICATION_") || code === "EBAY_SIGNATURE_INVALID") {

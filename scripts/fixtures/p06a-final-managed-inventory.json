@@ -1,0 +1,102 @@
+{
+  "capturedOn": "2026-10-16",
+  "scope": "Read-only aggregated metadata; no seller identifiers, credentials, secret names or values",
+  "counts": [
+    {
+      "table_name": "market_aggregate_observations",
+      "rows": 65,
+      "seller_fingerprints": 0,
+      "grouping_keys": 0,
+      "profile_urls": 0,
+      "payload_personal_key_candidates": 4,
+      "review_note_candidates": 0
+    },
+    {
+      "table_name": "market_candidates",
+      "rows": 1117,
+      "seller_fingerprints": 1113,
+      "grouping_keys": 15,
+      "profile_urls": 0,
+      "payload_personal_key_candidates": 1,
+      "review_note_candidates": 2
+    },
+    {
+      "table_name": "market_offer_states",
+      "rows": 432,
+      "seller_fingerprints": 370,
+      "grouping_keys": 0,
+      "profile_urls": 0,
+      "payload_personal_key_candidates": 0,
+      "review_note_candidates": 0
+    },
+    {
+      "table_name": "price_points",
+      "rows": 11,
+      "seller_fingerprints": 0,
+      "grouping_keys": 11,
+      "profile_urls": 0,
+      "payload_personal_key_candidates": 0,
+      "review_note_candidates": 0
+    }
+  ],
+  "textFieldVisits": [
+    {
+      "origin": "aggregate",
+      "field_name": "seller",
+      "text_values": 16
+    }
+  ],
+  "groups": [
+    {
+      "origin": "candidates",
+      "groups": 15,
+      "nonstandard_groups": 15
+    },
+    {
+      "origin": "points",
+      "groups": 11,
+      "nonstandard_groups": 11
+    }
+  ],
+  "groupPrivacy": [
+    {
+      "origin": "point",
+      "contains_current_seller_text": 0,
+      "digest_like_groups": 0,
+      "min_length": 34,
+      "max_length": 34
+    },
+    {
+      "origin": "candidate",
+      "contains_current_seller_text": 0,
+      "digest_like_groups": 0,
+      "min_length": 17,
+      "max_length": 34
+    }
+  ],
+  "sourceCoverage": [
+    {
+      "ebay_provenance_candidates_outside_known_sources": 0
+    }
+  ],
+  "roleCapabilities": [
+    {
+      "rolname": "service_role",
+      "rolsuper": false,
+      "rolcreaterole": false,
+      "rolbypassrls": true
+    },
+    {
+      "rolname": "supabase_admin",
+      "rolsuper": true,
+      "rolcreaterole": true,
+      "rolbypassrls": true
+    },
+    {
+      "rolname": "postgres",
+      "rolsuper": false,
+      "rolcreaterole": true,
+      "rolbypassrls": true
+    }
+  ]
+}
