@@ -76,15 +76,33 @@ try{
  assert.equal(d.json(`select count(*) from market_scan_queue where release_id='${release}' and source_id='${uid(7)}' and enabled and scan_interval_hours=1008`),1)
  console.log('PASS signal INSERT -> real enrollment and uniqueness dependencies; UPDATE preserves existing cadence; ambiguous item parked, unique JAN restored; internal sources excluded')
  stage='RCJAZ and revalidation'
- const rcjaz=await admin.from('market_candidates').insert({id:uid(31),source_id:uid(8),source_record_key:'synthetic-rcjaz',resolved_release_id:unrelated,condition,decision:'accepted',match_confidence:'exact',match_evidence:['verified_endpoint_match'],listing_url:'https://www.rcjaz.com/tamiya-00002-p-1001.html'})
- if(rcjaz.error){
-  assert.equal(rcjaz.error.code,'42501');assert.match(rcjaz.error.message,/permission denied for table market_scan_endpoints/)
-  findings.push('RCJAZ_HTTP_SERVICE_ROLE_INSERT_DENIED')
-  console.log('FAIL compatibility: native RCJAZ service_role HTTP INSERT lacks INSERT on market_scan_endpoints; no grant applied; continuing other tests using explicit owner-only seed')
-  // This owner-only positive control does NOT close the HTTP permission failure.
-  d.sql(`insert into market_candidates(id,source_id,source_record_key,resolved_release_id,condition,decision,match_confidence,match_evidence,listing_url) values('${uid(31)}','${uid(8)}','synthetic-rcjaz','${unrelated}','${condition}','accepted','exact',array['verified_endpoint_match'],'https://www.rcjaz.com/tamiya-00002-p-1001.html');`)
- }
-
+ // The frozen Production ACL is intentionally deficient: confirm the
+ // actual service_role HTTP caller fails BEFORE the separately proposed grant.
+ const rcjazInput={id:uid(31),source_id:uid(8),source_record_key:'synthetic-rcjaz',resolved_release_id:unrelated,condition,decision:'accepted',match_confidence:'exact',match_evidence:['verified_endpoint_match'],listing_url:'https://www.rcjaz.com/tamiya-00002-p-1001.html'}
+ assert.equal(d.json("select has_column_privilege('service_role','public.market_scan_endpoints','release_id','INSERT')"),false,'frozen Production lacks RCJAZ INSERT')
+ const rcjazDenied=await admin.from('market_candidates').insert(rcjazInput)
+ assert.equal(rcjazDenied.error?.code,'42501','must reproduce Production grant gap')
+ assert.match(rcjazDenied.error.message,/permission denied for table market_scan_endpoints/)
+ codes.push(rcjazDenied.error.code)
+ assert.equal(d.json(`select count(*) from market_candidates where id='${uid(31)}'`),0,'failed candidate insert must roll back')
+ assert.equal(d.json('select count(*) from market_scan_endpoints'),0)
+ console.log('PASS verified pre-fix RCJAZ HTTP service_role 42501 with frozen Production ACL (fail-closed; no owner workaround)')
+ // This SQL file is a REVIEW-ONLY, scoped candidate. Applying it to the
+ // isolated fixture is NOT a Production grant or Production readiness proof.
+ d.sql(readFileSync('proposals/p06a-rcjaz-scoped-insert.review.sql','utf8'))
+ const insertColumns=['release_id','source_id','endpoint_url','parser_kind','exact_release_verified','enabled','updated_at']
+ for(const column of insertColumns)assert.equal(d.json(`select has_column_privilege('service_role','public.market_scan_endpoints','${column}','INSERT')`),true,column+' required INSERT grant')
+ assert.equal(d.json("select has_column_privilege('service_role','public.market_scan_endpoints','id','INSERT')"),false,'no grant on unrelated id column')
+ assert.equal(d.json("select has_column_privilege('service_role','public.market_scan_endpoints','last_checked_at','INSERT')"),false,'no grant on unrelated observation column')
+ assert.equal(d.json("select exists(select 1 from pg_class c cross join lateral aclexplode(c.relacl) a where c.oid='public.market_scan_endpoints'::regclass and a.grantee='service_role'::regrole and a.privilege_type='INSERT')"),false,'must remain column-level, not table-wide')
+ for(const role of ['anon','authenticated','trackdash_erasure_ingress','trackdash_erasure_worker','trackdash_erasure_monitor'])assert.equal(d.json(`select has_column_privilege('${role}','public.market_scan_endpoints','release_id','INSERT')`),false,role+' cannot INSERT')
+ const rcjazAccepted=await admin.from('market_candidates').insert(rcjazInput)
+ assert.equal(rcjazAccepted.error,null,'RCJAZ candidate must succeed over PostgREST using real service_role')
+ assert.equal(d.json(`select count(*) from market_scan_endpoints where release_id='${unrelated}'`),1)
+ const rcjazRepeated=await admin.from('market_candidates').update({listing_url:rcjazInput.listing_url}).eq('id',uid(31))
+ assert.equal(rcjazRepeated.error,null,'RCJAZ endpoint ON CONFLICT UPDATE must succeed')
+ assert.equal(d.json(`select count(*) from market_scan_endpoints where release_id='${unrelated}'`),1,'repeat enrollment must not duplicate endpoint')
+ console.log('PASS scoped seven-column RCJAZ grant: service_role HTTP INSERT and ON CONFLICT UPDATE; other roles and columns denied; no Production mutation')
  assert.equal(d.json(`select count(*) from market_scan_endpoints where release_id='${unrelated}'`),1)
  await ok(admin.from('market_candidates').insert({id:uid(32),source_id:source,source_record_key:'synthetic-ebay-negative',resolved_release_id:unrelated,condition,decision:'accepted',match_confidence:'exact',match_evidence:['item_number_exact'],listing_url:'https://www.ebay.it/itm/00002'}))
  assert.equal(d.json('select count(*) from market_scan_endpoints'),1)
