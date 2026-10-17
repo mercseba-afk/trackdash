@@ -145,3 +145,20 @@ Misura laboratorio per il nuovo gate:30.837ms complessivi incluse DDL/seed/clean
 | Comando `pnpm ebay:erasure:final:test` dopo collegamento | Verificato anche `node scripts/test-ebay-erasure-final.mjs` integrato: exit1 esclusivamente al nuovo gate, dopo tutti gli altri PASS; CI esegue questo collegamento. I successivi acceptance/monitor della catena non vengono raggiunti in quel run CI: sono PASS separatamente nel run locale precedente |
 | Controllo negativo A1 | PASS del controllo: exit1, assert `true !== false` alla riga32 originale quando si disabilita deliberatamente la sola protezione nel laboratorio; codice invariato |
 | `git diff --check` | PASS sul diff pubblicato |
+
+
+## Verifica del GRANT RCJAZ in fixture — 17 ottobre 2026
+
+**Perimetro ridotto:** questo aggiornamento risolve *nel laboratorio e nella fixture CI* l'unico errore RCJAZ `42501` riscontrato sul commit `386523414dc611577ba996b21c50f06cbf42bb94`. Non risolve né sostituisce automaticamente le restanti verifiche di cancellazione eBay. La sezione di audit sopra documenta storicamente il FAIL della baseline Production, che è ancora reale finché il grant non viene applicato separatamente sul database gestito.
+
+**Evidenza gestita:** nella staging Supabase Free esistente, con funzioni RCJAZ originali di Production e `SET LOCAL ROLE service_role`, la transazione `BEGIN/ROLLBACK` ha verificato PASS: inserimento candidato/endpoint, aggiornamento `ON CONFLICT DO UPDATE`, assenza di duplicati, controllo negativo URL eBay, nessun INSERT concesso ad `anon`, `authenticated` o ai tre ruoli P0.6A. Il primo tentativo del test aveva scoperto soltanto ACL di default troppo permissive sulle tabelle sintetiche appena create; il secondo ha esplicitamente revocato tali privilegi e verificato la baseline reale prima di applicare il grant minimo. Tutti i dati sintetici e le modifiche di prova sono stati annullati; Production ha tuttora `service_role INSERT=false`.
+
+**Modifiche GitHub limitate:**
+- Nuovo file `proposals/p06a-rcjaz-scoped-insert.review.sql`, marcato REVIEW ONLY: solo il GRANT INSERT sulle sette colonne necessarie a `service_role`, senza CREATE/ALTER POLICY, revoche o permessi DELETE, e non collegato alle migrazioni P0.6A o al deploy.
+- `scripts/test-ebay-erasure-native-triggers.mjs`: verifica prima l'effettivo `42501` con ACL congelate di Production; prova l'assenza di inserimento parziale; applica **solo alla fixture isolata** la proposta SQL; verifica le 7 colonne, il mancato accesso ad altre colonne e ruoli, l'INSERT via PostgREST con JWT service_role, il conflitto UPDATE, l'unicità e il controllo negativo eBay. Non disabilita i trigger e non usa l'owner come sostituto del caller HTTP. Il test continua poi tutte le fasi native di erasure, prezzi e ruoli.
+
+**Significato dell'eventuale CI verde:** verde = comportamento atteso di P0.6A con il grant **proposto** applicato nell'ambiente sintetico di test. Non significa che la configurazione attuale di Production funzioni, né che sia stato autorizzato quel grant, né chiude i BLOCKED gestiti o i due rischi operativi (restore pre-ACK, schedule GitHub senza dead-man). Non dichiarare A2–A5 chiusi. Nessun deployment, merge, nuove risorse, scanner o costi di infrastruttura attivati.
+
+**Rilascio differito:** dopo verifica indipendente e consenso esplicito sulla sicurezza di `service_role`, applicare il grant solo con una **autorizzazione separata** e dopo aver verificato il caller effettivo. Rileggere quindi le ACL reali, eseguire smoke test HTTP non distruttivo in ambiente autorizzato e rieseguire gli allarmi prima di considerare il GO. Il ramo rimane Draft e Production NO-GO.
+
+**CI:** gli esiti finali verificati sullo SHA GitHub aggiornato vanno registrati con il relativo run/check; i precedenti FAIL rimangono evidenza della baseline senza grant, non della soluzione con grant proposto.
