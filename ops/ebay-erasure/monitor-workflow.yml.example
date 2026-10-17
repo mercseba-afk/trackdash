@@ -1,0 +1,63 @@
+# INACTIVE EXAMPLE. Requires approval, exact reviewed main SHA and environment.
+# Copy to .github/workflows only in a separately authorized activation change.
+name: Independent eBay erasure monitor
+on:
+  schedule:
+    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: p06a-independent-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    if: github.ref == 'refs/heads/main'
+    environment: p06a-monitor
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708
+        with:
+          role-to-assume: ${{ vars.EBAY_ERASURE_MONITOR_ROLE_ARN }}
+          aws-region: eu-west-1
+          mask-aws-account-id: true
+      - name: Require scoped AWS identity
+        run: aws sts get-caller-identity --query Arn --output text
+      - name: Read only journal counters and oldest pending timestamp
+        env:
+          JOURNAL_TABLE: ${{ vars.EBAY_ERASURE_JOURNAL_TABLE }}
+          AWS_REGION: eu-west-1
+        run: |
+          set -euo pipefail
+          aws dynamodb get-item --table-name "$JOURNAL_TABLE" --key '{"pk":{"S":"_meta"}}' --consistent-read --projection-expression 'accepted,completed' > "$RUNNER_TEMP/erasure-meta.json"
+          aws dynamodb query --table-name "$JOURNAL_TABLE" --index-name pending --key-condition-expression '#s=:p' --expression-attribute-names '{"#s":"state"}' --expression-attribute-values '{":p":{"S":"pending"}}' --projection-expression createdAt --limit 1 > "$RUNNER_TEMP/erasure-oldest.json"
+      - name: Probe primary DB independently of app and worker
+        id: health
+        continue-on-error: true
+        run: node ops/ebay-erasure/monitor.mjs
+        env:
+          EBAY_ERASURE_MONITOR_STATS_PATH: ${{ runner.temp }}/erasure-meta.json
+          EBAY_ERASURE_MONITOR_OLDEST_PATH: ${{ runner.temp }}/erasure-oldest.json
+          EBAY_ERASURE_MONITOR_DB_URL: ${{ vars.EBAY_ERASURE_MONITOR_DB_URL }}
+          EBAY_ERASURE_MONITOR_API_KEY: ${{ vars.EBAY_ERASURE_MONITOR_API_KEY }}
+          EBAY_ERASURE_MONITOR_JWT: ${{ secrets.EBAY_ERASURE_MONITOR_JWT }}
+      - name: Publish dead-man result without personal data
+        if: always()
+        env:
+          PROBE_OUTCOME: ${{ steps.health.outcome }}
+          AWS_REGION: eu-west-1
+        run: |
+          set -euo pipefail
+          value=0
+          if [ "$PROBE_OUTCOME" = success ]; then value=1; fi
+          aws cloudwatch put-metric-data --namespace TrackDash/Erasure --metric-name MonitorSuccess --value "$value"
+          test "$value" = 1
+# CloudWatch treats missing MonitorSuccess as breaching, so a stopped GitHub
+# runner/schedule/identity alarms without executing this code. SNS recipient
+# confirmation and actual receipt of an incident are mandatory release gates.

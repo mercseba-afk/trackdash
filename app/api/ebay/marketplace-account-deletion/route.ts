@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { createErasureClient } from "@/lib/ebay/erasure-client"
 import {
   formatEbayDeletionFailure,
   type EbayDeletionRouteStage,
@@ -10,7 +10,10 @@ import {
   verifyEbayNotificationSignature,
 } from "@/lib/ebay/account-deletion"
 
-import { beforeDeadline, deadlineFetch, EbayRecoveryError, notificationIdentity, eraseEbayUserData } from "@/lib/ebay/account-deletion-recovery"
+import { beforeDeadline, deadlineFetch, EbayRecoveryError } from "@/lib/ebay/account-deletion-recovery"
+
+import { acceptEbayErasure } from "@/lib/ebay/erasure-acceptance"
+import { createErasureJournal, JournalError } from "@/lib/ebay/erasure-journal"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -50,17 +53,15 @@ export async function POST(request: NextRequest) {
 
     const message = parseEbayDeletionNotification(JSON.parse(rawBody))
     markStage("payload_parsed")
-    const client = createAdminClient(fetchWithDeadline)
+    const client = createErasureClient("INGRESS",fetchWithDeadline)
     markStage("supabase_client_ok")
-    const { key } = notificationIdentity(message)
-    const completed = await eraseEbayUserData(client, message, deadline, (operation, code, elapsed) => {
-      console.info(`[ebay-account-deletion] job=${key} operation=${operation} code=${code} elapsed_ms=${elapsed}`)
-    })
-    if (!completed) return new NextResponse(null, { status: 503, headers: { "Retry-After": "30" } })
-    markStage("recompute_completed")
-
-    return new NextResponse(null, { status: 204 })
+    await acceptEbayErasure(client, createErasureJournal(), message, deadline)
+    return new NextResponse(null, { status: 202 })
   } catch (error) {
+    if (error instanceof JournalError) {
+      console.error(`[ebay-account-deletion] operation=journal code=${error.code}`)
+      return new NextResponse(null, { status: 503, headers: { "Retry-After": "30" } })
+    }
     if (error instanceof EbayRecoveryError) {
       console.error(`[ebay-account-deletion] failed operation=${error.operation} sql_code=${error.sqlCode}`)
       return new NextResponse(null, { status: 503, headers: { "Retry-After": "30" } })

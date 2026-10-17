@@ -1,3 +1,5 @@
+> **Implementazione finale 17 ottobre 2026:** vedere [P06A_FINAL_REVIEW.md](P06A_FINAL_REVIEW.md). Journal token-only DynamoDB pre-ACK, worker Lambda e monitor GitHub indipendente implementati e testati nel laboratorio. Le proposte periodiche/capsule/export precedenti non sono il runtime scelto. **NO-GO** finché mancano prove gestite Vault/escrow/restore/IAM/allarmi/capacità. Nessun servizio o migrazione Production attivato.
+
 # P0.6A — preflight finale PR #430, 16 ottobre 2026
 
 > Aggiornamento A2/A3: [P06A_A23_REVIEW.md](P06A_A23_REVIEW.md), configurazioni effettive Vault/logging e prove sintetiche di restore. A2/A3 restano **aperti**, rilascio **NO-GO**. Nessuna modifica alla logica A1 o a Production.

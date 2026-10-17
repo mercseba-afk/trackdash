@@ -3,10 +3,12 @@ import {build} from 'esbuild'
 const compile=async entry=>{
  const result=await build({entryPoints:[entry],bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'no-network-tests',setup(b){
  b.onResolve({filter:/^server-only$/},()=>({path:'empty',namespace:'stub'}))
+ b.onResolve({filter:/^@\/lib\/ebay\/erasure-client$/},()=>({path:'scoped',namespace:'stub'}))
  b.onResolve({filter:/^@\/lib\/supabase\/admin$/},()=>({path:'admin',namespace:'stub'}))
  b.onResolve({filter:/^next\/server$/},()=>({path:'next',namespace:'stub'}))
+ if(entry.includes('/route.ts')){b.onResolve({filter:/^@\/lib\/ebay\/erasure-acceptance$/},()=>({path:'acceptance',namespace:'stub'}));b.onResolve({filter:/^@\/lib\/ebay\/erasure-journal$/},()=>({path:'journal',namespace:'stub'}))}
  if(entry.includes('/route.ts'))b.onResolve({filter:/^@\/lib\/ebay\/account-deletion$/},()=>({path:'signature',namespace:'stub'}))
- b.onLoad({filter:/.*/,namespace:'stub'},a=>({contents:({empty:'export {}',admin:'export const createAdminClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',next:'export class NextResponse extends Response {static json(data,init){return new Response(JSON.stringify(data),init)}}',signature:'export const generateEbayDeletionChallenge=()=>"challenge";export const verifyEbayNotificationSignature=async()=>globalThis.__p06Signature;export const parseEbayDeletionNotification=()=>globalThis.__p06Message'})[a.path]}))
+ b.onLoad({filter:/.*/,namespace:'stub'},a=>({contents:({scoped:'export const createErasureClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',acceptance:'export const acceptEbayErasure=async()=>globalThis.__p06Acceptance()',journal:'export class JournalError extends Error{constructor(code){super(code);this.code=code}};globalThis.__p06JournalError=JournalError;export const createErasureJournal=()=>({})',empty:'export {}',admin:'export const createAdminClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',next:'export class NextResponse extends Response {static json(data,init){return new Response(JSON.stringify(data),init)}}',signature:'export const generateEbayDeletionChallenge=()=>"challenge";export const verifyEbayNotificationSignature=async()=>globalThis.__p06Signature;export const parseEbayDeletionNotification=()=>globalThis.__p06Message'})[a.path]}))
  }}]})
  return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'))
 }
@@ -50,10 +52,11 @@ globalThis.__p06AdminCalls=0;globalThis.__p06Signature=false;globalThis.__p06Mes
 const request=()=>new Request('https://local.invalid/api/ebay/marketplace-account-deletion',{method:'POST',body:'{}'})
 assert.equal((await route.POST(request())).status,412);assert.equal(globalThis.__p06AdminCalls,0)
 globalThis.__p06Signature=true
-globalThis.__p06Client=client([{action:'register',data:{state:'erased'}},{action:'claim',data:{state:'erased'}}]);let response=await route.POST(request());assert.equal(response.status,503);assert.equal(response.headers.get('retry-after'),'30')
-globalThis.__p06Client=client([{action:'register',data:{state:'completed'}}]);assert.equal((await route.POST(request())).status,204)
-globalThis.__p06Client=client([{action:'register',error:{code:'42501'}}]);assert.equal((await route.POST(request())).status,503)
-console.log('PASS route signature gates all DB work; pending/error returns 503; only completed returns 204')
+globalThis.__p06Client={};globalThis.__p06Acceptance=()=>{throw new globalThis.__p06JournalError('UNAVAILABLE')};let response=await route.POST(request());assert.equal(response.status,503);assert.equal(response.headers.get('retry-after'),'30')
+globalThis.__p06Acceptance=()=>{};assert.equal((await route.POST(request())).status,202)
+globalThis.__p06Acceptance=()=>{throw new Error('EBAY_NOTIFICATION_DATA_INVALID')};assert.equal((await route.POST(request())).status,400)
+delete globalThis.__p06Acceptance;delete globalThis.__p06JournalError
+console.log('PASS route verifies signature before all DB work and ACKs asynchronous acceptance only after persistence succeeds')
 for(const key of ['__p06AdminCalls','__p06Signature','__p06Message','__p06Client'])delete globalThis[key]
 
 const workerRoute=await compile('app/api/internal/ebay-erasure-recovery/route.ts')

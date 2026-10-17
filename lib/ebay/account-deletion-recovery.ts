@@ -99,7 +99,14 @@ export async function resumeEbayErasureJob(
   if (state.state === "completed") return true
   if (state.state === "received") {
     if (!state.sealed) throw new EbayRecoveryError("inbox", "EMPTY")
-    await rpc("erase", { identifiers: openInbox(identity.key, state.sealed) })
+    if (state.sealed.kind === "tokens-v1") {
+      const { error } = await beforeDeadline(client.rpc("trackdash_ebay_apply_tokens", {p_key:identity.key,p_digest:identity.digest})
+        .retry(false).abortSignal(AbortSignal.timeout(Math.max(1,Math.min(12_000,deadline-Date.now())))) as unknown as Promise<{error:any}>,deadline)
+      if (error) {
+        const phases=new Set(["token_validation","suppression","market_candidates","market_offer_states","price_points","market_aggregate_observations","market_monthly_source_stats","outbox"])
+        throw new EbayRecoveryError(phases.has(error.details)?error.details:"apply_tokens",/^(?:[A-Z0-9]{5}|PGRST[0-9]{3})$/.test(error.code??"")?error.code:"UNKNOWN")
+      }
+    } else await rpc("erase", { identifiers: openInbox(identity.key, state.sealed) })
   }
   return drainRecomputes(client, rpc, deadline, report, compute)
 }

@@ -15,3 +15,11 @@ node_modules
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+
+# Isolated P06 test dependencies and build artifacts
+/work/pnpm-store/
+/work/final-deps/
+/work/npm-cache/
+/work/pip-cache/
+/work/moto-venv/
+/work/p06a-worker/

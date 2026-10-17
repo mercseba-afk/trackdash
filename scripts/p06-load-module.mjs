@@ -1,16 +1,17 @@
 import {build} from 'esbuild'
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs'
-import {tmpdir} from 'node:os'
-import {join} from 'node:path'
+import {mkdtempSync,writeFileSync,rmSync,mkdirSync} from 'node:fs'
+import {join,resolve} from 'node:path'
 import {pathToFileURL} from 'node:url'
-export async function loadModule(entry){
- const result=await build({entryPoints:[entry],bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'isolated',setup(b){
+export async function loadModule(entry,{journal=false}={}){
+ const result=await build({entryPoints:[entry],bundle:true,platform:'node',format:'esm',write:false,external:['@aws-sdk/*','@vercel/oidc-aws-credentials-provider'],banner:{js:"import {createRequire as __p06Require} from 'node:module';const require=__p06Require(import.meta.url);"},plugins:[{name:'isolated',setup(b){
+ if(journal){b.onResolve({filter:/^@\/lib\/ebay\/erasure-journal$/},()=>({path:'journal',namespace:'journal-shim'}));b.onLoad({filter:/.*/,namespace:'journal-shim'},()=>({resolveDir:process.cwd(),contents:`export * from ${JSON.stringify(resolve('lib/ebay/erasure-journal.ts'))};export const createErasureJournal=()=>globalThis.__p06Journal;`}))}
  b.onResolve({filter:/^server-only$/},()=>({path:'empty',namespace:'stub'}))
+ b.onResolve({filter:/^@\/lib\/ebay\/erasure-client$/},()=>({path:'scoped',namespace:'stub'}))
  b.onResolve({filter:/^@\/lib\/supabase\/admin$/},()=>({path:'admin',namespace:'stub'}))
  b.onResolve({filter:/^next\/server$/},()=>({path:'next',namespace:'stub'}))
- b.onLoad({filter:/.*/,namespace:'stub'},a=>({contents:a.path==='admin'?'export const createAdminClient=()=>{if(!globalThis.__p06HttpClient)throw Error("UNEXPECTED_ADMIN_CLIENT");return globalThis.__p06HttpClient}':a.path==='next'?'export class NextResponse extends Response {static json(data,init){return new Response(JSON.stringify(data),init)}}':'export {}'}))
+ b.onLoad({filter:/.*/,namespace:'stub'},a=>({contents:a.path==='scoped'?'export const createErasureClient=()=>{if(!globalThis.__p06HttpClient)throw Error("UNEXPECTED_SCOPED_CLIENT");return globalThis.__p06HttpClient}':a.path==='admin'?'export const createAdminClient=()=>{if(!globalThis.__p06HttpClient)throw Error("UNEXPECTED_ADMIN_CLIENT");return globalThis.__p06HttpClient}':a.path==='next'?'export class NextResponse extends Response {static json(data,init){return new Response(JSON.stringify(data),init)}}':'export {}'}))
  }}]})
- const dir=mkdtempSync(join(tmpdir(),'trackdash-p06-')),file=join(dir,'module.mjs')
+ mkdirSync('work',{recursive:true});const dir=mkdtempSync(resolve('work/p06-module-')),file=join(dir,'module.mjs')
  writeFileSync(file,result.outputFiles[0].text)
  try{return await import(pathToFileURL(file).href)}finally{rmSync(dir,{recursive:true,force:true})}
 }
