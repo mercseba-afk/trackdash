@@ -79,7 +79,7 @@ try{
  // The frozen Production ACL is intentionally deficient: confirm the
  // actual service_role HTTP caller fails BEFORE the separately proposed grant.
  const rcjazInput={id:uid(31),source_id:uid(8),source_record_key:'synthetic-rcjaz',resolved_release_id:unrelated,condition,decision:'accepted',match_confidence:'exact',match_evidence:['verified_endpoint_match'],listing_url:'https://www.rcjaz.com/tamiya-00002-p-1001.html'}
- assert.equal(d.json("select has_column_privilege('service_role','public.market_scan_endpoints','release_id','INSERT')"),false,'frozen Production lacks RCJAZ INSERT')
+ assert.equal(d.json("select to_jsonb(has_column_privilege('service_role','public.market_scan_endpoints','release_id','INSERT'))"),false,'frozen Production lacks RCJAZ INSERT')
  const rcjazDenied=await admin.from('market_candidates').insert(rcjazInput)
  assert.equal(rcjazDenied.error?.code,'42501','must reproduce Production grant gap')
  assert.match(rcjazDenied.error.message,/permission denied for table market_scan_endpoints/)
@@ -91,11 +91,11 @@ try{
  // isolated fixture is NOT a Production grant or Production readiness proof.
  d.sql(readFileSync('proposals/p06a-rcjaz-scoped-insert.review.sql','utf8'))
  const insertColumns=['release_id','source_id','endpoint_url','parser_kind','exact_release_verified','enabled','updated_at']
- for(const column of insertColumns)assert.equal(d.json(`select has_column_privilege('service_role','public.market_scan_endpoints','${column}','INSERT')`),true,column+' required INSERT grant')
- assert.equal(d.json("select has_column_privilege('service_role','public.market_scan_endpoints','id','INSERT')"),false,'no grant on unrelated id column')
- assert.equal(d.json("select has_column_privilege('service_role','public.market_scan_endpoints','last_checked_at','INSERT')"),false,'no grant on unrelated observation column')
- assert.equal(d.json("select exists(select 1 from pg_class c cross join lateral aclexplode(c.relacl) a where c.oid='public.market_scan_endpoints'::regclass and a.grantee='service_role'::regrole and a.privilege_type='INSERT')"),false,'must remain column-level, not table-wide')
- for(const role of ['anon','authenticated','trackdash_erasure_ingress','trackdash_erasure_worker','trackdash_erasure_monitor'])assert.equal(d.json(`select has_column_privilege('${role}','public.market_scan_endpoints','release_id','INSERT')`),false,role+' cannot INSERT')
+ for(const column of insertColumns)assert.equal(d.json(`select to_jsonb(has_column_privilege('service_role','public.market_scan_endpoints','${column}','INSERT'))`),true,column+' required INSERT grant')
+ assert.equal(d.json("select to_jsonb(has_column_privilege('service_role','public.market_scan_endpoints','id','INSERT'))"),false,'no grant on unrelated id column')
+ assert.equal(d.json("select to_jsonb(has_column_privilege('service_role','public.market_scan_endpoints','last_checked_at','INSERT'))"),false,'no grant on unrelated observation column')
+ assert.equal(d.json("select to_jsonb(exists(select 1 from pg_class c cross join lateral aclexplode(c.relacl) a where c.oid='public.market_scan_endpoints'::regclass and a.grantee='service_role'::regrole and a.privilege_type='INSERT'))"),false,'must remain column-level, not table-wide')
+ for(const role of ['anon','authenticated','trackdash_erasure_ingress','trackdash_erasure_worker','trackdash_erasure_monitor'])assert.equal(d.json(`select to_jsonb(has_column_privilege('${role}','public.market_scan_endpoints','release_id','INSERT'))`),false,role+' cannot INSERT')
  const rcjazAccepted=await admin.from('market_candidates').insert(rcjazInput)
  assert.equal(rcjazAccepted.error,null,'RCJAZ candidate must succeed over PostgREST using real service_role')
  assert.equal(d.json(`select count(*) from market_scan_endpoints where release_id='${unrelated}'`),1)
