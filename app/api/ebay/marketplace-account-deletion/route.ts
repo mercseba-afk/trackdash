@@ -13,7 +13,6 @@ import {
 import { beforeDeadline, deadlineFetch, EbayRecoveryError } from "@/lib/ebay/account-deletion-recovery"
 
 import { acceptEbayErasure } from "@/lib/ebay/erasure-acceptance"
-import { createErasureJournal, JournalError } from "@/lib/ebay/erasure-journal"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -55,13 +54,9 @@ export async function POST(request: NextRequest) {
     markStage("payload_parsed")
     const client = createErasureClient("INGRESS",fetchWithDeadline)
     markStage("supabase_client_ok")
-    await acceptEbayErasure(client, createErasureJournal(), message, deadline)
+    await acceptEbayErasure(client, message, deadline)
     return new NextResponse(null, { status: 202 })
   } catch (error) {
-    if (error instanceof JournalError) {
-      console.error(`[ebay-account-deletion] operation=journal code=${error.code}`)
-      return new NextResponse(null, { status: 503, headers: { "Retry-After": "30" } })
-    }
     if (error instanceof EbayRecoveryError) {
       console.error(`[ebay-account-deletion] failed operation=${error.operation} sql_code=${error.sqlCode}`)
       return new NextResponse(null, { status: 503, headers: { "Retry-After": "30" } })

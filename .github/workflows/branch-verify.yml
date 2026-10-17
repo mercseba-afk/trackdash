@@ -37,11 +37,7 @@ jobs:
           docker exec trackdash-p06-isolated pg_isready --username postgres
           pnpm ebay:erasure:postgres:test
           pnpm ebay:erasure:e2e:test
-          pnpm ebay:erasure:restore:test
-          python3 -m venv /tmp/p06-moto
-          /tmp/p06-moto/bin/pip install --disable-pip-version-check 'moto[server]==5.1.15'
-          P06_MOTO_PYTHON=/tmp/p06-moto/bin/python pnpm ebay:erasure:final:test
-          pnpm ebay:erasure:worker:build
+          pnpm ebay:erasure:final:test
       - name: Remove isolated eBay erasure containers
         if: always() && hashFiles('proposals/p06a-recovery-and-fence.sql') != ''
         run: |

@@ -6,9 +6,9 @@ const compile=async entry=>{
  b.onResolve({filter:/^@\/lib\/ebay\/erasure-client$/},()=>({path:'scoped',namespace:'stub'}))
  b.onResolve({filter:/^@\/lib\/supabase\/admin$/},()=>({path:'admin',namespace:'stub'}))
  b.onResolve({filter:/^next\/server$/},()=>({path:'next',namespace:'stub'}))
- if(entry.includes('/route.ts')){b.onResolve({filter:/^@\/lib\/ebay\/erasure-acceptance$/},()=>({path:'acceptance',namespace:'stub'}));b.onResolve({filter:/^@\/lib\/ebay\/erasure-journal$/},()=>({path:'journal',namespace:'stub'}))}
+ if(entry.includes('/route.ts')){b.onResolve({filter:/^@\/lib\/ebay\/erasure-acceptance$/},()=>({path:'acceptance',namespace:'stub'}))}
  if(entry.includes('/route.ts'))b.onResolve({filter:/^@\/lib\/ebay\/account-deletion$/},()=>({path:'signature',namespace:'stub'}))
- b.onLoad({filter:/.*/,namespace:'stub'},a=>({contents:({scoped:'export const createErasureClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',acceptance:'export const acceptEbayErasure=async()=>globalThis.__p06Acceptance()',journal:'export class JournalError extends Error{constructor(code){super(code);this.code=code}};globalThis.__p06JournalError=JournalError;export const createErasureJournal=()=>({})',empty:'export {}',admin:'export const createAdminClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',next:'export class NextResponse extends Response {static json(data,init){return new Response(JSON.stringify(data),init)}}',signature:'export const generateEbayDeletionChallenge=()=>"challenge";export const verifyEbayNotificationSignature=async()=>globalThis.__p06Signature;export const parseEbayDeletionNotification=()=>globalThis.__p06Message'})[a.path]}))
+ b.onLoad({filter:/.*/,namespace:'stub'},a=>({resolveDir:process.cwd(),contents:({scoped:'export const createErasureClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',acceptance:'import {EbayRecoveryError} from "@/lib/ebay/account-deletion-recovery";export const acceptEbayErasure=async()=>globalThis.__p06Acceptance(EbayRecoveryError)' ,empty:'export {}',admin:'export const createAdminClient=()=>{globalThis.__p06AdminCalls++;return globalThis.__p06Client}',next:'export class NextResponse extends Response {static json(data,init){return new Response(JSON.stringify(data),init)}}',signature:'export const generateEbayDeletionChallenge=()=>"challenge";export const verifyEbayNotificationSignature=async()=>globalThis.__p06Signature;export const parseEbayDeletionNotification=()=>globalThis.__p06Message'})[a.path]}))
  }}]})
  return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'))
 }
@@ -52,10 +52,10 @@ globalThis.__p06AdminCalls=0;globalThis.__p06Signature=false;globalThis.__p06Mes
 const request=()=>new Request('https://local.invalid/api/ebay/marketplace-account-deletion',{method:'POST',body:'{}'})
 assert.equal((await route.POST(request())).status,412);assert.equal(globalThis.__p06AdminCalls,0)
 globalThis.__p06Signature=true
-globalThis.__p06Client={};globalThis.__p06Acceptance=()=>{throw new globalThis.__p06JournalError('UNAVAILABLE')};let response=await route.POST(request());assert.equal(response.status,503);assert.equal(response.headers.get('retry-after'),'30')
+globalThis.__p06Client={};globalThis.__p06Acceptance=E=>{throw new E('accept_tokens','08006')};let response=await route.POST(request());assert.equal(response.status,503);assert.equal(response.headers.get('retry-after'),'30')
 globalThis.__p06Acceptance=()=>{};assert.equal((await route.POST(request())).status,202)
 globalThis.__p06Acceptance=()=>{throw new Error('EBAY_NOTIFICATION_DATA_INVALID')};assert.equal((await route.POST(request())).status,400)
-delete globalThis.__p06Acceptance;delete globalThis.__p06JournalError
+delete globalThis.__p06Acceptance
 console.log('PASS route verifies signature before all DB work and ACKs asynchronous acceptance only after persistence succeeds')
 for(const key of ['__p06AdminCalls','__p06Signature','__p06Message','__p06Client'])delete globalThis[key]
 
@@ -72,8 +72,6 @@ console.log('PASS worker/monitor endpoint disabled by default and unauthorized r
 // Keep only the allowlisted code, never the database error message/details.
 process.env.EBAY_ERASURE_WORKER_ENABLED='true'
 process.env.EBAY_ERASURE_RECOVERY_TOKEN='synthetic-recovery-token-for-isolated-test'
-process.env.EBAY_ERASURE_ALERT_URL='https://alarms.invalid/'
-process.env.EBAY_ERASURE_ALERT_TOKEN='synthetic-alert-token'
 globalThis.__p06Client={rpc(){const b={retry(){return b},abortSignal(){return Promise.resolve({error:{code:'PGRST303',message:message.identifiers.username,details:message.identifiers.eiasToken}})}};return b}}
 const tickLogs=[],originalInfo=console.info
 try{
@@ -81,10 +79,30 @@ try{
  response=await workerRoute.POST(new Request('https://local.invalid/recovery',{method:'POST',headers:{authorization:'Bearer '+process.env.EBAY_ERASURE_RECOVERY_TOKEN}}))
  assert.equal(response.status,503)
  assert.ok(tickLogs.some(line=>line==='[ebay-erasure-recovery] operation=tick code=PGRST303'))
- for(const value of [...Object.values(message.identifiers),process.env.EBAY_ERASURE_RECOVERY_TOKEN,process.env.EBAY_ERASURE_ALERT_TOKEN])assert.ok(!JSON.stringify(tickLogs).includes(value))
+ for(const value of [...Object.values(message.identifiers),process.env.EBAY_ERASURE_RECOVERY_TOKEN])assert.ok(!JSON.stringify(tickLogs).includes(value))
 }finally{
  console.info=originalInfo
- for(const key of ['EBAY_ERASURE_WORKER_ENABLED','EBAY_ERASURE_RECOVERY_TOKEN','EBAY_ERASURE_ALERT_URL','EBAY_ERASURE_ALERT_TOKEN'])delete process.env[key]
+ for(const key of ['EBAY_ERASURE_WORKER_ENABLED','EBAY_ERASURE_RECOVERY_TOKEN'])delete process.env[key]
  delete globalThis.__p06Client;delete globalThis.__p06AdminCalls
 }
 console.log('PASS initial recovery poll preserves PGRST303 without personal data or secrets in diagnostics')
+
+// A backlog cannot turn a single authorized HTTP invocation into an unbounded
+// worker. Jobs already completed by a concurrent worker remain idempotent.
+process.env.EBAY_ERASURE_WORKER_ENABLED='true'
+process.env.EBAY_ERASURE_RECOVERY_TOKEN='synthetic-recovery-token-for-isolated-test'
+let taken=0,statusCalls=0
+const safeHealth={exhausted:0,overdue:0,undelivered:0,heartbeatStale:false}
+globalThis.__p06Client={rpc(name,args){
+ let data
+ if(name==='trackdash_ebay_recovery'){
+  if(args.p_action==='poll')data={job:args.p_data.monitorOnly?null:{key:'synthetic-private-job-'+(++taken),digest:'synthetic-digest'},alarm:null,health:safeHealth}
+  else {assert.equal(args.p_action,'settle');data={state:'ok'}}
+ }else{assert.equal(name,'trackdash_ebay_erasure');assert.equal(args.p_action,'status');statusCalls++;data={state:'completed'}}
+ const b={retry(){return b},abortSignal(){return Promise.resolve({data,error:null})}};return b
+}}
+response=await workerRoute.POST(new Request('https://local.invalid/recovery',{method:'POST',headers:{authorization:'Bearer '+process.env.EBAY_ERASURE_RECOVERY_TOKEN}}))
+assert.equal(response.status,200);const cycle=await response.json();assert.equal(taken,4);assert.equal(statusCalls,4);assert.equal(cycle.processed,4);assert.ok(!JSON.stringify(cycle).includes('synthetic-private-job'))
+for(const key of ['EBAY_ERASURE_WORKER_ENABLED','EBAY_ERASURE_RECOVERY_TOKEN'])delete process.env[key]
+delete globalThis.__p06Client;delete globalThis.__p06AdminCalls
+console.log('PASS recovery endpoint caps backlog work at four idempotent claims per invocation and returns only aggregate health')

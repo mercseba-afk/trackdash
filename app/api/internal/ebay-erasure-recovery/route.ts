@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto"
 import { NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { createErasureClient } from "@/lib/ebay/erasure-client"
 import { deadlineFetch, EbayRecoveryError } from "@/lib/ebay/account-deletion-recovery"
 import { validateInboxKeys } from "@/lib/ebay/erasure-inbox"
 import { runErasureRecoveryTick } from "@/lib/ebay/erasure-worker"
@@ -16,14 +16,17 @@ export async function POST(request: Request) {
   const report = (operation: string, code: string) => console.info(`[ebay-erasure-recovery] operation=${operation} code=${code}`)
   try {
     validateInboxKeys()
-    const alertUrl = process.env.EBAY_ERASURE_ALERT_URL, alertToken = process.env.EBAY_ERASURE_ALERT_TOKEN
-    if (!alertUrl || new URL(alertUrl).protocol !== "https:" || !alertToken) throw Error("ALERT_NOT_CONFIGURED")
-    const result = await runErasureRecoveryTick(createAdminClient(boundedFetch), deadline, report, async alarm => {
-      const response = await boundedFetch(alertUrl, { method: "POST", redirect: "error", headers: {
-        "Content-Type": "application/json", Authorization: "Bearer " + alertToken,
-      }, body: JSON.stringify(alarm) })
-      if (!response.ok) throw Error("ALARM_FAILED")
-    }, new URL(request.url).searchParams.get("mode") === "monitor")
+    const client=createErasureClient("WORKER",boundedFetch)
+    let processed=0,failed=0,result
+    for(let n=0;n<4&&Date.now()<deadline-12000;n++){
+      // Persistent alarms stay unacknowledged. The direct GitHub DB monitor
+      // reports them via a failing check, not an unverified external webhook.
+      result=await runErasureRecoveryTick(client,deadline,report,async()=>{throw Error("MONITOR_REQUIRED")})
+      processed+=result.processed;failed+=result.failed
+      if(result.failed||!result.processed)break
+    }
+    if(!result)throw Error("DEADLINE")
+    result={...result,processed,failed,healthy:result.healthy&&!failed}
     return NextResponse.json(result, { status: result.healthy ? 200 : 503 })
   } catch (error) {
     const code = error instanceof EbayRecoveryError && /^(?:[A-Z0-9]{5}|PGRST[0-9]{3}|DEADLINE)$/.test(error.sqlCode)

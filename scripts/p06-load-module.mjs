@@ -2,9 +2,8 @@ import {build} from 'esbuild'
 import {mkdtempSync,writeFileSync,rmSync,mkdirSync} from 'node:fs'
 import {join,resolve} from 'node:path'
 import {pathToFileURL} from 'node:url'
-export async function loadModule(entry,{journal=false}={}){
- const result=await build({entryPoints:[entry],bundle:true,platform:'node',format:'esm',write:false,external:['@aws-sdk/*','@vercel/oidc-aws-credentials-provider'],banner:{js:"import {createRequire as __p06Require} from 'node:module';const require=__p06Require(import.meta.url);"},plugins:[{name:'isolated',setup(b){
- if(journal){b.onResolve({filter:/^@\/lib\/ebay\/erasure-journal$/},()=>({path:'journal',namespace:'journal-shim'}));b.onLoad({filter:/.*/,namespace:'journal-shim'},()=>({resolveDir:process.cwd(),contents:`export * from ${JSON.stringify(resolve('lib/ebay/erasure-journal.ts'))};export const createErasureJournal=()=>globalThis.__p06Journal;`}))}
+export async function loadModule(entry){
+ const result=await build({entryPoints:[entry],bundle:true,platform:'node',format:'esm',write:false,banner:{js:"import {createRequire as __p06Require} from 'node:module';const require=__p06Require(import.meta.url);"},plugins:[{name:'isolated',setup(b){
  b.onResolve({filter:/^server-only$/},()=>({path:'empty',namespace:'stub'}))
  b.onResolve({filter:/^@\/lib\/ebay\/erasure-client$/},()=>({path:'scoped',namespace:'stub'}))
  b.onResolve({filter:/^@\/lib\/supabase\/admin$/},()=>({path:'admin',namespace:'stub'}))

@@ -74,11 +74,11 @@ begin
   alarm:=public.trackdash_ebay_recovery('alarm_take');
   return jsonb_build_object('job',job,'alarm',alarm,'health',public.trackdash_ebay_recovery('health'));
  elsif p_action='take' then
-  select * into j from trackdash_erasure.notifications where state<>'completed' and attempts<8 and next_attempt_at<=clock_timestamp()
+  select * into j from trackdash_erasure.notifications where state<>'completed' and next_attempt_at<=clock_timestamp()
    and (job_locked_until is null or job_locked_until<clock_timestamp()) order by next_attempt_at,created_at for update skip locked limit 1;
   if not found then return null; end if;
-  update trackdash_erasure.notifications set attempts=attempts+1,job_token=gen_random_uuid(),job_locked_until=clock_timestamp()+interval '90 seconds',
-   next_attempt_at=clock_timestamp()+make_interval(secs=>least(21600,30*power(3,attempts)::integer)) where notification_key=j.notification_key returning * into j;
+  update trackdash_erasure.notifications set attempts=least(8,attempts+1),job_token=gen_random_uuid(),job_locked_until=clock_timestamp()+interval '90 seconds',
+   next_attempt_at=clock_timestamp()+case when attempts>=8 then interval '6 hours' else make_interval(secs=>least(21600,30*power(3,attempts)::integer)) end where notification_key=j.notification_key returning * into j;
   return jsonb_build_object('key',j.notification_key,'digest',j.payload_digest,'token',j.job_token,'state',j.state,'sealed',j.sealed);
  elsif p_action='settle' then
   select * into j from trackdash_erasure.notifications where notification_key=p_data->>'key' for update;

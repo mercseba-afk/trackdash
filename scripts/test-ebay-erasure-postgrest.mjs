@@ -110,22 +110,21 @@ try{
  console.log('PASS monitor mode detects successive heartbeat outages; empty worker tick performs one ledger-only RPC (infrastructure independence is a separate release gate)')
  // Full asynchronous webhook path: genuine synthetic signature, real PostgREST, no real eBay calls.
  seed();d.sql('drop role if exists trackdash_erasure_monitor;drop role if exists trackdash_erasure_worker;drop role if exists trackdash_erasure_ingress;');d.sql(readFileSync('proposals/p06a-minimization-and-token-recovery.sql','utf8'));await d.reload();globalThis.__p06HttpClient=client
- const receipts=new Map(),done=new Set();globalThis.__p06Journal={put:async(r,digests)=>{if(receipts.has(r.key))assert.equal(receipts.get(r.key).digest,digests[receipts.get(r.key).keyId]);else receipts.set(r.key,r)},get:async k=>receipts.get(k),pending:async()=>[...receipts.values()].filter(r=>!done.has(r.key)),scan:async()=>({receipts:[...receipts.values()],cursor:null}),meta:async()=>({accepted:receipts.size,completed:done.size}),complete:async r=>done.add(r.key)}
- const journalWorker=await loadModule('lib/ebay/erasure-journal-worker.ts')
+ process.env.EBAY_ERASURE_WORKER_ENABLED='true';await tick();
  Object.assign(process.env,{EBAY_ENV:'production',EBAY_CLIENT_ID:'synthetic-client',EBAY_CLIENT_SECRET:'synthetic-client-secret',EBAY_MARKETPLACE_DELETION_ENDPOINT:'https://local.invalid/api/ebay/marketplace-account-deletion',EBAY_MARKETPLACE_DELETION_TOKEN:'synthetic-verification-token-1234567890'})
  const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'}),originalFetch=globalThis.fetch
  globalThis.fetch=async url=>String(url).includes('/oauth2/token')?Response.json({access_token:'synthetic-oauth-token',expires_in:3600}):String(url).includes('/public_key/')?Response.json({key:publicKey.export({type:'spki',format:'pem'})}):Promise.reject(Error('UNEXPECTED_NETWORK'))
  const oldConsole={info:console.info,warn:console.warn,error:console.error}
  console.info=(...x)=>logs.push(x);console.warn=(...x)=>logs.push(x);console.error=(...x)=>logs.push(x)
  try{
-  const route=await loadModule('app/api/ebay/marketplace-account-deletion/route.ts',{journal:true}),msg=message()
+  const route=await loadModule('app/api/ebay/marketplace-account-deletion/route.ts'),msg=message()
   const body=JSON.stringify({metadata:{topic:'MARKETPLACE_ACCOUNT_DELETION',schemaVersion:'1.0'},notification:{notificationId:msg.notificationId,data:msg.identifiers}})
   const signer=createSign('ssl3-sha1');signer.update(body);signer.end();const header=Buffer.from(JSON.stringify({kid:'synthetic-key',signature:signer.sign(privateKey,'base64')})).toString('base64')
   const req=value=>new Request('https://local.invalid/api/ebay/marketplace-account-deletion',{method:'POST',headers:{'x-ebay-signature':header},body:value})
-  assert.equal((await route.POST(req(body))).status,202);assert.equal(receipts.size,1);assert.equal(state().job,null);assert.equal((await route.POST(req(body))).status,202);assert.equal(receipts.size,1);await journalWorker.runJournalRecovery(client,globalThis.__p06Journal,Date.now()+45000,report,async()=>{});assert.equal(state().job,'completed')
+  assert.equal((await route.POST(req(body))).status,202);assert.equal(state().job,'received');assert.equal((await route.POST(req(body))).status,202);assert.equal(d.json('select count(*) from trackdash_erasure.notifications'),1);await tick();assert.equal(state().job,'completed')
   const before=d.metrics.requests;assert.equal((await route.POST(req(body.replace(msg.notificationId,msg.notificationId+'-tampered')))).status,412);assert.equal(d.metrics.requests,before)
- }finally{Object.assign(console,oldConsole);globalThis.fetch=originalFetch;delete globalThis.__p06HttpClient;delete globalThis.__p06Journal}
- console.log('PASS signed webhook -> 202 after token journal, asynchronous real PostgREST erase/recompute, duplicate replay and tampered-signature rejection before DB (memory journal; separate DynamoDB protocol/restore drill)')
+ }finally{Object.assign(console,oldConsole);globalThis.fetch=originalFetch;delete globalThis.__p06HttpClient}
+ console.log('PASS signed webhook -> 202 after durable Supabase token inbox, asynchronous real PostgREST erase/recompute, duplicate replay and tampered-signature rejection before DB')
  // Synthetic historical payload load: real SQL scan/redaction, preserved market fields.
  seed();d.sql(`insert into market_candidates(source_id,source_record_key,raw_payload) select '00000000-0000-4000-8000-000000000005','synthetic-bulk-'||n,jsonb_build_object('seller','unrelated-'||n,'title',repeat('synthetic public market data ',25),'price',n) from generate_series(1,2000) n;`)
  const perfMsg=message(),perfBox=await register(perfMsg),started=Date.now(),beforePerf={...d.metrics}
