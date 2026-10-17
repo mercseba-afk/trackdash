@@ -3,7 +3,8 @@ import {randomBytes,createHmac} from 'node:crypto'
 import {readFileSync} from 'node:fs'
 import {localDatabase} from './p06-local-postgres.mjs'
 import {suppressionFixture,suppressionVault} from './p06-suppression-fixture.mjs'
-export async function isolatedPostgrest(){
+import {installNativeSchema} from './p06-native-trigger-fixture.mjs'
+export async function isolatedPostgrest({nativeFixture=false}={}){
  const startedAt=new Date().toISOString()
  const d=localDatabase('p06r'),pg=process.env.P06_TEST_CONTAINER||'trackdash-p06-isolated',rest='trackdash-p06-rest-'+randomBytes(5).toString('hex')
  const env={...process.env};for(const k of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'])delete env[k]
@@ -11,6 +12,7 @@ export async function isolatedPostgrest(){
  const close=()=>{try{docker(['rm','--force',rest])}finally{d.close()}}
  try{
  d.sql(`do $$begin create role service_role nologin bypassrls;exception when duplicate_object then null;end$$;do $$begin create role anon;exception when duplicate_object then null;end$$;do $$begin create role authenticated;exception when duplicate_object then null;end$$;do $$begin create role trackdash_app;exception when duplicate_object then null;end$$;do $$begin create role authenticator login noinherit;exception when duplicate_object then null;end$$;grant service_role,anon,authenticated to authenticator;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql as 'select null::uuid';`)
+ if(nativeFixture)installNativeSchema(d);else{
  const files=['0000_silly_gressill.sql','0036_price_intelligence_v1.sql','0037_price_intelligence_relaxed_evidence.sql','0038_price_intelligence_market_fx_provenance.sql','0039_price_intelligence_r3_market_regimes.sql','0070_market_method_v2_recent_value_windows.sql','0096_market_audit_source_identity.sql','0098_market_method_v3_public_evidence.sql','0100_market_method_v4_ask_intelligence.sql','0107_market_sold_recompute_queue.sql','0200_ask_trend_snapshot_basis_version.sql','0201_persistent_collector_trend.sql']
  for(const file of files){try{
  if(file==='0107_market_sold_recompute_queue.sql'){
@@ -21,6 +23,7 @@ export async function isolatedPostgrest(){
  d.sql(file==='0070_market_method_v2_recent_value_windows.sql'?readFileSync('supabase/migrations/'+file,'utf8').split('with src as (')[0]:file==='0096_market_audit_source_identity.sql'?readFileSync('supabase/migrations/'+file,'utf8').split('-- Explicit source geography.')[0]:readFileSync('supabase/migrations/'+file,'utf8'))}catch(e){throw Error('Schema fixture '+file+': '+e.message)}}
  const policy=readFileSync('supabase/migrations/0083_market_automation_v1_pilot.sql','utf8').match(/create table if not exists public\.market_source_policies \([\s\S]*?\n\);/)[0]
  d.sql(policy+`;grant usage on schema public to service_role,anon,authenticated;grant select on market_source_policies,product_releases to service_role;`)
+ }
  suppressionVault(d)
  for(const file of ['p06a-ebay-erasure.sql','p06a-recovery-and-fence.sql','p06a-ingress-suppression.sql'])d.sql(readFileSync('proposals/'+file,'utf8'))
  suppressionFixture(d)

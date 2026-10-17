@@ -81,3 +81,7 @@ try{
  console.log('PASS unchanged late scanner writes scrubbed, forged pseudonyms fail closed and independent monitor cannot read jobs or perform erasure')
 }catch(e){console.error('FINAL_LAB_FAILED stage='+stage+' type='+e.constructor.name);process.exitCode=1}
 finally{delete globalThis.__p06HttpClient;d.close()}
+
+// Keep native managed-schema compatibility a release gate: known ACL defects
+// must fail CI rather than being reclassified as expected application success.
+if(!process.exitCode)await import('./test-ebay-erasure-native-triggers.mjs')
