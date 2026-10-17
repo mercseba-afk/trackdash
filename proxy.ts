@@ -10,6 +10,19 @@ const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/hotwheels"]
 const PUBLIC_LOCALE_COOKIE = "trackdash.locale"
 const PUBLIC_LOCALE_MAX_AGE = 60 * 60 * 24 * 365
 
+// Exact server-to-server endpoints with independent authorization. These are
+// not browser session routes: signature-verified eBay deletion notifications,
+// and protected market cron endpoints. Keep this allowlist narrow.
+const SESSIONLESS_SERVER_PATHS = new Set([
+  "/api/ebay/marketplace-account-deletion",
+  "/api/cron/market-scan",
+  "/api/cron/ebay-scan",
+])
+
+function isSessionlessServerPath(pathname: string): boolean {
+  return SESSIONLESS_SERVER_PATHS.has(pathname)
+}
+
 // Server-to-server, bootstrap, diagnostics and crawler discovery routes authenticate/guard
 // themselves where required and must not depend on a browser Supabase session.
 const UNGATED_PREFIXES = [
@@ -58,6 +71,12 @@ function safeInternalNext(value: string | null): string | null {
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
+
+  // Defense in depth if routing/rewrite enters Proxy despite config.matcher.
+  // The endpoints above verify their own secrets/signatures; no Supabase Auth
+  // call, refresh-token cookie mutation or MFA check is needed here.
+  if (isSessionlessServerPath(pathname)) return NextResponse.next({ request })
+
   const routeLocale = publicSeoLocale(pathname)
 
   // Public SEO routes bind locale to the URL before Server Components render.
@@ -117,6 +136,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/ebay/marketplace-account-deletion/?$|api/cron/(?:market-scan|ebay-scan)/?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
