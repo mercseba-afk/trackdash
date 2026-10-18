@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - perf/p08-ebay-erasure-cpu-20261017
   workflow_dispatch:
 
 jobs:
@@ -15,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 3
+          fetch-depth: 5
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -41,3 +42,4 @@ jobs:
           done
           docker pull postgrest/postgrest:v13.0.7@sha256:0a46780309a604cdc8b56c776c6e5e15788ce58174d709e40459ab5a2d44d228
           node --experimental-strip-types scripts/test-p08-ebay-erasure.mjs
+          node --experimental-strip-types scripts/test-p09-pooler.mjs

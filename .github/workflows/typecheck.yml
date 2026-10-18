@@ -2,7 +2,7 @@ name: Typecheck
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, perf/p08-ebay-erasure-cpu-20261017]
 
 permissions:
   contents: read
