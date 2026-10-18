@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
   let stage: EbayDeletionRouteStage = "request_received"
   const markStage = (nextStage: EbayDeletionRouteStage) => {
     stage = nextStage
-    console.info(`[ebay-account-deletion] stage=${nextStage}`)
   }
 
   try {
@@ -51,9 +50,6 @@ export async function POST(request: NextRequest) {
     markStage("supabase_client_ok")
     const result = await eraseEbayUserData(client, message.identifiers)
     stage = "erasure_completed"
-    console.info(
-      `[ebay-account-deletion] stage=erasure_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length}`,
-    )
 
     try {
       if (result.affectedReleaseConditions.length > 0) {
@@ -65,6 +61,9 @@ export async function POST(request: NextRequest) {
             new Date(),
             repo,
           )
+          // Keep the durable queue for the existing worker. An older worker
+          // may still publish its pre-erasure snapshot after this inline run;
+          // consuming its replacement dirty job here would lose that repair.
         }
       }
     } catch {
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
     stage = "recompute_completed"
     console.info(
-      `[ebay-account-deletion] stage=recompute_completed count=${result.affectedReleaseConditions.length}`,
+      `[ebay-account-deletion] stage=recompute_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length}`,
     )
 
     return new NextResponse(null, { status: 204 })
