@@ -9,7 +9,8 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "feat/hotwheels-*": false
+      "feat/hotwheels-*": false,
+      "perf/p08-ebay-erasure-cpu-20261017": false
     }
   }
 }

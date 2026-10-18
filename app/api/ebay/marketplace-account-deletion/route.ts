@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
   let stage: EbayDeletionRouteStage = "request_received"
   const markStage = (nextStage: EbayDeletionRouteStage) => {
     stage = nextStage
-    console.info(`[ebay-account-deletion] stage=${nextStage}`)
   }
 
   try {
@@ -51,9 +50,6 @@ export async function POST(request: NextRequest) {
     markStage("supabase_client_ok")
     const result = await eraseEbayUserData(client, message.identifiers)
     stage = "erasure_completed"
-    console.info(
-      `[ebay-account-deletion] stage=erasure_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length}`,
-    )
 
     try {
       if (result.affectedReleaseConditions.length > 0) {
@@ -65,6 +61,18 @@ export async function POST(request: NextRequest) {
             new Date(),
             repo,
           )
+          // A successful inline recompute must not run again in the daily
+          // worker. The original dirty token preserves any newer enqueue.
+          if (affected.recomputeDirtyAt) {
+            const { error } = await client.rpc("trackdash_finish_market_recompute_job", {
+              p_release_id: affected.releaseId,
+              p_condition: affected.condition,
+              p_claimed_dirty_at: affected.recomputeDirtyAt,
+              p_success: true,
+              p_error: null,
+            })
+            if (error) throw new Error("EBAY_RECOMPUTE_FAILED")
+          }
         }
       }
     } catch {
@@ -72,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
     stage = "recompute_completed"
     console.info(
-      `[ebay-account-deletion] stage=recompute_completed count=${result.affectedReleaseConditions.length}`,
+      `[ebay-account-deletion] stage=recompute_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length}`,
     )
 
     return new NextResponse(null, { status: 204 })

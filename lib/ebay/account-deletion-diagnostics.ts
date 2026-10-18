@@ -27,6 +27,8 @@ const SAFE_ERROR_CODES = new Set([
 ])
 
 const SAFE_ERASURE_OPERATIONS = new Set([
+  "plan_erasure",
+  "apply_erasure",
   "load_source_policies",
   "load_source_registry",
   "load_market_candidates",

@@ -1,5 +1,9 @@
 import assert from "node:assert/strict"
 import { createHash, createSign, generateKeyPairSync } from "node:crypto"
+import { readFileSync } from "node:fs"
+import { createRequire } from "node:module"
+import vm from "node:vm"
+import ts from "typescript"
 
 process.env.EBAY_ENV = "production"
 process.env.EBAY_CLIENT_ID = "test-client"
@@ -108,42 +112,6 @@ for (const sensitive of ["Seller_Name", "immutable-1", "token-1", "test-secret"]
   assert.equal(safeFailure.includes(sensitive), false)
 }
 
-class Query {
-  constructor(store, table) {
-    this.store = store
-    this.table = table
-    this.operation = "select"
-    this.filters = []
-    this.start = 0
-    this.end = Number.MAX_SAFE_INTEGER
-  }
-  select() { return this }
-  update(payload) { this.operation = "update"; this.payload = payload; return this }
-  eq(field, value) { this.filters.push((row) => row[field] === value); return this }
-  in(field, values) { this.filters.push((row) => values.includes(row[field])); return this }
-  like(field, pattern) {
-    const prefix = pattern.endsWith("%") ? pattern.slice(0, -1) : pattern
-    this.filters.push((row) => String(row[field] ?? "").startsWith(prefix))
-    return this
-  }
-  order() { return this }
-  range(start, end) { this.start = start; this.end = end; return this }
-  then(resolve, reject) {
-    try {
-      const rows = this.store[this.table]
-      const matches = rows.filter((row) => this.filters.every((filter) => filter(row)))
-      if (this.operation === "update") {
-        for (const row of matches) Object.assign(row, structuredClone(this.payload))
-        resolve({ data: matches, error: null })
-      } else {
-        resolve({ data: structuredClone(matches.slice(this.start, this.end + 1)), error: null })
-      }
-    } catch (error) {
-      reject(error)
-    }
-  }
-}
-
 const store = {
   market_source_policies: [{ source_id: "ebay-active", source_family: "ebay" }],
   price_sources: [
@@ -189,7 +157,23 @@ const store = {
     raw_payload: { seller: "someone-else" },
   }],
 }
-const fakeClient = { from: (table) => new Query(store, table) }
+function plannedClient(store) {
+  return { rpc: (name, args) => ({ abortSignal: async () => {
+    if (name === "trackdash_plan_ebay_erasure") return { data: Object.fromEntries(
+      Object.entries(store).filter(([table]) => !["market_source_policies", "price_sources"].includes(table))
+        .map(([table, rows]) => [table, structuredClone(rows.map(row => ({ ...row, version: "1" })))])
+    ), error: null }
+    assert.equal(name, "trackdash_apply_ebay_erasure")
+    for (const change of args.p_changes) {
+      Object.assign(store[change.table].find(row => row.id === change.id), structuredClone(change.patch))
+    }
+    const counters = {market_candidates:"candidatesUpdated",market_offer_states:"offersUpdated",price_points:"pricePointsUpdated",market_aggregate_observations:"aggregatePayloadsUpdated",market_monthly_source_stats:"monthlyPayloadsUpdated"}
+    const result = Object.fromEntries(Object.values(counters).map(k => [k, 0]))
+    for(const c of args.p_changes) result[counters[c.table]]++
+    return { data: {...result, affectedReleaseConditions:[{releaseId:"release-1",condition:"new_complete_unbuilt"}]}, error: null }
+  } }) }
+}
+const fakeClient = plannedClient(store)
 const eraseResult = await eraseEbayUserData(fakeClient, identifiers)
 assert.equal(eraseResult.candidatesUpdated, 1)
 assert.equal(eraseResult.offersUpdated, 1)
@@ -210,7 +194,7 @@ assert.equal(store.market_aggregate_observations[0].raw_payload.records[0].selle
 assert.equal(store.market_aggregate_observations[0].raw_payload.records[1].seller, "someone-else")
 
 const noOpStore = structuredClone(store)
-const noOpClient = { from: (table) => new Query(noOpStore, table) }
+const noOpClient = plannedClient(noOpStore)
 const noOpResult = await eraseEbayUserData(noOpClient, {
   username: "synthetic-no-match",
   userId: "synthetic-user-id",
@@ -225,3 +209,62 @@ assert.deepEqual(noOpResult, {
 })
 
 console.log("eBay account-deletion compliance tests passed")
+
+// Execute the real Next route with isolated dependencies. Crypto still uses
+// the real synthetic signature above; no live eBay, Supabase or scanner calls.
+const require = createRequire(import.meta.url)
+const routeSource = ts.transpileModule(readFileSync(new URL("../app/api/ebay/marketplace-account-deletion/route.ts", import.meta.url), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText
+function webhook({ erasure = noOpResult, recomputeError = false, ackError = false, signatureValid = true } = {}) {
+  const exports = {}, logs = [], calls = []
+  const imports = {
+    "next/server": require("next/server"),
+    "@/lib/supabase/admin": { createAdminClient: () => { calls.push("client"); return {rpc:async (name,args)=>{assert.equal(name,"trackdash_finish_market_recompute_job");assert.equal(args.p_claimed_dirty_at,"2026-10-17T12:00:00Z");calls.push("finish");return {error:ackError?{}:null}}} } },
+    "@/lib/market/pipeline/market-r3-repository": { MarketR3Repository: class {} },
+    "@/lib/market/pipeline/market-r3-service": { recomputeReleaseMarketSignal: async () => {
+      calls.push("recompute"); if (recomputeError) throw Error("Seller_Name token-1 test-secret")
+    } },
+    "@/lib/ebay/account-deletion-diagnostics": { formatEbayDeletionFailure },
+    "@/lib/ebay/account-deletion": {
+      generateEbayDeletionChallenge, parseEbayDeletionNotification,
+      verifyEbayNotificationSignature: async (...args) => signatureValid && verifyEbayNotificationSignature(args[0],args[1],fetchMock,args[3]),
+      eraseEbayUserData: async () => { calls.push("erase"); if(erasure instanceof Error)throw erasure;return erasure },
+    },
+  }
+  vm.runInNewContext(routeSource, {
+    exports, Error, Date, fetch: fetchMock,
+    console: Object.fromEntries(["info","warn","error"].map(k => [k, value => logs.push(String(value))])),
+    require: name => { if (!Object.hasOwn(imports,name)) throw Error("UNEXPECTED_IMPORT"); return imports[name] },
+  })
+  const request = { text: async () => JSON.stringify(message), headers: new Headers({"x-ebay-signature":signatureHeader}) }
+  return { run: () => exports.POST(request), logs, calls }
+}
+const idleRoute = webhook()
+assert.equal((await idleRoute.run()).status,204)
+assert.deepEqual(idleRoute.calls,["client","erase"])
+assert.equal(idleRoute.logs.length,1)
+assert.match(idleRoute.logs[0],/stage=recompute_completed/)
+const rejectedRoute = webhook({signatureValid:false})
+assert.equal((await rejectedRoute.run()).status,412)
+assert.equal(rejectedRoute.calls.length,0)
+for(const erasure of [new Error("EBAY_USER_ERASURE_FAILED:plan_erasure"),new Error("EBAY_USER_ERASURE_FAILED:apply_erasure"),new Error("Seller_Name test-secret token-1")]) {
+  const r=webhook({erasure});assert.equal((await r.run()).status,500)
+  for(const s of ["Seller_Name","test-secret","token-1"])assert(!r.logs.join(" ").includes(s))
+}
+const failedRecompute = webhook({erasure:eraseResult,recomputeError:true})
+assert.equal((await failedRecompute.run()).status,500)
+assert.match(failedRecompute.logs.join(" "),/stage=erasure_completed code=EBAY_RECOMPUTE_FAILED/)
+const matchedRoute = webhook({erasure:eraseResult})
+assert.equal((await matchedRoute.run()).status,204)
+assert.equal(matchedRoute.logs.length,1)
+assert(matchedRoute.calls.includes("recompute"))
+console.log("P0.8 real webhook route: signed success/no-match, reject, safe errors, recompute failure and one completion log passed")
+
+const withDirty = { ...eraseResult, affectedReleaseConditions: [{releaseId:"release-1",condition:"new_complete_unbuilt",recomputeDirtyAt:"2026-10-17T12:00:00Z"}] }
+const finishedInline=webhook({erasure:withDirty})
+assert.equal((await finishedInline.run()).status,204)
+assert(finishedInline.calls.includes("finish"))
+const failedAck=webhook({erasure:withDirty,ackError:true})
+assert.equal((await failedAck.run()).status,500)
+console.log("P0.8 inline recompute acknowledges its durable dirty token; ack failures stay non-successful")
