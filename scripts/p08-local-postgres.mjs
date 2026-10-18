@@ -10,5 +10,10 @@ export function localDatabase(prefix){
  const exec=(database,sql,allowError=false)=>docker(['exec','-i',container,'psql','-U','postgres','-X','-q','-A','-t','-v','ON_ERROR_STOP=1','-d',database],sql,allowError)
  exec('postgres',`create database ${db};`)
  const sqlAsync=q=>new Promise((resolve,reject)=>{const child=spawn('docker',['--host=unix:///var/run/docker.sock','exec','-i',container,'psql','-U','postgres','-X','-q','-A','-t','-v','ON_ERROR_STOP=1','-d',db],{env});let stdout='',stderr='';child.stdout.on('data',x=>stdout+=x);child.stderr.on('data',x=>stderr+=x);child.on('error',reject);child.on('close',status=>resolve({status,stdout,stderr}));child.stdin.end(q)})
- return {db,sqlAsync,sql:(q,allowError=false)=>exec(db,q,allowError),close:()=>exec('postgres',`drop database ${db} with(force);`),json:q=>JSON.parse(exec(db,q).stdout.trim())}
+ const snapshot=()=>{
+  const file='/tmp/'+db+'.dump'
+  docker(['exec',container,'pg_dump','-U','postgres','-Fc','-f',file,db])
+  return {restoreTo:target=>{if(!/^p08r_[0-9a-f]{12}$/.test(target.db))throw Error('Isolated restore required');docker(['exec',container,'pg_restore','-U','postgres','--no-owner','--exit-on-error','-d',target.db,file])},close:()=>docker(['exec',container,'rm','-f',file])}
+ }
+ return {db,sqlAsync,snapshot,sql:(q,allowError=false)=>exec(db,q,allowError),close:()=>exec('postgres',`drop database ${db} with(force);`),json:q=>JSON.parse(exec(db,q).stdout.trim())}
 }

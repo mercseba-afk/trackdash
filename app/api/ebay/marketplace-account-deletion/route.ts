@@ -61,18 +61,9 @@ export async function POST(request: NextRequest) {
             new Date(),
             repo,
           )
-          // A successful inline recompute must not run again in the daily
-          // worker. The original dirty token preserves any newer enqueue.
-          if (affected.recomputeDirtyAt) {
-            const { error } = await client.rpc("trackdash_finish_market_recompute_job", {
-              p_release_id: affected.releaseId,
-              p_condition: affected.condition,
-              p_claimed_dirty_at: affected.recomputeDirtyAt,
-              p_success: true,
-              p_error: null,
-            })
-            if (error) throw new Error("EBAY_RECOMPUTE_FAILED")
-          }
+          // Keep the durable queue for the existing worker. An older worker
+          // may still publish its pre-erasure snapshot after this inline run;
+          // consuming its replacement dirty job here would lose that repair.
         }
       }
     } catch {

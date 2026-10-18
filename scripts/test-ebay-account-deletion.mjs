@@ -264,7 +264,8 @@ console.log("P0.8 real webhook route: signed success/no-match, reject, safe erro
 const withDirty = { ...eraseResult, affectedReleaseConditions: [{releaseId:"release-1",condition:"new_complete_unbuilt",recomputeDirtyAt:"2026-10-17T12:00:00Z"}] }
 const finishedInline=webhook({erasure:withDirty})
 assert.equal((await finishedInline.run()).status,204)
-assert(finishedInline.calls.includes("finish"))
+assert(!finishedInline.calls.includes("finish"))
 const failedAck=webhook({erasure:withDirty,ackError:true})
-assert.equal((await failedAck.run()).status,500)
-console.log("P0.8 inline recompute acknowledges its durable dirty token; ack failures stay non-successful")
+assert.equal((await failedAck.run()).status,204)
+assert(!failedAck.calls.includes("finish"))
+console.log("P0.8 inline recompute preserves the durable dirty job against older publishers")

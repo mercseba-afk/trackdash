@@ -31,7 +31,7 @@ export interface EbayErasureResult {
   pricePointsUpdated: number
   aggregatePayloadsUpdated: number
   monthlyPayloadsUpdated: number
-  affectedReleaseConditions: Array<{ releaseId: string; condition: string; recomputeDirtyAt?: string }>
+  affectedReleaseConditions: Array<{ releaseId: string; condition: string }>
 }
 
 type FetchLike = typeof fetch
@@ -239,15 +239,16 @@ function fail(error: { message?: string } | null, operation: string): void {
   if (error) throw new Error(`EBAY_USER_ERASURE_FAILED:${operation}`)
 }
 
-export async function eraseEbayUserData(
+async function eraseEbayUserDataPass(
   client: SupabaseClient,
   identifiers: EbayDeletionIdentifiers,
+  deadline: AbortSignal,
 ): Promise<EbayErasureResult> {
-  // One snapshot of matching rows. SQL uses a conservative indexed superset;
+  // Targeted reads of matching rows. SQL uses a conservative indexed superset;
   // the original JS matcher remains authoritative (including Unicode).
   const { data: plan, error: planError } = await client.rpc("trackdash_plan_ebay_erasure", {
     p_identifiers: identifierVariants(identifiers),
-  }).abortSignal(AbortSignal.timeout(18_000))
+  }).abortSignal(AbortSignal.any([deadline, AbortSignal.timeout(18_000)]))
   fail(planError, "plan_erasure")
   if (!plan || typeof plan !== "object") throw new Error("EBAY_USER_ERASURE_FAILED:plan_erasure")
   const changes: Array<{ table: string; id: string; version: string; patch: Record<string, unknown> }> = []
@@ -312,10 +313,38 @@ export async function eraseEbayUserData(
   // stale plans; retry re-reads current state instead of overwriting new evidence.
   if (changes.length > 0) {
     const { data, error } = await client.rpc("trackdash_apply_ebay_erasure", { p_changes: changes })
-      .abortSignal(AbortSignal.timeout(22_000))
+      .abortSignal(AbortSignal.any([deadline, AbortSignal.timeout(22_000)]))
     fail(error, "apply_erasure")
     if (!data || typeof data !== "object") throw new Error("EBAY_USER_ERASURE_FAILED:apply_erasure")
     return data as EbayErasureResult
   }
   return result
+}
+
+export async function eraseEbayUserData(
+  client: SupabaseClient,
+  identifiers: EbayDeletionIdentifiers,
+): Promise<EbayErasureResult> {
+  // The common initial no-match still costs one RPC. After a mutation, revisit
+  // the targeted search: unlike main's later reads, the first plan preloads
+  // offers/JSON before candidates are changed. Never acknowledge late matches.
+  const total: EbayErasureResult = {
+    candidatesUpdated: 0, offersUpdated: 0, pricePointsUpdated: 0,
+    aggregatePayloadsUpdated: 0, monthlyPayloadsUpdated: 0,
+    affectedReleaseConditions: [],
+  }
+  const deadline = AbortSignal.timeout(40_000)
+  const affected = new Map<string, { releaseId: string; condition: string }>()
+  for (let pass = 0; pass < 3; pass++) {
+    const result = await eraseEbayUserDataPass(client, identifiers, deadline)
+    const fields = ["candidatesUpdated", "offersUpdated", "pricePointsUpdated", "aggregatePayloadsUpdated", "monthlyPayloadsUpdated"] as const
+    let changed = 0
+    for (const field of fields) { changed += result[field]; total[field] += result[field] }
+    for (const row of result.affectedReleaseConditions) affected.set(`${row.releaseId}|${row.condition}`, row)
+    total.affectedReleaseConditions = [...affected.values()]
+    if (changed === 0) return total
+  }
+  // Bound in-request work, not intake or data coverage. The already committed
+  // redactions and recompute jobs remain durable; eBay gets a retryable failure.
+  throw new Error("EBAY_USER_ERASURE_FAILED:concurrent_writes")
 }

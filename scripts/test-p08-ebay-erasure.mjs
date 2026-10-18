@@ -7,6 +7,8 @@ import {performance} from 'node:perf_hooks'
 import {build} from 'esbuild'
 import {createClient} from '@supabase/supabase-js'
 import {isolatedPostgrest} from './p08-postgrest-isolated.mjs'
+import {localDatabase} from './p08-local-postgres.mjs'
+import {installNativeSchema} from './p08-managed-schema.mjs'
 import {eraseEbayUserData,containsEbayIdentifier,redactEbayIdentifiers,parseEbayDeletionNotification,verifyEbayNotificationSignature} from '../lib/ebay/account-deletion.ts'
 const base='d8690f7adb349c74bea38b1c115039ebf57a888d'
 const oldSource=execFileSync('git',['show',base+':lib/ebay/account-deletion.ts'],{encoding:'utf8'})
@@ -35,10 +37,7 @@ try{
  insert into public.price_sources(id,slug,name,source_type,is_active) values
  ('${active}','ebay_synthetic_active','Synthetic active','marketplace',true),('${legacy}','ebay_synthetic_inactive','Synthetic historic','marketplace',false),('${retail}','retail_synthetic','Synthetic retail','retail',true);
  insert into public.market_source_policies(source_id,source_family,scan_scope,independent_key,role,default_interval_hours) values('${active}','ebay','active_marketplace','synthetic','primary_marketplace',24);
- grant select,update on public.market_candidates,public.market_offer_states,public.price_points,public.market_aggregate_observations,public.market_monthly_source_stats to service_role;
- grant select on public.price_sources,public.market_source_policies to service_role;
- grant select(id,raw_payload),update(raw_payload) on public.market_candidates to trackdash_app;
- grant select,insert,update on public.market_release_signals,public.market_release_monthly_signals,public.market_release_ask_snapshots to service_role;`)
+ grant select(id,raw_payload),update(raw_payload) on public.market_candidates to trackdash_app;`)
  // Read-only Production aggregates calibrated this fixture: 1117 / 432 / 11 / 65 / 0.
  d.sql(`insert into public.market_candidates(id,source_id,source_record_key,resolved_release_id,condition,seller_fingerprint,evidence_group_key,raw_payload)
  select md5('c'||i)::uuid,'${active}','c'||i,case when i%50=0 then '${release}'::uuid else md5('release-'||(i%50))::uuid end,'${condition}','seller-'||i,'${release}|'||'seller-'||i,
@@ -139,6 +138,104 @@ try{
  assert.equal(json(`select valuation_eligible from public.price_points where candidate_id='${id('matched')}'`)[0].valuation_eligible,false)
  assert.equal(d.json(`select raw_payload->>'price' from public.market_monthly_source_stats where query_key='historic'`),25)
  passed('atomic erasure equals main on all five tables; linked historical points handled and all non-personal price fields retained; durable canonical recompute queued')
+ // Regression: main reads offers AFTER writing candidates. P0.8's first plan
+ // preloads them; a newly committed offer must be revisited before success.
+ writeFileSync('work/p08-pre-review.ts',execFileSync('git',['show','6b8af2be07ea00ddd04eb34addc7119d3fa2df5d:lib/ebay/account-deletion.ts'],{encoding:'utf8'}))
+ const preReview=await import('../work/p08-pre-review.ts')
+ async function offerRace(fn,label,isMain){
+  const username='synthetic-late-offer-'+label,key='late-offer-'+label
+  candidate(key,username,{seller:username})
+  let injected=false
+  const insert=()=>{injected=true;d.sql(`insert into public.market_offer_states(candidate_id,release_id,source_id,condition,channel,availability,seller_fingerprint,item_price,currency,item_price_eur,cost_basis,first_seen_at,last_checked_at,changed_at) values('${id(key)}','${release}','${legacy}','${condition}','marketplace','in_stock',${quote(username)},20,'EUR',20,'item_only',now(),now(),now());`)}
+  const racingClient=createClient('http://isolated.invalid',d.jwt('service_role'),{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(input,init)=>{
+   const path=new URL(String(input)).pathname
+   if(!isMain&&!injected&&path.endsWith('/trackdash_apply_ebay_erasure'))insert()
+   const response=await d.fetchImpl(input,init)
+   if(isMain&&!injected&&path.endsWith('/market_candidates')&&init.method==='PATCH')insert()
+   return response
+  }}})
+  await fn(racingClient,{username})
+  assert(injected)
+  return json(`select seller_fingerprint from public.market_offer_states where candidate_id='${id(key)}'`)[0].seller_fingerprint
+ }
+ assert.equal(await offerRace(baseline.eraseEbayUserData,'main',true),null)
+ assert.notEqual(await offerRace(preReview.eraseEbayUserData,'pre-review',false),null)
+ assert.equal(await offerRace(eraseEbayUserData,'fixed',false),null)
+ passed('newly inserted offer missed by pre-review P0.8 is now erased, as on main')
+ // The same preload window applies to historic JSON. Recheck must cover all
+ // tables, not only offers; repeated writers must receive a bounded failure.
+ for(const repeated of [false,true]){
+  const key='late-json-'+repeated,username='synthetic-'+key;candidate(key,username,{seller:username})
+  let applies=0
+  const racing=createClient('http://isolated.invalid',d.jwt('service_role'),{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(input,init)=>{
+   const path=new URL(String(input)).pathname
+   if(path.endsWith('/trackdash_apply_ebay_erasure')&&(repeated||applies===0)){
+    d.sql(`insert into public.market_monthly_source_stats(release_id,source_id,month,condition,query_key,sales_count,average_price,currency,raw_payload) values('${release}','${legacy}','2026-07-01','${condition}',${quote(key+'-'+applies)},1,20,'EUR',${quote(JSON.stringify({seller:username,price:20}))}::jsonb);`)
+    applies++
+   }
+   return d.fetchImpl(input,init)
+  }}})
+  if(repeated){await assert.rejects(eraseEbayUserData(racing,{username}),/concurrent_writes/);assert.equal(applies,3)}
+  else await eraseEbayUserData(racing,{username})
+  await eraseEbayUserData(client,{username})
+  assert.equal(d.json(`select count(*) from public.market_monthly_source_stats where query_key like ${quote(key+'-%')} and raw_payload->>'seller' is not null`),0)
+ }
+ passed('late historical JSON is rechecked; sustained writes fail within three passes and a fresh retry completes')
+ // STABLE held the first SQL snapshot across all five reads. Main instead
+ // observes a fresh snapshot per later table; prove the difference with a
+ // local-only barrier after candidate lookup (never present in proposal SQL).
+ const planDefinition=d.sql("select pg_get_functiondef('public.trackdash_plan_ebay_erasure(text[])'::regprocedure)").stdout.trim()
+ const paused=planDefinition.replace("answer := answer || jsonb_build_object('market_candidates',rows);", "answer := answer || jsonb_build_object('market_candidates',rows); if p_identifiers[1] like 'synthetic-mid-plan-%' and not exists(select 1 from public.market_offer_states where candidate_id=md5(p_identifiers[1])::uuid) then perform pg_sleep(1); end if;")
+ assert.notEqual(paused,planDefinition)
+ for(const volatility of ['stable','volatile']){
+  const username='synthetic-mid-plan-'+volatility;candidate(username,'unrelated',{seller:'unrelated'})
+  d.sql(paused+`;alter function public.trackdash_plan_ebay_erasure(text[]) ${volatility};`)
+  const erasing=eraseEbayUserData(client,{username});await new Promise(r=>setTimeout(r,10))
+  let waiting=false
+  for(let i=0;i<60;i++){if(d.json("select count(*) from pg_stat_activity where datname=current_database() and wait_event='PgSleep'")>0){waiting=true;break}await new Promise(r=>setTimeout(r,10))}
+  assert(waiting)
+  d.sql(`insert into public.market_offer_states(candidate_id,release_id,source_id,condition,channel,availability,seller_fingerprint,item_price,currency,item_price_eur,cost_basis,first_seen_at,last_checked_at,changed_at) values('${id(username)}','${release}','${legacy}','${condition}','marketplace','in_stock',${quote(username)},20,'EUR',20,'item_only',now(),now(),now());`)
+  await erasing
+  const seller=json(`select seller_fingerprint from public.market_offer_states where candidate_id='${id(username)}'`)[0].seller_fingerprint
+  assert.equal(seller,volatility==='stable'?username:null)
+ }
+ d.sql(planDefinition)
+ passed('STABLE snapshot regression reproduced; fresh per-table reads retain main visibility for later tables')
+
+ // Both main and P0.8 lack a persistent ingress tombstone: a writer AFTER
+ // erasure can reintroduce an identity. This is a preexisting gap, not closed.
+ for(const [label,fn] of [['main',baseline.eraseEbayUserData],['p08',eraseEbayUserData]]){
+  const key='after-commit-'+label,username='synthetic-after-commit-'+label;candidate(key,username,{seller:username})
+  await fn(client,{username});assert.equal(json(`select seller_fingerprint from public.market_candidates where id='${id(key)}'`)[0].seller_fingerprint,null)
+  d.sql(`update public.market_candidates set seller_fingerprint=${quote(username)},raw_payload=jsonb_build_object('seller',${quote(username)}) where id='${id(key)}';`)
+  assert.equal(json(`select seller_fingerprint from public.market_candidates where id='${id(key)}'`)[0].seller_fingerprint,username)
+ }
+ passed('BASE and P0.8 both reproduce post-commit reintroduction: unresolved preexisting risk')
+
+ // A finite provider retry budget cannot recover a request never committed.
+ // No real eBay calls: identical synthetic DB errors before the first mutation.
+ const unavailable=createClient('http://isolated.invalid',d.jwt('service_role'),{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async()=>new Response(JSON.stringify({code:'08006',message:'synthetic unavailable'}),{status:500})}})
+ for(const [label,fn] of [['main',baseline.eraseEbayUserData],['p08',eraseEbayUserData]]){
+  const key='exhausted-'+label,username='synthetic-exhausted-'+label;candidate(key,username,{seller:username})
+  for(let attempt=0;attempt<3;attempt++)await assert.rejects(fn(unavailable,{username}),/EBAY_USER_ERASURE_FAILED/)
+  assert.equal(json(`select seller_fingerprint from public.market_candidates where id='${id(key)}'`)[0].seller_fingerprint,username)
+ }
+ passed('BASE and P0.8 both retain data after exhausted pre-commit retries; no durable receipt claimed')
+
+ // Real logical backup/restore, synthetic data only. A pre-erasure snapshot
+ // resurrects identities for both implementations, with or without P0.8 indexes.
+ candidate('restore-main','synthetic-restore-main',{seller:'synthetic-restore-main'})
+ candidate('restore-p08','synthetic-restore-p08',{seller:'synthetic-restore-p08'})
+ const backup=d.snapshot(),restored=localDatabase('p08r')
+ try{
+  await baseline.eraseEbayUserData(client,{username:'synthetic-restore-main'})
+  await eraseEbayUserData(client,{username:'synthetic-restore-p08'})
+  backup.restoreTo(restored)
+  for(const label of ['main','p08'])assert.equal(restored.json(`select to_jsonb(seller_fingerprint) from public.market_candidates where id='${id('restore-'+label)}'`),'synthetic-restore-'+label)
+ }finally{restored.close();backup.close()}
+ passed('real pg_dump/pg_restore reproduces the same preexisting identity resurrection for BASE/P0.8')
+
+
 
  // Failure after earlier table updates must roll every mutation AND queue back.
  candidate('failure','failure-seller',{seller:'failure-seller'})
@@ -198,6 +295,21 @@ try{
  await rpc('trackdash_finish_market_recompute_job',{p_release_id:release,p_condition:condition,p_claimed_dirty_at:older[0].claimed_dirty_at,p_success:true,p_error:null})
  assert.equal(d.json(`select count(*) from public.market_recompute_queue where release_id='${release}'`),1)
  passed('real canonical MV/SOLD/ASK service recovers failed job; old concurrent claim cannot remove a newer erasure recompute')
+ // Counterexample to pre-review inline ACK: a still-running older worker can
+ // overwrite the inline result after ACK has deleted the only repair job.
+ const newer=json(`select dirty_at from public.market_recompute_queue where release_id='${release}'`)[0].dirty_at
+ await rpc('trackdash_finish_market_recompute_job',{p_release_id:release,p_condition:condition,p_claimed_dirty_at:newer,p_success:true,p_error:null})
+ await rpc('trackdash_finish_market_recompute_job',{p_release_id:release,p_condition:condition,p_claimed_dirty_at:older[0].claimed_dirty_at,p_success:true,p_error:null})
+ assert.equal(d.json(`select count(*) from public.market_recompute_queue where release_id='${release}'`),0)
+ await rpc('trackdash_enqueue_market_recompute',{p_release_id:release,p_condition:condition})
+ const oldPublisher=await rpc('trackdash_claim_market_recompute_jobs',{p_limit:1,p_lock_minutes:1})
+ candidate('repair-kept','synthetic-repair-kept',{seller:'synthetic-repair-kept'})
+ await eraseEbayUserData(client,{username:'synthetic-repair-kept'});await compute()
+ // Fixed webhook deliberately never finishes this job; native worker owns it.
+ await rpc('trackdash_finish_market_recompute_job',{p_release_id:release,p_condition:condition,p_claimed_dirty_at:oldPublisher[0].claimed_dirty_at,p_success:true,p_error:null})
+ assert.equal(d.json(`select count(*) from public.market_recompute_queue where release_id='${release}'`),1)
+ passed('pre-review inline ACK lost repair against older publisher; fixed route retains the replacement dirty job')
+
 
  // A point inserted between plan and apply must not escape the erasure when its
  // parent loses the only personal reference. The apply guard rejects the plan.
@@ -249,5 +361,31 @@ try{
  const logs=d.logs()+d.databaseLogs()
  for(const sensitive of ['late-point-seller','locked-seller','lost-response-seller','phase-seller'])assert(!logs.includes(sensitive),'synthetic personal canary leaked to infrastructure logs')
  passed('index maintenance works with a narrowly granted writer role; failure/lock/conflict logs contain no synthetic identity canaries')
+
+ // Exact proposed migration on a second empty managed-metadata clone: abort
+ // after two concurrent builds, verify gates, then resume remaining phases.
+ const trial=localDatabase('p08r')
+ try{
+  trial.sql("create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql as 'select null::uuid';")
+  installNativeSchema(trial)
+  const protectedCatalog=db=>db.json(`select jsonb_build_object('acl',(select jsonb_agg(jsonb_build_array(c.relname,c.relacl::text,c.relrowsecurity,c.relforcerowsecurity) order by c.relname) from pg_class c where c.relnamespace='public'::regnamespace and c.relkind='r'), 'triggers',(select jsonb_agg(pg_get_triggerdef(t.oid) order by t.tgname) from pg_trigger t where not t.tgisinternal and t.tgrelid in(select oid from pg_class where relnamespace='public'::regnamespace)), 'policies',(select jsonb_agg(jsonb_build_array(tablename,policyname,roles,qual,with_check) order by tablename,policyname) from pg_policies where schemaname='public'))`)
+  const original=protectedCatalog(trial),migration=readFileSync('proposals/p08-ebay-erasure.sql','utf8'),cut=migration.indexOf('create index concurrently p08_price_points')
+  const failed=trial.sql(migration.slice(0,cut)+'select 1/0;',true);assert.notEqual(failed.status,0)
+  assert.equal(trial.json("select count(*) from pg_indexes where indexname like 'p08_%'"),2)
+  assert.equal(trial.json("select to_jsonb(to_regprocedure('public.trackdash_plan_ebay_erasure(text[])') is null)"),true)
+  assert.deepEqual(protectedCatalog(trial),original)
+  trial.sql(migration.slice(cut))
+  assert.equal(trial.json("select count(*) from pg_index i join pg_class c on c.oid=i.indexrelid where c.relname like 'p08_%' and i.indisvalid and i.indisready"),5)
+  assert.deepEqual(protectedCatalog(trial),original)
+  for(const role of ['anon','authenticated'])assert.equal(trial.json(`select to_jsonb(has_function_privilege('${role}','public.trackdash_apply_ebay_erasure(jsonb)','execute'))`),false)
+  assert.equal(trial.json("select to_jsonb(has_function_privilege('service_role','public.trackdash_apply_ebay_erasure(jsonb)','execute'))"),true)
+ }finally{trial.close()}
+ // Application-only rollback leaves the additive DDL and all repair jobs.
+ const redactionsBeforeRollback=state(),queueBeforeRollback=json('select * from public.market_recompute_queue order by release_id,condition')
+ await baseline.eraseEbayUserData(client,{username:'synthetic-rollback-no-match'})
+ assert.deepEqual(state(),redactionsBeforeRollback)
+ assert.deepEqual(json('select * from public.market_recompute_queue order by release_id,condition'),queueBeforeRollback)
+ assert.equal(d.json("select count(*) from pg_index i join pg_class c on c.oid=i.indexrelid where c.relname like 'p08_%' and i.indisvalid"),5)
+ passed('managed-schema migration interruption/resume and application rollback preserve native ACL/RLS/triggers, all five indexes, redactions and queue')
  report.checks=checks;mkdirSync('work',{recursive:true});writeFileSync('work/p08-benchmark.json',JSON.stringify(report,null,2)+'\n');writeFileSync('work/p08-explain.json',explain);console.log(JSON.stringify(report,null,2))
 }finally{delete globalThis.__p08SyntheticClient;d.close()}

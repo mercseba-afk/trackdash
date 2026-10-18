@@ -78,10 +78,10 @@ create index concurrently p08_market_monthly_source_stats_erasure_terms on publi
 begin;
 set local lock_timeout='2s';
 
--- One statement snapshot; returns JSON arrays so PostgREST's row cap cannot
+-- Fresh per-table snapshots, like main; returns JSON arrays so PostgREST's row cap cannot
 -- silently truncate the plan. Only indexed matches/fallback rows leave Postgres.
 create function public.trackdash_plan_ebay_erasure(p_identifiers text[])
-returns jsonb language plpgsql stable security definer
+returns jsonb language plpgsql volatile security definer
 set search_path = pg_catalog set lock_timeout = '2s'
 as $$
 declare
@@ -192,10 +192,7 @@ begin
     if release_id is not null then
       perform public.trackdash_enqueue_market_recompute(release_id,cond);
       affected := affected || jsonb_build_object(release_id::text||'|'||cond,
-                    jsonb_build_object('releaseId',release_id,'condition',cond,'recomputeDirtyAt',
-                      (select q.dirty_at from public.market_recompute_queue q
-                       where q.release_id=coalesce(current_row->>'resolved_release_id',current_row->>'release_id')::uuid
-                         and q.condition=current_row->>'condition')));
+                    jsonb_build_object('releaseId',release_id,'condition',cond));
     end if;
   end loop;
   return jsonb_build_object(
