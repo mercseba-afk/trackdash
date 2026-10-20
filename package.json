@@ -43,7 +43,7 @@
     "market:efficiency:test": "node --experimental-strip-types scripts/test-market-efficiency.mjs",
     "market:ui:test": "node scripts/test-market-ui.mjs",
     "market:ui:browser": "node scripts/test-market-ui-browser.mjs",
-    "auth:migration:test": "node --test scripts/test-p09-auth-migration.mjs",
+    "auth:migration:test": "node --test scripts/test-p09-auth-migration.mjs scripts/test-password-recovery-mfa.mjs",
     "proxy:test": "node --experimental-strip-types --test scripts/test-proxy-sessionless-routes.mjs"
   },
   "dependencies": {

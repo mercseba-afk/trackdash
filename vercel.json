@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
   "crons": [
     {
       "path": "/api/cron/market-scan",
@@ -11,7 +12,8 @@
     "deploymentEnabled": {
       "feat/hotwheels-*": false,
       "perf/p08-ebay-erasure-cpu-20261017": false,
-      "perf/p09-pooler-egress-20261018": false
+      "perf/p09-pooler-egress-20261018": false,
+      "recovery/frankfurt-migration": false
     }
   }
 }

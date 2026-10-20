@@ -1,0 +1,500 @@
+[
+  {
+    "name": "auth.audit_log_entries",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.custom_oauth_providers",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.flow_state",
+    "rows": 16,
+    "digest": "dd5e4e4525b8a9f6d832a5626b58a31d",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.identities",
+    "rows": 5,
+    "digest": "2f377692ead8d1809d676cedb11d90e7",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.instances",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.mfa_amr_claims",
+    "rows": 3,
+    "digest": "06dbe79f2e2e9ebe1734ed043424d910",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.mfa_challenges",
+    "rows": 8,
+    "digest": "959d1640eece15e5b6e6bf9072967d6f",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.mfa_factors",
+    "rows": 1,
+    "digest": "ba63d34b5bff23940e15bd8c1c70909e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.mfa_recovery_code_sets",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.mfa_recovery_codes",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.oauth_authorizations",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.oauth_client_states",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.oauth_clients",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.oauth_consents",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.one_time_tokens",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.refresh_tokens",
+    "rows": 37,
+    "digest": "c37f9d0e4e25dc5be74bac08677d1eb7",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.saml_providers",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.saml_relay_states",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.scim_tokens",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.scim_users",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.sessions",
+    "rows": 3,
+    "digest": "184c7939c44e7028ee130e5f8ca69a9a",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.sso_domains",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.sso_providers",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.users",
+    "rows": 4,
+    "digest": "c2294e79a36dfef8a67dd900c6732c1c",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.webauthn_challenges",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "auth.webauthn_credentials",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.account_subscriptions",
+    "rows": 4,
+    "digest": "a627ef694378cca686cb3a604a8b927d",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.app_admins",
+    "rows": 1,
+    "digest": "800c23b0719b696fd31d06717a0ddb07",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.app_traffic_daily",
+    "rows": 271,
+    "digest": "0303222ce83fcd71fb603cf5ba0cb2c5",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.brands",
+    "rows": 2,
+    "digest": "3fd136871f4171b3dca0c13645dd2c46",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.categories",
+    "rows": 2,
+    "digest": "658912aee390631b6113703447e84aa4",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collection_item_photos",
+    "rows": 2,
+    "digest": "ee3879a0c56aaa3de653ea7c24b1dc95",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collection_item_transfers",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collection_item_value_history",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collection_items",
+    "rows": 6,
+    "digest": "bd205988d7e71b6f6199519f540fe91b",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collection_shares",
+    "rows": 5,
+    "digest": "64854bdfe4912c49b9c4cd7d9dc5e4f8",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collector_blocks",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.collector_profiles",
+    "rows": 2,
+    "digest": "542af9ff2b5c4a255cf98bc13e15c511",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.conversation_reads",
+    "rows": 6,
+    "digest": "1670d87f0cdd4e9453d9a1d608172a60",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.conversations",
+    "rows": 3,
+    "digest": "4f0287bbfdfe71c35b45a839bc19bf3f",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.hotwheels_casting_details",
+    "rows": 1,
+    "digest": "5b6e53caec951f8712f49b1a54ca1a5e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.hotwheels_casting_sources",
+    "rows": 3,
+    "digest": "ef6c9abc13a6cfb584ae1ce5df3de1b9",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.hotwheels_release_details",
+    "rows": 13,
+    "digest": "abfc3aa3a6c9e930d8afd3ec58fc2139",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.hotwheels_release_subvariants",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_aggregate_observations",
+    "rows": 89,
+    "digest": "44d684ddcc10c12cdf9537dc36281e29",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_candidates",
+    "rows": 1252,
+    "digest": "d515e5e73b6e6fd72436d8e9c89bf008",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_estimates",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_monthly_source_stats",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_offer_history",
+    "rows": 1117,
+    "digest": "d40ae04eeb2b795150d5c26f12201882",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_offer_states",
+    "rows": 463,
+    "digest": "c385bb3703b2a37b41d1d7a0d5e5fc65",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_recompute_queue",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_release_ask_snapshots",
+    "rows": 435,
+    "digest": "83ba51e6db239cd13cbc9e12a6a05cea",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_release_monthly_signals",
+    "rows": 24,
+    "digest": "5388f765e0a1ad455b77ed14b397c544",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_release_signals",
+    "rows": 209,
+    "digest": "3bc6c848c64dacbbbddd5c62f165c5bb",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_review_digests",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_scan_endpoints",
+    "rows": 60,
+    "digest": "4bc987fce1943584d2b63a7de7ccb8ea",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_scan_queue",
+    "rows": 2323,
+    "digest": "ef845e25994ed0d48b352bb07f72e8bd",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_scan_runs",
+    "rows": 306,
+    "digest": "bd41697e544ca2c8d28b870df0b1c5e7",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_scan_targets",
+    "rows": 2322,
+    "digest": "2c16572b8f360fab9147d96923ab72b3",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_source_policies",
+    "rows": 24,
+    "digest": "e1f62629c2e772137b855213a3151081",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.market_value_history",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.marketplace_offers",
+    "rows": 3,
+    "digest": "a74b4f9273a9e2e598df5405ea3859d5",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.marketplace_sales",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.messages",
+    "rows": 4,
+    "digest": "644282918c6b45398cb52deb4358ea55",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.notifications",
+    "rows": 8,
+    "digest": "808bcc177b46c04d87ee8cd3a617b28e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.price_points",
+    "rows": 84,
+    "digest": "3267b33342b0487e10938b1f695c0aae",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.price_sources",
+    "rows": 29,
+    "digest": "6aef7bab59da2cd1e8d0171eff1d86bf",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.product_images",
+    "rows": 40,
+    "digest": "78a868923f7a3b15e2f0913dca60562a",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.product_releases",
+    "rows": 281,
+    "digest": "e1b7922f464ce1105262cfd004dcc998",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.products",
+    "rows": 61,
+    "digest": "f13315d520d96f67e20e547f2dc36b99",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.profiles",
+    "rows": 4,
+    "digest": "3b3e9ee8cd1bfa0f0c0869698d497cd5",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.release_identifiers",
+    "rows": 71,
+    "digest": "37af823e8ea0ef922db85a119e99ef90",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.release_images",
+    "rows": 204,
+    "digest": "5fb8451b2cc8446eb4bbcc44311a601a",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.release_sources",
+    "rows": 643,
+    "digest": "051f6863c7f4d66844ed099dd7232332",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.support_requests",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "public.wishlist_items",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.buckets",
+    "rows": 1,
+    "digest": "88dcd4ef3010cf5d34b2c1ba41f9deeb",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.buckets_analytics",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.buckets_vectors",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.objects",
+    "rows": 2,
+    "digest": "72e8329ed1b3692dd5a39c44f218f70d",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.s3_multipart_uploads",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.s3_multipart_uploads_parts",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  },
+  {
+    "name": "storage.vector_indexes",
+    "rows": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e",
+    "snapshot_at": "2026-10-19 19:01:58.007059+00"
+  }
+]

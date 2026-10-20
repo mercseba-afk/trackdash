@@ -1,3 +1,20 @@
+import { createHash } from "node:crypto"
+
+// Call only after signature verification and payload validation. Never log the
+// payload, seller identifiers, signature, credentials or raw notification ID.
+export function formatEbayNotificationMetadata(notificationId: string, payload: unknown): string {
+  const notification = (payload as { notification?: Record<string, unknown> } | null)?.notification
+  const iso = (value: unknown) => {
+    if (typeof value !== "string" || value.length > 64) return "unknown"
+    const timestamp = Date.parse(value)
+    return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : "unknown"
+  }
+  const attempt = notification?.publishAttemptCount
+  const safeAttempt = typeof attempt === "number" && Number.isSafeInteger(attempt) && attempt >= 1 ? attempt : "unknown"
+  const digest = createHash("sha256").update("trackdash-ebay-notification-v1:").update(notificationId).digest("hex")
+  return `diagnostic_v=1 notification_hash=${digest} attempt=${safeAttempt} event_at=${iso(notification?.eventDate)} published_at=${iso(notification?.publishDate)}`
+}
+
 export type EbayDeletionRouteStage =
   | "request_received"
   | "signature_header_parsed"

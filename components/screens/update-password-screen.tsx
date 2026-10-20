@@ -12,7 +12,9 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 
-type SessionState = "checking" | "valid" | "invalid"
+type SessionState = "checking" | "valid" | "invalid" | "unavailable"
+
+const PASSWORD_MFA_PATH = "/mfa?next=%2Fupdate-password"
 
 export function UpdatePasswordScreen() {
   const router = useRouter()
@@ -32,13 +34,29 @@ export function UpdatePasswordScreen() {
         data: { user },
       } = await supabase.auth.getUser()
       if (cancelled) return
-      setSessionState(user ? "valid" : "invalid")
+      if (!user) {
+        setSessionState("invalid")
+        return
+      }
+      const { data: assurance, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      if (cancelled) return
+      if (error || !assurance) {
+        setSessionState("unavailable")
+        return
+      }
+      if (assurance.nextLevel === "aal2" && assurance.currentLevel !== "aal2") {
+        router.replace(PASSWORD_MFA_PATH)
+        return
+      }
+      setSessionState("valid")
     }
-    checkSession()
+    void checkSession().catch(() => {
+      if (!cancelled) setSessionState("unavailable")
+    })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,6 +83,12 @@ export function UpdatePasswordScreen() {
     setPending(false)
 
     if (error) {
+      if (error.code === "insufficient_aal") {
+        setPassword("")
+        setConfirmPassword("")
+        router.replace(PASSWORD_MFA_PATH)
+        return
+      }
       toast.error(error.message)
       return
     }
@@ -84,6 +108,13 @@ export function UpdatePasswordScreen() {
           <div className="flex flex-col items-center gap-3 py-10 text-muted-foreground">
             <Spinner className="size-6" />
             <p className="text-sm">{it ? "Verifica del link di reset…" : "Checking your reset link…"}</p>
+          </div>
+        )}
+
+        {sessionState === "unavailable" && (
+          <div className="flex flex-col gap-4 text-center">
+            <p>{it ? "Non è stato possibile verificare la sicurezza della sessione. Riprova." : "Session security could not be verified. Please try again."}</p>
+            <Button onClick={() => window.location.reload()}>{it ? "Riprova" : "Try again"}</Button>
           </div>
         )}
 

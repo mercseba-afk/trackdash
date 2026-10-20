@@ -21,6 +21,7 @@ const {
 } = await import("../lib/ebay/account-deletion.ts")
 const {
   formatEbayDeletionFailure,
+  formatEbayNotificationMetadata,
   safeEbayDeletionErrorCode,
 } = await import("../lib/ebay/account-deletion-diagnostics.ts")
 
@@ -225,7 +226,7 @@ function webhook({ erasure = noOpResult, recomputeError = false, ackError = fals
     "@/lib/market/pipeline/market-r3-service": { recomputeReleaseMarketSignal: async () => {
       calls.push("recompute"); if (recomputeError) throw Error("Seller_Name token-1 test-secret")
     } },
-    "@/lib/ebay/account-deletion-diagnostics": { formatEbayDeletionFailure },
+    "@/lib/ebay/account-deletion-diagnostics": { formatEbayDeletionFailure, formatEbayNotificationMetadata },
     "@/lib/ebay/account-deletion": {
       generateEbayDeletionChallenge, parseEbayDeletionNotification,
       verifyEbayNotificationSignature: async (...args) => signatureValid && verifyEbayNotificationSignature(args[0],args[1],fetchMock,args[3]),
@@ -245,9 +246,19 @@ assert.equal((await idleRoute.run()).status,204)
 assert.deepEqual(idleRoute.calls,["client","erase"])
 assert.equal(idleRoute.logs.length,1)
 assert.match(idleRoute.logs[0],/stage=recompute_completed/)
+assert.match(idleRoute.logs[0],/notification_hash=[a-f0-9]{64}/)
+assert.match(idleRoute.logs[0],/response_status=204 duration_ms=\d+/)
+assert(!idleRoute.logs[0].includes(message.notification.notificationId))
+for (const value of Object.values(message.notification.data)) assert(!idleRoute.logs[0].includes(value))
+const metadata = (attempt) => formatEbayNotificationMetadata("synthetic-event", {notification:{publishAttemptCount:attempt,eventDate:"2026-10-19T10:00:00Z",publishDate:"2026-10-19T11:00:00Z",data:{username:"NEVER_LOG",eiasToken:"NEVER_LOG"}}})
+assert.equal(metadata(1).match(/notification_hash=\w+/)[0],metadata(2).match(/notification_hash=\w+/)[0])
+assert.match(metadata(2),/attempt=2 event_at=2026-10-19T10:00:00.000Z published_at=2026-10-19T11:00:00.000Z/)
+assert(!metadata(1).includes("NEVER_LOG"))
+assert.match(formatEbayNotificationMetadata("synthetic-event", {notification:{publishAttemptCount:"\nsecret",eventDate:"secret",publishDate:"x"}}),/attempt=unknown event_at=unknown published_at=unknown/)
 const rejectedRoute = webhook({signatureValid:false})
 assert.equal((await rejectedRoute.run()).status,412)
 assert.equal(rejectedRoute.calls.length,0)
+assert(!rejectedRoute.logs.join(" ").includes("notification_hash="))
 for(const erasure of [new Error("EBAY_USER_ERASURE_FAILED:plan_erasure"),new Error("EBAY_USER_ERASURE_FAILED:apply_erasure"),new Error("Seller_Name test-secret token-1")]) {
   const r=webhook({erasure});assert.equal((await r.run()).status,500)
   for(const s of ["Seller_Name","test-secret","token-1"])assert(!r.logs.join(" ").includes(s))
