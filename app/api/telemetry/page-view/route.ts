@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+import { isInternalAnalyticsUser } from "@/lib/analytics/internal-user"
 
 export const dynamic = "force-dynamic"
 
@@ -30,6 +31,17 @@ export async function POST(request: NextRequest) {
     const {
       data: { user },
     } = await supabase.auth.getUser()
+
+    // Match Vercel Web Analytics: internal administrators never inflate
+    // the first-party aggregate page-view counters either.
+    // An internal-role lookup failure deliberately falls through to the
+    // outer error handler (fail closed, do not record the visit).
+    if (user && await isInternalAnalyticsUser(user.id)) {
+      return new NextResponse(null, {
+        status: 204,
+        headers: { "Cache-Control": "no-store" },
+      })
+    }
 
     const admin = createAdminClient()
     const { error } = await admin.rpc("trackdash_record_page_view", {

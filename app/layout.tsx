@@ -1,4 +1,4 @@
-import { Analytics } from "@vercel/analytics/next"
+import { VisitorAnalytics } from "@/components/visitor-analytics"
 import type { Metadata, Viewport } from "next"
 import { cookies } from "next/headers"
 import { Instrument_Sans, JetBrains_Mono } from "next/font/google"
@@ -101,6 +101,7 @@ export default async function RootLayout({
                 <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
                   <TooltipProvider>{children}</TooltipProvider>
                   <PageViewTracker />
+                  {process.env.NODE_ENV === "production" && <VisitorAnalytics />}
                   <ScrollRevealController />
                   <PwaInstallManager />
                   <Toaster position="top-center" />
@@ -109,7 +110,6 @@ export default async function RootLayout({
             </MarketSignalsProvider>
           </StoreProvider>
         </ThemeProvider>
-        {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>
   )
