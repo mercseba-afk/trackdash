@@ -46,3 +46,19 @@ const redacted = await probeBriosiRetailSource(async () => { throw new Error("PR
 assert.equal(redacted.error, "SOURCE_FETCH_FAILED")
 assert.ok(!JSON.stringify(redacted).includes("PRIVATE_TOKEN"))
 console.log("6 source-canary checks passed: exact match, bounds, no redirects/retries, redacted failures")
+
+const { retailCanarySource, probeRetailSource, RETAIL_CANARY_TARGETS } = exports
+assert.equal(retailCanarySource(`plaza_japan_public@${now + 600000}`, now), "plaza_japan_public")
+assert.equal(retailCanarySource(`unknown@${now + 600000}`, now), null)
+assert.equal(retailCanarySource(`plaza_japan_public@${now}`, now), null)
+assert.equal(retailCanarySource(`plaza_japan_public@${now + 3600000}`, now), null)
+const plaza = await probeRetailSource("plaza_japan_public", async (url) => {
+  assert.equal(url, RETAIL_CANARY_TARGETS.plaza_japan_public.url)
+  return new Response(html() + " ".repeat(300000), { headers: { "content-type": "text/html" } })
+})
+assert.equal(plaza.ok, true)
+const unavailable = await probeRetailSource("plaza_japan_public", async () => new Response(html().replace("schema.org/InStock", "schema.org/OutOfStock"), { headers: { "content-type": "text/html" } }))
+assert.equal(unavailable.availability, "out_of_stock")
+assert.equal((await probeRetailSource("plaza_japan_public", async () => new Response("x".repeat(750001), { headers: { "content-type": "text/html" } }))).error, "HTML_TOO_LARGE")
+assert.equal((await probeRetailSource("https://untrusted.invalid", async () => { throw Error("must not fetch") })).error, "UNKNOWN_SOURCE")
+console.log("Plaza canary checks passed: fixed allowlist, deadline, real-size page bound, unavailable preserved")
