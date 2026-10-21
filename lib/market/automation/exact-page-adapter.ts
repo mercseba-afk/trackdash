@@ -277,7 +277,7 @@ export function parseRcjazRetailPage(html: string, options: ParseOptions): Exact
   }
 }
 
-export function parseExactRetailPage(html: string, options: ParseOptions): ExactPageSnapshot {
+function parseGenericExactRetailPage(html: string, options: ParseOptions): ExactPageSnapshot {
   const warnings: string[] = []
   const title = pageTitle(html)
   const itemNumberSeen = containsItemNumber(html, options.itemNumber)
@@ -344,6 +344,45 @@ export function parseExactRetailPage(html: string, options: ParseOptions): Exact
     warnings,
     rawAvailability,
   }
+}
+
+// Briosi's JSON-LD has reported InStock while the actual product variant has
+// qty=0 / "Non disponbile". Treat checkout variant stock as authoritative;
+// missing, malformed or ambiguous variants must never inherit that metadata.
+export function parseExactRetailPage(html: string, options: ParseOptions): ExactPageSnapshot {
+  const snapshot = parseGenericExactRetailPage(html, options)
+  let host: string
+  try { host = new URL(options.pageUrl).hostname.toLowerCase() } catch { return snapshot }
+  if (host !== "www.briosigiocattoli.it" && host !== "briosigiocattoli.it") return snapshot
+
+  let availability: ParsedAvailability = "unknown"
+  let rawAvailability: string | null = null
+  try {
+    const match = /\bvariants\s*:\s*JSON\.parse\(\s*'([^'\r\n]*)'\s*\)/.exec(html)
+    const variants: unknown = match ? JSON.parse(match[1]) : null
+    if (Array.isArray(variants) && variants.length === 1) {
+      const variant = variants[0]
+      if (variant && typeof variant.name === "string" && containsItemNumber(variant.name, options.itemNumber)) {
+        const stock = variant.availability
+        const description = typeof stock?.description === "string" ? stock.description.trim() : ""
+        rawAvailability = description || null
+        if (/^non\s+(disponibile|disponbile|fornibile)$/i.test(description) ||
+            (typeof stock?.qty === "number" && stock.qty <= 0 && stock.continue_selling === false)) {
+          availability = "out_of_stock"
+        } else if (/^disponibile$/i.test(description) && typeof stock?.qty === "number" && stock.qty > 0) {
+          availability = "in_stock"
+        } else if (typeof stock?.qty === "number" && stock.qty <= 0 && stock.continue_selling === true) {
+          availability = "backorder"
+        }
+      }
+    }
+  } catch {
+    // Data only: never execute the merchant's JavaScript to read variants.
+  }
+  const warnings = [...snapshot.warnings]
+  if (availability === "unknown") warnings.push("BRIOSI_STOCK_UNVERIFIED")
+  else if (availability !== snapshot.availability) warnings.push("BRIOSI_STOCK_METADATA_CONFLICT")
+  return { ...snapshot, availability, rawAvailability, warnings }
 }
 
 export function isAutoPublishableSnapshot(snapshot: ExactPageSnapshot): boolean {
