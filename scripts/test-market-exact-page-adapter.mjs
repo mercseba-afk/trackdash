@@ -211,5 +211,30 @@ ok("reasonable current price passes the guard", () => {
   assert.equal(guard.decision, "accept")
 })
 
+const briosiPage = (variants) => `<h1>Tamiya 18069</h1><script type="application/ld+json">${JSON.stringify({"@type":"Product",name:"Tamiya 18069",offers:{"@type":"Offer",price:17.7,priceCurrency:"EUR",availability:"https://schema.org/InStock"}})}</script><script>const product={variants: JSON.parse('${JSON.stringify(variants)}')};</script>`
+const briosiOptions = {itemNumber:"18069",pageUrl:"https://www.briosigiocattoli.it/product/6058/Mini-4wd-Dash1-Emperor-superII-18069"}
+const variant = (description,qty,continue_selling=false,name="Mini 4wd - Dash1 Emperor superII. 18069") => ({name,availability:{description,qty,continue_selling}})
+ok("Briosi real zero-stock variant overrides incorrect InStock metadata", () => {
+ const snapshot=parseExactRetailPage(briosiPage([variant("Non disponbile",0)]),briosiOptions)
+ assert.equal(snapshot.availability,"out_of_stock")
+ assert.equal(snapshot.price,17.7)
+ assert.ok(snapshot.warnings.includes("BRIOSI_STOCK_METADATA_CONFLICT"))
+})
+ok("Briosi requires positive exact-variant stock to publish current availability", () => {
+ assert.equal(parseExactRetailPage(briosiPage([variant("Disponibile",2)]),briosiOptions).availability,"in_stock")
+ assert.equal(parseExactRetailPage(briosiPage([variant("Disponibile",0)]),briosiOptions).availability,"out_of_stock")
+ assert.equal(parseExactRetailPage(briosiPage([variant("Disponibile",0,true)]),briosiOptions).availability,"backorder")
+})
+ok("Briosi missing, malformed, multiple and wrong-item variants never inherit InStock", () => {
+ for(const variants of [null,[],[variant("Disponibile",2),variant("Disponibile",3)], [variant("Disponibile",2,false,"Tamiya 99999")]]) {
+  assert.equal(parseExactRetailPage(briosiPage(variants),briosiOptions).availability,"unknown")
+ }
+ const malformed=briosiPage([]).replace("JSON.parse('[]')","JSON.parse('not json')")
+ assert.equal(parseExactRetailPage(malformed,briosiOptions).availability,"unknown")
+})
+ok("Briosi stock override does not change other retailers", () => {
+ assert.equal(parseExactRetailPage(briosiPage([variant("Non disponbile",0)]),{...briosiOptions,pageUrl:"https://shop.example/product/18069"}).availability,"in_stock")
+})
+
 console.log(`${passed} passed, 0 failed`)
 console.log("EXACT RETAIL PAGE ADAPTER TEST PASSED")
