@@ -445,5 +445,79 @@ ok("Origin-driven extra-EU warning is tied to real seller item location, not eBa
   assert.equal(classifyOfferOrigin("IT", "japan"), "eu")
 })
 
+// International retail remains visible without changing European publication gates.
+function regionalShop(id, region, price, shipping = null, availability = "in_stock") {
+  return { stableId: id, sourceId: id, merchantKey: id, marketRegion: region,
+    channel: "retail", availability, itemPriceEUR: price, shippingEUR: shipping,
+    observedAt: `${asOfDate}T10:00:00Z` }
+}
+const europeanShops = [regionalShop("eu-a", "europe", 20, 5), regionalShop("eu-b", "europe", 22, 5)]
+const japaneseShop = regionalShop("plaza", "japan", 5.54)
+function headline(signal) {
+  return [signal.marketValueEUR, signal.lowEUR, signal.highEUR, signal.confidenceScore, signal.confidenceLabel]
+}
+
+ok("cheap Japanese stock cannot hide a valid two-merchant European value", () => {
+  const baseline = publish([], europeanShops)
+  const mixed = publish([], [...europeanShops, japaneseShop])
+  assert.equal(baseline.marketValueEUR, 26)
+  assert.deepEqual(headline(mixed), headline(baseline))
+  assert.equal(mixed.retailSourceCount, 3) // retain international context
+  assert.equal(mixed.retailRegionCount, 2)
+  assert.equal(mixed.retailAnchorEUR, 26)
+})
+
+ok("Japanese merchants cannot supply the missing second European merchant", () => {
+  const result = publish([], [europeanShops[0], regionalShop("jp-near", "japan", 24)])
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.retailSourceCount, 2)
+  assert.equal(result.retailAnchorEUR, 25)
+})
+
+ok("extra-EU merchant volume cannot inflate European headline confidence", () => {
+  const international = ["japan", "asia_pacific", "north_america", "global"]
+    .flatMap((region) => Array.from({ length: 4 }, (_, i) => regionalShop(`${region}-${i}`, region, 5 + i, 0)))
+  const mixed = publish([], [...europeanShops, ...international])
+  assert.deepEqual(headline(mixed), headline(publish([], europeanShops)))
+  assert.equal(mixed.retailSourceCount, 18)
+})
+
+ok("international shipping cannot rescue insufficient European delivered evidence", () => {
+  const itemOnly = europeanShops.map((row) => ({ ...row, shippingEUR: null }))
+  const result = publish([], [...itemOnly, regionalShop("jp-free", "japan", 26, 0)])
+  assert.equal(result.marketValueEUR, null)
+})
+
+ok("out-of-stock or unknown European availability cannot unlock publication", () => {
+  for (const availability of ["out_of_stock", "unknown"]) {
+    const result = publish([], [europeanShops[0], { ...europeanShops[1], availability }, japaneseShop])
+    assert.equal(result.marketValueEUR, null)
+  }
+})
+
+ok("Japanese-only stock remains contextual even across multiple merchants", () => {
+  const result = publish([], [japaneseShop, regionalShop("jp-b", "japan", 6, 0)])
+  assert.equal(result.marketValueEUR, null)
+  assert.equal(result.retailAnchorEUR, null)
+  assert.equal(result.retailSourceCount, 2)
+  assert.equal(result.soldUnits, 0)
+})
+
+ok("international stock leaves verified SOLD value, range and confidence unchanged", () => {
+  const evidence = [sold({ id: "verified", price: 16.85, count: 8, sellerCount: 2,
+    start: "2026-06-01", end: "2026-09-17", grain: "rolling_window", grade: "verified",
+    attributionStatus: "release_exact" })]
+  const baseline = publish(evidence, europeanShops)
+  const mixed = publish(evidence, [...europeanShops, japaneseShop])
+  assert.equal(mixed.marketValueEUR, 16.85)
+  assert.equal(mixed.soldUnits, 8)
+  assert.deepEqual(headline(mixed), headline(baseline))
+})
+
+ok("two storefronts of one European merchant still count as one independent reference", () => {
+  const result = publish([], [europeanShops[0], { ...europeanShops[1], merchantKey: "eu-a" }, japaneseShop])
+  assert.equal(result.marketValueEUR, null)
+})
+
 console.log(`${passed} passed, 0 failed`)
 console.log("MARKET METHOD V4 TEST PASSED")
