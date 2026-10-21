@@ -5,6 +5,13 @@ import { isAutoPublishableSnapshot, parseExactRetailPage } from "./exact-page-ad
 export const BRIOSI_CANARY_URL = "https://www.briosigiocattoli.it/product/6058/Mini-4wd-Dash1-Emperor-superII-18069"
 const MAX_BYTES = 250_000
 
+export function briosiCanaryEnabled(value: string | undefined, now = Date.now()): boolean {
+  const match = /^briosi_public@(\d{13})$/.exec(value ?? "")
+  if (!match) return false
+  const expiresAt = Number(match[1])
+  return expiresAt > now && expiresAt - now <= 15 * 60 * 1000
+}
+
 export async function probeBriosiRetailSource(fetchPage: typeof fetch = fetch) {
   try {
     const response = await fetchPage(BRIOSI_CANARY_URL, {
