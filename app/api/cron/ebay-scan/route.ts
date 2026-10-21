@@ -4,7 +4,7 @@ import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worke
 import { runExactPageMarketScanBatch } from "@/lib/market/automation/worker"
 import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
 import { summarizeCronCycle, summarizeCronWorker } from "@/lib/market/automation/cron-outcome"
-import { briosiCanaryEnabled, probeBriosiRetailSource } from "@/lib/market/automation/retail-source-canary"
+import { retailCanarySource, probeRetailSource } from "@/lib/market/automation/retail-source-canary"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -90,8 +90,9 @@ export async function GET(request: NextRequest) {
   // Explicit operator-only, one-request source preflight. Retains the SAME
   // authentication above and never claims work, persists evidence or enables a
   // source. Clear the deployment flag after the single canary invocation.
-  if (briosiCanaryEnabled(process.env.TRACKDASH_RETAIL_SOURCE_CANARY)) {
-    const report = await probeBriosiRetailSource()
+  const canarySource = retailCanarySource(process.env.TRACKDASH_RETAIL_SOURCE_CANARY)
+  if (canarySource) {
+    const report = await probeRetailSource(canarySource)
     console.info("[retail-source-canary]", report)
     return NextResponse.json({
       ok: report.ok,
