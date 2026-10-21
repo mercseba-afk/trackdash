@@ -20,7 +20,7 @@ assert.equal(briosiCanaryEnabled(`briosi_public@${now}`, now), false)
 assert.equal(briosiCanaryEnabled(`briosi_public@${now + 3600000}`, now), false)
 assert.equal(briosiCanaryEnabled("briosi_public", now), false)
 assert.equal(briosiCanaryEnabled(undefined, now), false)
-const html = (item = "18069") => `<h1>Tamiya ${item}</h1><script type="application/ld+json">${JSON.stringify({ "@type": "Product", name: `Tamiya ${item}`, sku: item, offers: { "@type": "Offer", price: "17.70", priceCurrency: "EUR", availability: "https://schema.org/InStock" } })}</script>`
+const html = (item = "18069") => `<h1>Tamiya ${item}</h1><script type="application/ld+json">${JSON.stringify({ "@type": "Product", name: `Tamiya ${item}`, sku: item, offers: { "@type": "Offer", price: "17.70", priceCurrency: "EUR", availability: "https://schema.org/InStock" } })}</script><script>const page = {variants: JSON.parse('${JSON.stringify([{name: `Tamiya ${item}`, availability:{description:"Disponibile",qty:2,continue_selling:false}}])}')};</script>`
 let calls = 0
 const good = await probeBriosiRetailSource(async (url, options) => {
   calls++
