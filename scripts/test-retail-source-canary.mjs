@@ -13,7 +13,13 @@ vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.Mo
     return { parseExactRetailPage, isAutoPublishableSnapshot }
   },
 })
-const { probeBriosiRetailSource, BRIOSI_CANARY_URL } = exports
+const { probeBriosiRetailSource, BRIOSI_CANARY_URL, briosiCanaryEnabled } = exports
+const now = 1792590000000
+assert.equal(briosiCanaryEnabled(`briosi_public@${now + 600000}`, now), true)
+assert.equal(briosiCanaryEnabled(`briosi_public@${now}`, now), false)
+assert.equal(briosiCanaryEnabled(`briosi_public@${now + 3600000}`, now), false)
+assert.equal(briosiCanaryEnabled("briosi_public", now), false)
+assert.equal(briosiCanaryEnabled(undefined, now), false)
 const html = (item = "18069") => `<h1>Tamiya ${item}</h1><script type="application/ld+json">${JSON.stringify({ "@type": "Product", name: `Tamiya ${item}`, sku: item, offers: { "@type": "Offer", price: "17.70", priceCurrency: "EUR", availability: "https://schema.org/InStock" } })}</script>`
 let calls = 0
 const good = await probeBriosiRetailSource(async (url, options) => {
