@@ -156,6 +156,43 @@ test("cron secret authentication fails closed before any worker invocation", asy
   assert.equal(missing.calls.length, 0)
 })
 
+test("optional hourly market cycle reuses authentication and bounds batches to 2/1/4", async () => {
+  const mocked = routes({ retail: counts(2), ebay: counts(1), recompute: counts(4),
+    env: { CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true" } })
+  assert.equal((await mocked.ebay.GET(request("wrong-secret"))).status, 401)
+  assert.deepEqual(mocked.calls, [])
+  const response = await mocked.ebay.GET(request())
+  const body = await response.json()
+  assert.deepEqual(mocked.calls, [["retail", 2], ["ebay", 1], ["recompute", 4]])
+  assert.deepEqual(body.result, counts(7))
+  assert.equal(diagnoseScanResponse({ httpStatus: response.status, body: JSON.stringify(body) }).ok, true)
+})
+
+test("hourly retail progress with idle eBay remains healthy in existing diagnostics", async () => {
+  const mocked = routes({ retail: counts(2), env: {
+    CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true",
+  } })
+  const response = await mocked.ebay.GET(request())
+  const body = await response.json()
+  assert.equal(body.status, "success")
+  assert.equal(body.lanes.ebayActive.status, "no_work")
+  assert.equal(diagnoseScanResponse({ httpStatus: response.status, body: JSON.stringify(body) }).ok, true)
+})
+
+test("hourly lane failure is isolated, redacted and never reported as success", async () => {
+  const mocked = routes({ retail: new Error("private-token"), ebay: counts(1), env: {
+    CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true",
+  } })
+  const response = await mocked.ebay.GET(request())
+  const body = await response.json()
+  assert.equal(response.status, 500)
+  assert.equal(body.status, "partial")
+  assert.equal(body.lanes.exactPages.error, "WORKER_EXECUTION_FAILED")
+  assert.equal(mocked.calls.length, 3)
+  assert.doesNotMatch(JSON.stringify([body, mocked.logs]), /private-token/)
+  assert.equal(diagnoseScanResponse({ httpStatus: response.status, body: JSON.stringify(body) }).ok, false)
+})
+
 test("GitHub OIDC keeps signature, repo, workflow, branch, event, audience and expiry gates", async () => {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 })
   const now = Math.floor(Date.now() / 1000)
