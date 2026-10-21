@@ -51,7 +51,7 @@ function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }
     "@/lib/market/automation/ebay-worker": { runEbayActiveMarketScanBatch: worker("ebay", ebay) },
     "@/lib/market/automation/recompute-worker": { runMarketRecomputeBatch: worker("recompute", recompute) },
     "@/lib/market/automation/cron-outcome": { summarizeCronWorker, summarizeCronCycle },
-    "@/lib/market/automation/retail-source-canary": { probeBriosiRetailSource: async () => {
+    "@/lib/market/automation/retail-source-canary": { briosiCanaryEnabled: value => value === "test-canary-window", probeBriosiRetailSource: async () => {
       calls.push(["canary", 1])
       return { ok: true, source: "briosi_public" }
     } },
@@ -72,7 +72,7 @@ const request = (token = "test-cron-secret") => new Request("https://example.inv
 })
 
 test("source preflight requires authentication and never invokes any worker", async () => {
-  const mocked = routes({ env: { CRON_SECRET: "test-cron-secret", TRACKDASH_RETAIL_SOURCE_CANARY: "briosi_public" } })
+  const mocked = routes({ env: { CRON_SECRET: "test-cron-secret", TRACKDASH_RETAIL_SOURCE_CANARY: "test-canary-window" } })
   assert.equal((await mocked.ebay.GET(request("wrong"))).status, 401)
   assert.deepEqual(mocked.calls, [])
   const response = await mocked.ebay.GET(request())
