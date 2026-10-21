@@ -22,7 +22,7 @@ User authorized the new hosting setup and proceeding toward going online. No pur
 
 ## Remaining gates
 
-- Supabase dashboard sign-in through ChatGPT returned OAuth state has expired. A fresh canonical project check still redirected to sign-in. No Auth URL configuration changed. Manual handoff of existing Supabase sign-in tab requested; do not assume user saying done proves success.
+- Supabase dashboard access now positively verified in TrackDash New / TrackDash Production after user handoff. Project Healthy, eu-central-1. Added exact redirect https://project-pnskq.vercel.app/auth/callback; persisted list has five entries. Site URL remains https://trackdash.it; existing redirects retained.
 - Auth/email flows were genuinely tested October 19 on Frankfurt backend, NOT retested on the new hostname. Verify permitted callbacks/redirect URLs and repeat real flows before domain cutover.
 - Diagnose eBay provider validation failure using new deployment logs before retrying. Keep the mandatory subscription enabled, existing token and keys unchanged.
 - Recover/reconcile cron/worker authorization configuration before enabling exactly one scanner.
@@ -36,3 +36,10 @@ Vercel connector sees correct team but project reads return 404/list empty; brow
 During an earlier TinyFish credential retrieval, raw tool output unexpectedly included credentials despite no-output instructions. Values were not repeated in messages, files or repository. Temporary private handoff data was cleared; no keys were rotated. Consider controlled credential rotation once provider access and webhook continuity are secured.
 
 Automatic Git deployments are disabled for recovery branch in vercel.json. This documentation commit is NOT the deployed application; redeploy the cited tested source deliberately.
+
+## Follow-up observations
+
+- New deployment request logs show stable-alias deletion GETs at 08:50:34 and 08:53:34 UTC, both HTTP 200. This does not establish correct challenge content or successful provider validation.
+- NODE_EXTRA_CA_CERTS runtime warning says tools/prod-ca-2021.crt missing; public routes still responded 200. Do not infer database TLS verification is disabled or certificate warning caused webhook rejection.
+- Browser attempt to open stable-alias /login took about 890s and rendered no form in accessible observation; DOM and screenshot then timed out. Test tab closed. No fresh host login test passed; cloud browser vs app cause unresolved.
+- Focused TinyFish read-only diagnostic did not reach provider settings or inspect requested challenge JSON, so token comparison remains not_checked. Its unrelated HTML-page observation does not prove the API returned HTML. Do not repeat unverified agent conclusions.
