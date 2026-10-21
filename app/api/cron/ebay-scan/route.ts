@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createPublicKey, timingSafeEqual, verify as verifySignature } from "node:crypto"
 import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worker"
+import { runExactPageMarketScanBatch } from "@/lib/market/automation/worker"
+import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
 import { summarizeCronCycle, summarizeCronWorker } from "@/lib/market/automation/cron-outcome"
 
 export const dynamic = "force-dynamic"
@@ -82,6 +84,33 @@ export async function GET(request: NextRequest) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : ""
   if (!token || !(isCronSecret(token) || await isTrustedGithubAction(token))) {
     return NextResponse.json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 })
+  }
+
+  // Reuse the existing, exactly-scoped GitHub clock. Keep Vercel's daily
+  // scheduler disabled when enabling this mode; no extra trigger is created.
+  // Two retail requests keep this bounded below the 60-second function budget.
+  if (process.env.TRACKDASH_HOURLY_MARKET_ENABLED === "true") {
+    const settled = await Promise.allSettled([
+      runExactPageMarketScanBatch(2),
+      runEbayActiveMarketScanBatch(1),
+      runMarketRecomputeBatch(4),
+    ])
+    const reports = settled.map(summarizeCronWorker)
+    const { httpStatus, ...outcome } = summarizeCronCycle(reports)
+    const names = ["exactPages", "ebayActive", "recompute"] as const
+    const lanes = Object.fromEntries(names.map((name, index) => [name, reports[index]]))
+    for (const [name, report] of Object.entries(lanes)) {
+      if (!report.ok) console.error(`[market-hourly:${name}]`, { status: report.status, error: report.error, summary: report.summary })
+    }
+    // Existing GitHub diagnostics consume result counters. Aggregate all lanes
+    // so successful retail work with no due eBay job is still reported correctly.
+    // Rejected lanes remain a non-200 outcome, never a false successful cycle.
+    const result = reports.reduce((total, report) => ({
+      attempted: total.attempted + report.summary.attempted,
+      succeeded: total.succeeded + report.summary.succeeded,
+      failed: total.failed + report.summary.failed,
+    }), { attempted: 0, succeeded: 0, failed: 0 })
+    return NextResponse.json({ ...outcome, result, lanes }, { status: httpStatus })
   }
 
   const [settled] = await Promise.allSettled([runEbayActiveMarketScanBatch(1)])
