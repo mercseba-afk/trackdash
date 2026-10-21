@@ -51,7 +51,7 @@ function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }
     "@/lib/market/automation/ebay-worker": { runEbayActiveMarketScanBatch: worker("ebay", ebay) },
     "@/lib/market/automation/recompute-worker": { runMarketRecomputeBatch: worker("recompute", recompute) },
     "@/lib/market/automation/cron-outcome": { summarizeCronWorker, summarizeCronCycle },
-    "@/lib/market/automation/retail-source-canary": { briosiCanaryEnabled: value => value === "test-canary-window", probeBriosiRetailSource: async () => {
+    "@/lib/market/automation/retail-source-canary": { retailCanarySource: value => value === "test-canary-window" ? "briosi_public" : null, probeRetailSource: async () => {
       calls.push(["canary", 1])
       return { ok: true, source: "briosi_public" }
     } },
