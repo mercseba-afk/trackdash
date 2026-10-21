@@ -73,3 +73,10 @@ This section supersedes the earlier pending token/provider/deployment notes.
 - Public Release92219 successfully rendered on new deployed host, no permission error, correctly no observed sale/offer for that specific release. This does NOT validate a priced Release; prior market values were genuinely observed on other releases. Subsequent cloud browser interaction/navigation toward /market timed out; no claim of passed market UI test in this continuation.
 - Remaining owner-dependent gates: DNS www TXT verification, real MFA automatic redirect retest after fix, any fresh full registration/email/password-recovery proof on new host. Earlier genuine auth/email tests remain valid historical observations, not newly repeated here.
 - Remaining non-blocking technical observations: NODE_EXTRA_CA_CERTS missing-file warning on some runtime requests; not established cause of failures, no TLS weakening performed. Health Watch and actual billable CPU/memory/egress not freshly verified in this continuation.
+
+
+## DNS and Health Watch follow-up — October21,17:13CEST
+
+- Owner added requested www ownership TXT. Vercel Refresh positively confirmed www.trackdash.it Valid Configuration,307redirect to trackdash.it; apex and stable alias also Valid Configuration.
+- Existing ChatGPT TrackDash Health Watch task6ac3a50c70a48191b390a7337392d03a was found disabled (last recorded run October20, completed but requires_user_action with empty result and delivery unknown). Resumed same task, no duplicate created. Prompt updated to new CREATIVEWEB Hobby project, actual Production branch, Frankfurt backend, single GitHub scheduler and current canary baseline; daily existing schedule retained, read-only and anomaly-only. Update confirmed is_enabled=true; next_run_time null. Future successful execution/alert delivery has NOT been verified. Tool exposes no push/email switches; prior notifications-off remains historical caveat.
+- Owner deferred real MFA redirect retest. Old Vercel account not deleted; residual settings/log preservation and full auth completion remain gates before any irreversible deletion.
