@@ -1,3 +1,5 @@
+> **Esempio Poseidon-X aggiornato 22 ottobre 2026:** il [nuovo audit fotografico](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md) corregge il precedente esempio storico: originale1993 ITEM49568/JAN4950344495689; ristampa2006 ITEM94584/JAN4950344945849. Identità e foto originali trovate, proposta dati salvata ma NON ancora applicata (accesso scrittura bloccato). La sezione di esempio in fondo conserva il punto di partenza del vecchio audit, non la nuova conclusione storica. Non duplicare gli UUID né dichiarare completata la pubblicazione.
+
 # TrackDash — Inserimento e completamento di famiglie e Release
 
 Aggiornata: 22 ottobre 2026. Procedura operativa da applicare autonomamente quando Sebastiano chiede di inserire o completare una famiglia. Integra il [Metodo Master](TRACKDASH_METHOD_MASTER.md) e rende esplicite le regole attuali che sostituiscono le vecchie istruzioni incompatibili. Non è una dichiarazione che una famiglia sia già completata.
