@@ -1,3 +1,9 @@
+## Poseidon-X — 22 ottobre 2026 — originale identificata, applicazione bloccata
+
+Nuovo [audit con fotografie e stato effettivo](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md): l'originale 1993 è ITEM49568/JAN4950344495689, verificati sulla scatola; il vecchio audit che assegnava94584 a entrambe le generazioni è superato. Conservare UUID936ac729-f26b-5a21-bec1-f2620b93c5c4. Foto exact originale trovata e servita con HTTP200 dal Next Image di Production. Proposta DML versionata in proposals/poseidon-x-1993-identity-20261022.sql. NON APPLICATA: due dry-run connector falliti con Invalid or expired requestState; SELECT conferma dati ancora94584/JANNULL/research_only/zero foto. Dashboard Supabase richiede nuovo login. Prossima azione: ripristinare accesso autorizzato, validare/applicare dati, primo scan originale e recompute, poi pubblicazione/QA. Nessun MV/SOLD/trend inventato, nessun merge/deploy, nessuna nuova Release duplicata o modifica al vecchio database. Reissue2006 già pubblica invariata. Non dichiarare famiglia completata.
+
+---
+
 ## Indice operativo aggiornato — 22 ottobre 2026 — documentazione, non modifica Production
 
 - Per l'inserimento/completamento di famiglie e Release: [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md), ora richiamato anche dal Metodo Master e Family Completion Master. Include ricerca completa, immagini esatte, identità scanner, audit mercato reale, trend, refresh e QA/SEO/pubblicazione entro le autorizzazioni già ricevute.
