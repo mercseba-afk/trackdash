@@ -1,3 +1,5 @@
+> **Correzione documentata 22 ottobre 2026:** leggere prima [il nuovo audit con prove fotografiche](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md). La scatola originale1993 riporta ITEM49568 e JAN4950344495689; ITEM94584/JAN4950344945849 appartengono alla ristampa2006. Le assunzioni di ITEM condiviso e JAN originale sconosciuto qui sotto sono superate dalla ricerca. La correzione DB e la nuova foto NON sono ancora applicate a causa del blocco di esecuzione descritto nel nuovo audit; preservare gli UUID e non presumere pubblicazione completata.
+
 # Poseidon-X — family evidence and launch gate (2026-10-10)
 
 > Authoritative family-specific RESEARCH checkpoint, NOT a publication/Production-completion checkpoint. Preserve global Market Method v4, SOLD/ASK separation, TTL-aware public projection and existing UUIDs.
