@@ -1,3 +1,11 @@
+## Procedura famiglie/Release consolidata — 22 ottobre 2026
+
+Per ogni richiesta di inserimento/completamento applicare [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md), dall'audit di TUTTE le edizioni fino a foto esatte, scanner/JAN, Initial Market Audit realmente eseguito, recompute, trend, refresh e QA. Il runbook integra questo Master e chiarisce le istruzioni storiche superate: niente fallback immagine Product/sorella nella vista Release; ASK 1 venditore / mediana 2+ internazionale; SOLD distinto dalle offerte; gate retail europeo sullo stesso campione comparabile; stato operativo dal checkpoint di ripristino. Non introduce formule, scheduler o nuove autorizzazioni.
+
+Prima di scegliere la prossima famiglia verificare ciò che è già inserito: Poseidon-X ha già una pubblicazione parziale documentata (2006 pubblica; 1993 in ricerca), non è una famiglia da ricreare. Persistenza della guida non significa che i suoi gap siano risolti. Le note precedenti qui sotto restano cronologia; prevalgono le revisioni più recenti e il codice effettivamente verificato.
+
+---
+
 ## UNIFORM CATALOG MARKET REFERENCE — 2026-10-12
 
 The two-row Catalog Release preview must agree with the Collection and Release detail about source semantics.
