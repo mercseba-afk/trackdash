@@ -1,3 +1,12 @@
+## Indice operativo aggiornato — 22 ottobre 2026 — documentazione, non modifica Production
+
+- Per l'inserimento/completamento di famiglie e Release: [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md), ora richiamato anche dal Metodo Master e Family Completion Master. Include ricerca completa, immagini esatte, identità scanner, audit mercato reale, trend, refresh e QA/SEO/pubblicazione entro le autorizzazioni già ricevute.
+- Per stato di ripristino, hosting, scheduler e ultimo rilascio verificato leggere prima [Creativeweb staged 21 ottobre](recovery/creativeweb-staged-2026-10-21.md). Le sezioni ottobre 12–15 qui sotto sono cronologia e non provano lo stato runtime odierno. Il checkpoint registra come ultimo commit effettivamente verificato online il 21 ottobre 780c9a4db49175a1e39b9f8a3fc4b9d6dba7cf77; riconfermare /api/version e DB quando si riprende lavoro operativo.
+- Correzione della proposta conversazionale: Poseidon-X non è da inserire da zero. Audit/migrazioni 0218–0222 documentano 2006 pubblica e 1993 research-only; prossimo lavoro è verificare e completare i gap, preservando gli UUID. Nessuna nuova verifica live di questi dati eseguita nel solo aggiornamento documentale del 22 ottobre.
+- Questa lavorazione salva metodo e riferimenti nel repository; nessuna migrazione, nuova Release, scansione, modifica Production, merge o deployment.
+
+---
+
 ## P0.2 reconciliation checkpoint — 2026-10-15 — GitHub PR #424
 
 - Production/main previously verified at `3a2c844556cec3ca46b5bca2973aa87c65b68805`: P0.1 PR #426 merged as `7f612b50dfbeba844798943b25d5a1485c96eae1`, and cross-surface PR #423 merged as `3a2c844556cec3ca46b5bca2973aa87c65b68805`. Previous entries claiming those PRs are open are historical.
