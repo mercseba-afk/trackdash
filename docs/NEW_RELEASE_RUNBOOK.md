@@ -1,4 +1,4 @@
-> **Esempio Poseidon-X aggiornato 22 ottobre 2026:** il [nuovo audit fotografico](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md) corregge il precedente esempio storico: originale1993 ITEM49568/JAN4950344495689; ristampa2006 ITEM94584/JAN4950344945849. Identità e foto originali trovate, proposta dati salvata ma NON ancora applicata (accesso scrittura bloccato). La sezione di esempio in fondo conserva il punto di partenza del vecchio audit, non la nuova conclusione storica. Non duplicare gli UUID né dichiarare completata la pubblicazione.
+> **Poseidon-X completamento 22 ottobre 2026:** originale1993 ITEM49568/JAN4950344495689 e ristampa2006 ITEM94584/JAN4950344945849 ora entrambe PUBLIC con foto specifiche. UUID preservati; primo scan originale eBay riuscito e segnale v4 ricalcolato senza offerte/SOLD validi. [Audit applicato](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md). Restano i limiti di copertura mercato e QA autenticata descritti nell’audit.
 
 # TrackDash — Inserimento e completamento di famiglie e Release
 
@@ -93,13 +93,12 @@ Matrice minima per ogni Release:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | dati verificati o mancanti | exact/high-confidence/gap | prove o unknown | eseguito, data o limite | evidenze distinte | storico valido o assente | JAN/alias/ambiguità | readiness e ultimo successo | public/research_only | test effettivi e lavoro residuo |
 
-## Esempio già inserito: Poseidon-X
+## Esempio completato per identità, immagini e pubblicazione: Poseidon-X
 
-Leggere l'[audit Poseidon-X](POSEIDON_X_FAMILY_AUDIT_2026-10-10.md) e le migrazioni 0218–0222; verificare nuovamente il DB prima di proseguire. È un esempio documentato, non una nuova verifica live del 22 ottobre.
+Leggere l'[audit aggiornato](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md). Il precedente audit10Ott è storico.
 
-- Item 94584: originale 1993 e ristampa 2006, UUID distinti già esistenti. Non duplicarli e non assegnare il JAN 2006 all'originale.
-- 2006: JAN 4950344945849, foto exact/high-confidence collegata alla sola ristampa, pubblicazione già avvenuta. Uno scan iniziale reale e recompute erano stati eseguiti; la mancanza di offerte accettabili non va risolta assegnando l'annuncio ambiguo a caso.
-- 1993: conservata `research_only` nell'audit per mancanza sia di foto esatta sia di mercato attribuibile; proseguire sulle prove mancanti. Non mostrarle la foto 2006.
-- 94076/94817 sono carrozzerie/accessori; 94583 è un box multiplo. Non contarli come kit standalone della famiglia.
-
-Questa famiglia è quindi un caso di pubblicazione parziale: completare i gap documentati prima di affermare che tutte le sue Release siano pubbliche o complete.
+- Originale1993: ITEM49568/JAN4950344495689; UUID936ac729-f26b-5a21-bec1-f2620b93c5c4 preservato. Foto originale verificata, PUBLIC, primo scan eBay riuscito22Ott18:52UTC; canonical v4 ricalcolato, nessuna offerta accettata/SOLD/MV.
+- Ristampa2006: ITEM94584/JAN4950344945849, UUIDc37d4161-aa31-535b-b1de-9040730a4cdd e foto mantenuti; PUBLIC. Nessun nuovo scan forzato: prossima esecuzione24Ott secondo cadenza esistente.
+- Famiglia:2 kit,2 pubbliche,0 research-only,0 gap foto. Accessori94076/94817, componenti94804 e box94583 conservati come contesto, non nuove kitRelease.
+- QA pubblica IT/EN, immagini, identità e sitemap verificata. QA privata scanner/Collection/Wishlist/PWA non eseguita in questo audit; lookupJAN distinto nel DB verificato.
+- Nessun valore o trend inventato. Fonti retail exact non ancora eseguibili e SOLD automatico senza feed autorizzato sono limiti documentati, non funzionalità da dichiarare complete.
