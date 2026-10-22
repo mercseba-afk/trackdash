@@ -1,3 +1,13 @@
+## Poseidon-X — 22 ottobre 2026 — correzione applicata e 2 Release pubbliche
+
+Accesso Supabase ripristinato. [Audit definitivo della lavorazione](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md): originale1993 corretto ITEM49568/JAN4950344495689, UUID preservato, provenienza e foto esatta collegate; pubblicato dopo scan eBay reale riuscito22Ott18:52:41UTC e recompute v4. JobGitHub120021522688 del workflow39585454899: HTTP200,2 tentativi/2 successi/0 fallimenti aggregati. DB originale conferma ultimo successo eBay e prossimo21Nov18:52UTC; MV/ASK NULL,0SOLD/0offerte accettate. Reissue2006 invariata, foto specifica, già pubblica, scan24Ott mantenuto.
+
+Famiglia:2 kit,2 pubbliche,0research-only,0gap foto; metadata.family_audit aggiornato conservando accessori/box. Verificati catalogo famiglia, dettaglio originale IT/EN con foto caricata, JAN, canonicalEN/hreflang dopo navigazione completa e sitemapHTTP200 con entrambe le Release in entrambe le lingue. IdentificativiJAN distinti verificati nel DB; scanner autenticato/Collection/Wishlist/PWA non ritestati in questo audit. Restano gap mercato: retailer exact non pronti, nessun feed SOLD automatico autorizzato, nessun prezzo/trend inventato. Nessun nuovo deploy/merge/scheduler, rilancio famiglia/notifica o modifica al vecchioDB.
+
+I checkpoint sottostanti di blocco autenticazione e vecchia identità sono storia superata. Per inserimenti futuri usare [runbook aggiornato](NEW_RELEASE_RUNBOOK.md).
+
+---
+
 ## Poseidon-X — 22 ottobre 2026 — originale identificata, applicazione bloccata
 
 Nuovo [audit con fotografie e stato effettivo](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md): l'originale 1993 è ITEM49568/JAN4950344495689, verificati sulla scatola; il vecchio audit che assegnava94584 a entrambe le generazioni è superato. Conservare UUID936ac729-f26b-5a21-bec1-f2620b93c5c4. Foto exact originale trovata e servita con HTTP200 dal Next Image di Production. Proposta DML versionata in proposals/poseidon-x-1993-identity-20261022.sql. NON APPLICATA: due dry-run connector falliti con Invalid or expired requestState; SELECT conferma dati ancora94584/JANNULL/research_only/zero foto. Dashboard Supabase richiede nuovo login. Prossima azione: ripristinare accesso autorizzato, validare/applicare dati, primo scan originale e recompute, poi pubblicazione/QA. Nessun MV/SOLD/trend inventato, nessun merge/deploy, nessuna nuova Release duplicata o modifica al vecchio database. Reissue2006 già pubblica invariata. Non dichiarare famiglia completata.
