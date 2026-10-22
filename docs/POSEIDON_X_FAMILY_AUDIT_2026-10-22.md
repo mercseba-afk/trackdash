@@ -1,6 +1,23 @@
-# Poseidon-X — original identity recovered, execution blocked
+# Poseidon-X — original identity recovered and published
 
-Audit: 22 ottobre 2026. Supersedes the 10 October assumption that both collector generations share ITEM 94584. Research and preparation are complete for the correction below; database correction/publication/initial original scan are NOT yet applied.
+Audit: 22 ottobre 2026. Supersedes the 10 October assumption that both collector generations share ITEM 94584. Correction, exact photo, initial original scan and public activation have now been applied and verified; see the execution checkpoint below. Earlier preflight/blocker sections preserve the history.
+
+## Execution completed — 22 October 2026
+
+Dashboard access restored to existing TrackDash Production (Free, Frankfurt). Connector BEGIN/ROLLBACK validation succeeded; committed connector write returned Invalid or expired requestState, with an independent SELECT confirming no change. Authorized visible dashboard SQL Editor fallback applied the guarded transaction successfully. A subsequent publication attempt hit a Monaco text replacement syntax error and made no change; replacing the full editor content correctly then applying the narrowly guarded visibility update succeeded.
+
+- Original UUID preserved: ITEM49568/JAN4950344495689, verified identifier/source provenance, exact original photo attached, PUBLIC.
+- Reissue UUID/ITEM94584/JAN4950344945849/photo remain unchanged and PUBLIC.
+- 2 kit Releases researched, 2 public, 0 research-only, 0 image gaps; product family_audit metadata updated, accessory/multi-kit distinctions retained.
+- One bounded rerun of existing GitHub workflow39585454899, job120021522688: HTTP200/application success, attempted2/succeeded2/failed0 aggregate. Independently verified original eBay last_attempt2026-10-22T18:52:40.703983Z, last_success18:52:41.681192Z, next2026-11-21T18:52:41.765Z, no error.
+- Original canonical v4 signal recomputed2026-10-22T18:52:40.834Z, MV/ASK NULL, sold_units0, accepted active offers0. Reissue retains its older10Oct signal and24Oct scheduled scan; do not describe it as newly scanned/recomputed.
+- Public family renders 2 cards and original code49568. Original IT/EN detail renders correct identity/JAN/description and the exact photo (loaded, naturalWidth272). Existing2006 card/link remains.
+- sitemap.xml HTTP200 includes family and BOTH Release routes in IT/EN. EN hard navigation has one correct canonical and IT/EN/x-default alternates. Client navigation momentarily exposed prior family metadata alongside Release metadata; hard-loaded EN document is correct; no broad SEO fix attempted during data work.
+- Original routes: /catalog/poseidon-x/releases/49568-poseidon-x-black-special-1993-original and /en/catalog/poseidon-x/releases/49568-poseidon-x-black-special-1993-original.
+- Verified identifier lookup records distinguish both JANs. Real signed-in scanner/Collection/Wishlist/PWA interactions were NOT retested: current TrackDash browser is anonymous. No claim of end-to-end private QA.
+- No new code deployment, merge, scheduler, paid service or old database change. Product was already available; no family relaunch notification.
+
+Residual market limitations: exact runnable retail endpoints absent; legacy enabled retailer compatibility rows have no successful scan and must not be called coverage. No authorized automated SOLD feed; research results remain historical/out-of-stock/wrong condition/unqualified rather than manufactured transactions. Trend unavailable without comparable evidence. Family identity/image/publication work is complete; market coverage and private flow QA remain documented limitations.
 
 ## Verified live before changes
 
@@ -59,4 +76,4 @@ Previously authorized browser fallback was inspected: Supabase dashboard redirec
 
 Existing code checks run: scanner46/46, image resolver16/16, SEO catalog paths pass. These validate existing code, not yet-applied data, real authenticated user flows, or a completed scan.
 
-Status: PARTIAL — EXECUTION BLOCKED. Original identity/photo gap researched successfully, but actual DB application, initial scan and public activation remain pending access. No merge/deployment, no new scheduler, no notification sent, no old Supabase modification.
+Historical pre-authentication status (superseded by the execution checkpoint above): PARTIAL — EXECUTION BLOCKED. Original identity/photo gap researched successfully, but actual DB application, initial scan and public activation remain pending access. No merge/deployment, no new scheduler, no notification sent, no old Supabase modification.
