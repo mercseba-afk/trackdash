@@ -1,3 +1,5 @@
+> **Procedura consolidata 22 ottobre 2026:** applicare [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md) per il workflow completo. Questa guida esplicita le revisioni che sostituiscono i passaggi storici incompatibili qui sotto, inclusi foto Release senza fallback generico, Prezzo richiesto 1 venditore/mediana 2+, stato attuale del dispatcher e distinzione fra offerta retail e SOLD. Non richiedere un MV consolidato per pubblicare una Release che supera il Publication Gate.
+
 # TrackDash — Family Completion Master
 
 > Mini 4WD vertical state / continuation index: `docs/MINI4WD_VERTICAL.md`
