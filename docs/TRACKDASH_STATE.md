@@ -1,3 +1,11 @@
+## 23 ottobre 2026 — Avante Jr. / Poseidon mercato, dati esistenti preservati
+
+[Audit operativo](AVANTE_POSEIDON_MARKET_COMPLETION_2026-10-23.md):13Avante+2Poseidon ricalcolate realmente;4run bounded del workflowesistente,20operazioni miste/20successi/0errori. Aggiornati eBay18058,94584,95060,95474 e retailGandolfi18014.15EURretail18014 disponibile;52.70EURanchorASK18058;95060nuoveofferte accettate e anchor44.38EUR(non confondere con mediana pubblica pervenditore).95474offerte correnti registrate, anchorNULL non prova assenzaASK. Nessun nuovoMV/SOLD artificiale.4candidate ricerca conservate needs_review:TerraMecha95474SGDnon supportato,18014SKUdiscordante,95501generazioneambigua;Mercari49568condizione/sigillatura non dimostrata. I2sharedSKUcandidate sono irrisolti, non attribuiti arbitrariamente.
+
+Nessuna nuovaRelease, foto, launch, deploy, merge o scheduler. Avante Jr. ancora coming_soon: le route pubbliche servono la pagina inarrivo, non una famiglia attivata. Poseidon resta pubblica ma senza mercato qualificato; vecchi negozi esauriti non valorizzati. Ultimo codiceProduction verificato780c9a4db49175a1e39b9f8a3fc4b9d6dba7cf77. Leggere audit per limitiSOLDlegacy e refreshretail42ggvsTTL31gg. Nessuna modifica al vecchioDB.
+
+---
+
 ## Poseidon-X — 22 ottobre 2026 — correzione applicata e 2 Release pubbliche
 
 Accesso Supabase ripristinato. [Audit definitivo della lavorazione](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md): originale1993 corretto ITEM49568/JAN4950344495689, UUID preservato, provenienza e foto esatta collegate; pubblicato dopo scan eBay reale riuscito22Ott18:52:41UTC e recompute v4. JobGitHub120021522688 del workflow39585454899: HTTP200,2 tentativi/2 successi/0 fallimenti aggregati. DB originale conferma ultimo successo eBay e prossimo21Nov18:52UTC; MV/ASK NULL,0SOLD/0offerte accettate. Reissue2006 invariata, foto specifica, già pubblica, scan24Ott mantenuto.
