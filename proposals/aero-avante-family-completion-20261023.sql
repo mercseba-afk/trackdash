@@ -1,4 +1,4 @@
--- Aero Avante additive data completion, 2026-10-23. No DDL / no code deploy.
+-- Aero Avante additive data completion, 2026-10-23. No persistent schema change / no code deploy.
 -- Target only Frankfurt project uhojhqxnzrolmnopwgpy. Preserve original six UUIDs.
 -- Complete-kit research includes four football collaborations in the audit; no invented ITEM/JAN.
 begin;
