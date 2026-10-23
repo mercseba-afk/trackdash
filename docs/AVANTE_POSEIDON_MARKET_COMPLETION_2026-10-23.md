@@ -51,3 +51,12 @@ Other excluded observations: Poseidon Outlet11EUR/Baracca13.50EUR unavailable, R
 ## Representative ASK read-only cross-check
 
 SQL mirror of existing acceptedExactKit/fresh15days/normalizedlisting/latest/sellerminimum/centmedian projection:18014/2024=15.58EUR(8sellers, includes freshGandolfi plus older12Octmarketplace);18058=52.70EUR(1seller);18507=162.93EUR(1seller,recent22Oct);95060=44.44EUR(8sellers);95474=67.10EUR(5sellers). Existing95501/2019=28.65EUR(2sellers),2021=30.84EUR(1seller), but generational attribution was not newly validated. These are read-only asking-price projections, NOT Market Values or completed sales. Avante comingsoon prevents claiming they were visible on public Release pages in this run.
+
+
+## Authorized public launch — 23 October 2026
+
+Subsequent explicit user authorization: publish Avante Jr. with verified asking prices. Executed via authenticated Supabase dashboard SQL Editor after MCP mutations failed with Invalid or expired requestState (read access remained functional). One transaction guarded prior coming_soon state and twelve verified/public Releases. Product82b478fd-21dd-5c93-82fb-bf50461a107d metadata launch_status=available, launch_status_updated_at=2026-10-23; other metadata preserved. Partial18014/2012 UUID3338f1a5-609b-507d-8102-2594bc818365 changed public→research_only with reason, preserving identity, sources, UUID and data. No verification upgrade invented.12public+1research_only verified by independent SQL read. Existing family-launch notification trigger remains unchanged; no manual messages/emails, no second scanner, no code/merge/deploy.
+
+Real public browser verified https://trackdash.it/catalog/avante-jr showing12cards. Seven visible asking prices:18507=162.93EUR;18058=52.70EUR;95060=44.44EUR;95474=67.10EUR;95501/2019=28.65EUR;95501/2021=30.84EUR;18014/2024=15.58EUR. These are current application projections, not Market Values or newly confirmed sales. Legacy SOLD reference values remain unchanged and retain the provenance limitations above. Champion Gold93001 remains without exact image; historical attributable market evidence satisfies publication gate, no sibling image inserted.
+
+Independent public HTTP checks: IT/ENfamily200 and correct canonical;95474detail200,67.10EUR median5sellers,23Oct,shipping excluded;18058detail200,52.70EUR1seller,23Oct,shipping excluded; sitemap200with26AvanteJr occurrences (IT/ENfamily+12publicdetails). Browser detail-navigation/screenshot subsequently timed out; public HTTP detail checks succeeded. No private account-flow testing claimed.
