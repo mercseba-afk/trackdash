@@ -47,3 +47,7 @@ Other excluded observations: Poseidon Outlet11EUR/Baracca13.50EUR unavailable, R
 - Shared18014/18506 historical queues remain disabled where unsafe; no blanket attribution orenrollment reset.
 - No new release or photo. No real authenticated Dashboard/Collection/Wishlist flow tested.
 - Work improves freshness and records useful research; it does not solve market scarcity, unsupported SGD ingestion, legacy SOLD provenance or missing source access. These remain explicit limitations.
+
+## Representative ASK read-only cross-check
+
+SQL mirror of existing acceptedExactKit/fresh15days/normalizedlisting/latest/sellerminimum/centmedian projection:18014/2024=15.58EUR(8sellers, includes freshGandolfi plus older12Octmarketplace);18058=52.70EUR(1seller);18507=162.93EUR(1seller,recent22Oct);95060=44.44EUR(8sellers);95474=67.10EUR(5sellers). Existing95501/2019=28.65EUR(2sellers),2021=30.84EUR(1seller), but generational attribution was not newly validated. These are read-only asking-price projections, NOT Market Values or completed sales. Avante comingsoon prevents claiming they were visible on public Release pages in this run.
