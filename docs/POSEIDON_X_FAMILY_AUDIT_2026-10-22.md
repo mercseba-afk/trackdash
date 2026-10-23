@@ -77,3 +77,19 @@ Previously authorized browser fallback was inspected: Supabase dashboard redirec
 Existing code checks run: scanner46/46, image resolver16/16, SEO catalog paths pass. These validate existing code, not yet-applied data, real authenticated user flows, or a completed scan.
 
 Historical pre-authentication status (superseded by the execution checkpoint above): PARTIAL — EXECUTION BLOCKED. Original identity/photo gap researched successfully, but actual DB application, initial scan and public activation remain pending access. No merge/deployment, no new scheduler, no notification sent, no old Supabase modification.
+
+
+## Targeted new market search — 23 October 2026
+
+User requested another attempt to find publishable current prices for both already-public generations. Researched using both search engines, exact ITEM/JAN, English/Italian/Japanese terms and primary listing pages; no code, valuation-rule, scanner-cadence or identity changes.
+
+- 94584 eBay UK296472726043 (Manchester Model Shop): indexed shop/result and stale fetched detail suggested GBP115/New/BuyNow. Direct live browser page explicitly displays ENDED, Tue30Jun13:16,GBP115. Therefore NOT a current ASK; ENDED alone does not establish SOLD. Raw public HTTP returned404; browser provided the decisive visible ended state. URL https://www.ebay.co.uk/itm/296472726043 .
+- 94584 Mercari Shops2JVbGMeDfEbVUXCRnH3aL3,JPY7370 plus shipping660–1320: search snippet said one in stock, but opened current primary page explicitly says soldout(売り切れ),condition9/unassembled,minorwear and categoryslightdamage. No paid-transaction date; not currentASK or datedSOLD. https://jp.mercari.com/shops/product/2JVbGMeDfEbVUXCRnH3aL3 .
+- Mercari m84279024694,JPY14800shippingincluded: titleclaims1993,newunused,innerbagsunopened; sellerdescriptionrelieson1993moldstamp and commentdisclosesAI-derivedidentification. ExactITEM/JAN/packaginggenerationnotresolved. Publicbrowser429,rawHTTP403,imagefetch403; no bypass, no promotionorphoto-basedclaim. Cannot subtract unknown bundledshipping to invent kit-onlyquote. https://jp.mercari.com/item/m84279024694 .
+- Original49568 Mercari Bma2YHJceEYaDdXkrCiGPP JPY53960 remains existing needs_review candidate84b65a25-5076-4a34-b0ff-26fe89f63129. Do not relabel near-unused/unknownsealed as newcomplete or claim newlivevalidation from rawHTTP403. Candidate retained unchanged.
+- Suruga603007818 retailpage indexes used7300JPY/onepiece,not newsealed; original49568 alternatecatalogused27000JPYwithboxdefect. Contextonly. Buybackprices3700/12680/2960JPYarebuybacknotretailASK/SOLD.
+- Outlet94584 EUR11 notavailable;BaraccaTAM94584 EUR13.50notavailable;RCStationwholesalesoldout;HLJ94584discontinued/outofstock;RCJazsearchresultnotavailableGBP10.89;RakutenJAN4950344945849nooffers. No stalecheapanchoradded.
+- eBayproductePID1958427716 EUR50statesused/alreadymounted. Noteligiblefornewcompleteunbuiltvaluation.
+- Yahoo completed-search snippets includeJPY2301/8600onMarch23/15 but insufficient exactgeneration,year/date/conditionper-itemproof. No newSOLDaccepted; no inferencefromunavailabilityorendingalone.
+
+Independent FrankfurtSQL: eachof49568/1993and94584/2006has0acceptedcandidatesand0fresh15daynewcompletein-stockoffers. No newcanonicalprices,offerstate,pricepoint,trend ormarketvaluewritten. Researchoutcome:noadditionalpublishablepriceestablishedinthischeck; bothpubliccatalogentriesandimagesretained. Existingofficialworkerwasalreadyrun23Oct,so no redundant paidscan/bulkclockcreated.
