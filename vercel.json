@@ -11,7 +11,8 @@
     "deploymentEnabled": {
       "feat/hotwheels-*": false,
       "fix/hourly-market-clock-20261024": false,
-      "main": false
+      "main": false,
+      "fix/bounded-clock-20261024": false
     }
   }
 }

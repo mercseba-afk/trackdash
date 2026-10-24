@@ -38,7 +38,7 @@
     "seo:paths:test": "node --experimental-strip-types scripts/test-seo-catalog-paths.mjs",
     "seo:localization:test": "node --experimental-strip-types scripts/test-public-localization.mjs",
     "production:smoke:test": "node --test scripts/test-smoke-production.mjs",
-    "cron:test": "node --experimental-strip-types --test scripts/test-cron-reliability.mjs",
+    "cron:test": "node --experimental-strip-types --test scripts/test-cron-reliability.mjs && node --experimental-strip-types --test scripts/test-ebay-market-watch-catchup.mjs",
     "market:cache:test": "node --experimental-strip-types scripts/test-market-cache-lifecycle.mjs",
     "market:efficiency:test": "node --experimental-strip-types scripts/test-market-efficiency.mjs",
     "market:ui:test": "node scripts/test-market-ui.mjs",

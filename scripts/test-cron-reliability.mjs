@@ -278,7 +278,7 @@ try {
       const run = spawnSync("bash", ["-c", shell], { cwd: new URL("../", import.meta.url), encoding: "utf8", env: {
         ...subprocessEnv, PATH: `${bin}:${process.env.PATH}`, ACTIONS_ID_TOKEN_REQUEST_TOKEN: "fake-request-token",
         ACTIONS_ID_TOKEN_REQUEST_URL: "https://oidc.invalid?request=1", SCAN_URL: "https://scan.invalid",
-        MOCK_BODY: body, MOCK_HTTP: http, MOCK_CURL_EXIT: curlExit, MOCK_CALLS: callsFile,
+        TRACKDASH_SCAN_MAX_CALLS: "1", MOCK_BODY: body, MOCK_HTTP: http, MOCK_CURL_EXIT: curlExit, MOCK_CALLS: callsFile,
       } })
       assert.equal(run.status === 0, success, run.stdout + run.stderr)
       assert.equal(readFileSync(callsFile, "utf8"), "scan\n", "exactly one scan request")
