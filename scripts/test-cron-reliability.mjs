@@ -25,7 +25,7 @@ function compile(file, imports, extras = {}) {
   }).outputText
   const exports = {}
   vm.runInNewContext(output, {
-    exports, Error, Buffer, AbortSignal, process: { env: { CRON_SECRET: "test-cron-secret" } },
+    exports, Error, Buffer, AbortSignal, URL, process: { env: { CRON_SECRET: "test-cron-secret" } },
     fetch: async () => { throw new Error("UNEXPECTED_NETWORK_ACCESS") },
     console: { error: () => {} },
     require: (name) => {
@@ -277,7 +277,7 @@ test("actual workflow shell reports failures without retrying scans or printing 
   delete subprocessEnv.NODE_TEST_CONTEXT
   const workflow = read(".github/workflows/ebay-market-watch.yml")
   const shell = workflow.split("        run: |\n")[1].split("\n").map((line) => line.slice(10)).join("\n")
-  assert.match(workflow, /cron: '41 \* \* \* \*'/)
+  assert.match(workflow, /cron: '17 \* \* \* \*'/)
   assert.match(workflow, /cancel-in-progress: false/)
   assert.match(workflow, /id-token: write/)
   const temporary = mkdtempSync(join(tmpdir(), "trackdash-cron-test-"))
@@ -329,7 +329,7 @@ try {
       const run = spawnSync("bash", ["-c", shell], { cwd: new URL("../", import.meta.url), encoding: "utf8", env: {
         ...subprocessEnv, PATH: `${bin}:${process.env.PATH}`, ACTIONS_ID_TOKEN_REQUEST_TOKEN: "fake-request-token",
         ACTIONS_ID_TOKEN_REQUEST_URL: "https://oidc.invalid?request=1", SCAN_URL: "https://scan.invalid",
-        MOCK_BODY: body, MOCK_HTTP: http, MOCK_CURL_EXIT: curlExit, MOCK_CALLS: callsFile,
+        TRACKDASH_SCAN_MAX_CALLS: "1", MOCK_BODY: body, MOCK_HTTP: http, MOCK_CURL_EXIT: curlExit, MOCK_CALLS: callsFile,
       } })
       assert.equal(run.status === 0, success, run.stdout + run.stderr)
       assert.equal(readFileSync(callsFile, "utf8"), "scan\n", "exactly one scan request")
@@ -351,4 +351,17 @@ try {
   } finally {
     rmSync(temporary, { recursive: true, force: true })
   }
+})
+
+
+test("authenticated eBay-only follow-ups never invoke retail or recompute", async () => {
+  const mocked = routes({ ebay: counts(1), env: { CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true" } })
+  const req = new Request("https://example.invalid/api/cron/ebay-scan?lane=ebay", { headers: { authorization: "Bearer test-cron-secret" } })
+  const response = await mocked.ebay.GET(req)
+  assert.equal(response.status, 200)
+  assert.equal((await response.json()).catchupVersion, 1)
+  assert.deepEqual(mocked.calls, [["ebay", 1]])
+  const denied = await mocked.ebay.GET(new Request(req.url))
+  assert.equal(denied.status, 401)
+  assert.equal(mocked.calls.length, 1)
 })

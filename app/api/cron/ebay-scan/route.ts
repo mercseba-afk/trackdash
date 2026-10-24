@@ -105,7 +105,8 @@ export async function GET(request: NextRequest) {
   // Reuse the existing, exactly-scoped GitHub clock. Keep Vercel's daily
   // scheduler disabled when enabling this mode; no extra trigger is created.
   // Two retail requests keep this bounded below the 60-second function budget.
-  if (process.env.TRACKDASH_HOURLY_MARKET_ENABLED === "true") {
+  const ebayOnly = new URL(request.url).searchParams.get("lane") === "ebay"
+  if (process.env.TRACKDASH_HOURLY_MARKET_ENABLED === "true" && !ebayOnly) {
     const settled = await Promise.allSettled([
       runExactPageMarketScanBatch(2),
       runEbayActiveMarketScanBatch(1),
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
       succeeded: total.succeeded + report.summary.succeeded,
       failed: total.failed + report.summary.failed,
     }), { attempted: 0, succeeded: 0, failed: 0 })
-    return NextResponse.json({ ...outcome, result, lanes }, { status: httpStatus })
+    return NextResponse.json({ ...outcome, result, lanes, catchupVersion: 1 }, { status: httpStatus })
   }
 
   const [settled] = await Promise.allSettled([runEbayActiveMarketScanBatch(1)])
@@ -135,6 +136,7 @@ export async function GET(request: NextRequest) {
   if (!report.ok) console.error("[ebay-scan-cron]", { status: report.status, error: report.error, summary: report.summary })
   return NextResponse.json({
     ...outcome,
+    catchupVersion: 1,
     ...(report.error ? { error: report.error } : {}),
     ...(settled.status === "fulfilled" ? { result: settled.value } : {}),
   }, { status: httpStatus })
