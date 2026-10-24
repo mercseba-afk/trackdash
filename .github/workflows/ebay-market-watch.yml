@@ -2,7 +2,7 @@ name: eBay Market Watch
 
 on:
   schedule:
-    - cron: '41 * * * *'
+    - cron: '17 * * * *'
   # Dispatch up to ONE due Release hourly; individual Mini 4WD Releases
   # retain a 7–45-day adaptive scan interval. More frequent dispatch does NOT
   # rescan every Release hourly, and failed scans are never auto-retried.
