@@ -226,7 +226,7 @@ test("actual workflow shell reports failures without retrying scans or printing 
   delete subprocessEnv.NODE_TEST_CONTEXT
   const workflow = read(".github/workflows/ebay-market-watch.yml")
   const shell = workflow.split("        run: |\n")[1].split("\n").map((line) => line.slice(10)).join("\n")
-  assert.match(workflow, /cron: '41 \* \* \* \*'/)
+  assert.match(workflow, /cron: '17 \* \* \* \*'/)
   assert.match(workflow, /cancel-in-progress: false/)
   assert.match(workflow, /id-token: write/)
   const temporary = mkdtempSync(join(tmpdir(), "trackdash-cron-test-"))

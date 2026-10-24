@@ -9,7 +9,9 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "feat/hotwheels-*": false
+      "feat/hotwheels-*": false,
+      "fix/hourly-market-clock-20261024": false,
+      "main": false
     }
   }
 }
