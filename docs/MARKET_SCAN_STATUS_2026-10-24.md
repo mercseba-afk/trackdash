@@ -1,5 +1,30 @@
 # TrackDash scans and backlog — 24 October 2026
 
+
+## CURRENT — catch-up activated and real test passed, 24 October 2026 20:26 Europe/Rome
+
+Explicit user authorization received after the earlier automatic-review block. Exact recovery app commit5ed3ebdfb482296ae29de406201f384e31c0e879 deployed ONCE as dpl_GXMjo3N92tSKtpCGZarkEjGA7ELF; Vercel Ready, Production/trackdash.it, build1m25s. GET /api/version returned200 and exact5ed3ebd; unauthenticated GET /api/cron/ebay-scan?lane=ebay returned401. PR437 then marked ready and merged to MAIN as bf1ed1bec83173bb21bceeeb09d4b958605d0351. Vercel Cron Jobs confirmed Disabled after this deployment; GitHub remains the sole clock. Main remains unsuitable as the app deployment branch.
+
+Real protected PUSH run40120629351/job120951176682 completed successfully. Four sequential HTTP200/applicationStatus=success results, each attempted1/succeeded1/failed0, at18:25:43,18:25:51,18:25:58,18:26:00 UTC (20:25–20:26 CEST). This establishes bounded catch-up works; it does NOT establish natural hourly schedule reliability. GitHub total37s/scan job33s is elapsed CI time, NOT Vercel Active CPU.
+
+Measured DB deltas for the same enabled eBay/ready/active_marketplace cohort: due96→92, overdue>24h93→89, active locks0 and failures0. Rome-day allowance12→16 of24,8 remaining. The first-day12 baseline conservatively included all pre-cutover lane attempts. Never reset it to force another test.
+
+Four oldest jobs confirmed completed and rescheduled:
+
+| Item | Last success UTC | Next scan UTC | Accepted | Signal outcome |
+|---|---|---|---:|---|
+|95525|24Oct18:25:42|3Nov18:25:42|1|recomputed24Oct; current offers2→1; MV48.79/sold3 preserved|
+|94626|24Oct18:25:51|23Nov18:25:51|0|no new evidence; MVNULL/current0/sold0 preserved|
+|94716|24Oct18:25:58|23Nov18:25:58|0|no new evidence; MVNULL/current0/sold1 preserved|
+|18072|24Oct18:26:00|31Oct18:26:00|1|recomputed24Oct; current0→1; MVNULL/sold2 preserved|
+
+100 candidates examined (19+40+40+1),2 accepted active listings. No accepted listing was counted as a concluded sale. Database last_success_at proves successful no-change scans even when signal computed_at legitimately stays old. Querying queues by release alone also returns disabled alternative-source compatibility rows dated2099; exclude these when auditing eBay progress.
+
+Public smoke: canonical95525 Release page returnedHTTP200 and MV48.79. First request served historical ASK64.60 dated1October; after the existing cache refreshed, a second read showed 'Prezzo di1venditore · annunci extra-UE ·24ott2026', ASK65.34, shipping excluded/import amount to verify. Live DB offer is in_stock/EUR65.34/shippingNULL, checked24October. This verifies automatic public integration with existing provenance/qualification labels; do not claim a new completed sale or a higher Market Value. No manual pricing update or cache-policy change was performed.
+
+Resource limitation: latest Usage available before activation was CPU18m52s/4h, memory1.5GB-hours, invocations31K, with reporting period ending24October11:00. Runtime/Request Logs inspected did not provide an isolated measured CPU or billable-memory total for these four calls. Do not substitute HTTP/CI durations or project totals. One app build, one four-Release real test, no paid service, no extra scheduler. Budget24 is an automatic Release-attempt cap, not an HTTP invocation cap or future free-tier guarantee. Incidental Node extra-CA-file warnings were visible in runtime logs; public HTTP/data and signed worker tests passed. No TLS settings were changed in this task.
+
+
 User requested real scan/price update verification and a few oldest-data scans. Read-only preflight followed by six explicitly authorized bounded sequential reruns of the existing workflow. No code, schema, policy, scheduler, plan, identity or old-database changes.
 
 ## Live scope and baseline
