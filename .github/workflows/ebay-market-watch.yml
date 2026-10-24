@@ -2,8 +2,9 @@ name: eBay Market Watch
 
 on:
   schedule:
-    - cron: '41 * * * *'
-  # Dispatch up to ONE due Release hourly; individual Mini 4WD Releases
+    - cron: '17 * * * *'
+  # Dispatch up to FOUR due Releases per invocation, capped at 24/day in SQL.
+  # Follow-ups run eBay only; individual Mini 4WD Releases
   # retain a 7–45-day adaptive scan interval. More frequent dispatch does NOT
   # rescan every Release hourly, and failed scans are never auto-retried.
   # Push remains the protected post-deployment smoke check.
@@ -23,7 +24,7 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,5 +55,6 @@ jobs:
             -H "Authorization: Bearer ${token}" \
             -H 'Accept: application/json' \
             "${SCAN_URL}" 2>/dev/null)" || curl_exit=$?
-          unset token
           node --experimental-strip-types scripts/ebay-market-watch-diagnostics.mjs result.json "${status}" "${curl_exit}"
+          TRACKDASH_SCAN_TOKEN="${token}" node --experimental-strip-types scripts/ebay-market-watch-catchup.mjs result.json
+          unset token
