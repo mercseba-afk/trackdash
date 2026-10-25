@@ -37,6 +37,9 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
   const [ownedOnly, setOwnedOnly] = React.useState(false)
   const availableCount = products.filter((product) => product.catalogLaunchStatus !== "coming_soon").length
   const comingSoonCount = products.length - availableCount
+  const availableReleaseCount = products
+    .filter((product) => product.catalogLaunchStatus !== "coming_soon")
+    .reduce((count, product) => count + product.releases.length, 0)
 
   const activeProducts = React.useMemo(
     () => products.filter((product) => section === "coming-soon"
@@ -110,15 +113,15 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t("catalog.title")}</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
               {it
-                ? `${availableCount} famiglie Mini 4WD disponibili nel catalogo. Le prossime famiglie vengono verificate Release per Release prima della pubblicazione.`
-                : `${availableCount} Mini 4WD families are available in the catalog. Upcoming families are verified Release by Release before publication.`}
+                ? `${availableReleaseCount} Release Mini 4WD disponibili nel catalogo. Le prossime famiglie vengono verificate Release per Release prima della pubblicazione.`
+                : `${availableReleaseCount} Mini 4WD Releases are available in the catalog. Upcoming families are verified Release by Release before publication.`}
             </p>
           </div>
 
           <div className="shrink-0 rounded-2xl border border-border/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{it ? "Nel catalogo" : "In catalog"}</p>
-            <p className="mt-0.5 text-2xl font-semibold tabular-nums text-foreground">{availableCount}</p>
-            <p className="text-xs text-muted-foreground">{comingSoonCount > 0 ? (it ? `${comingSoonCount} famiglie in preparazione` : `${comingSoonCount} families in preparation`) : (it ? "famiglie disponibili" : "available families")}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{it ? "Release nel catalogo" : "Releases in catalog"}</p>
+            <p className="mt-0.5 text-2xl font-semibold tabular-nums text-foreground">{availableReleaseCount}</p>
+            <p className="text-xs text-muted-foreground">{it ? "Release disponibili" : "Available releases"}</p>
           </div>
         </div>
 
