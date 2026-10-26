@@ -6,7 +6,7 @@ import { updateSession } from "@/lib/supabase/proxy"
 // Collection, Wishlist, Scanner, Messages and account tools remain protected.
 const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/", "/privacy", "/terms"]
-const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/hotwheels"]
+const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/hotwheels", "/speed-champions"]
 const PUBLIC_LOCALE_COOKIE = "trackdash.locale"
 const PUBLIC_LOCALE_MAX_AGE = 60 * 60 * 24 * 365
 
@@ -57,6 +57,7 @@ function publicSeoLocale(pathname: string): "it" | "en" | null {
   if (
     pathname === "/" ||
     matchesPrefix(pathname, "/catalog") ||
+    matchesPrefix(pathname, "/speed-champions") ||
     matchesPrefix(pathname, "/market")
   ) return "it"
 
