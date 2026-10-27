@@ -15,16 +15,31 @@ import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
 import { runtimePostgresOptions } from "./connection-options"
 import * as schema from "./schema"
+import { isCatalogOnlyPreview } from "@/lib/catalog-preview"
 
 const connectionString = process.env.DATABASE_URL
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and fill in your Supabase connection string.")
+if (!connectionString && !isCatalogOnlyPreview()) {
+  throw new Error(
+    "DATABASE_URL is not set. Copy .env.example to .env.local and fill in your Supabase connection string.",
+  )
 }
 
 // A single shared connection is fine for Next.js server runtime; `prepare:
 // false` is required when connecting through Supabase's transaction-mode
 // pooler, which doesn't support prepared statements.
-const client = postgres(connectionString, runtimePostgresOptions)
+function createDatabase(url: string) {
+  const client = postgres(url, runtimePostgresOptions)
+  return drizzle(client, { schema })
+}
 
-export const db = drizzle(client, { schema })
+// Next evaluates all route modules during a build, including the shared data
+// layer. The editorial preview must build without secrets, and must never
+// connect to a database even if a credential is accidentally present.
+export const db = isCatalogOnlyPreview()
+  ? new Proxy({} as ReturnType<typeof createDatabase>, {
+      get() {
+        throw new Error("Database access is disabled in the catalog-only preview")
+      },
+    })
+  : createDatabase(connectionString!)

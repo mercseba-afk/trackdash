@@ -3,13 +3,10 @@ import { readFileSync } from "node:fs"
 import { test } from "node:test"
 import vm from "node:vm"
 import ts from "typescript"
+import { isCatalogPreviewRequest } from "../lib/catalog-preview.ts"
 
 const read = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8")
-const SESSIONLESS = [
-  "/api/ebay/marketplace-account-deletion",
-  "/api/cron/market-scan",
-  "/api/cron/ebay-scan",
-]
+const SESSIONLESS = ["/api/ebay/marketplace-account-deletion", "/api/cron/market-scan", "/api/cron/ebay-scan"]
 const LOOKALIKES = [
   "/api/ebay/marketplace-account-deletion-extra",
   "/api/ebay/marketplace-account-deletion/invented",
@@ -31,35 +28,50 @@ function nextResponse(request) {
   }
 }
 
-function createProxy({ user = null, aal = null } = {}) {
+function createProxy({ user = null, aal = null, catalogPreview = false } = {}) {
   const exports = {}
   const sessionCalls = []
   const transpiled = ts.transpileModule(read("proxy.ts"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText
-  vm.runInNewContext(transpiled, {
-    exports,
-    URL,
-    require(name) {
-      if (name === "next/server") {
-        return {
-          NextResponse: {
-            next: ({ request } = {}) => nextResponse(request),
-            redirect: (url) => ({ kind: "redirect", location: String(url) }),
-          },
+  vm.runInNewContext(
+    transpiled,
+    {
+      exports,
+      URL,
+      require(name) {
+        if (name === "next/server") {
+          return {
+            NextResponse: class {
+              constructor(body, options) {
+                this.body = body
+                this.status = options.status
+              }
+              static next({ request } = {}) {
+                return nextResponse(request)
+              }
+              static redirect(url) {
+                return { kind: "redirect", location: String(url) }
+              }
+            },
+          }
         }
-      }
-      if (name === "@/lib/supabase/proxy") {
-        return {
-          updateSession: async (request) => {
-            sessionCalls.push(request.nextUrl.pathname)
-            return { response: nextResponse(request), user, aal }
-          },
+        if (name === "@/lib/catalog-preview") {
+          return { isCatalogOnlyPreview: () => catalogPreview, isCatalogPreviewRequest }
         }
-      }
-      throw new Error("Unexpected dependency in Proxy: " + name)
+        if (name === "@/lib/supabase/proxy") {
+          return {
+            updateSession: async (request) => {
+              sessionCalls.push(request.nextUrl.pathname)
+              return { response: nextResponse(request), user, aal }
+            },
+          }
+        }
+        throw new Error("Unexpected dependency in Proxy: " + name)
+      },
     },
-  }, { filename: "proxy.ts" })
+    { filename: "proxy.ts" },
+  )
   return { proxy: exports.proxy, matcher: exports.config.matcher[0], sessionCalls }
 }
 
@@ -69,6 +81,7 @@ function request(pathname) {
   const cookieWrites = []
   return {
     url: nextUrl.href,
+    method: "GET",
     nextUrl,
     cookies: {
       set: (...args) => cookieWrites.push(args),
@@ -76,6 +89,29 @@ function request(pathname) {
     cookieWrites,
   }
 }
+
+test("catalog-only preview serves only editorial GET/HEAD routes and never refreshes auth", async () => {
+  const app = createProxy({ catalogPreview: true })
+  for (const path of ["/speed-champions", "/speed-champions/catalog", "/speed-champions/catalog/76934"]) {
+    assert.equal((await app.proxy(request(path))).kind, "next")
+    assert.equal((await app.proxy({ ...request(path), method: "HEAD" })).kind, "next")
+    assert.equal((await app.proxy({ ...request(path), method: "POST" })).status, 404)
+  }
+  for (const path of [
+    ...SESSIONLESS,
+    ...LOOKALIKES,
+    "/login",
+    "/collection",
+    "/market",
+    "/catalog",
+    "/speed-champions/catalog/76934/extra",
+  ]) {
+    assert.equal((await app.proxy(request(path))).status, 404, path)
+  }
+  assert.equal((await app.proxy(request("/"))).location, "https://trackdash.it/speed-champions/catalog")
+  assert.equal((await app.proxy({...request("/"), method: "POST"})).status, 404)
+  assert.deepEqual(app.sessionCalls, [])
+})
 
 test("real Next.js matcher skips only exact independently authenticated routes", () => {
   const { matcher } = createProxy()

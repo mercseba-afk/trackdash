@@ -15,6 +15,7 @@ import { getCachedPublicMarketSignalMap } from "@/lib/market/public-cached"
 import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { isCatalogOnlyPreview } from "@/lib/catalog-preview"
 
 const trackDashSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-trackdash-sans" })
 const trackDashMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-trackdash-mono" })
@@ -76,6 +77,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  if (isCatalogOnlyPreview()) {
+    // Keep route rendering request-bound, as in the ordinary layout. Other
+    // app pages require providers and are deliberately blocked by Proxy here.
+    await cookies()
+    return (
+      <html lang="it" className="light bg-background">
+        <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>{children}</body>
+      </html>
+    )
+  }
+
   const cookieStore = await cookies()
   const cookieLocale = cookieStore.get("trackdash.locale")?.value
   const hasLocaleCookie = cookieLocale === "en" || cookieLocale === "it"
@@ -94,7 +106,13 @@ export default async function RootLayout({
         <script id="trackdash-pwa-prompt-capture" dangerouslySetInnerHTML={{ __html: pwaPromptCaptureScript }} />
       </head>
       <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
           <StoreProvider>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
               <I18nProvider initialLocale={initialLocale}>
