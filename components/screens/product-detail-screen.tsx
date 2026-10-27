@@ -211,13 +211,14 @@ function ReleaseRow({
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_7px_22px_rgba(15,23,42,0.035)] transition-all duration-200 hover:border-brand/30 hover:shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-      <div className="grid gap-0 md:grid-cols-[176px_minmax(0,1fr)]">
+      <div className="grid gap-0 md:grid-cols-[minmax(240px,32%)_minmax(0,1fr)] lg:grid-cols-[minmax(320px,34%)_minmax(0,1fr)]">
         <Link href={releaseHref} className="relative block overflow-hidden border-b border-border/50 bg-gradient-to-br from-white to-muted/20 md:border-b-0 md:border-r">
           <ProductImage
             product={product}
             release={release}
             className="aspect-[3/2] h-full min-h-32 w-full transition-transform duration-300 group-hover:scale-[1.02] md:min-h-0"
             size="md"
+            sizes="(min-width: 1280px) 420px, (min-width: 1024px) 34vw, (min-width: 768px) 32vw, 100vw"
           />
           <span className={cn(
             "absolute left-2.5 top-2.5 rounded-full px-2 py-1 text-[10px] font-semibold shadow-sm",

@@ -476,8 +476,10 @@ if (!collectionScreen.includes("grid-cols-[42%_minmax(0,1fr)]") ||
     collectionScreen.includes("flex h-full min-w-0 flex-col sm:flex-row")) {
   errors.push("Collection previews must enlarge the image at left and place market and offer values side by side in the full-width card panel")
 }
-if (!productDetailScreen.includes("md:grid-cols-[176px_minmax(0,1fr)]")) {
-  errors.push("Catalog Release previews must preserve the image-above mobile layout")
+const releasePreviewColumns = productDetailScreen.match(/className="grid gap-0 ([^"]+)"/)?.[1].split(/\s+/) ?? []
+if (!releasePreviewColumns.some((token) => token.startsWith("md:grid-cols-")) ||
+    releasePreviewColumns.some((token) => token.startsWith("grid-cols-"))) {
+  errors.push("Catalog Release previews must stack images above content on mobile, with columns starting at md")
 }
 const marketOfferQuery = fs.readFileSync("lib/db/queries/market.ts", "utf8")
 const offerOrigin = fs.readFileSync("lib/market/offer-origin.ts", "utf8")

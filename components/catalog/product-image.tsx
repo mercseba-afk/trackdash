@@ -26,11 +26,13 @@ export function ProductImage({
   release,
   className,
   size = "md",
+  sizes = "(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw",
 }: {
   product: Product
   release?: ProductRelease
   className?: string
   size?: "sm" | "md" | "lg"
+  sizes?: string
 }) {
   const url = resolveDisplayImageUrl(product, release)
   const [failed, setFailed] = React.useState(false)
@@ -55,7 +57,7 @@ export function ProductImage({
         src={url}
         alt={alt}
         fill
-        sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
+        sizes={sizes}
         className="object-contain"
         onError={() => setFailed(true)}
       />
