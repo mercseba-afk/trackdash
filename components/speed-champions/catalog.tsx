@@ -10,14 +10,16 @@ import {
   setImagePath,
   type LegoCatalogFilters,
 } from "@/lib/lego/catalog"
+import { formatLegoPrice, getLegoAskingPrices } from "@/lib/lego/market"
 import { SetImage } from "./set-image"
+import { LegoStatusBadge, LegoStatusLegend } from "./status-badge"
 
 const brands = [...new Set(speedChampionsSets.map((set) => set.carBrand))].sort()
 const years = [...new Set(speedChampionsSets.map((set) => set.year))].sort((a, b) => b - a)
 const selectClass =
   "mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600"
 
-export function SpeedChampionsCatalog() {
+export function SpeedChampionsCatalog({ asOf }: { asOf: string }) {
   const [filters, setFilters] = useState<LegoCatalogFilters>({})
   const [showFilters, setShowFilters] = useState(false)
   const results = filterSpeedChampions(speedChampionsSets, filters)
@@ -131,6 +133,7 @@ export function SpeedChampionsCatalog() {
           </label>
         </div>
       </section>
+      <LegoStatusLegend />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p aria-live="polite" className="text-sm font-semibold">
           {results.length} set {filtered ? "trovati" : "da esplorare"}
@@ -170,7 +173,9 @@ export function SpeedChampionsCatalog() {
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {results.map((set, index) => (
+          {results.map((set, index) => {
+            const prices = getLegoAskingPrices(set.setNumber, asOf)
+            return (
             <Link
               key={set.setNumber}
               href={speedChampionsPath(set.setNumber)}
@@ -197,17 +202,18 @@ export function SpeedChampionsCatalog() {
                 <p className="mt-2 text-xs text-slate-500">
                   {set.series} · {set.carCount === 2 ? "2 auto, 1 confezione" : "1 auto"}
                 </p>
+                <div className="mt-4 rounded-xl bg-sky-50 p-3">
+                  <p className="text-xs font-medium text-slate-600">Prezzo richiesto su eBay</p>
+                  <p className="mt-1 font-bold text-sky-900">{prices.length ? `Da ${formatLegoPrice(prices[0].itemPriceCents)}` : "Da rilevare"}</p>
+                  {prices.length > 0 && <p className="mt-1 text-xs text-slate-500">{prices.length} {prices.length === 1 ? "annuncio osservato" : "annunci osservati"} · spedizione e costi esclusi</p>}
+                </div>
                 <div className="mt-auto flex items-center justify-between gap-2 pt-5">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${set.status === "retired" ? "bg-slate-100 text-slate-600" : set.status === "retiring_soon" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}
-                  >
-                    {legoStatusLabels[set.status]}
-                  </span>
+                  <LegoStatusBadge status={set.status} />
                   <ArrowUpRight className="size-5 text-blue-600" aria-hidden="true" />
                 </div>
               </div>
             </Link>
-          ))}
+          )})}
         </div>
       )}
       <p className="text-xs leading-5 text-slate-500">

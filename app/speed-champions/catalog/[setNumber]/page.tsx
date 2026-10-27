@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import { LegoMarketPrices } from "@/components/speed-champions/market-prices"
 import { SetGallery } from "@/components/speed-champions/gallery"
-import { speedChampionsSets, legoStatusLabels } from "@/lib/lego/catalog"
+import { speedChampionsSets, legoStatusDescriptions } from "@/lib/lego/catalog"
+import { LegoStatusBadge } from "@/components/speed-champions/status-badge"
 import { canAccessSpeedChampions } from "@/lib/server/speed-champions-gate"
 export const dynamic = "force-dynamic"
 
@@ -35,9 +37,9 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
             LEGO Speed Champions · {set.setNumber}
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{set.name}</h1>
-          <span className="mt-4 inline-block rounded-full bg-white px-3 py-1.5 text-sm font-medium">
-            {legoStatusLabels[set.status]}
-          </span>
+          <div className="mt-4"><LegoStatusBadge status={set.status} />
+            <p className="mt-3 text-sm leading-6 text-slate-600">{legoStatusDescriptions[set.status]}</p>
+          </div>
           <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-5 rounded-2xl border border-slate-200 bg-white p-5">
             {facts.map(([label, value]) => (
               <div key={label}>
@@ -52,13 +54,7 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
               completo.
             </p>
           )}
-          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-semibold">Valore di mercato</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Non ancora disponibile per questo set. Una valutazione attendibile deve distinguere confezioni sigillate,
-              set completi aperti e set incompleti.
-            </p>
-          </section>
+          <LegoMarketPrices setNumber={set.setNumber} asOf={new Date().toISOString()} />
           <p className="mt-5 text-sm leading-6 text-slate-500">
             Questa anteprima permette di esplorare il catalogo. Collezione personale, wishlist e scambi LEGO saranno
             collegati nel passaggio successivo.

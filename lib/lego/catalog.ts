@@ -32,10 +32,17 @@ function validateEntry(row: (typeof data)[number]): SpeedChampionsSet {
 
 export const speedChampionsSets: readonly SpeedChampionsSet[] = data.map(validateEntry)
 export const legoStatusLabels: Record<LegoStatus, string> = {
-  available: "Nel catalogo LEGO",
-  retiring_soon: "In uscita dal catalogo",
-  retired: "Fuori catalogo",
+  available: "A catalogo LEGO",
+  retiring_soon: "Ritiro annunciato",
+  retired: "Fuori catalogo LEGO",
   unknown: "Stato da verificare",
+}
+
+export const legoStatusDescriptions: Record<LegoStatus, string> = {
+  available: "Il set è ancora nel catalogo ufficiale LEGO alla data dell’ultima verifica.",
+  retiring_soon: "LEGO segnala che il set sta per essere ritirato. Non è una nuova uscita e la data esatta può non essere nota.",
+  retired: "LEGO ha ritirato il set dal proprio catalogo. Può ancora essere disponibile nei negozi o tra collezionisti.",
+  unknown: "Lo stato nel catalogo ufficiale deve ancora essere verificato.",
 }
 
 export function speedChampionsPath(setNumber: string): string {

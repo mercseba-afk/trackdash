@@ -4,5 +4,5 @@ import { canAccessSpeedChampions } from "@/lib/server/speed-champions-gate"
 export const dynamic = "force-dynamic"
 export default async function Page() {
   if (!(await canAccessSpeedChampions())) notFound()
-  return <SpeedChampionsCatalog />
+  return <SpeedChampionsCatalog asOf={new Date().toISOString()} />
 }
