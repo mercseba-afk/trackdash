@@ -30,6 +30,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getSpeedChampionsAccessAction } from "@/lib/actions/speed-champions-access"
 import { getUnreadMessagingCountAction } from "@/lib/actions/messaging"
 import { createClient } from "@/lib/supabase/client"
 import { useStore } from "@/lib/store"
@@ -189,6 +190,17 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
   const { user } = useStore()
   const { t } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
+  const [speedChampionsAccess, setSpeedChampionsAccess] = React.useState(false)
+  React.useEffect(() => {
+    let current = true
+    setSpeedChampionsAccess(false)
+    if (user?.id) {
+      getSpeedChampionsAccessAction()
+        .then((allowed) => { if (current) setSpeedChampionsAccess(allowed) })
+        .catch(() => { if (current) setSpeedChampionsAccess(false) })
+    }
+    return () => { current = false }
+  }, [user?.id])
   const hotWheelsPilotUser = user?.email.toLowerCase() === "merc.seba@gmail.com"
   const desktopNav = vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : MINI4WD_DESKTOP_NAV
   const mobileNav = vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : MINI4WD_MOBILE_NAV
@@ -300,7 +312,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           </nav>
 
           <div className="flex items-center gap-1.5">
-            {hotWheelsPilotUser ? <CollectibleVerticalSwitch active={vertical} /> : null}
+            {hotWheelsPilotUser || speedChampionsAccess ? <CollectibleVerticalSwitch active={vertical} showSpeedChampions={speedChampionsAccess} /> : null}
             {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
             <UserMenu />

@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { CollectibleVerticalSwitch } from "@/components/collectible-vertical-switch"
+import { canAccessSpeedChampions } from "@/lib/server/speed-champions-gate"
 import { BrandMark } from "@/components/brand-mark"
 
 export const metadata: Metadata = {
@@ -8,7 +10,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function SpeedChampionsLayout({ children }: { children: React.ReactNode }) {
+export default async function SpeedChampionsLayout({ children }: { children: React.ReactNode }) {
+  const showSpeedChampions = await canAccessSpeedChampions()
   return (
     <div className="min-h-screen bg-[#f6f7f9] text-slate-950">
       <header className="border-b border-slate-200 bg-white">
@@ -17,6 +20,7 @@ export default function SpeedChampionsLayout({ children }: { children: React.Rea
             <BrandMark />
           </Link>
           <nav aria-label="Navigazione Speed Champions" className="flex items-center gap-5 text-sm font-medium">
+            {showSpeedChampions && <CollectibleVerticalSwitch active="speedchampions" showSpeedChampions />}
             <Link href="/speed-champions/catalog" className="text-blue-700 hover:underline">
               Catalogo LEGO
             </Link>
