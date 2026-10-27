@@ -13,6 +13,7 @@ import "server-only"
 
 import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
+import { runtimePostgresOptions } from "./connection-options"
 import * as schema from "./schema"
 import { isCatalogOnlyPreview } from "@/lib/catalog-preview"
 
@@ -28,7 +29,7 @@ if (!connectionString && !isCatalogOnlyPreview()) {
 // false` is required when connecting through Supabase's transaction-mode
 // pooler, which doesn't support prepared statements.
 function createDatabase(url: string) {
-  const client = postgres(url, { prepare: false })
+  const client = postgres(url, runtimePostgresOptions)
   return drizzle(client, { schema })
 }
 

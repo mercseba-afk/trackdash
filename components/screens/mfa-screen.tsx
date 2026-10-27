@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { KeyRound, ShieldCheck } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
@@ -25,7 +24,6 @@ function normalizeQrCode(qrCode: string) {
 }
 
 export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
-  const router = useRouter()
   const { locale } = useI18n()
   const it = locale === "it"
   const [loading, setLoading] = React.useState(true)
@@ -99,6 +97,7 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
   }, [load])
 
   async function verify() {
+    if (pending) return
     const cleanCode = code.replace(/\s+/g, "")
     if (!/^\d{6}$/.test(cleanCode)) {
       toast.error(it ? "Inserisci il codice a 6 cifre" : "Enter the 6-digit code")
@@ -111,9 +110,8 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
     setPending(true)
     const supabase = createClient()
     const result = await supabase.auth.mfa.challengeAndVerify({ factorId, code: cleanCode })
-    setPending(false)
-
     if (result.error) {
+      setPending(false)
       toast.error(result.error.message)
       return
     }
@@ -123,8 +121,12 @@ export function MfaScreen({ nextPath = "/dashboard" }: { nextPath?: string }) {
         ? (it ? "Verifica completata" : "Verification complete")
         : (it ? "Autenticazione a due fattori attivata" : "Two-factor authentication enabled"),
     )
-    router.replace(nextPath)
-    router.refresh()
+    // MFA changes the session cookies. A full navigation avoids a cached
+    // AAL1 redirect and makes the server read the verified session immediately.
+    const destination = new URL(nextPath, window.location.origin)
+    window.location.replace(
+      destination.origin === window.location.origin ? destination.href : "/dashboard",
+    )
   }
 
   return (

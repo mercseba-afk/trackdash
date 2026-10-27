@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
   "crons": [
     {
       "path": "/api/cron/market-scan",
@@ -10,9 +11,10 @@
   "git": {
     "deploymentEnabled": {
       "feat/hotwheels-*": false,
-      "fix/hourly-market-clock-20261024": false,
-      "main": false,
-      "fix/bounded-clock-20261024": false
+      "perf/p08-ebay-erasure-cpu-20261017": false,
+      "perf/p09-pooler-egress-20261018": false,
+      "recovery/frankfurt-migration": false,
+      "fix/bounded-market-catchup-20261024": false
     }
   }
 }

@@ -24,10 +24,26 @@ export async function listCategories() {
 // since the catalog screen shows a primary image + release count and the
 // product-detail screen needs the release list (and, per Catalog Model
 // V2, its verification/provenance) right away.
+// This high-frequency list feeds only the public Product mapper. Preserve
+// every mapped field, visibility gate, Release and provenance source; omit
+// duplicate editorial copy/joins and bookkeeping never consumed by that mapper.
+// No cache or TTL change: catalog publication stays visible on the next read.
+export const catalogListProjection = {
+  columns: { categoryId: false, brandId: false, descriptionIt: false, createdAt: false },
+  with: {
+    category: { columns: { slug: true } },
+    images: { columns: { url: true } },
+    releases: {
+      columns: { description: false, descriptionIt: false, dataSource: false, catalogVisibilityReason: false, createdAt: false },
+      with: { images: { columns: { url: true } }, sources: { columns: { createdAt: false } } },
+    },
+  },
+} as const
+
 export async function listProductsForVertical(vertical: CollectibleVertical, limit = 50) {
   return db.query.products.findMany({
+    ...catalogListProjection,
     where: eq(products.categoryId, COLLECTIBLE_VERTICALS[vertical].categoryId),
-    with: { brand: true, category: true, images: true, releases: { with: { images: true, sources: true } } },
     orderBy: (fields, { asc }) => [asc(fields.name)],
     limit,
   })

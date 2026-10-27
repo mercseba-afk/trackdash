@@ -1,3 +1,46 @@
+# Checkpoint — Aero Avante pubblicata, 23 ottobre 2026
+
+[Audit operativo](AERO_AVANTE_FAMILY_AUDIT_2026-10-23.md): famiglia Frankfurt c8132bd5-23ee-5f36-b3f6-a75ef0c27ea3 ora available.6UUID esistenti conservati,10kit aggiunti inclusi2StarterPack:16Release pubbliche con16foto,descrizioniIT/EN,7JAN verificati.16scan eBay reali23Ott11:27–11:45UTC,zeroerrori e16recompute canonici.54offerte correnti,12prezzi richiesti visibili;18701=23.51EUR,95267=67.63EUR,95655=54.39EUR(mediana7venditori).Gandolfi95655 acquisita realmente16EURin_stock,distinta dalla mediana.95038/95058/95210/92396 senzaASK;nessunMV/SOLD/trend inventato.6collaborazioni candidate restano inricerca,nondichiarare famigliaesaustiva. RCJazplanned/codeAero parcheggiate. Refreshworkeresistente7/10/30giorni,Gandolfi28giorni;nessunsecondoclock.16NextImageHTTP200,6pagineIT/ENHTTP200canonical/hreflangcorretti,sitemap34URL. TestprivatiScanner/Collection/Wishlist/PWA/notifiche nonrieseguiti. ProposteSQL/applicazione/limiti nell'audit. Nessunmerge/deploy,cambioprivacy/pricing/scheduler/vecchioDB;codiceProduction verificato780c9a4db49175a1e39b9f8a3fc4b9d6dba7cf77.
+
+---
+
+# Checkpoint — Avante Jr. public launch, 23 October 2026
+
+User explicitly authorized publication with verified asking prices. Frankfurt product82b478fd-21dd-5c93-82fb-bf50461a107d now launch_status=available.12verified Releases public; partial18014/2012 UUID3338f1a5-609b-507d-8102-2594bc818365 preserved research_only pending exact identity. Transaction executed in authenticated dashboard after MCP write requestState errors; independent SQL confirmed. LiveITfamily shows12cards and seven asking quotes;18058=52.70EUR,95060=44.44EUR,95474=67.10EUR,18014/2024=15.58EUR. No MV invented. LiveIT/ENfamily+2detail HTTP200correctcanonical; sitemap26family/detail occurrences. Existing launch trigger unchanged; no manual messages/emails. No code merge/deploy/scanner changes. See docs/AVANTE_POSEIDON_MARKET_COMPLETION_2026-10-23.md launch addendum for full evidence/limitations. This supersedes earlier coming_soon status below, not market provenance warnings.
+
+## 23 ottobre 2026 — Avante Jr. / Poseidon mercato, dati esistenti preservati
+
+[Audit operativo](AVANTE_POSEIDON_MARKET_COMPLETION_2026-10-23.md):13Avante+2Poseidon ricalcolate realmente;4run bounded del workflowesistente,20operazioni miste/20successi/0errori. Aggiornati eBay18058,94584,95060,95474 e retailGandolfi18014.15EURretail18014 disponibile;52.70EURanchorASK18058;95060nuoveofferte accettate e anchor44.38EUR(non confondere con mediana pubblica pervenditore).95474offerte correnti registrate, anchorNULL non prova assenzaASK. Nessun nuovoMV/SOLD artificiale.4candidate ricerca conservate needs_review:TerraMecha95474SGDnon supportato,18014SKUdiscordante,95501generazioneambigua;Mercari49568condizione/sigillatura non dimostrata. I2sharedSKUcandidate sono irrisolti, non attribuiti arbitrariamente.
+
+Nessuna nuovaRelease, foto, launch, deploy, merge o scheduler. Avante Jr. ancora coming_soon: le route pubbliche servono la pagina inarrivo, non una famiglia attivata. Poseidon resta pubblica ma senza mercato qualificato; vecchi negozi esauriti non valorizzati. Ultimo codiceProduction verificato780c9a4db49175a1e39b9f8a3fc4b9d6dba7cf77. Leggere audit per limitiSOLDlegacy e refreshretail42ggvsTTL31gg. Nessuna modifica al vecchioDB.
+
+---
+
+## Poseidon-X — 22 ottobre 2026 — correzione applicata e 2 Release pubbliche
+
+Accesso Supabase ripristinato. [Audit definitivo della lavorazione](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md): originale1993 corretto ITEM49568/JAN4950344495689, UUID preservato, provenienza e foto esatta collegate; pubblicato dopo scan eBay reale riuscito22Ott18:52:41UTC e recompute v4. JobGitHub120021522688 del workflow39585454899: HTTP200,2 tentativi/2 successi/0 fallimenti aggregati. DB originale conferma ultimo successo eBay e prossimo21Nov18:52UTC; MV/ASK NULL,0SOLD/0offerte accettate. Reissue2006 invariata, foto specifica, già pubblica, scan24Ott mantenuto.
+
+Famiglia:2 kit,2 pubbliche,0research-only,0gap foto; metadata.family_audit aggiornato conservando accessori/box. Verificati catalogo famiglia, dettaglio originale IT/EN con foto caricata, JAN, canonicalEN/hreflang dopo navigazione completa e sitemapHTTP200 con entrambe le Release in entrambe le lingue. IdentificativiJAN distinti verificati nel DB; scanner autenticato/Collection/Wishlist/PWA non ritestati in questo audit. Restano gap mercato: retailer exact non pronti, nessun feed SOLD automatico autorizzato, nessun prezzo/trend inventato. Nessun nuovo deploy/merge/scheduler, rilancio famiglia/notifica o modifica al vecchioDB.
+
+I checkpoint sottostanti di blocco autenticazione e vecchia identità sono storia superata. Per inserimenti futuri usare [runbook aggiornato](NEW_RELEASE_RUNBOOK.md).
+
+---
+
+## Poseidon-X — 22 ottobre 2026 — originale identificata, applicazione bloccata
+
+Nuovo [audit con fotografie e stato effettivo](POSEIDON_X_FAMILY_AUDIT_2026-10-22.md): l'originale 1993 è ITEM49568/JAN4950344495689, verificati sulla scatola; il vecchio audit che assegnava94584 a entrambe le generazioni è superato. Conservare UUID936ac729-f26b-5a21-bec1-f2620b93c5c4. Foto exact originale trovata e servita con HTTP200 dal Next Image di Production. Proposta DML versionata in proposals/poseidon-x-1993-identity-20261022.sql. NON APPLICATA: due dry-run connector falliti con Invalid or expired requestState; SELECT conferma dati ancora94584/JANNULL/research_only/zero foto. Dashboard Supabase richiede nuovo login. Prossima azione: ripristinare accesso autorizzato, validare/applicare dati, primo scan originale e recompute, poi pubblicazione/QA. Nessun MV/SOLD/trend inventato, nessun merge/deploy, nessuna nuova Release duplicata o modifica al vecchio database. Reissue2006 già pubblica invariata. Non dichiarare famiglia completata.
+
+---
+
+## Indice operativo aggiornato — 22 ottobre 2026 — documentazione, non modifica Production
+
+- Per l'inserimento/completamento di famiglie e Release: [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md), ora richiamato anche dal Metodo Master e Family Completion Master. Include ricerca completa, immagini esatte, identità scanner, audit mercato reale, trend, refresh e QA/SEO/pubblicazione entro le autorizzazioni già ricevute.
+- Per stato di ripristino, hosting, scheduler e ultimo rilascio verificato leggere prima [Creativeweb staged 21 ottobre](recovery/creativeweb-staged-2026-10-21.md). Le sezioni ottobre 12–15 qui sotto sono cronologia e non provano lo stato runtime odierno. Il checkpoint registra come ultimo commit effettivamente verificato online il 21 ottobre 780c9a4db49175a1e39b9f8a3fc4b9d6dba7cf77; riconfermare /api/version e DB quando si riprende lavoro operativo.
+- Correzione della proposta conversazionale: Poseidon-X non è da inserire da zero. Audit/migrazioni 0218–0222 documentano 2006 pubblica e 1993 research-only; prossimo lavoro è verificare e completare i gap, preservando gli UUID. Nessuna nuova verifica live di questi dati eseguita nel solo aggiornamento documentale del 22 ottobre.
+- Questa lavorazione salva metodo e riferimenti nel repository; nessuna migrazione, nuova Release, scansione, modifica Production, merge o deployment.
+
+---
+
 ## P0.2 reconciliation checkpoint — 2026-10-15 — GitHub PR #424
 
 - Production/main previously verified at `3a2c844556cec3ca46b5bca2973aa87c65b68805`: P0.1 PR #426 merged as `7f612b50dfbeba844798943b25d5a1485c96eae1`, and cross-surface PR #423 merged as `3a2c844556cec3ca46b5bca2973aa87c65b68805`. Previous entries claiming those PRs are open are historical.

@@ -8,8 +8,6 @@ import {
   Boxes,
   ChevronLeft,
   ChevronRight,
-  Copy,
-  Heart,
   HandCoins,
   Handshake,
   MessageCircle,
@@ -485,35 +483,6 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           {marketDemo ? <MarketPreview entry={marketDemo} it={it} /> : null}
         </div>
       </section>
-
-      <section data-reveal className="bg-white">
-        <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
-          <div className="flex max-w-4xl flex-col justify-center">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-              {it ? "LA TUA COLLEZIONE" : "YOUR COLLECTION"}
-            </p>
-            <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-[.97] tracking-[-0.055em] text-ink md:text-5xl">
-              {it ? "Tutto quello che possiedi, in un unico posto." : "Everything you own, in one place."}
-            </h2>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
-              {it
-                ? "Registra le Release che possiedi, indica la condizione di ogni copia e controlla il mercato. Per le copie sigillate TrackDash può usare il Market Value aggiornato come stima; per copie aperte o usate non inventa svalutazioni."
-                : "Register the Releases you own, record each copy's condition and watch the market. For sealed copies TrackDash can use the latest Market Value as an estimate; for opened or used copies it does not invent discounts."}
-            </p>
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
-              <CollectionPoint icon={Boxes} title={it ? "Release esatte" : "Exact Releases"} text={it ? "Sai quale versione possiedi davvero." : "Know exactly which version you own."} />
-              <CollectionPoint icon={Copy} title={it ? "Più copie" : "Multiple copies"} text={it ? "Gestisci più esemplari della stessa Release." : "Manage multiple copies of the same Release."} />
-              <CollectionPoint icon={TrendingUp} title={it ? "Valore stimato" : "Estimated value"} text={it ? "Stima aggiornata delle copie sigillate, senza inventare valori per aperte o usate." : "Updated estimate for sealed copies, without inventing values for opened or used ones."} />
-              <CollectionPoint icon={Heart} title={it ? "Desideri" : "Wishlist"} text={it ? "Tieni separato ciò che hai da ciò che stai cercando." : "Keep what you own separate from what you want."} />
-            </div>
-            <Link href="/login?next=%2Fcollection" className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">
-              {it ? "Apri la tua collezione" : "Open your collection"} <ArrowRight className="size-4" />
-            </Link>
-          </div>
-
-        </div>
-      </section>
-
 
       <section data-reveal id="community" className="border-y border-line bg-[#f8fafc]">
         <div className="mx-auto grid w-full max-w-7xl gap-9 px-4 py-14 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:px-8 lg:py-16">

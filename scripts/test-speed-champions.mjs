@@ -102,8 +102,14 @@ try {
   process.env.NODE_ENV = "production"
   process.env.VERCEL_ENV = "production"
   assert.equal(await canAccessSpeedChampions(), false, "Production visitor must not see the pilot")
-  globalThis.testAdmin = { id: "admin-fixture" }
+  process.env.SPEED_CHAMPIONS_OWNER_ID = "owner-fixture"
+  globalThis.testAdmin = { id: "other-admin-fixture" }
+  assert.equal(await canAccessSpeedChampions(), false, "Other admins cannot access the owner-only pilot")
+  globalThis.testAdmin = { id: "owner-fixture" }
   assert.equal(await canAccessSpeedChampions(), true)
+  delete process.env.SPEED_CHAMPIONS_OWNER_ID
+  assert.equal(await canAccessSpeedChampions(), false, "Missing owner config must fail closed")
+  process.env.SPEED_CHAMPIONS_OWNER_ID = "owner-fixture"
   globalThis.testAdmin = null
   process.env.VERCEL_ENV = "preview"
   assert.equal(await canAccessSpeedChampions(), true)

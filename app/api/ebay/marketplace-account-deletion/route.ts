@@ -5,6 +5,7 @@ import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-se
 import type { MarketCondition } from "@/lib/market/pipeline/types"
 import {
   formatEbayDeletionFailure,
+  formatEbayNotificationMetadata,
   type EbayDeletionRouteStage,
 } from "@/lib/ebay/account-deletion-diagnostics"
 import {
@@ -30,10 +31,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const startedAt = Date.now()
+  let notificationMetadata = ""
+  const responseDetails = (status: number) => `${notificationMetadata} response_status=${status} duration_ms=${Math.max(0, Date.now() - startedAt)}`
   let stage: EbayDeletionRouteStage = "request_received"
   const markStage = (nextStage: EbayDeletionRouteStage) => {
     stage = nextStage
-    console.info(`[ebay-account-deletion] stage=${nextStage}`)
   }
 
   try {
@@ -41,19 +44,18 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get("x-ebay-signature") ?? ""
     const verified = await verifyEbayNotificationSignature(rawBody, signature, fetch, markStage)
     if (!verified) {
-      console.warn(formatEbayDeletionFailure(stage, new Error("EBAY_SIGNATURE_VERIFY_FAILED")))
+      console.warn(`${formatEbayDeletionFailure(stage, new Error("EBAY_SIGNATURE_VERIFY_FAILED"))} ${responseDetails(412)}`)
       return new NextResponse(null, { status: 412 })
     }
 
-    const message = parseEbayDeletionNotification(JSON.parse(rawBody))
+    const payload: unknown = JSON.parse(rawBody)
+    const message = parseEbayDeletionNotification(payload)
+    notificationMetadata = formatEbayNotificationMetadata(message.notificationId, payload)
     markStage("payload_parsed")
     const client = createAdminClient()
     markStage("supabase_client_ok")
     const result = await eraseEbayUserData(client, message.identifiers)
     stage = "erasure_completed"
-    console.info(
-      `[ebay-account-deletion] stage=erasure_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length}`,
-    )
 
     try {
       if (result.affectedReleaseConditions.length > 0) {
@@ -65,6 +67,9 @@ export async function POST(request: NextRequest) {
             new Date(),
             repo,
           )
+          // Keep the durable queue for the existing worker. An older worker
+          // may still publish its pre-erasure snapshot after this inline run;
+          // consuming its replacement dirty job here would lose that repair.
         }
       }
     } catch {
@@ -72,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
     stage = "recompute_completed"
     console.info(
-      `[ebay-account-deletion] stage=recompute_completed count=${result.affectedReleaseConditions.length}`,
+      `[ebay-account-deletion] stage=recompute_completed candidates=${result.candidatesUpdated} offers=${result.offersUpdated} price_points=${result.pricePointsUpdated} aggregates=${result.aggregatePayloadsUpdated} monthly=${result.monthlyPayloadsUpdated} affected_release_conditions=${result.affectedReleaseConditions.length} ${responseDetails(204)}`,
     )
 
     return new NextResponse(null, { status: 204 })
@@ -80,10 +85,10 @@ export async function POST(request: NextRequest) {
     const code = error instanceof Error ? error.message : "UNKNOWN"
     const failure = formatEbayDeletionFailure(stage, error)
     if (code.startsWith("EBAY_NOTIFICATION_") || code === "EBAY_SIGNATURE_INVALID") {
-      console.warn(failure)
+      console.warn(`${failure} ${responseDetails(400)}`)
       return NextResponse.json({ error: "INVALID_NOTIFICATION" }, { status: 400 })
     }
-    console.error(failure)
+    console.error(`${failure} ${responseDetails(500)}`)
     return NextResponse.json({ error: "PROCESSING_FAILED" }, { status: 500 })
   }
 }

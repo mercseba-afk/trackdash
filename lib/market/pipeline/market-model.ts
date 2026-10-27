@@ -104,6 +104,10 @@ export interface MarketSignalDraft {
   retailRegionCount: number
   retailRegionalSpreadRatio: number | null
   retailShippingKnownRatio?: number
+  // Transient publication metrics, scoped to the same European pool as the anchor.
+  // Global counts above remain available as international market context.
+  retailComparableSourceCount?: number
+  retailComparableShippingKnownRatio?: number
   shippingKnownRatio: number
   trendPercent: number | null
   trendWindowMonths: 1 | 3 | 6 | 12 | null
@@ -747,6 +751,11 @@ export function computeCurrentMarketSignal(input: {
   const soldAnchorEUR = soldAnchor(input.soldEvidence, input.asOfDate)
   // Retail representatives are already deduplicated by economic merchant.
   const retailSourceCount = offers.retail.length
+  const comparableRetail = offers.retail.filter((item) => isEuropeComparableRegion(item.marketRegion))
+  const retailComparableSourceCount = comparableRetail.length
+  const retailComparableShippingKnownRatio = retailComparableSourceCount
+    ? comparableRetail.filter((item) => item.costBasis === "delivered").length / retailComparableSourceCount
+    : 0
   const activeOfferCount = offers.active.length
   const currentOfferCount = offers.current.length
   const soldUnits = input.soldEvidence.reduce((sum, item) => sum + Math.max(0, item.salesCount), 0)
@@ -821,6 +830,8 @@ export function computeCurrentMarketSignal(input: {
     retailRegionCount: retailStats.regionCount,
     retailRegionalSpreadRatio: retailStats.regionalSpreadRatio,
     retailShippingKnownRatio,
+    retailComparableSourceCount,
+    retailComparableShippingKnownRatio,
     shippingKnownRatio,
     trendPercent: trend.percent,
     trendWindowMonths: trend.window,

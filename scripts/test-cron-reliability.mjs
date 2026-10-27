@@ -25,7 +25,7 @@ function compile(file, imports, extras = {}) {
   }).outputText
   const exports = {}
   vm.runInNewContext(output, {
-    exports, Error, Buffer, AbortSignal, process: { env: { CRON_SECRET: "test-cron-secret" } },
+    exports, Error, Buffer, AbortSignal, URL, process: { env: { CRON_SECRET: "test-cron-secret" } },
     fetch: async () => { throw new Error("UNEXPECTED_NETWORK_ACCESS") },
     console: { error: () => {} },
     require: (name) => {
@@ -51,9 +51,13 @@ function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }
     "@/lib/market/automation/ebay-worker": { runEbayActiveMarketScanBatch: worker("ebay", ebay) },
     "@/lib/market/automation/recompute-worker": { runMarketRecomputeBatch: worker("recompute", recompute) },
     "@/lib/market/automation/cron-outcome": { summarizeCronWorker, summarizeCronCycle },
+    "@/lib/market/automation/retail-source-canary": { retailCanarySource: value => value === "test-canary-window" ? "briosi_public" : null, probeRetailSource: async () => {
+      calls.push(["canary", 1])
+      return { ok: true, source: "briosi_public" }
+    } },
   }
   const extras = {
-    console: { error: (...args) => logs.push(args) },
+    console: { error: (...args) => logs.push(args), info: (...args) => logs.push(args) },
     ...(env ? { process: { env } } : {}),
     ...(fetchImpl ? { fetch: fetchImpl } : {}),
   }
@@ -65,6 +69,16 @@ function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }
 
 const request = (token = "test-cron-secret") => new Request("https://example.invalid/api/cron/market-scan", {
   headers: { authorization: `Bearer ${token}` },
+})
+
+test("source preflight requires authentication and never invokes any worker", async () => {
+  const mocked = routes({ env: { CRON_SECRET: "test-cron-secret", TRACKDASH_RETAIL_SOURCE_CANARY: "test-canary-window" } })
+  assert.equal((await mocked.ebay.GET(request("wrong"))).status, 401)
+  assert.deepEqual(mocked.calls, [])
+  const response = await mocked.ebay.GET(request())
+  assert.equal(response.status, 200)
+  assert.deepEqual(mocked.calls, [["canary", 1]])
+  assert.equal((await response.json()).retailCanary.source, "briosi_public")
 })
 
 for (const [status, value, http, ok, partial] of [
@@ -154,6 +168,43 @@ test("cron secret authentication fails closed before any worker invocation", asy
   assert.equal((await missing.daily.GET(request())).status, 503)
   assert.equal((await missing.ebay.GET(request())).status, 401)
   assert.equal(missing.calls.length, 0)
+})
+
+test("optional hourly market cycle reuses authentication and bounds batches to 2/1/4", async () => {
+  const mocked = routes({ retail: counts(2), ebay: counts(1), recompute: counts(4),
+    env: { CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true" } })
+  assert.equal((await mocked.ebay.GET(request("wrong-secret"))).status, 401)
+  assert.deepEqual(mocked.calls, [])
+  const response = await mocked.ebay.GET(request())
+  const body = await response.json()
+  assert.deepEqual(mocked.calls, [["retail", 2], ["ebay", 1], ["recompute", 4]])
+  assert.deepEqual(body.result, counts(7))
+  assert.equal(diagnoseScanResponse({ httpStatus: response.status, body: JSON.stringify(body) }).ok, true)
+})
+
+test("hourly retail progress with idle eBay remains healthy in existing diagnostics", async () => {
+  const mocked = routes({ retail: counts(2), env: {
+    CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true",
+  } })
+  const response = await mocked.ebay.GET(request())
+  const body = await response.json()
+  assert.equal(body.status, "success")
+  assert.equal(body.lanes.ebayActive.status, "no_work")
+  assert.equal(diagnoseScanResponse({ httpStatus: response.status, body: JSON.stringify(body) }).ok, true)
+})
+
+test("hourly lane failure is isolated, redacted and never reported as success", async () => {
+  const mocked = routes({ retail: new Error("private-token"), ebay: counts(1), env: {
+    CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true",
+  } })
+  const response = await mocked.ebay.GET(request())
+  const body = await response.json()
+  assert.equal(response.status, 500)
+  assert.equal(body.status, "partial")
+  assert.equal(body.lanes.exactPages.error, "WORKER_EXECUTION_FAILED")
+  assert.equal(mocked.calls.length, 3)
+  assert.doesNotMatch(JSON.stringify([body, mocked.logs]), /private-token/)
+  assert.equal(diagnoseScanResponse({ httpStatus: response.status, body: JSON.stringify(body) }).ok, false)
 })
 
 test("GitHub OIDC keeps signature, repo, workflow, branch, event, audience and expiry gates", async () => {
@@ -300,4 +351,17 @@ try {
   } finally {
     rmSync(temporary, { recursive: true, force: true })
   }
+})
+
+
+test("authenticated eBay-only follow-ups never invoke retail or recompute", async () => {
+  const mocked = routes({ ebay: counts(1), env: { CRON_SECRET: "test-cron-secret", TRACKDASH_HOURLY_MARKET_ENABLED: "true" } })
+  const req = new Request("https://example.invalid/api/cron/ebay-scan?lane=ebay", { headers: { authorization: "Bearer test-cron-secret" } })
+  const response = await mocked.ebay.GET(req)
+  assert.equal(response.status, 200)
+  assert.equal((await response.json()).catchupVersion, 1)
+  assert.deepEqual(mocked.calls, [["ebay", 1]])
+  const denied = await mocked.ebay.GET(new Request(req.url))
+  assert.equal(denied.status, 401)
+  assert.equal(mocked.calls.length, 1)
 })

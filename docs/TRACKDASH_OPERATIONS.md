@@ -1,3 +1,9 @@
+## Riferimento operativo del ripristino — 22 ottobre 2026
+
+Per il workflow di nuove famiglie/Release leggere [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md). Per l'ultimo runtime verificato leggere [checkpoint Creativeweb del 21 ottobre](recovery/creativeweb-staged-2026-10-21.md): unico clock GitHub orario, modalità combinata massima 2 exact retail + 1 eBay Active + 4 recompute; scheduler Vercel duplicato disabilitato. La route in recovery/frankfurt-migration conferma questi batch quando TRACKDASH_HOURLY_MARKET_ENABLED=true. Le sezioni storiche qui sotto su cron giornaliero e batch diversi non descrivono questa modalità; verificare deployment/configurazione prima di intervenire. Nessun comportamento operativo è cambiato con questo aggiornamento documentale.
+
+---
+
 ## P0.2 single-push authorization — 2026-10-15 — PREVIEW ONLY
 
 - Supersedes the billing blocker below: user verified the Vercel dashboard after the previous Preview: Included Credit $0.22/$20.00, remaining $19.78, infrastructure subtotal $0.22 entirely covered, current extra/on-demand $0, displayed billed total $20.00 for Pro. Exact billing-period dates were not supplied; do not infer them. This is a user-verified pre-build snapshot, not a live post-build balance.

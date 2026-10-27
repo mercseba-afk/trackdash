@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Include the public Supabase root CA used by NODE_EXTRA_CA_CERTS in every
+  // server function, preserving certificate verification through the pooler.
+  outputFileTracingIncludes: { '/*': ['./tools/prod-ca-2021.crt'] },
   env: {
     NEXT_PUBLIC_TRACKDASH_BUILD_SHA: process.env.VERCEL_GIT_COMMIT_SHA || "development",
   },

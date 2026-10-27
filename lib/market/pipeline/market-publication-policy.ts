@@ -162,7 +162,7 @@ export function publicRetailConfidence(
   soldEvidence: SoldMarketEvidence[],
   asOfDate: string,
 ): { score: number; label: MarketSignalDraft["confidenceLabel"] } {
-  const retailSources = Math.min(60, signal.retailSourceCount * 25)
+  const retailSources = Math.min(60, (signal.retailComparableSourceCount ?? signal.retailSourceCount) * 25)
   let soldAgreement = 0
 
   if (signal.retailAnchorEUR != null && signal.retailAnchorEUR > 0 && signal.soldAnchorEUR != null && signal.soldAnchorEUR > 0) {
@@ -207,19 +207,26 @@ export function applyPublicMarketPublicationPolicy(
   const sellerDiversity = knownSellerDiversity(soldEvidence)
   const hasVerifiedSale = soldEvidence.some((row) => row.evidenceGrade === "verified" && row.salesCount > 0)
 
+  // Eligibility and confidence must describe the same regional pool as the
+  // European numeric anchor. International shops remain visible context, but
+  // cannot supply a missing European merchant or suppress an established one.
+  const retailSourceCount = signal.retailComparableSourceCount ?? signal.retailSourceCount
   const hasLiquidRetail =
     signal.retailAnchorEUR != null &&
     signal.retailAnchorEUR > 0 &&
-    signal.retailSourceCount >= 2
+    retailSourceCount >= 2
 
   // Multiple shop sticker prices are useful current evidence, but they do not
   // become a European Market Value unless at least half of the independent
   // retail references have a known delivered cost. This prevents €15 item-only
   // listings from beating a €25 delivered market simply because checkout
   // shipping was not observable.
-  const retailDeliveredEnough = (signal.retailShippingKnownRatio ?? 0) >= 0.5
+  const retailDeliveredEnough = (signal.retailComparableShippingKnownRatio ?? signal.retailShippingKnownRatio ?? 0) >= 0.5
 
+  // Preserve the conservative legacy gate for callers without scoped metrics.
+  // A global price spread is not a disagreement within the European pool.
   const severeTwoRegionSplit =
+    signal.retailComparableSourceCount == null &&
     signal.retailRegionCount === 2 &&
     signal.retailRegionalSpreadRatio != null &&
     signal.retailRegionalSpreadRatio >= 1.75
@@ -230,7 +237,7 @@ export function applyPublicMarketPublicationPolicy(
     (!severeTwoRegionSplit || signal.retailRegionCount >= 3)
 
   const retailCorroboratesSold =
-    signal.retailSourceCount >= 1 &&
+    retailSourceCount >= 1 &&
     pricesBroadlyCorroborate(signal.soldAnchorEUR, signal.retailAnchorEUR)
 
   // Seller concentration is a confidence penalty, not a veto against
