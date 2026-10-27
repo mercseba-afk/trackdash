@@ -12,6 +12,15 @@ export function getLegoAskingPrices(setNumber: string, asOf: string) {
       && age >= 0 && age < PRICE_OBSERVATION_TTL_DAYS * 86400000
   }).sort((a, b) => a.itemPriceCents - b.itemPriceCents)
 }
-export function formatLegoPrice(cents: number) {
-  return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(cents / 100)
+// Public summaries deliberately omit item IDs, source links and seller information.
+export function getPublicLegoMarketSummary(setNumber: string, asOf: string) {
+  const prices = getLegoAskingPrices(setNumber, asOf)
+  return {
+    askingLowCents: prices[0]?.itemPriceCents ?? null,
+    askingHighCents: prices.at(-1)?.itemPriceCents ?? null,
+    askingCount: prices.length,
+    observedAt: prices[0]?.observedAt ?? null,
+    condition: prices.length ? (prices.every(row => row.condition === "sigillato") ? "Sigillato" : "Nuovo dichiarato") : null,
+  }
 }
+export type LegoMarketSummary = ReturnType<typeof getPublicLegoMarketSummary>

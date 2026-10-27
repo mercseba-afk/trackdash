@@ -52,7 +52,7 @@ try {
 
   const marketFile = path.join(directory, "market.mjs")
   await build({ entryPoints: ["lib/lego/market.ts"], bundle: true, platform: "node", format: "esm", outfile: marketFile })
-  const { getLegoAskingPrices } = await import(pathToFileURL(marketFile))
+  const { getLegoAskingPrices, getPublicLegoMarketSummary } = await import(pathToFileURL(marketFile))
   const checkedAt = "2026-10-27T12:00:00Z"
   assert.equal(getLegoAskingPrices("76901", checkedAt).length, 2)
   assert.equal(getLegoAskingPrices("76901", checkedAt)[0].itemPriceCents, 3399, "Buyer fees are not item price")
@@ -60,6 +60,11 @@ try {
   assert.equal(getLegoAskingPrices("76901", "2026-10-26").length, 0, "No future observations")
   assert.equal(getLegoAskingPrices("76901", "invalid").length, 0)
   assert.equal(getLegoAskingPrices("99999", checkedAt).length, 0)
+  const publicSummary = getPublicLegoMarketSummary("76901", checkedAt)
+  assert.equal(publicSummary.askingLowCents, 3399)
+  assert.equal(publicSummary.askingHighCents, 3778)
+  assert.deepEqual(Object.keys(publicSummary).sort(), ["askingCount", "askingHighCents", "askingLowCents", "condition", "observedAt"])
+  assert.equal(getPublicLegoMarketSummary("76901", "2026-11-11").askingLowCents, null)
   const quotes = sets.flatMap(set => getLegoAskingPrices(set.setNumber, checkedAt))
   assert.equal(quotes.length, 10)
   assert.equal(new Set(quotes.map(row => row.itemId)).size, quotes.length)

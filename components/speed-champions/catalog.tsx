@@ -10,7 +10,8 @@ import {
   setImagePath,
   type LegoCatalogFilters,
 } from "@/lib/lego/catalog"
-import { formatLegoPrice, getLegoAskingPrices } from "@/lib/lego/market"
+import { formatLegoPrice } from "@/lib/lego/price-format"
+import type { LegoMarketSummary } from "@/lib/lego/market"
 import { SetImage } from "./set-image"
 import { LegoStatusBadge, LegoStatusLegend } from "./status-badge"
 
@@ -19,7 +20,7 @@ const years = [...new Set(speedChampionsSets.map((set) => set.year))].sort((a, b
 const selectClass =
   "mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600"
 
-export function SpeedChampionsCatalog({ asOf }: { asOf: string }) {
+export function SpeedChampionsCatalog({ marketSummaries }: { marketSummaries: Record<string, LegoMarketSummary> }) {
   const [filters, setFilters] = useState<LegoCatalogFilters>({})
   const [showFilters, setShowFilters] = useState(false)
   const results = filterSpeedChampions(speedChampionsSets, filters)
@@ -174,7 +175,7 @@ export function SpeedChampionsCatalog({ asOf }: { asOf: string }) {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((set, index) => {
-            const prices = getLegoAskingPrices(set.setNumber, asOf)
+            const market = marketSummaries[set.setNumber]
             return (
             <Link
               key={set.setNumber}
@@ -203,9 +204,9 @@ export function SpeedChampionsCatalog({ asOf }: { asOf: string }) {
                   {set.series} · {set.carCount === 2 ? "2 auto, 1 confezione" : "1 auto"}
                 </p>
                 <div className="mt-4 rounded-xl bg-sky-50 p-3">
-                  <p className="text-xs font-medium text-slate-600">Prezzo richiesto su eBay</p>
-                  <p className="mt-1 font-bold text-sky-900">{prices.length ? `Da ${formatLegoPrice(prices[0].itemPriceCents)}` : "Da rilevare"}</p>
-                  {prices.length > 0 && <p className="mt-1 text-xs text-slate-500">{prices.length} {prices.length === 1 ? "annuncio osservato" : "annunci osservati"} · spedizione e costi esclusi</p>}
+                  <p className="text-xs font-medium text-slate-600">Prezzo richiesto</p>
+                  <p className="mt-1 font-bold text-sky-900">{market?.askingLowCents != null ? `Da ${formatLegoPrice(market.askingLowCents)}` : "Da rilevare"}</p>
+                  {market?.askingCount > 0 && <p className="mt-1 text-xs text-slate-500">{market.condition} · spedizione esclusa</p>}
                 </div>
                 <div className="mt-auto flex items-center justify-between gap-2 pt-5">
                   <LegoStatusBadge status={set.status} />
