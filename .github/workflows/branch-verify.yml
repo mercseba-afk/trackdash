@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - recovery/frankfurt-migration
       - perf/p08-ebay-erasure-cpu-20261017
   workflow_dispatch:
 
@@ -16,7 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 5
+          # The isolated webhook regression reads a pinned historical baseline.
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 10
