@@ -86,6 +86,56 @@ try {
   delete process.env.VERCEL_ENV
   process.env.NODE_ENV = "development"
   assert.equal(await canAccessSpeedChampions(), true)
+  const databaseFile = path.join(directory, "database.mjs")
+  await build({
+    entryPoints: ["lib/db/index.ts"],
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    outfile: databaseFile,
+    plugins: [
+      {
+        name: "database-isolation-fixture",
+        setup(b) {
+          b.onResolve({ filter: /^(server-only|postgres|drizzle-orm\/postgres-js|\.\/schema)$/ }, (args) => ({
+            path: args.path,
+            namespace: "db-fixture",
+          }))
+          b.onLoad({ filter: /.*/, namespace: "db-fixture" }, (args) => ({
+            contents:
+              args.path === "postgres"
+                ? "export default function postgres(url) { globalThis.dbConnectionAttempts.push(url); return {} }"
+                : args.path === "drizzle-orm/postgres-js"
+                  ? "export function drizzle() { return {query: 'normal-runtime'} }"
+                  : "",
+          }))
+        },
+      },
+    ],
+  })
+  globalThis.dbConnectionAttempts = []
+  process.env.TRACKDASH_CATALOG_ONLY_PREVIEW = "1"
+  process.env.VERCEL_ENV = "preview"
+  delete process.env.DATABASE_URL
+  const isolated = await import(pathToFileURL(databaseFile).href + "?without-secret")
+  assert.throws(() => isolated.db.query, /Database access is disabled/)
+  process.env.DATABASE_URL = "must-never-connect"
+  const withSecret = await import(pathToFileURL(databaseFile).href + "?accidental-secret")
+  assert.throws(() => withSecret.db.query, /Database access is disabled/)
+  assert.deepEqual(globalThis.dbConnectionAttempts, [])
+  process.env.VERCEL_ENV = "production"
+  delete process.env.DATABASE_URL
+  await assert.rejects(
+    import(pathToFileURL(databaseFile).href + "?production-missing-secret"),
+    /DATABASE_URL is not set/,
+  )
+  process.env.DATABASE_URL = "runtime-fixture"
+  const normal = await import(pathToFileURL(databaseFile).href + "?production-runtime")
+  assert.equal(normal.db.query, "normal-runtime")
+  assert.deepEqual(globalThis.dbConnectionAttempts, ["runtime-fixture"])
+  console.log(
+    "Catalog-only preview: no database connection, even with accidental secrets; production contract preserved",
+  )
   console.log("Speed Champions: catalog identity, filters, multi-car packs, images and access gates passed")
 } finally {
   await rm(directory, { recursive: true, force: true })

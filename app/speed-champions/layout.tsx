@@ -20,9 +20,9 @@ export default function SpeedChampionsLayout({ children }: { children: React.Rea
             <Link href="/speed-champions/catalog" className="text-blue-700 hover:underline">
               Catalogo LEGO
             </Link>
-            <Link href="/catalog" className="text-slate-600 hover:underline">
+            <a href="https://trackdash.it/catalog" className="text-slate-600 hover:underline">
               Mini 4WD
-            </Link>
+            </a>
             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-800">Anteprima</span>
           </nav>
         </div>

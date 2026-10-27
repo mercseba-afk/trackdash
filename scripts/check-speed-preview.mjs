@@ -10,9 +10,13 @@ const server = spawn(
   {
     env: {
       ...process.env,
-      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "preview-placeholder",
-      DATABASE_URL: "postgresql://preview:preview@127.0.0.1:5432/preview",
+      VERCEL_ENV: "preview",
+      TRACKDASH_CATALOG_ONLY_PREVIEW: "1",
+      NEXT_PUBLIC_SUPABASE_URL: undefined,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: undefined,
+      DATABASE_URL: undefined,
+      SUPABASE_SECRET_KEY: undefined,
+      SUPABASE_SERVICE_ROLE_KEY: undefined,
     },
     stdio: ["ignore", "pipe", "pipe"],
   },

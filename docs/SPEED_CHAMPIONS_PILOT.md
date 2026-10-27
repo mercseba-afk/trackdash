@@ -6,7 +6,7 @@ An isolated, Italian catalog preview at `/speed-champions/catalog`, with 19 exac
 
 This is the editorial catalog and domain-model foundation, not a launched collecting vertical. It deliberately has no pretend collection buttons, invented prices or browser-only saved collections. No database migrations, scanner scheduling, market writes or production deployment are part of this change. Hot Wheels is retained. The existing Mini4WD catalog, preference switch, collection and market engines are unchanged.
 
-Access: each page checks its own server gate. Development and Vercel previews are enabled; production requires an existing TrackDash administrator. The page tree is noindex/nofollow and is not added to the sitemap. The root proxy treats this prefix like the existing Hot Wheels prefix; the page gate remains authoritative. No public navigation links to the pilot are added.
+Access: each page checks its own server gate. Development and Vercel previews are enabled; production requires an existing TrackDash administrator. The page tree is noindex/nofollow and is not added to the sitemap. The ordinary app proxy treats this prefix like the existing Hot Wheels prefix; the page gate remains authoritative. A dedicated catalog-only Preview mode is described below. No public navigation links to the pilot are added.
 
 ## Catalog provenance
 
@@ -36,3 +36,12 @@ The researched 75878 Chiron is omitted because the official page was unavailable
 `pnpm speed-champions:test` checks stable identities, distinct Mini4WD namespace, multi-car packaging, search/filter behavior, bundled exact-set images and production/admin/preview gates. `pnpm verify` runs this alongside the existing project regression suite. See the pull request for actual execution results and any environment limitations.
 
 Execution on 26 October 2026: the complete `pnpm verify` suite passed, including typecheck and the new catalog/gate tests. Chromium rendered the catalog and exact-set detail, and the 390 px viewport had no horizontal overflow. Desktop and mobile captures are in `docs/previews/`. The browser smoke uses local placeholder backend configuration; expected existing market-bootstrap errors therefore do not validate live Supabase. Full pointer-driven interaction automation was inconclusive in this execution environment (scroll/navigation waits); collection, login and live-market workflows are not claimed as tested.
+
+
+## Catalog-only Vercel Preview (27 October 2026)
+
+The first Vercel Preview build failed because the project has database and Supabase variables scoped only to Production. For the editorial pilot, set the non-secret `TRACKDASH_CATALOG_ONLY_PREVIEW=1` on the Preview environment **only for branch `feat/speed-champions-pilot`**. No production credentials are copied. The flag has no effect unless `VERCEL_ENV=preview`.
+
+In this mode the root layout renders only the catalog, with no session provider, market bootstrap, analytics, telemetry or PWA registration. The preview root redirects to the Speed Champions catalog. Proxy admits only GET/HEAD on the Speed Champions catalog/detail routes; other app routes and all POST actions return 404. Static images/styles are served normally. The database export throws on any attempted access and never creates a Postgres connection, even if a database URL is accidentally present. Mini4WD's navigation link opens the existing public site.
+
+The default app keeps its existing database requirement, session/MFA checks, providers and market bootstrap. Regression tests cover the ordinary proxy and Production database contract as well as the isolated mode. The preview must pass a production build with all database/Supabase credentials absent. A real isolated backend remains necessary for the later authenticated collection and market phases.

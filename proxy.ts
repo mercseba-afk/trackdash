@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/proxy"
+import { isCatalogOnlyPreview, isCatalogPreviewRequest } from "@/lib/catalog-preview"
 
 // TrackDash now has a public discovery layer and a protected personal layer.
 // Catalog/Product/Release, Price Intelligence and legal documents must be useful before signup;
@@ -48,18 +49,15 @@ function matchesPrefix(pathname: string, prefix: string) {
 }
 
 function publicSeoLocale(pathname: string): "it" | "en" | null {
-  if (
-    pathname === "/en" ||
-    matchesPrefix(pathname, "/en/catalog") ||
-    matchesPrefix(pathname, "/en/market")
-  ) return "en"
+  if (pathname === "/en" || matchesPrefix(pathname, "/en/catalog") || matchesPrefix(pathname, "/en/market")) return "en"
 
   if (
     pathname === "/" ||
     matchesPrefix(pathname, "/catalog") ||
     matchesPrefix(pathname, "/speed-champions") ||
     matchesPrefix(pathname, "/market")
-  ) return "it"
+  )
+    return "it"
 
   return null
 }
@@ -72,6 +70,16 @@ function safeInternalNext(value: string | null): string | null {
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
+
+  if (isCatalogOnlyPreview()) {
+    if (pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
+      return NextResponse.redirect(new URL("/speed-champions/catalog", request.url))
+    }
+    if (!isCatalogPreviewRequest(pathname, request.method)) {
+      return new NextResponse("Catalog preview only", { status: 404 })
+    }
+    return NextResponse.next({ request })
+  }
 
   // Defense in depth if routing/rewrite enters Proxy despite config.matcher.
   // The endpoints above verify their own secrets/signatures; no Supabase Auth
@@ -110,15 +118,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  const needsMfa = Boolean(
-    user &&
-    aal?.nextLevel === "aal2" &&
-    aal.currentLevel !== "aal2"
-  )
+  const needsMfa = Boolean(user && aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2")
 
   if (needsMfa && pathname !== "/mfa") {
     const destination = isAuthPath
-      ? safeInternalNext(request.nextUrl.searchParams.get("next")) ?? "/dashboard"
+      ? (safeInternalNext(request.nextUrl.searchParams.get("next")) ?? "/dashboard")
       : `${pathname}${search}`
     const url = request.nextUrl.clone()
     url.pathname = "/mfa"
