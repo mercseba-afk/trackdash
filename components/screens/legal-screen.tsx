@@ -53,7 +53,7 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
               : "This notice explains what personal data TrackDash processes, why it processes it, how it is protected, and the choices you have over your account."}
           </p>
           <p className="mt-4 text-xs text-muted-foreground">
-            {it ? "Ultimo aggiornamento: 20 settembre 2026" : "Last updated: September 20, 2026"}
+            {it ? "Ultimo aggiornamento: 28 ottobre 2026" : "Last updated: October 28, 2026"}
           </p>
         </div>
 
@@ -66,8 +66,12 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
             </p>
             <p>
               {it
-                ? "Per richieste relative ai dati personali puoi utilizzare la sezione Assistenza disponibile nel tuo account. Se non riesci ad accedere, puoi utilizzare il contatto di supporto pubblicato nella configurazione OAuth/Google di TrackDash."
-                : "For personal-data requests you can use the Support section available in your account. If you cannot access your account, you can use the support contact published in TrackDash's Google/OAuth configuration."}
+                ? "Per richieste relative ai dati personali, all'account o a questa informativa puoi scrivere a "
+                : "For requests about your personal data, account or this notice, you can email "}
+              <InlineLink href="mailto:info@xebdesign.it">info@xebdesign.it</InlineLink>.
+              {it
+                ? " Puoi contattarci anche tramite la sezione Assistenza disponibile nel tuo account."
+                : " You can also contact us through the Support section available in your account."}
             </p>
           </Section>
 
