@@ -294,7 +294,7 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
             : "These Terms govern access to and use of TrackDash, including Collection, market data, community, and user-to-user trading features."}
         </p>
         <p className="mt-4 text-xs text-muted-foreground">
-          {it ? "Ultimo aggiornamento: 20 settembre 2026" : "Last updated: September 20, 2026"}
+          {it ? "Ultimo aggiornamento: 28 ottobre 2026" : "Last updated: October 28, 2026"}
         </p>
       </div>
 
@@ -307,8 +307,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
           </p>
           <p>
             {it
-              ? "TrackDash non è affiliato, sponsorizzato o approvato da Tamiya, salvo eventuali indicazioni espresse e documentate. Marchi, nomi di prodotti e altri segni distintivi appartengono ai rispettivi titolari."
-              : "TrackDash is not affiliated with, sponsored by, or endorsed by Tamiya unless expressly and verifiably stated. Trademarks, product names, and other distinctive signs belong to their respective owners."}
+              ? "TrackDash non è affiliato, sponsorizzato o approvato dai produttori o dai titolari dei marchi citati, salvo eventuali indicazioni espresse e documentate. Marchi, nomi di prodotti e altri segni distintivi appartengono ai rispettivi titolari."
+              : "TrackDash is not affiliated with, sponsored by, or endorsed by the manufacturers or trademark owners mentioned unless expressly and verifiably stated. Trademarks, product names, and other distinctive signs belong to their respective owners."}
           </p>
         </Section>
 
@@ -364,8 +364,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
           </p>
           <p>
             {it
-              ? "Quando venditore e compratore confermano una vendita attraverso le funzioni TrackDash, il servizio può registrare la transazione e trasferire la copia interessata nella Collection del compratore. La conferma deve riflettere una transazione reale."
-              : "When seller and buyer confirm a sale through TrackDash features, the service may record the transaction and transfer the relevant copy to the buyer's Collection. Confirmation must reflect a real transaction."}
+              ? "Accettare un'offerta nell'app non esegue un pagamento né una spedizione. Dopo aver concluso realmente la transazione, il venditore registra prezzo finale e data; il compratore può confermare o contestare la registrazione. Solo la conferma del compratore trasferisce una copia dalla Collection del venditore a quella del compratore, con il prezzo finale dell'articolo come costo di acquisto e la spedizione separata."
+              : "Accepting an offer in the app does not make a payment or arrange shipping. After the real transaction is completed, the seller records the final price and date; the buyer can confirm or dispute the record. Only the buyer's confirmation transfers one copy from the seller's Collection to the buyer's, with the final item price as the acquisition cost and shipping recorded separately."}
           </p>
         </Section>
 
@@ -418,6 +418,16 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
             {it
               ? "Software, design, marchio TrackDash, testi originali, struttura del catalogo e componenti creati specificamente per il servizio sono protetti nei limiti consentiti dalla legge. I diritti su marchi, immagini di prodotto e contenuti di terzi restano ai rispettivi titolari."
               : "Software, design, the TrackDash brand, original text, catalog structure, and components created specifically for the service are protected to the extent permitted by law. Rights in third-party trademarks, product images, and content remain with their respective owners."}
+          </p>
+          <p>
+            {it
+              ? "Marchi, loghi, denominazioni commerciali, nomi dei prodotti, immagini delle confezioni e fotografie dei prodotti appartengono ai rispettivi titolari. TrackDash li presenta per identificare e documentare gli oggetti del catalogo e fornire informazioni ai collezionisti, senza rivendicarne la proprietà o suggerire un'affiliazione con i titolari."
+              : "Trademarks, logos, trade names, product names, packaging images and product photographs belong to their respective rights holders. TrackDash presents them to identify and document catalogue items and inform collectors, without claiming ownership or suggesting an affiliation with the rights holders."}
+          </p>
+          <p>
+            {it
+              ? "La presenza di un'immagine online o l'indicazione della sua fonte non equivale a un'autorizzazione al riutilizzo. Questa informativa non sostituisce le licenze, i permessi o le condizioni di legge applicabili. I titolari possono segnalare contenuti da verificare, correggere o rimuovere tramite i canali di assistenza indicati nella Privacy Policy, specificando il contenuto e il diritto rivendicato."
+              : "An image being available online, or its source being credited, does not constitute permission to reuse it. This notice does not replace applicable licences, permissions or legal requirements. Rights holders may report content for review, correction or removal through the support channels described in the Privacy Policy, identifying the content and the rights claimed."}
           </p>
           <p>
             {it
