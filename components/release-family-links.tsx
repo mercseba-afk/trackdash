@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { ProductImage } from "@/components/catalog/product-image"
 import { useI18n } from "@/lib/i18n"
 import { releaseTypeLabel } from "@/lib/i18n/catalog-labels"
 import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
@@ -47,17 +48,26 @@ export function ReleaseFamilyLinks({
           <Link
             key={release.id}
             href={releasePublicPath(product, release, locale)}
-            className="group rounded-2xl border border-border/70 bg-muted/15 p-3.5 transition-colors hover:border-brand/30 hover:bg-brand/5"
+            className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-muted/15 p-3.5 transition-colors hover:border-brand/30 hover:bg-brand/5"
           >
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">
-              {release.itemNumber ? `Tamiya ${release.itemNumber}` : "Tamiya Mini 4WD"}
-            </p>
-            <h3 className="mt-1 text-sm font-semibold leading-snug text-foreground group-hover:text-brand">
-              {release.editionName}
-            </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {[release.releaseYear, release.chassis, releaseTypeLabel(release.releaseType, it)].filter(Boolean).join(" · ")}
-            </p>
+            <ProductImage
+              product={product}
+              release={release}
+              className="h-20 w-28 shrink-0 rounded-lg border border-border/50"
+              size="sm"
+              sizes="112px"
+            />
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand/80">
+                {release.itemNumber ? `Tamiya ${release.itemNumber}` : "Tamiya Mini 4WD"}
+              </p>
+              <h3 className="mt-1 text-sm font-semibold leading-snug text-foreground group-hover:text-brand">
+                {release.editionName}
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {[release.releaseYear, release.chassis, releaseTypeLabel(release.releaseType, it)].filter(Boolean).join(" · ")}
+              </p>
+            </div>
           </Link>
         ))}
       </div>
