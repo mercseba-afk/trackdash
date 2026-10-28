@@ -203,8 +203,8 @@ function PreviewPricePanel({
           <Tag className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
           {it ? "Prezzo richiesto" : "Asking price"}
         </span>
-        <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base">
-          {askingEUR != null ? formatMoney(askingEUR) : "—"}
+        <strong className={askingEUR != null ? "whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base" : "text-right text-[11px] font-medium text-muted-foreground"}>
+          {askingEUR != null ? formatMoney(askingEUR) : (it ? "Non disponibile" : "Not available")}
         </strong>
       </div>
 
@@ -224,6 +224,10 @@ function PreviewPricePanel({
           {it ? "Dati di mercato in arrivo" : "Market data coming soon"}
         </p>
       ) : null}
+      <p className="mt-2.5 border-t border-sky-200/75 pt-2.5 text-[11px] leading-relaxed text-muted-foreground dark:border-sky-800/50">
+        <span className="font-semibold text-brand">{it ? "Ne hai una?" : "Own one?"}</span>{" "}
+        {it ? "Aggiungila alla collezione e fai il tuo prezzo!" : "Add it to your collection and set your price!"}
+      </p>
     </MarketPricePanelShell>
   )
 }

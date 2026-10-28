@@ -118,7 +118,7 @@ export function ReleaseDetailScreen({
             ) : null}
           </div>
 
-          <ReleaseMarketOverview signal={marketSignal} />
+          <ReleaseMarketOverview signal={marketSignal} showCollectionInvite />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-[#c8d8ef] bg-[#f7faff] p-4">

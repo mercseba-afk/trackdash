@@ -18,9 +18,11 @@ import {
 export function ReleaseMarketOverview({
   signal,
   compact = false,
+  showCollectionInvite = false,
 }: {
   signal?: ReleaseMarketSignalView | null
   compact?: boolean
+  showCollectionInvite?: boolean
 }) {
   const { locale } = useI18n()
   const it = locale === "it"
@@ -72,7 +74,7 @@ export function ReleaseMarketOverview({
               <p className="text-sm font-medium">{it ? "Prezzo richiesto" : "Asking price"}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {ask == null
-                  ? (it ? "Nessuna offerta osservata" : "No offer observed")
+                  ? null
                   : representative
                     ? `${representative}${date ? ` · ${date}` : ""}`
                     : historical
@@ -82,8 +84,8 @@ export function ReleaseMarketOverview({
                     : (it ? "Offerta verificata di recente" : "Recently verified offer")}
               </p>
             </div>
-            <span className="shrink-0 text-lg font-semibold tabular-nums">
-              {ask != null ? formatMoney(ask) : "—"}
+            <span className={ask != null ? "shrink-0 text-lg font-semibold tabular-nums" : "text-right text-xs font-medium text-muted-foreground"}>
+              {ask != null ? formatMoney(ask) : (it ? "Non disponibile" : "Not available")}
             </span>
           </div>
         </div>
@@ -101,6 +103,12 @@ export function ReleaseMarketOverview({
           <div className="inline-flex w-fit items-center rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">
             {it ? "Extra-UE · possibili oneri d'importazione" : "Outside EU · import charges may apply"}
           </div>
+        ) : null}
+        {showCollectionInvite ? (
+          <p className="border-t border-border/60 pt-3 text-xs leading-relaxed text-muted-foreground">
+            <span className="font-semibold text-brand">{it ? "Ne hai una?" : "Own one?"}</span>{" "}
+            {it ? "Aggiungila alla collezione e fai il tuo prezzo!" : "Add it to your collection and set your price!"}
+          </p>
         ) : null}
       </CardContent>
     </Card>
