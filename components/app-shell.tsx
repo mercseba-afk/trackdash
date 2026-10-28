@@ -17,6 +17,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
+import { FacebookLink, SocialFollow } from "@/components/facebook-link"
 import { CollectibleVerticalSwitch, type CollectibleUiVertical } from "@/components/collectible-vertical-switch"
 import { LanguageSwitch } from "@/components/language-switch"
 import { NotificationCenter } from "@/components/notification-center"
@@ -149,6 +150,7 @@ function UserMenu() {
             <LifeBuoy />
             {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
           </Link>
+          <FacebookLink className="justify-start border-0 bg-transparent" />
           {user.email.toLowerCase() === "merc.seba@gmail.com" ? (
             <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
               <ShieldCheck />
@@ -312,6 +314,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           </nav>
 
           <div className="flex items-center gap-1.5">
+            <FacebookLink compact className="hidden xl:inline-flex" />
             {hotWheelsPilotUser || speedChampionsAccess ? <CollectibleVerticalSwitch active={vertical} showSpeedChampions={speedChampionsAccess} /> : null}
             {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
@@ -329,6 +332,10 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
       >
         {children}
       </main>
+
+      <footer className="border-t border-border/60 bg-muted/20 px-4 pb-28 pt-6 lg:py-6">
+        <SocialFollow className="mx-auto max-w-7xl flex-row flex-wrap items-center justify-center gap-3" />
+      </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/96 pb-[max(env(safe-area-inset-bottom),0px)] backdrop-blur-md lg:hidden">
         {mobileNav.map((item, index) => {

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Menu, ScanLine, X } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { BrandMark } from "@/components/brand-mark"
+import { FacebookLink, SocialFollow } from "@/components/facebook-link"
 import { LanguageSwitch } from "@/components/language-switch"
 import { PwaInstallButton } from "@/components/pwa-install-menu-item"
 import { Spinner } from "@/components/ui/spinner"
@@ -152,6 +153,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
+            <FacebookLink compact className="hidden xl:inline-flex" />
             <LanguageSwitch />
             <PwaInstallButton />
             <Link
@@ -228,6 +230,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               <BrandMark />
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{copy.footerTagline}</p>
+            <SocialFollow className="mt-5" />
           </div>
           <div className="grid grid-cols-2 gap-6 text-sm sm:grid-cols-3">
             <div className="flex flex-col gap-1">
