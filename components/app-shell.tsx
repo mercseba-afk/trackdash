@@ -326,14 +326,14 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
       <main
         className={cn(
           contentMode === "app"
-            ? "mx-auto w-full max-w-7xl px-4 pb-24 pt-6 md:px-6 md:pt-8 lg:px-8 lg:pb-12"
-            : "w-full pb-24 lg:pb-12",
+            ? "mx-auto w-full max-w-7xl px-4 pb-6 pt-6 md:px-6 md:pt-8 lg:px-8"
+            : "w-full pb-6",
         )}
       >
         {children}
       </main>
 
-      <footer className="border-t border-border/60 bg-muted/20 px-4 pb-28 pt-6 lg:py-6">
+      <footer className="border-t border-border/60 bg-muted/20 px-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] pt-4 lg:pb-4">
         <SocialFollow className="mx-auto max-w-7xl flex-row flex-wrap items-center justify-center gap-3" />
       </footer>
 
