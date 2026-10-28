@@ -88,6 +88,12 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
   const [sort, setSort] = React.useState<SortKey>("recent")
   const [query, setQuery] = React.useState("")
   const [conditionFilter, setConditionFilter] = React.useState<ConditionFilter>("all")
+  const sortLabels: Record<SortKey, string> = {
+    recent: it ? "Aggiunti di recente" : "Recently added",
+    "value-desc": it ? "Valore: alto → basso" : "Value: high to low",
+    "value-asc": it ? "Valore: basso → alto" : "Value: low to high",
+    name: it ? "Nome A–Z" : "Name A–Z",
+  }
   const [editing, setEditing] = React.useState<EnrichedCollectionItem | null>(null)
   const [shares, setShares] = React.useState<MyShare[]>([])
   const [visibilityBusyId, setVisibilityBusyId] = React.useState<string | null>(null)
@@ -173,19 +179,19 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               </label>
               <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                 <Select value={conditionFilter} onValueChange={(value) => setConditionFilter(value as ConditionFilter)}>
-                  <SelectTrigger className="h-10 min-w-0 rounded-xl sm:w-44"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label={it ? "Filtra per condizione" : "Filter by condition"} className="h-10 min-w-0 rounded-xl sm:w-44"><SelectValue>{(value: ConditionFilter) => value === "all" ? (it ? "Tutte le condizioni" : "All conditions") : conditionLabel(value, it)}</SelectValue></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{it ? "Tutte le condizioni" : "All conditions"}</SelectItem>
                     {CONDITIONS.map((condition) => <SelectItem key={condition} value={condition}>{conditionLabel(condition, it)}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
-                  <SelectTrigger className="h-10 min-w-0 rounded-xl sm:w-44"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label={it ? "Ordina la collezione" : "Sort collection"} className="h-10 min-w-0 rounded-xl sm:w-44"><SelectValue>{(value: SortKey) => sortLabels[value]}</SelectValue></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="recent">{it ? "Aggiunti di recente" : "Recently added"}</SelectItem>
-                    <SelectItem value="value-desc">{it ? "Valore: alto → basso" : "Value: high to low"}</SelectItem>
-                    <SelectItem value="value-asc">{it ? "Valore: basso → alto" : "Value: low to high"}</SelectItem>
-                    <SelectItem value="name">{it ? "Nome A–Z" : "Name A–Z"}</SelectItem>
+                    <SelectItem value="recent">{sortLabels.recent}</SelectItem>
+                    <SelectItem value="value-desc">{sortLabels["value-desc"]}</SelectItem>
+                    <SelectItem value="value-asc">{sortLabels["value-asc"]}</SelectItem>
+                    <SelectItem value="name">{sortLabels.name}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button className="col-span-2 h-10 rounded-xl sm:col-auto" render={<Link href="/catalog" />}><Plus className="size-4" />{it ? "Aggiungi release" : "Add release"}</Button>

@@ -153,12 +153,17 @@ export function ProductDetailScreen({
         <Card>
           <CardHeader><CardTitle className="text-base">{locale === "it" ? "La tua collezione" : "Your collection"}</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-2">
-            {mine.map((entry) => (
+            {mine.map((entry) => {
+              const acquisitionDate = entry.item.acquisitionDate && Number.isFinite(Date.parse(entry.item.acquisitionDate))
+                ? formatDate(entry.item.acquisitionDate)
+                : null
+              return (
               <div key={entry.item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm">
-                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{conditionLabel(entry.item.condition, locale === "it")} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"} · {locale === "it" ? "acquisito" : "acquired"} {formatDate(entry.item.acquisitionDate)}</p></div></div>
+                <div className="flex items-center gap-3"><ProductImage product={entry.product} release={entry.release} className="size-10 rounded-md" size="sm" /><div><p className="font-medium">{entry.label}</p><p className="text-xs text-muted-foreground">{conditionLabel(entry.item.condition, locale === "it")} · {entry.release.itemNumber ? `#${entry.release.itemNumber}` : "—"}{acquisitionDate ? <> · {locale === "it" ? "acquisito" : "acquired"} {acquisitionDate}</> : null}</p></div></div>
                 <CollectionMarketValue entry={entry} it={locale === "it"} />
               </div>
-            ))}
+              )
+            })}
           </CardContent>
         </Card>
       )}
