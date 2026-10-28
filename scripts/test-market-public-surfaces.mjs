@@ -115,7 +115,7 @@ if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vend
 }
 if (!marketInline.includes("<PreviewPricePanel") ||
     !marketInline.includes("Riferimento mercato") ||
-    !marketInline.includes("Prezzo richiesto") ||
+    !marketInline.includes("Prezzo negli annunci") ||
     !marketInline.includes("Ultima offerta osservata") ||
     !marketInline.includes("vendite concluse")) {
   errors.push("Release previews must keep identical plain-language market/ask rows with optional sale evidence")
@@ -161,7 +161,7 @@ if (!marketOverview.includes("const reference = mv ?? sold") ||
   errors.push("Release detail must prefer canonical MV, then use SOLD only as a clearly identified weaker reference")
 }
 if (!marketOverview.includes("Riferimento mercato") ||
-    !marketOverview.includes("Prezzo richiesto") ||
+    !marketOverview.includes("Prezzo negli annunci") ||
     !marketOverview.includes("vendita conclusa") ||
     !marketOverview.includes("vendite concluse")) {
   errors.push("Release detail must retain separate market-reference and seller-ASK rows, with real completed-sale count")

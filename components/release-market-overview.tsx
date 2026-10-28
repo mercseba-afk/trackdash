@@ -71,10 +71,10 @@ export function ReleaseMarketOverview({
           </div>
           <div className="flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
             <div className="min-w-0">
-              <p className="text-sm font-medium">{it ? "Prezzo richiesto" : "Asking price"}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="text-sm font-medium">{it ? "Prezzo negli annunci" : "Listing price"}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 {ask == null
-                  ? null
+                  ? (it ? "Non abbiamo un prezzo richiesto" : "We haven't observed an asking price")
                   : representative
                     ? `${representative}${date ? ` · ${date}` : ""}`
                     : historical
@@ -83,21 +83,19 @@ export function ReleaseMarketOverview({
                       : `Last observed offer${date ? ` · ${date}` : ""} · unverified`)
                     : (it ? "Offerta verificata di recente" : "Recently verified offer")}
               </p>
+              {ask != null && shipping != null && shipping >= 0 ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {it ? `Spedizione indicata: ${formatMoney(shipping)}` : `Listed shipping: ${formatMoney(shipping)}`}
+                </p>
+              ) : null}
             </div>
-            <span className={ask != null ? "shrink-0 text-lg font-semibold tabular-nums" : "text-right text-xs font-medium text-muted-foreground"}>
-              {ask != null ? formatMoney(ask) : (it ? "Non disponibile" : "Not available")}
-            </span>
+            {ask != null ? (
+              <div className="shrink-0 text-right">
+                <p className="text-lg font-semibold tabular-nums">{formatMoney(ask)}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}</p>
+              </div>
+            ) : null}
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">
-            {it ? "Spedizione esclusa" : "Shipping excluded"}
-          </span>
-          {ask != null && shipping != null && shipping >= 0 ? (
-            <span>{it ? `· +${formatMoney(shipping)} indicati` : `· +${formatMoney(shipping)} listed`}</span>
-          ) : ask != null ? (
-            <span>{it ? "· importo da verificare" : "· amount to be verified"}</span>
-          ) : null}
         </div>
         {ask != null && origin === "extra_eu" ? (
           <div className="inline-flex w-fit items-center rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">
@@ -105,7 +103,7 @@ export function ReleaseMarketOverview({
           </div>
         ) : null}
         {showCollectionInvite ? (
-          <p className="border-t border-border/60 pt-3 text-xs leading-relaxed text-muted-foreground">
+          <p className="px-3 text-xs leading-relaxed text-muted-foreground sm:px-4">
             <span className="font-semibold text-brand">{it ? "Ne hai una?" : "Own one?"}</span>{" "}
             {it ? "Aggiungila alla collezione e fai il tuo prezzo!" : "Add it to your collection and set your price!"}
           </p>

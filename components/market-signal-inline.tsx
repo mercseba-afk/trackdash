@@ -201,30 +201,30 @@ function PreviewPricePanel({
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
         <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
           <Tag className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          {it ? "Prezzo richiesto" : "Asking price"}
+          {it ? "Prezzo negli annunci" : "Listing price"}
         </span>
-        <strong className={askingEUR != null ? "whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground sm:text-base" : "text-right text-[11px] font-medium text-muted-foreground"}>
-          {askingEUR != null ? formatMoney(askingEUR) : (it ? "Non disponibile" : "Not available")}
-        </strong>
+        {askingEUR != null ? (
+          <div className="text-right">
+            <strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-foreground sm:text-base">{formatMoney(askingEUR)}</strong>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}</p>
+          </div>
+        ) : (
+          <p className="col-span-2 ml-6 text-[11px] leading-relaxed text-muted-foreground">
+            {it ? "Non abbiamo un prezzo richiesto" : "We haven't observed an asking price"}
+          </p>
+        )}
       </div>
 
       {askingEUR != null ? (
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="ml-6 mt-1 text-[11px] leading-relaxed text-muted-foreground">
           {sellerCaption
-            ? sellerCaption + (observedDate ? ` · ${observedDate}` : "") + (it ? " · spedizione esclusa" : " · shipping excluded")
+            ? sellerCaption + (observedDate ? ` · ${observedDate}` : "")
             : historical
-            ? (it ? "Ultima offerta osservata" : "Last observed offer") + (observedDate ? ` · ${observedDate}` : "") + (it ? " · disponibilità da verificare · spedizione esclusa" : " · availability unverified · shipping excluded")
-            : (it ? "Offerta verificata di recente · spedizione esclusa" : "Recently verified offer · shipping excluded")}
-        </p>
-      ) : marketReferenceEUR != null ? (
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}</p>
-      ) : null}
-      {valueEUR == null && askingEUR == null && soldCount === 0 ? (
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          {it ? "Dati di mercato in arrivo" : "Market data coming soon"}
+            ? (it ? "Ultima offerta osservata" : "Last observed offer") + (observedDate ? ` · ${observedDate}` : "") + (it ? " · disponibilità da verificare" : " · availability unverified")
+            : (it ? "Offerta verificata di recente" : "Recently verified offer")}
         </p>
       ) : null}
-      <p className="mt-2.5 border-t border-sky-200/75 pt-2.5 text-[11px] leading-relaxed text-muted-foreground dark:border-sky-800/50">
+      <p className="ml-6 mt-3 text-[11px] leading-relaxed text-muted-foreground">
         <span className="font-semibold text-brand">{it ? "Ne hai una?" : "Own one?"}</span>{" "}
         {it ? "Aggiungila alla collezione e fai il tuo prezzo!" : "Add it to your collection and set your price!"}
       </p>
