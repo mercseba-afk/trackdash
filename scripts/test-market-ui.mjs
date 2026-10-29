@@ -33,7 +33,7 @@ test('main market content never participates in reveal; long sections exceed the
  assert.match(source,/<Link href=\{href\} prefetch=\{false\}/)
 })
 
-for (const locale of ['it','en']) test(`public ${locale}: complete HTML matches Production base except reveal attributes`,()=>{
+for (const locale of ['it','en']) test(`public ${locale}: complete HTML matches approved layout and copy`,()=>{
  const {load,products}=fixture(locale,{user:null,hydrated:true})
  const html=renderToStaticMarkup(React.createElement(load('components/screens/market-screen.tsx').MarketScreen,{products})).replace(/ data-reveal(?:="[^"]*")?/g,'')
  const expected=JSON.parse(readFileSync('scripts/fixtures/market-public-baseline.json','utf8'))

@@ -8,8 +8,8 @@ import { useMarketSignals } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice, observedMarketPrice } from "@/lib/market/presentation"
-import { latestVerifiedAskingRows, recentCollectorMarketTrend, verifiedAskingObservation } from "@/lib/market/highlights"
+import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { highestVerifiedAskingRows, latestVerifiedAskingRows, recentCollectorMarketTrend, verifiedAskingObservation } from "@/lib/market/highlights"
 import { representativeAskingCaption } from "@/lib/market/presentation"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
@@ -112,19 +112,9 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
 
   const latestVerifications = React.useMemo(() => latestVerifiedAskingRows(rows), [rows])
 
-  // A separate ranking of CURRENT purchasable asking prices, not completed
-  // sales or historical quotes. The helper enforces the existing TTL-valid,
-  // Europe-first canonical offer; never use stale stored active anchors here.
-  const highestAsks = React.useMemo(() => {
-    const growingProductIds = new Set(gainers.map((row) => row.product.id))
-    return takeDistinctProducts(rows
-      .filter((row) => {
-        const ask = observedMarketPrice(row.signal)
-        return ask != null && Number.isFinite(ask) && ask > 0 &&
-          !growingProductIds.has(row.product.id)
-      })
-      .sort((a, b) => (observedMarketPrice(b.signal) ?? 0) - (observedMarketPrice(a.signal) ?? 0)), 4)
-  }, [rows, gainers])
+  // Rank the same fresh, dated asking projection shown on Release pages.
+  // Each block is independent, so a growth entry cannot hide a higher quote.
+  const highestAsks = React.useMemo(() => highestVerifiedAskingRows(rows), [rows])
 
   const mostTraded = React.useMemo(() => takeDistinctProducts(active
     .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
@@ -140,8 +130,8 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
           <h2 id="market-now-title" className="text-lg font-semibold tracking-tight">{it ? "Mercato in evidenza" : "Market highlights"}</h2>
           <p className="max-w-3xl text-sm text-muted-foreground">
             {it
-              ? "Quotazioni verificate di recente e movimenti confermati, con prezzi richiesti e vendite distinti."
-              : "Recently verified quotes and confirmed movements, keeping asking prices separate from sales."}
+              ? "Quotazioni verificate di recente e movimenti confermati."
+              : "Recently verified quotes and confirmed movements."}
           </p>
         </div>
         <Button variant="ghost" size="sm" render={<Link href="/market" />}>
@@ -153,7 +143,7 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
         {latestVerifications.length > 0 ? (
           <MarketBlock
             title={it ? "Ultime verifiche prezzi" : "Latest price checks"}
-            subtitle={it ? "Le quotazioni controllate più di recente, non aumenti di valore né vendite concluse." : "The most recently checked quotes, not value increases or completed sales."}
+            subtitle={it ? "Quotazioni verificate di recente." : "Recently verified quotes."}
             rows={latestVerifications}
             priceMode="verified_asking"
             icon={Clock}
@@ -163,7 +153,7 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
         {gainers.length > 0 ? (
           <MarketBlock
             title={it ? "In crescita" : "Growing"}
-            subtitle={it ? "Andamenti positivi confermati negli ultimi 30 giorni. Le nuove richieste negli annunci non bastano a dimostrare una crescita." : "Positive movements confirmed in the last 30 days. New listing asks alone do not establish growth."}
+            subtitle={it ? "Andamenti positivi confermati negli ultimi 30 giorni." : "Positive movements confirmed in the last 30 days."}
             rows={gainers}
             icon={TrendingUp}
             it={it}
@@ -173,7 +163,7 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
         {highestAsks.length > 0 ? (
           <MarketBlock
             title={it ? "Prezzi richiesti più alti" : "Highest asking prices"}
-            subtitle={it ? "Le richieste più alte degli annunci attuali, non prezzi di vendita o valori stimati." : "Highest current asking prices, not completed sales or estimated values."}
+            subtitle={it ? "Le quotazioni più alte tra gli annunci verificati." : "The highest quotes among verified listings."}
             rows={highestAsks}
             priceMode="asking"
             icon={Gem}
@@ -237,9 +227,9 @@ function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; pr
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const year = releaseYear(row.release)
   const salesLabel = recentSalesLabel(row.signal, it)
-  const verification = priceMode === "verified_asking" ? verifiedAskingObservation(row.signal) : null
-  const displayPrice = verification ? verification.priceEUR : priceMode === "asking" ? observedMarketPrice(row.signal) : observedMarketDisplayPrice(row.signal)
-  const displayKind = priceMode === "asking" ? "ask" : observedMarketDisplayKind(row.signal)
+  const verification = priceMode !== "market" ? verifiedAskingObservation(row.signal) : null
+  const displayPrice = priceMode === "market" ? observedMarketDisplayPrice(row.signal) : verification?.priceEUR ?? null
+  const displayKind = priceMode === "market" ? observedMarketDisplayKind(row.signal) : "ask"
   const showProductFamily = row.release.editionName.trim().toLowerCase() !== row.product.name.trim().toLowerCase()
 
   return (
@@ -268,7 +258,7 @@ function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; pr
           </>
         ) : displayPrice != null ? (
           <>
-            <p className="text-[10px] text-muted-foreground">{priceMode === "verified_asking" ? (verification?.representative ? representativeAskingCaption(row.signal, it) : (it ? "Prezzo negli annunci" : "Listing asking price")) : priceMode === "asking" ? (it ? "Prezzo richiesto" : "Asking price") : observedMarketDisplayLabel(row.signal, it)}</p>
+            <p className="text-[10px] text-muted-foreground">{priceMode !== "market" ? (verification?.representative ? representativeAskingCaption(row.signal, it) : (it ? "Prezzo negli annunci" : "Listing asking price")) : observedMarketDisplayLabel(row.signal, it)}</p>
             <p className="text-sm font-semibold tabular-nums">{displayKind === "sold" ? "≈ " : ""}{formatMoney(displayPrice)}</p>
             {verification ? <p className="text-[10px] text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}{verification.origin === "extra_eu" ? (it ? " · possibili oneri d'importazione" : " · possible import charges") : ""}</p> : null}
           </>

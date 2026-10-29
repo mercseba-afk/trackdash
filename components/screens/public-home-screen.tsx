@@ -295,8 +295,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
                   {it
-                    ? "Le ultime quotazioni verificate e le evidenze di mercato, distinguendo richieste negli annunci e vendite concluse."
-                    : "The latest verified quotes and market evidence, keeping listing asks separate from completed sales."}
+                    ? "Quotazioni verificate di recente e movimenti confermati."
+                    : "Recently verified quotes and confirmed movements."}
                 </p>
               </div>
               <div className="hidden gap-2 sm:flex">
@@ -360,8 +360,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
               title={it ? "Scopri quanto vale oggi." : "See what it is worth today."}
               text={
                 it
-                  ? "Valore di mercato, vendite concluse e ASK restano distinti. Così puoi capire meglio il valore della tua Release senza confondere un prezzo richiesto con uno realmente pagato."
-                  : "Market Value, completed sales and ASK remain distinct, so you can understand a Release without confusing an asking price with one actually paid."
+                  ? "Valore di mercato, vendite concluse e prezzi richiesti ti aiutano a conoscere il valore della tua Release, ciascuno con la propria etichetta."
+                  : "Market Value, completed sales and asking prices help you understand your Release, each with its own label."
               }
               tone="dark"
               href={localizePublicPath("/market", locale)}
@@ -522,8 +522,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
             <p className="mt-5 max-w-xl border-l-2 border-brand pl-4 text-xs leading-5 text-muted-foreground">
               {it
-                ? "TrackDash non gestisce ancora pagamento o spedizione: vengono concordati direttamente tra gli utenti. La piattaforma facilita contatto, trattativa e conferma dell’accordo."
-                : "TrackDash does not yet handle payment or shipping: collectors arrange those directly. The platform supports contact, negotiation and confirmation of the agreement."}
+                ? "Pagamento e spedizione vengono concordati direttamente tra gli utenti. TrackDash facilita contatto, trattativa e conferma dell’accordo."
+                : "Collectors arrange payment and shipping directly. TrackDash supports contact, negotiation and confirmation of the agreement."}
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -616,8 +616,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 <Barcode className="mt-0.5 size-5 shrink-0 text-brand" />
                 <p className="text-sm leading-6 text-muted-foreground">
                   {it
-                    ? "Se lo stesso codice è stato riutilizzato per più Release, TrackDash non sceglie a caso: ti mostra le versioni da verificare."
-                    : "If the same code was reused for multiple Releases, TrackDash does not guess: it shows the versions to verify."}
+                    ? "Se lo stesso codice è stato riutilizzato per più Release, TrackDash ti mostra le versioni da verificare."
+                    : "If the same code was reused for multiple Releases, TrackDash shows the versions to verify."}
                 </p>
               </div>
               <Link href="/login?next=%2Fscanner" className="mt-7 inline-flex items-center gap-2 self-start text-sm font-semibold text-brand">

@@ -96,7 +96,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         kicker: "ANALISI DI MERCATO",
         titleA: "Scopri quanto vale davvero",
         titleB: "il mercato Mini 4WD.",
-        intro: "TrackDash monitora prezzi, annunci e vendite per aiutarti a seguire il valore delle singole Release e della tua collezione, senza confondere prezzi richiesti e vendite reali.",
+        intro: "TrackDash monitora prezzi, annunci e vendite per aiutarti a seguire il valore delle singole Release e della tua collezione.",
         explore: "Guarda i valori disponibili",
         catalog: "Vai al catalogo",
         signalsKicker: "COME LEGGIAMO IL MERCATO",
@@ -107,15 +107,15 @@ export function MarketScreen({ products }: { products: Product[] }) {
         sold: "Vendite concluse",
         soldBody: "Mostrano quanto è stato realmente pagato per quella specifica Release e sono il riferimento più utile per il mercato del collezionismo.",
         asks: "ASK · Annunci attivi",
-        asksBody: "ASK significa prezzo richiesto dal venditore. Mostra a quanto viene proposta oggi una Release e quanto è facile trovarla, ma non equivale a un prezzo realmente pagato.",
+        asksBody: "ASK è il prezzo richiesto dal venditore: racconta le quotazioni degli annunci attivi e la disponibilità di ogni Release.",
         resultKicker: "IL RISULTATO",
         resultTitle: "Valore di mercato: la stima TrackDash del valore attuale.",
-        resultBody: "Quando ci sono abbastanza dati, il valore di mercato mostra una stima e una fascia indicativa. Quando i dati non bastano, TrackDash lo segnala senza inventare un prezzo.",
+        resultBody: "Il valore di mercato riassume le evidenze disponibili con una stima e una fascia indicativa, accompagnate dal livello di affidabilità.",
         confidence: "Affidabilità della stima",
         confidenceBody: "Indica quanto possiamo fidarci della stima in base alla quantità e alla qualità dei dati disponibili per quella specifica Release.",
         limitedKicker: "QUANDO I DATI SONO LIMITATI",
-        limitedTitle: "Se i dati non bastano, non inventiamo un prezzo.",
-        limitedBody: "Alcune Release sono rare o si muovono poco. In questi casi TrackDash mostra ciò che è disponibile e aspetta dati migliori prima di pubblicare una stima.",
+        limitedTitle: "Ogni stima parte da evidenze verificate.",
+        limitedBody: "Per le Release più rare, ogni quotazione o vendita verificata arricchisce il quadro di mercato e contribuisce alla costruzione della stima.",
         liveKicker: "DATI DISPONIBILI",
         liveTitle: "Valori e trend, Release per Release.",
         liveBody: "Qui trovi solo le Release per cui TrackDash ha già almeno un'evidenza di mercato reale. Apri una scheda per vedere valore stimato, disponibilità e andamento quando presenti.",
@@ -126,7 +126,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
         kicker: "PRICE INTELLIGENCE",
         titleA: "See what the Mini 4WD market",
         titleB: "is really worth.",
-        intro: "TrackDash monitors prices, listings and completed sales to help you follow individual Release values and your collection without confusing asking prices with real sales.",
+        intro: "TrackDash monitors prices, listings and completed sales to help you follow individual Release values and your collection.",
         explore: "View available values",
         catalog: "Browse catalog",
         signalsKicker: "HOW WE READ THE MARKET",
@@ -137,15 +137,15 @@ export function MarketScreen({ products }: { products: Product[] }) {
         sold: "Completed sales",
         soldBody: "They show what people actually paid for that specific Release and are the most useful reference for the collector market.",
         asks: "ASK · Active listings",
-        asksBody: "ASK means the price requested by the seller. It shows today’s listing price and availability, but it is not the same as a completed sale.",
+        asksBody: "ASK is the price requested by a seller: it describes current listing quotes and availability for each Release.",
         resultKicker: "THE RESULT",
         resultTitle: "Market Value: TrackDash’s estimate of current value.",
-        resultBody: "When there is enough data, Market Value shows an estimate and a useful range. When there is not, TrackDash says so instead of inventing a price.",
+        resultBody: "Market Value summarises available evidence with an estimate and a useful range, accompanied by its reliability level.",
         confidence: "Estimate reliability",
         confidenceBody: "It shows how much trust we can place in the estimate based on the amount and quality of data available for that exact Release.",
         limitedKicker: "WHEN DATA IS LIMITED",
-        limitedTitle: "If the data is not enough, we do not invent a price.",
-        limitedBody: "Some Releases are rare or rarely traded. In those cases TrackDash shows what is available and waits for better data before publishing an estimate.",
+        limitedTitle: "Every estimate starts with verified evidence.",
+        limitedBody: "For rarer Releases, each verified quote or sale enriches the market picture and contributes to the estimate.",
         liveKicker: "AVAILABLE DATA",
         liveTitle: "Values and trends, Release by Release.",
         liveBody: "Here you can find only Releases for which TrackDash already has real market evidence. Open a Release to see estimated value, availability and trend when available.",
@@ -276,7 +276,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
               </TabsContent>
               <TabsContent value="trends" className="mt-4">
                 {trends.length === 0 ? (
-                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun movimento confermato negli ultimi 30 giorni" : "No confirmed movement in the last 30 days"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "Servono nuove evidenze comparabili: un annuncio o una quotazione aggiornata non dimostrano da soli un rialzo del valore." : "New comparable evidence is required: a listing or a refreshed quote alone does not establish an increase in value."}</p></CardContent></Card>
+                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Movimenti in osservazione" : "Tracking market movements"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "I trend prendono forma con nuove evidenze comparabili nel tempo." : "Trends take shape as comparable evidence builds over time."}</p></CardContent></Card>
                 ) : (
                   <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((entry) => entry.trend >= 0).map((entry) => entry.row)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((entry) => entry.trend < 0).map((entry) => entry.row)} icon={ArrowDownRight} /></div>
                 )}

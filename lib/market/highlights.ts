@@ -47,17 +47,30 @@ export function verifiedAskingObservation(
     origin: signal.currentAskOrigin ?? "unknown", representative: false }
 }
 
-export function latestVerifiedAskingRows<T extends {
+type AskingHighlightRow = {
   product: { id: string }; release: { id: string }; signal: ReleaseMarketSignalView
-}>(rows: readonly T[], limit = 4, now = Date.now()): T[] {
+}
+
+function rankedAskingRows<T extends AskingHighlightRow>(
+  rows: readonly T[], order: "recent" | "highest", limit: number, now: number,
+): T[] {
   const ranked = rows.flatMap((row) => {
     const observation = verifiedAskingObservation(row.signal, now)
-    return observation ? [{ row, timestamp: Date.parse(observation.observedAt) }] : []
-  }).sort((a, b) => b.timestamp - a.timestamp || a.row.release.id.localeCompare(b.row.release.id))
+    return observation ? [{ row, price: observation.priceEUR, timestamp: Date.parse(observation.observedAt) }] : []
+  }).sort((a, b) => (order === "highest" ? b.price - a.price : 0) ||
+    b.timestamp - a.timestamp || a.row.release.id.localeCompare(b.row.release.id))
   const products = new Set<string>()
   return ranked.filter(({ row }) => {
     if (products.has(row.product.id)) return false
     products.add(row.product.id)
     return true
   }).slice(0, Math.max(0, limit)).map(({ row }) => row)
+}
+
+export function latestVerifiedAskingRows<T extends AskingHighlightRow>(rows: readonly T[], limit = 4, now = Date.now()): T[] {
+  return rankedAskingRows(rows, "recent", limit, now)
+}
+
+export function highestVerifiedAskingRows<T extends AskingHighlightRow>(rows: readonly T[], limit = 4, now = Date.now()): T[] {
+  return rankedAskingRows(rows, "highest", limit, now)
 }

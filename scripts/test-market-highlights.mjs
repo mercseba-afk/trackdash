@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { recentCollectorMarketTrend, verifiedAskingObservation, latestVerifiedAskingRows } from '../lib/market/highlights.ts'
+import { recentCollectorMarketTrend, verifiedAskingObservation, latestVerifiedAskingRows, highestVerifiedAskingRows } from '../lib/market/highlights.ts'
 import { fixture } from './fixtures/market-ui-render.mjs'
 
 const now = Date.parse('2026-10-29T10:00:00Z')
@@ -58,6 +58,22 @@ test('latest observations rank by evidence time, not computedAt, and keep distin
   assert.deepEqual([a, c, b].map(x => x.release.id), ['old', 'other', 'new'])
 })
 
+test('highest asks use the displayed fresh quote, update their order and keep distinct families', () => {
+  const row = (id, family, price) => ({ release: { id }, product: { id: family }, signal: {
+    ...quote, representativeAskItemEUR: price, startingItemPriceEUR: 10,
+    observedPriceAt: iso(1), observedPriceChannel: 'marketplace', currentAskOrigin: 'eu',
+  } })
+  const a = row('a', 'family-a', 164.07), b = row('b', 'family-b', 181)
+  const sibling = row('sibling', 'family-b', 179.65)
+  const stale = row('stale', 'family-c', 999)
+  stale.signal.offersValidUntil = iso(1)
+  assert.deepEqual(highestVerifiedAskingRows([a, sibling, stale, b], 4, now).map(x => x.release.id), ['b', 'a'])
+  a.signal.representativeAskItemEUR = 200
+  assert.deepEqual(highestVerifiedAskingRows([a, sibling, stale, b], 4, now).map(x => x.release.id), ['a', 'b'])
+  assert.equal(verifiedAskingObservation(a.signal, now).priceEUR, 200)
+  assert.deepEqual(highestVerifiedAskingRows([a], 0, now), [])
+})
+
 for (const locale of ['it', 'en']) test(`dashboard ${locale}: old gains disappear while new quotes carry dates and origin`, () => {
   const { load, products, signals } = fixture(locale, { user: { id: 'qa' }, hydrated: true })
   const actualNow = Date.now()
@@ -77,6 +93,8 @@ for (const locale of ['it', 'en']) test(`dashboard ${locale}: old gains disappea
   const recentHtml = renderToStaticMarkup(React.createElement(Component, { products }))
   assert.match(recentHtml, /September gain sentinel/)
   assert.match(recentHtml, /In crescita|Growing/)
+  assert.equal((recentHtml.match(/Latest quote sentinel/g) ?? []).length, 2,
+    'a family in Growth keeps its asking quote in the independent Highest asks block')
 })
 
 for (const locale of ['it', 'en']) test(`public home and market ${locale}: the same old trend cannot appear as current growth`, () => {
@@ -92,5 +110,5 @@ for (const locale of ['it', 'en']) test(`public home and market ${locale}: the s
   assert.match(home, /Verificato il|Checked on/)
   assert.doesNotMatch(home, /Trend \+25|\+25[,.]1%/)
   const market = renderToStaticMarkup(React.createElement(load('components/screens/market-screen.tsx').MarketScreen, { products }))
-  assert.match(market, /Nessun movimento confermato negli ultimi 30 giorni|No confirmed movement in the last 30 days/)
+  assert.match(market, /Movimenti in osservazione|Tracking market movements/)
 })
