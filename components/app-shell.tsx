@@ -32,7 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getShopAccessAction } from "@/lib/actions/shop-access"
 import { getSpeedChampionsAccessAction } from "@/lib/actions/speed-champions-access"
 import { getUnreadMessagingCountAction } from "@/lib/actions/messaging"
 import { createClient } from "@/lib/supabase/client"
@@ -195,16 +194,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
   const { user } = useStore()
   const { t, locale } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
-  const [shopAccess, setShopAccess] = React.useState(false)
-  React.useEffect(() => {
-    let current = true
-    setShopAccess(false)
-    if (user?.email.toLowerCase() === "merc.seba@gmail.com") {
-      getShopAccessAction().then((allowed) => { if (current) setShopAccess(allowed) })
-        .catch(() => { if (current) setShopAccess(false) })
-    }
-    return () => { current = false }
-  }, [user?.id, user?.email])
+  const shopAccess = Boolean(user)
   const [speedChampionsAccess, setSpeedChampionsAccess] = React.useState(false)
   React.useEffect(() => {
     let current = true

@@ -25,3 +25,13 @@ No scanner changes, extra scans, price changes, subscriptions or database migrat
 Owner reported missing preview on the EUR30 copy (actual Item 95450, rather than 95440). Its two photo records correspond to the two deferred pre-migration Storage objects: 98,870 + 97,152 = 196,022 bytes, created 18 September. `docs/recovery/public-restored-2026-10-19.md` explicitly records that file bodies were not migrated. Object metadata existence alone does not establish downloadable bytes. No original file recovery or source-project access attempted here.
 
 The exact release JPEG responds HTTP200 image/jpeg (82,134 bytes). Shop DTO now provides that exact release image as a separate fallback for personal photos. The image component retries it on a personal-photo load error before showing the placeholder. Existing user photo records and storage policies are preserved. Owner gate/data tests and TypeScript passed after the change.
+
+## Collector rollout and card refinement — 29 October
+
+User approved opening the shop after the screenshot-based layout refinements. This section supersedes the owner-only access scope above: `/shop` and copy details now allow every authenticated collector, with the existing server authentication/data guard retained. Signed-out requests still pass through the normal login redirect; metadata remains noindex. LEGO Speed Champions retains its independent owner restriction.
+
+Navigation now derives shop visibility directly from the signed-in session, removing the owner-only permission request. Mini 4WD mobile navigation for all collectors: Catalogo, Collezione, Scanner, In vendita, Messaggi. Profile remains in the top-right account menu. Existing Hot Wheels navigation unchanged.
+
+Visual changes: full-width white image area with reduced inset; two-line title/edition blocks and flex-aligned footer; smaller medium-weight “Su proposta” in both cards and detail; collector icon and plain username in cards; remove pilot badge. Personal photo → exact release fallback remains intact.
+
+Validation: full npm verify exit 0, TypeScript clean, 8 dedicated access/data/navigation tests passed (including an ordinary non-admin collector). Browser fixture updated for the new visibility policy; actual browser execution remains unavailable in this environment as previously recorded. No scanner, market valuation, database or storage changes, and no real offers sent.

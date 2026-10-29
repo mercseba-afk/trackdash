@@ -5,7 +5,7 @@ import vm from 'node:vm'
 import ts from 'typescript'
 function load(path, mocks, env = {}) {
   const exports = {}
-  const source = ts.transpileModule(readFileSync(new URL('../' + path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
+  const source = ts.transpileModule(readFileSync(new URL('../' + path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
   vm.runInNewContext(source, { exports, process: { env }, Set, require(name) {
     if (name === 'server-only') return {}
     if (!(name in mocks)) throw Error('UNEXPECTED_IMPORT:' + name)
@@ -13,16 +13,14 @@ function load(path, mocks, env = {}) {
   } })
   return exports
 }
-test('owner gate fails closed without allowlist, even on preview/development', async () => {
-  let reads = 0
-  const gate = load('lib/server/shop-gate.ts', { react: { cache: fn => fn }, '@/lib/admin/access': { getCurrentAdmin: async () => { reads++; return { id: 'owner' } } } }, { VERCEL_ENV: 'preview', NODE_ENV: 'development' })
+test('signed-out visitors cannot access shop data, including preview/development', async () => {
+  const gate = load('lib/server/shop-gate.ts', { react: { cache: fn => fn }, '@/lib/auth/current-user': { getCurrentUser: async () => null } }, { VERCEL_ENV: 'preview', NODE_ENV: 'development' })
   assert.equal(await gate.canAccessShop(), false)
-  assert.equal(reads, 0)
 })
-test('only the configured owner with admin membership is authorized', async () => {
-  for (const [user, expected] of [[null, false], [{id:'other'}, false], [{id:'owner'}, true]]) {
-    const gate = load('lib/server/shop-gate.ts', { react: { cache: fn => fn }, '@/lib/admin/access': { getCurrentAdmin: async () => user } }, { SPEED_CHAMPIONS_OWNER_ID: 'owner' })
-    assert.equal(await gate.canAccessShop(), expected)
+test('ordinary signed-in collectors can access the shop without admin membership', async () => {
+  for (const id of ['ordinary-collector', 'owner']) {
+    const gate = load('lib/server/shop-gate.ts', { react: { cache: fn => fn }, '@/lib/auth/current-user': { getCurrentUser: async () => ({ id }) } })
+    assert.equal(await gate.canAccessShop(), true)
   }
 })
 const shareId = '11111111-1111-4111-8111-111111111111'
@@ -60,4 +58,33 @@ test('available copies show exact photo and price without private collection ide
   assert.equal(copy.imageUrl,'signed-copy.jpg');assert.equal(copy.fallbackImageUrl,'release.jpg');assert.equal(copy.askingPrice,25);assert.equal(copy.isMine,false)
   assert.equal(copy.releaseHref,'/catalog/avante/releases/special')
   assert.equal('collectionItemId' in copy,false);assert.equal('userId' in copy,false)
+})
+
+test('ordinary collector mobile navigation ends with shop and messages', () => {
+  const jsx = (type, props) => ({ type, props })
+  const componentMocks = new Proxy({}, { get: (_, key) => String(key) })
+  const source = ts.transpileModule(readFileSync(new URL('../components/app-shell.tsx', import.meta.url), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText
+  const exports = {}
+  vm.runInNewContext(source, { exports, require(name) {
+    if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx }
+    if (name === 'react') return { useState: () => [0, () => {}], useEffect() {}, useCallback: fn => fn }
+    if (name === 'next/navigation') return { usePathname: () => '/shop', useRouter: () => ({}) }
+    if (name === '@/lib/store') return { useStore: () => ({ user: { id: 'ordinary-collector', email: 'collector@example.com' } }) }
+    if (name === '@/lib/i18n') return { useI18n: () => ({ locale: 'it', t: key => key }) }
+    if (name === '@/lib/utils') return { cn: (...values) => values.filter(Boolean).join(' ') }
+    return componentMocks
+  } })
+  const tree = exports.AppShell({ children: null })
+  const navs = []
+  function walk(node) {
+    if (!node) return
+    if (Array.isArray(node)) { node.forEach(walk); return }
+    if (node.type === 'nav') navs.push(node)
+    walk(node.props?.children)
+  }
+  walk(tree)
+  const bottom = navs.at(-1)
+  assert.deepEqual(Array.from(bottom.props.children, node => node.props.href), ['/catalog', '/collection', '/scanner', '/shop', '/messages'])
 })

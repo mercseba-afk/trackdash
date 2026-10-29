@@ -40,6 +40,6 @@ try{
  await page.getByRole('textbox').fill('95525');assert.equal(await page.locator('a[href^="/shop/"]').count(),1)
  await page.goto(base+'/detail');await page.getByRole('button',{name:'Fai un’offerta'}).click();assert.equal(await page.getByRole('dialog').getAttribute('data-share'),'11111111-1111-4111-8111-111111111111')
  await page.goto(base+'/detail?mine');assert.equal(await page.getByRole('button',{name:'La tua copia'}).isDisabled(),true)
- await page.goto(base+'?normal');await page.waitForTimeout(100);assert.equal(await page.locator('a[href="/shop"]').count(),0);assert.equal(await page.locator('nav').last().locator('a[href="/profile"]').count(),1)
- assert.deepEqual(errors,[]);console.log('PASS owner navigation, unchanged normal navigation, search, exact-copy offer target, own-copy guard; no browser errors')
+ await page.goto(base+'?normal');await page.waitForTimeout(100);assert.equal(await page.locator('a[href="/shop"]').count(),2);assert.equal(await page.locator('nav').last().locator('a[href="/profile"]').count(),0)
+ assert.deepEqual(errors,[]);console.log('PASS owner navigation, collector navigation, search, exact-copy offer target, own-copy guard; no browser errors')
 }finally{await browser.close();await new Promise(r=>server.close(r))}

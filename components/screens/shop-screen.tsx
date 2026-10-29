@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, ArrowUpRight, HandCoins, Package, Search, Store } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, HandCoins, Package, Search, Store, UserRound } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { formatMoney } from "@/lib/format"
 import type { ShopCopy } from "@/lib/server/shop"
@@ -14,11 +14,11 @@ function CopyImage({ copy, large = false }: { copy: ShopCopy; large?: boolean })
   const [imageIndex, setImageIndex] = React.useState(0)
   const imageUrls = [...new Set([copy.imageUrl, copy.fallbackImageUrl].filter((url): url is string => Boolean(url)))]
   const imageUrl = imageUrls[imageIndex]
-  return <div className={`flex items-center justify-center overflow-hidden bg-[#f5f7fb] ${large ? "aspect-square rounded-2xl" : "aspect-[4/3]"}`}>
+  return <div className={`flex items-center justify-center overflow-hidden bg-white ${large ? "aspect-square rounded-2xl" : "aspect-[4/3]"}`}>
     {imageUrl
       // Signed copy photos use their original URL, keeping the private bucket private.
       // eslint-disable-next-line @next/next/no-img-element
-      ? <img src={imageUrl} alt={`${copy.name} — ${copy.editionName}`} loading="lazy" className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105" onError={() => setImageIndex((index) => index + 1)} />
+      ? <img src={imageUrl} alt={`${copy.name} — ${copy.editionName}`} loading="lazy" className="h-full w-full object-contain p-1 transition-transform duration-300 group-hover:scale-105" onError={() => setImageIndex((index) => index + 1)} />
       : <Package className="size-16 text-slate-300" aria-hidden="true" />}
   </div>
 }
@@ -46,7 +46,7 @@ export function ShopScreen({ copies, detail = false }: { copies: ShopCopy[]; det
           <p className="text-xs font-semibold uppercase tracking-widest text-brand">{it ? "Dai collezionisti" : "From collectors"}</p>
           <div><h1 className="text-3xl font-semibold tracking-tight text-navy">{copy.name}</h1><p className="mt-2 text-base text-muted-foreground">{copy.editionName}</p></div>
           <div className="flex flex-wrap gap-2 text-xs font-medium"><span className="rounded-full bg-brand-muted px-3 py-1.5 text-brand">{condition(copy)}</span>{copy.itemNumber ? <span className="rounded-full bg-muted px-3 py-1.5">#{copy.itemNumber}</span> : null}{copy.releaseYear ? <span className="rounded-full bg-muted px-3 py-1.5">{copy.releaseYear}</span> : null}{copy.chassis ? <span className="rounded-full bg-muted px-3 py-1.5">{copy.chassis}</span> : null}</div>
-          <div className="rounded-xl bg-[#f2f6ff] p-5"><p className="text-xs font-medium text-muted-foreground">{it ? "Prezzo richiesto" : "Asking price"}</p><p className="mt-1 text-3xl font-semibold tracking-tight text-navy">{price(copy)}</p><p className="mt-3 text-sm text-muted-foreground">{it ? "Proposto da" : "Offered by"} <Link href={`/collectors/${encodeURIComponent(copy.username)}`} className="font-semibold text-brand">@{copy.username}</Link></p></div>
+          <div className="rounded-xl bg-[#f2f6ff] p-5"><p className="text-xs font-medium text-muted-foreground">{it ? "Prezzo richiesto" : "Asking price"}</p><p className={copy.askingPrice != null ? "mt-1 text-3xl font-semibold tracking-tight text-navy" : "mt-2 text-lg font-medium text-slate-600"}>{price(copy)}</p><p className="mt-3 text-sm text-muted-foreground">{it ? "Proposto da" : "Offered by"} <Link href={`/collectors/${encodeURIComponent(copy.username)}`} className="font-medium text-brand">{copy.username}</Link></p></div>
           <Button className="h-12 w-full gap-2" disabled={copy.isMine} onClick={() => setOfferTarget(copy)}><HandCoins className="size-4" />{copy.isMine ? (it ? "La tua copia" : "Your copy") : (it ? "Fai un’offerta" : "Make an offer")}</Button>
           <p className="text-sm leading-6 text-muted-foreground">{it ? "Invia la tua proposta e continua la trattativa nei messaggi. Concordate insieme spedizione e pagamento." : "Send your offer and continue in messages. Agree shipping and payment with the collector."}</p>
           <Link href={copy.releaseHref} className="inline-flex items-center gap-1 text-sm font-semibold text-brand">{it ? "Scopri tutti i dettagli della release" : "Explore the release details"}<ArrowUpRight className="size-4" /></Link>
@@ -54,15 +54,50 @@ export function ShopScreen({ copies, detail = false }: { copies: ShopCopy[]; det
       </div>
     </> : <>
       <section className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-[#edf4ff] via-white to-[#f3f7ff] p-6 md:p-8">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-brand"><Store className="size-4" />{it ? "Tra collezionisti" : "Collector to collector"}<span className="ml-auto rounded-full border border-blue-100 bg-white px-3 py-1 text-[10px] tracking-normal">{it ? "Anteprima" : "Preview"}</span></div>
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-brand"><Store className="size-4" />{it ? "Tra collezionisti" : "Collector to collector"}</div>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy md:text-4xl">{it ? "In vendita" : "For sale"}</h1>
         <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{it ? "La prossima release della tua collezione potrebbe essere qui. Scopri le copie disponibili e fai la tua offerta." : "Your next collectible could be here. Explore available copies and make your offer."}</p>
       </section>
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm font-medium text-muted-foreground">{visible.length} {it ? (visible.length === 1 ? "copia disponibile" : "copie disponibili") : "available copies"}</p><div className="relative w-full sm:w-80"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label={it ? "Cerca tra le copie in vendita" : "Search copies for sale"} placeholder={it ? "Cerca modello, release o codice…" : "Search model, release or code…"} className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>
-      {visible.length ? <div className="grid grid-cols-1 gap-5 min-[400px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{visible.map((item) => <Link key={item.id} href={`/shop/${item.id}`} className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand">
-        <CopyImage key={item.imageUrl} copy={item} />
-        <div className="space-y-3 p-4"><div><p className="text-xs font-medium text-muted-foreground">{[item.itemNumber ? `#${item.itemNumber}` : null, item.releaseYear].filter(Boolean).join(" · ")}</p><h2 className="mt-1 font-semibold leading-snug text-navy">{item.name}</h2><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.editionName}</p></div><span className="inline-flex rounded-full bg-brand-muted px-2.5 py-1 text-[11px] font-medium text-brand">{condition(item)}</span><div className="border-t pt-3"><p className="text-[11px] text-muted-foreground">{it ? "Prezzo richiesto" : "Asking price"}</p><p className="mt-0.5 text-xl font-semibold text-navy">{price(item)}</p><p className="mt-2 truncate text-xs text-muted-foreground">@{item.username}</p></div></div>
-      </Link>)}</div> : <div className="rounded-2xl border border-dashed p-10 text-center"><Store className="mx-auto size-9 text-brand/50" /><h2 className="mt-3 font-semibold">{it ? (needle ? "Prova un’altra ricerca" : "La vetrina aspetta le prime copie") : "Explore your collection"}</h2><p className="mt-2 text-sm text-muted-foreground">{it ? "Ne hai una da proporre? Aprila alle offerte dalla tua collezione." : "Have a copy to offer? Make it available from your collection."}</p><Button className="mt-4" render={<Link href="/collection" />}>{it ? "Vai alla collezione" : "Go to collection"}</Button></div>}
+      {visible.length ? (
+        <div className="grid grid-cols-1 gap-4 min-[400px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {visible.map((item) => (
+            <Link
+              key={item.id}
+              href={`/shop/${item.id}`}
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand"
+            >
+              <CopyImage key={item.imageUrl} copy={item} />
+              <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-4">
+                <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                  {[item.itemNumber ? `#${item.itemNumber}` : null, item.releaseYear].filter(Boolean).join(" · ")}
+                </p>
+                <h2 className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-navy sm:text-base sm:leading-5">
+                  {item.name}
+                </h2>
+                <p className="mt-1 line-clamp-2 min-h-[2.25rem] text-xs leading-[1.125rem] text-muted-foreground">
+                  {item.editionName}
+                </p>
+                <span className="mt-3 inline-flex w-fit rounded-full bg-brand-muted px-2.5 py-1 text-[10px] font-medium text-brand">
+                  {condition(item)}
+                </span>
+                <div className="mt-auto pt-3">
+                  <div className="border-t border-slate-100 pt-3">
+                    <p className="text-[10px] font-medium text-muted-foreground">{it ? "Prezzo richiesto" : "Asking price"}</p>
+                    <p className={`mt-1 flex min-h-7 items-center ${item.askingPrice != null ? "text-xl font-semibold tracking-tight text-navy" : "text-sm font-medium text-slate-600"}`}>
+                      {price(item)}
+                    </p>
+                    <div className="mt-3 flex min-w-0 items-center gap-2 text-[11px] text-slate-500">
+                      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-slate-100"><UserRound className="size-3" aria-hidden="true" /></span>
+                      <span className="truncate">{item.username}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : <div className="rounded-2xl border border-dashed p-10 text-center"><Store className="mx-auto size-9 text-brand/50" /><h2 className="mt-3 font-semibold">{it ? (needle ? "Prova un’altra ricerca" : "La vetrina aspetta le prime copie") : "Explore your collection"}</h2><p className="mt-2 text-sm text-muted-foreground">{it ? "Ne hai una da proporre? Aprila alle offerte dalla tua collezione." : "Have a copy to offer? Make it available from your collection."}</p><Button className="mt-4" render={<Link href="/collection" />}>{it ? "Vai alla collezione" : "Go to collection"}</Button></div>}
     </>}
     <DirectOfferDialog target={offerTarget ? { username: offerTarget.username, shareId: offerTarget.id, askingPrice: offerTarget.askingPrice, askingCurrency: offerTarget.askingCurrency } : null} locale={it ? "it" : "en"} onOpenChange={(open) => { if (!open) setOfferTarget(null) }} />
   </div>

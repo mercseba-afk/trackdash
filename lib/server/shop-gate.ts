@@ -1,11 +1,9 @@
 import "server-only"
 import { cache } from "react"
-import { getCurrentAdmin } from "@/lib/admin/access"
+import { getCurrentUser } from "@/lib/auth/current-user"
 
-// Reuse the configured owner allowlist, with no development/preview bypass.
+// The collector shop is available to signed-in users. Private collection
+// data remains protected; the data layer reads only opt-in offer shares.
 export const canAccessShop = cache(async (): Promise<boolean> => {
-  const ownerId = process.env.SPEED_CHAMPIONS_OWNER_ID?.trim()
-  if (!ownerId) return false
-  const user = await getCurrentAdmin()
-  return user?.id === ownerId
+  return Boolean(await getCurrentUser())
 })
