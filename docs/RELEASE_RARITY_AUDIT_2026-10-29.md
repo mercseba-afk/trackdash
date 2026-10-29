@@ -1,5 +1,47 @@
 # Release rarity audit — first pass, 2026-10-29
 
+## Published follow-up batch
+
+At 2026-10-29 10:58:03 Europe/Rome, applied 24 individually reviewed labels to
+previously unassigned exact releases: 7 Common and 17 Uncommon. Evidence and
+per-release reasons are in `RELEASE_RARITY_ASSESSMENTS_2026-10-29.json`; guarded
+DML is in `scripts/sql/release-rarity-reviewed-2026-10-29.sql`.
+
+The baseline inventory below is preserved as the pre-change audit. Current
+coverage is 144/205 (70.2%): Common 17, Uncommon 48, Rare 63, Very Rare 16,
+unassigned 61. The 120 pre-existing labels were not re-certified by this batch.
+The remaining 61 are listed in the assessment file; no generic Common fallback
+was introduced, and no new Rare/Very Rare labels were inferred from missing data.
+
+Validation: rollback-only dry run passed, then production transaction updated
+24/24 exact natural-key matches. It asserted that all non-rarity release fields
+(except `updated_at`) and every pre-existing rarity label stayed unchanged.
+Independent post-write query verified 24/24 classifications. No scanner calls,
+budget increases, deployment or UI additions were needed.
+
+The exact manufacturer product pages plus Tamiya's product-category definition
+support special/intermittent distribution, not a manufacturer-certified rarity
+grade. The editorial Common assessment for special item 95336 explicitly gives
+weight to broad current supply (12 distinct verified sellers) rather than
+automatically calling all special or discontinued products scarce.
+
+Additional primary findings retained for further review: Urawa Reds' own launch
+announcement documents 800 Hotshot units; Gakken's launch announcement documents
+5,000 Hornet Tanahashi units. These do not by themselves satisfy the currently
+agreed sustained-scarcity policy for a new Rare/Very Rare label. Likewise the
+2019 Modelers Gallery planned sale allocation of 1,440 Avante Black Special kits
+must not be misreported as global lifetime production, or attributed to the
+2021 commercial reissue sharing item 95501.
+
+Primary references:
+
+- https://www.tamiya.com/japan/products/definition/index.html
+- https://www.urawa-reds.co.jp/clubinfo/203696.html
+- https://prtimes.jp/main/html/rd/p/000001951.000002535.html
+- https://www.tamiya.com/japan/newstopics/2019/06/gallery2019.html
+
+---
+
 Read-only inventory against Frankfurt production. No rarity labels, price data,
 scan queues or scanner budgets were changed. Scope: public Tamiya releases,
 excluding research-only releases, archived families and coming-soon families.

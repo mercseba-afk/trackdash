@@ -1,0 +1,743 @@
+{
+  "assessedAt": "2026-10-29",
+  "policy": "docs/RELEASE_RARITY_POLICY.md",
+  "scope": "205 public available Tamiya releases",
+  "editorial": true,
+  "interpretation": "Manufacturer distribution facts inform TrackDash editorial labels; sources do not themselves certify TrackDash rarity. No new Rare/Very Rare labels in this batch.",
+  "assignments": [
+    {
+      "family": "aero-avante-18626",
+      "item": "18701",
+      "edition": "Aero Avante (AR Chassis)",
+      "year": 2012,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Standard kit; 16 distinct sellers with verified complete-unbuilt stock checked 2026-10-23; manufacturer identity and two independent retail listings corroborate broad availability.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18701/index.html",
+        "https://monkeemods.com/tamiya-18701-aero-avante-ar-chassis",
+        "https://www.tqrcracing.com/shop/product_view.asp?p_id=6331"
+      ]
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "18703",
+      "edition": "Aero Manta Ray (AR Chassis)",
+      "year": 2013,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Standard kit with 14 distinct sellers in recent verified complete-unbuilt stock; existing official Tamiya Shop provenance corroborates normal distribution.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18703/index.html",
+        "https://store.shopping.yahoo.co.jp/tamiya/18703.html"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "18706",
+      "edition": "Mini 4WD Starter Pack AR Speed Type — Aero Avante",
+      "year": 2017,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Standard starter pack; 11 distinct sellers in verified recent stock, plus independent Tower Hobbies and TQ retail offers.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18706/index.html",
+        "https://www.towerhobbies.com/product/tamiya-132-jr-starter-pack-ar-speed-spec-aero-avante/TAM18706.html",
+        "https://www.tqrcracing.com/shop/product_view.asp?p_id=11650"
+      ]
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "18624",
+      "edition": "Hotshot Jr. — MS Chassis",
+      "year": 2008,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Standard MS kit; 16 distinct sellers in verified recent stock, plus manufacturer/independent retail offers. Do not transfer this grade to vintage Type 1 editions.",
+      "sources": [
+        "https://www.tamiyausa.com/shop/132-pro/jr-hotshot-jr-ms-chassis/",
+        "https://www.tqrcracing.com/shop/product_view.asp?p_id=6409",
+        "https://rcecho.com/tamiya-model-mini-4wd-racing-car-pro-132-hotshot-jr-ms-chassis-hobby-18624/"
+      ]
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "18628",
+      "edition": "Dash-2 Burning Sun — 2008 MS Chassis",
+      "year": 2008,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Standard MS kit; three recent independent marketplace sellers plus in-stock retail offers from TQ, RCECHO and The Playground in different markets.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18628/index.html",
+        "https://www.tqrcracing.com/shop/product_view.asp?p_id=14710",
+        "https://rcecho.com/tamiya-model-mini-4wd-racing-car-132-dash-2-burning-sun-ms-chassis-18628/",
+        "https://theplayground.com.sg/product/tamiya-18628-1-32-mini-4wd-dash-2-burning-sun-ms-chassis/"
+      ]
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "18630",
+      "edition": "Dash-3 Shooting Star — 2008 MS Chassis",
+      "year": 2008,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Standard MS kit; recent verified marketplace availability plus independent TQ and SC Models retail stock. Distinct from original Type 3 packaging.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18630/index.html",
+        "https://scmodels.co.uk/tamiya-132-mini-4wd-jr-dash-3-shooting-star-18630",
+        "https://www.tqrcracing.com/shop/product_view.asp?p_id=6289"
+      ]
+    },
+    {
+      "family": "thunder-dragon-jr-18008",
+      "item": "95336",
+      "edition": "Thunder Dragon — Clear Special (Polycarbonate Body)",
+      "year": 2017,
+      "previous": null,
+      "rarity": "Common",
+      "reason": "Despite special-planning/discontinued status, the exact complete kit is broadly obtainable: 12 distinct sellers in verified recent stock, with observations since September. Special specification alone does not establish scarcity.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/95336/index.html"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "94944",
+      "edition": "Aero Avante Red Special (AR Chassis)",
+      "year": 2013,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Manufacturer explicitly identifies a limited-edition kit; exact recent stock exists but ordinary continuous distribution is not documented. No price-based Rare claim.",
+      "sources": [
+        "https://www.tamiyausa.com/shop/132-rev/jr-aero-avante-red-special/"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "95024",
+      "edition": "Aero Avante Clear Blue Special (AR Chassis)",
+      "year": 2014,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Distributor April 2014 bulletin explicitly identifies a limited full kit, corroborated by two recent distinct sellers. Not inferred from colour/year.",
+      "sources": [
+        "https://www.fantasyland.it/wordpress/wp-content/themes/fantasyland/documenti/tamiya/volantini/TA_2014-04.pdf"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "95038",
+      "edition": "Aero Avante Clear Red Special (AR Chassis)",
+      "year": 2014,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "TQ exact full-kit description documents Japan Cup 2014 limited release; Suruga independently identifies official-tournament venue distribution. No sustained-scarcity assertion.",
+      "sources": [
+        "https://www.tqrcracing.com/shop/product_view.asp?p_id=9505",
+        "https://www.suruga-ya.com/en/product/603066294"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "95058",
+      "edition": "Aero Avante Clear Pink Special (AR Chassis)",
+      "year": 2014,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Tamiya USA explicitly identifies a limited-edition release, rather than a standard colour-only classification. Current scarcity remains unquantified.",
+      "sources": [
+        "https://www.tamiyausa.com/shop/132-rev/jr-aero-avante-2/"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "95083",
+      "edition": "Aero Avante Clear Orange Special (AR Chassis)",
+      "year": 2015,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Exact limited-kit identity corroborated by retail product documentation and recent verified complete-kit stock. Its high asking price does not promote the classification to Rare.",
+      "sources": [
+        "https://www.tamiyausa.com/shop/132-rev/jr-aero-avante-orange-special/",
+        "https://hobbymodels.com.mx/producto/mini-4wd-aero-avante-clear-orange-special-limited-kit/"
+      ]
+    },
+    {
+      "family": "avante-jr-18014",
+      "item": "95060",
+      "edition": "Avante Jr. Yellow Special (Clear Body)",
+      "year": 2015,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Tamiya Junior News explicitly identifies special-planning production in intervals; eight recent distinct sellers show it remains obtainable.",
+      "sources": [
+        "https://www.tamiya.com/cms/japan/mini4wd/jr_news/jr_news15/pdf/000176.pdf"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "95655",
+      "edition": "Aero Avante Asia Challenge 2024 Special (AR Chassis)",
+      "year": 2024,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "TMAC commemorative limited kit documented by distributor/retail sources; seven recent distinct sellers and a retail source show continuing availability.",
+      "sources": [
+        "https://www.fantasyland.it/tamiya/mini-4wd/modelli-limited-edition-mini4wd/aero-avante-asia-challenge-2024-ar/",
+        "https://dolphintamiya.com/products"
+      ]
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "92435",
+      "edition": "Hotshot Jr. — SMC Mall Limited Edition",
+      "year": 2021,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Korean limited distribution corroborated by catalog provenance and exact Italian retailer listing; four recent marketplace sellers and ordinary retail stock argue against an exceptional-scarcity label.",
+      "sources": [
+        "https://www.modellismogianni.it/products/TAM92435_offerta-prendi-2-paghi-1-hotshot-jr-smc-mall-limited-telaio-ms-mini4wd-tamiya.php"
+      ]
+    },
+    {
+      "family": "dash-1-emperor-18025",
+      "item": "95110",
+      "edition": "Dash-1 Emperor Memorial (MS Chassis) 30 Years of the Japan Cup",
+      "year": 2018,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Official page classifies the exact kit in the limited-sales range; three recent distinct sellers show it remains obtainable. No arbitrary rarity uplift for anniversary.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/95110/index.html"
+      ]
+    },
+    {
+      "family": "dash-1-emperor-18025",
+      "item": "95622",
+      "edition": "Dash-1 Emperor (Type 3 Chassis) Special Kit (2021 Reissue)",
+      "year": 2021,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Official special-planning 2021 kit; three recent distinct sellers with observations from September through October. Not the original 2008 item 94666.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/95622/index.html"
+      ]
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "95295",
+      "edition": "Aero Manta Ray White Special (2017 Reissue)",
+      "year": 2017,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Official special-planning release, which Tamiya defines as non-continuous production; recent exact complete-kit offer exists. No rarity derived from white colour alone.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/95295/index.html"
+      ]
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "95419",
+      "edition": "Aero Manta Ray Black Special (AR Chassis)",
+      "year": 2018,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Official special-planning release with non-continuous supply and recent exact complete-kit offer. Discontinued status kept separate.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/95419/index.html"
+      ]
+    },
+    {
+      "family": "avante-jr-18014",
+      "item": "95501",
+      "edition": "Avante Jr. Black Special (2021 Reissue)",
+      "year": 2021,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Official modern special-planning line, with documented later 2024 production wave and recent exact stock. Does not apply to 1989 or event-specific 2019 editions.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/95501/index.html"
+      ]
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "92441",
+      "edition": "ADVAN Aero Avante Limited (AR Chassis)",
+      "year": 2023,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Collaboration owner's official shop explicitly excludes general-retailer distribution and currently shows stock. Direct evidence of restricted channel, not exceptional scarcity.",
+      "sources": [
+        "https://yokohamashop.com/item-detail/1297696"
+      ]
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": "18067",
+      "edition": "Super Dragon Premium — VS Chassis",
+      "year": 2012,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Exact standard Premium kit remains obtainable through recent marketplace stock and Lil's retail stock, while several other audited retailers are out of stock; intermittent availability rather than Rare based on age.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18067/index.html",
+        "https://www.lilshobbycenter.com.ph/products/super-dragon-premium-vs-chassis"
+      ]
+    },
+    {
+      "family": "thunder-dragon-jr-18008",
+      "item": "18068",
+      "edition": "Thunder Dragon Premium — VS Chassis",
+      "year": 2012,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Exact Premium kit remains obtainable through recent verified stock, with audited retailer stockouts. No Very Rare claim from a single remaining observed offer; reject misidentified Emperor retailer result.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18068/index.html",
+        "https://www.robotown.it/it/thunder-dragon-premium/"
+      ]
+    },
+    {
+      "family": "avante-jr-18014",
+      "item": "18058",
+      "edition": "Avante RS",
+      "year": 2004,
+      "previous": null,
+      "rarity": "Uncommon",
+      "reason": "Exact VS kit remains obtainable in accepted complete-unbuilt observations from September through October, but broad normal retail supply is not established. Editorial intermittent-supply assessment; no age-based Rare claim.",
+      "sources": [
+        "https://www.tamiya.com/japan/products/18058/index.html"
+      ]
+    }
+  ],
+  "pending": [
+    {
+      "family": "aero-avante-18626",
+      "item": "95210",
+      "edition": "Mini 4WD Starter Pack AR Speed Type — Aero Avante (Limited)",
+      "year": 2015,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "aero-avante-18626",
+      "item": "92396",
+      "edition": "Aero Avante OVER DRIVE Special (AR Chassis)",
+      "year": 2018,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "94972",
+      "edition": "Aero Manta Ray White Special (AR Chassis)",
+      "year": 2013,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "94989",
+      "edition": "Aero Manta Ray Black Metallic (AR Chassis)",
+      "year": 2013,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "94991",
+      "edition": "Aero Manta Ray Gold Metallic (AR Chassis)",
+      "year": 2013,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "aero-manta-ray-18703",
+      "item": "95031",
+      "edition": "Aero Manta Ray Japan Cup 2014 Limited (AR Chassis)",
+      "year": 2014,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "avante-jr-18014",
+      "item": "18506",
+      "edition": "Avante Jr. Black Special (1989 Original)",
+      "year": 1989,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "avante-jr-18014",
+      "item": "95501",
+      "edition": "Avante Jr. Black Special (2019 Reissue)",
+      "year": 2019,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "boomerang-jr-18004",
+      "item": "18004",
+      "edition": "Boomerang Jr. — 1986 Standard / Later Production",
+      "year": 1986,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "boomerang-jr-18004",
+      "item": "94183",
+      "edition": "Boomerang Jr. — Pearl Color Special (Hello Mac Limited)",
+      "year": 1995,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "boomerang-jr-18004",
+      "item": "18060",
+      "edition": "Boomerang Jr. — Boomerang RS",
+      "year": 2005,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "boomerang-jr-18004",
+      "item": "95003",
+      "edition": "Boomerang Jr. — Boomerang RS Black Special",
+      "year": 2014,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "boomerang-jr-18004",
+      "item": "92394",
+      "edition": "Boomerang Jr. — Hiroshima Toyo Carp Collaboration Model",
+      "year": 2018,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-1-emperor-18025",
+      "item": "94666",
+      "edition": "Dash-1 Emperor (Type 3 Chassis) Special Kit",
+      "year": 2008,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-1-emperor-18025",
+      "item": "94704",
+      "edition": "Dash-1 Emperor (MS Chassis) Black Special",
+      "year": 2009,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-1-emperor-18025",
+      "item": "94818",
+      "edition": "Dash-1 Emperor Silver-Plated Body Specification",
+      "year": 2011,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "18015",
+      "edition": "Dash-2 Burning Sun — 1989 Original / Type 1",
+      "year": 1989,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "18026",
+      "edition": "Dash-2 Burning Sun — 1990 Type 3 Chassis",
+      "year": 1990,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "94675",
+      "edition": "Dash-2 Burning Sun — 2009 MS Finished Model",
+      "year": 2009,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "94819",
+      "edition": "Dash-2 Burning Sun — Green Plated Body Specification",
+      "year": 2011,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "92343",
+      "edition": "Burning Sun Helios — Red",
+      "year": 2016,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "92344",
+      "edition": "Burning Sun Helios — Silver",
+      "year": 2016,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "92345",
+      "edition": "Burning Sun Helios — White",
+      "year": 2016,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "92346",
+      "edition": "Burning Sun Helios — Black",
+      "year": 2016,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-2-burning-sun-18702",
+      "item": "92373",
+      "edition": "Dash-2 Burning Sun — Kirin Mets Cola Original",
+      "year": 2017,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "18019",
+      "edition": "Dash-3 Shooting Star — 2007 Reissue (Type 3)",
+      "year": 2007,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "94820",
+      "edition": "Dash-3 Shooting Star — Blue Plated Body Specification",
+      "year": 2011,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "92338",
+      "edition": "Shooting Star Dragontail — Red",
+      "year": 2015,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "92339",
+      "edition": "Shooting Star Dragontail — Blue",
+      "year": 2015,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "92340",
+      "edition": "Shooting Star Dragontail — White",
+      "year": 2015,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "dash-3-shooting-star-18703",
+      "item": "92341",
+      "edition": "Shooting Star Dragontail — Black",
+      "year": 2015,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hornet-jr-18002",
+      "item": "18002",
+      "edition": "Hornet Jr. — 1986 Standard / Later Production",
+      "year": 1986,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hornet-jr-18002",
+      "item": "18002",
+      "edition": "Hornet Jr. — 1998 Memorial Edition (Limited Reissue)",
+      "year": 1998,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hornet-jr-18002",
+      "item": "94446",
+      "edition": "Hornet Jr. — 2002 Year of the Horse (Zodiac Mini 4WD)",
+      "year": 2002,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hornet-jr-18002",
+      "item": "92412",
+      "edition": "Hornet Jr. — Hiroshi Tanahashi Special",
+      "year": 2018,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hornet-jr-18002",
+      "item": "18107",
+      "edition": "Hornet Jr. — VZ Chassis",
+      "year": 2026,
+      "reason": "Announced release: availability not established before commercial launch."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "18001",
+      "edition": "Hotshot Jr. — 1986 Standard / Later Production",
+      "year": 1986,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "18001",
+      "edition": "Hotshot Jr. — 1998 Memorial Edition (Limited Reissue)",
+      "year": 1998,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "94510",
+      "edition": "Hotshot Jr. — 2004 Year of the Monkey (Zodiac Mini 4WD)",
+      "year": 2003,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "94579",
+      "edition": "Hotshot Jr. — 2007 Year of the Boar (Zodiac Mini 4WD)",
+      "year": 2006,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "94596",
+      "edition": "Hotshot Jr. — Mini 4WD 25th Anniversary",
+      "year": 2007,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "94680",
+      "edition": "Hotshot Jr. — Halko Momoi Special Ver.2",
+      "year": 2008,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "94687",
+      "edition": "Hotshot Jr. — Yomiuri Giants Special",
+      "year": 2009,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": "94688",
+      "edition": "Hotshot Jr. — Hanshin Tigers Special",
+      "year": 2009,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "hotshot-jr-18001",
+      "item": null,
+      "edition": "Hotshot Jr. — Urawa Red Diamonds Edition",
+      "year": 2023,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "poseidon-x-94584",
+      "item": "49568",
+      "edition": "Poseidon-X Black Special (1993 Original)",
+      "year": 1993,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "poseidon-x-94584",
+      "item": "94584",
+      "edition": "Poseidon-X Black Special (2006 Reissue)",
+      "year": 2006,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "rising-bird-18017",
+      "item": "18017",
+      "edition": "Rising Bird — 1989 Original (Japan / Type 3)",
+      "year": 1989,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "rising-bird-18017",
+      "item": "18017",
+      "edition": "Rising Bird — 1989 USA MRC / Lightning Racers Special Pack",
+      "year": 1989,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "rising-bird-18017",
+      "item": "18017",
+      "edition": "Rising Bird — 2007 Reissue (Type 3)",
+      "year": 2007,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "sonic-saber-19402",
+      "item": "19402",
+      "edition": "Sonic Saber (2003 Reissue)",
+      "year": 2003,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": "18007",
+      "edition": "Super Dragon Jr. — 1987 Standard / Later Production",
+      "year": 1987,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": "2907",
+      "edition": "Super Dragon Jr. — 1987 First Production (Oshika KIT No.2907)",
+      "year": 1987,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": "18007",
+      "edition": "Super Dragon Jr. — 1998 Memorial Edition (Limited Reissue)",
+      "year": 1998,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": null,
+      "edition": "Super Dragon Jr. — Year of the Dragon 2000 Gold",
+      "year": 2000,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": null,
+      "edition": "Super Dragon Jr. — Year of the Dragon 2000 Green Metallic (Second Edition)",
+      "year": 2000,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "super-dragon-jr-18007",
+      "item": "18007",
+      "edition": "Super Dragon Jr. — 2012 Spot Reissue",
+      "year": 2012,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "thunder-dragon-jr-18008",
+      "item": "18008",
+      "edition": "Thunder Dragon Jr. — 1987 Original (Oshika 5-digit No.18008)",
+      "year": 1987,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "thunder-dragon-jr-18008",
+      "item": "2908",
+      "edition": "Thunder Dragon Jr. — 1987 Oshika 4-digit KIT No.2908",
+      "year": 1987,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "thunder-dragon-jr-18008",
+      "item": "18008",
+      "edition": "Thunder Dragon Jr. — 1998 Memorial Edition (Limited Reissue)",
+      "year": 1998,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    },
+    {
+      "family": "thunder-dragon-jr-18008",
+      "item": "18008",
+      "edition": "Thunder Dragon Jr. — 2012 Spot Reissue",
+      "year": 2012,
+      "reason": "Existing catalog/identity evidence does not yet resolve collector scarcity; retain no label pending exact-edition distribution and comparable-supply review."
+    }
+  ]
+}
