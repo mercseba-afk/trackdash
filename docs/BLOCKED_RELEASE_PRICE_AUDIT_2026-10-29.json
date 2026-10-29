@@ -1,0 +1,288 @@
+{
+  "checkedAt": "2026-10-29",
+  "scope": "19 public Mini4WD releases without useful reference and without enabled scans",
+  "recovered": [
+    {
+      "itemNumber": "18011",
+      "edition": "Fire Dragon Jr. — 2012 Reissue",
+      "barcodeJAN": "4950344962877",
+      "sources": [
+        "https://www.hlj.co.jp/product/TAM18011",
+        "https://www.1999.co.jp/10087243",
+        "https://hs-tamtam.co.jp/product/detail/69129/"
+      ],
+      "productionScan": {
+        "success": true,
+        "checkedAt": "2026-10-29T16:15:09Z",
+        "nextScan": "2026-11-28T16:15:10Z",
+        "eligibleOffers": 0
+      },
+      "pricesImported": 0
+    }
+  ],
+  "held": [
+    {
+      "id": "855153e5-fa4b-548c-9ae3-464b9fe46e15",
+      "item_number": "18007",
+      "edition_name": "Super Dragon Jr. — 1987 Standard / Later Production",
+      "barcode_jan": null,
+      "chassis": "Type 1",
+      "release_year": 1987,
+      "sources": [
+        "https://www.tamiya.com/japan/products/18007/index.html",
+        "https://www.tamiya.com/cms/japan/mini4wd/jr_news/jr_news16/pdf/000191.pdf",
+        "https://www.suruga-ya.jp/product/detail/603015727"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18007 across standard/Memorial/2012. Known Italian auction listings327320595061,327335485528,327353397633,327368536670 explicitly ended; no ended amount treated as SOLD/current ASK."
+    },
+    {
+      "id": "ef8c9a34-a78f-5f47-9f48-79460a21d40b",
+      "item_number": "18008",
+      "edition_name": "Thunder Dragon Jr. — 1987 Original (Oshika 5-digit No.18008)",
+      "barcode_jan": "4950344180080",
+      "chassis": "Type 1",
+      "release_year": 1987,
+      "sources": [
+        "https://www.tamiya.com/japan/products/18008/index.html",
+        "https://www.tamiya.com/cms/japan/mini4wd/jr_news/jr_news16/pdf/000191.pdf",
+        "https://re-cube.co.jp/toyokawa/new_item/entry-1638.html",
+        "https://www.mandarake.co.jp/search/kaitori/list.php?disp=240&keyword=%E3%82%A4%E3%82%B5&page=3&sort=price",
+        "https://fril.jp/brand/17163/category/827"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "JAN4950344180080 is also documented on four-digit KIT2908. Requires five-digit Oshika packaging evidence; JAN alone is not a generation discriminator."
+    },
+    {
+      "id": "dcaa9d00-fe3f-5bc4-9bfa-5bc1078e2087",
+      "item_number": "18009",
+      "edition_name": "Thunder Shot Jr. — 1988 Original",
+      "barcode_jan": null,
+      "chassis": "Type 1",
+      "release_year": 1988,
+      "sources": [
+        "https://mini4wdbench.net/keitou/thundershot/",
+        "https://www.chibakan-yachiyo.net/mini4/mini-4wd-main-body/",
+        "https://www.tamiya.com/japan/products/18009/index.html",
+        "https://jp.mercari.com/item/m50992847935"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18009; original Oshika package must be confirmed rather than modern2006 stock. Existing provenance confirms identity, not current eligible stock."
+    },
+    {
+      "id": "69c722a6-0b67-4f37-b056-14dbb47d570c",
+      "item_number": "18009",
+      "edition_name": "Thunder Shot Jr. — Shonen Jump 20th Anniversary Prize Version",
+      "barcode_jan": null,
+      "chassis": "Type 1",
+      "release_year": 1988,
+      "sources": [
+        "https://ekizo.mandarake.co.jp/auction/item/itemsListEn.html?c=24&category=norimono&end=1&from=googlebot%28at%29googlebot.com&l=2&q=130&s=14&sort=3&time=0&type=-1",
+        "https://thedaoofdragonball.com/blog/history/goku-lost-uniform-discovered/"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18009; Shonen Jump20th prize graphics mandatory. Closed Mandarake archive is context; no starting bid/current listing price becomes SOLD."
+    },
+    {
+      "id": "441a89cb-8e21-4616-ae6a-62c047ad26c5",
+      "item_number": "18009",
+      "edition_name": "Thunder Shot Jr. — TKC Nuremberg 1999 Custom",
+      "barcode_jan": null,
+      "chassis": "Type 1",
+      "release_year": 1999,
+      "sources": [
+        "https://www.suruga-ya.jp/product/detail/603092650"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Exact Suruga603092650 confirms TKC Nuremberg1999, distinct from1992 ITEM92078. Missing autonomous manufacturer identifier; condition/import costs and current availability not established for public valuation."
+    },
+    {
+      "id": "cafbb6ca-1aba-5732-946d-0045d054aa5c",
+      "item_number": "18014",
+      "edition_name": "Avante Jr.",
+      "barcode_jan": null,
+      "chassis": "Type 2",
+      "release_year": 1988,
+      "sources": [
+        "https://www.tamiya.com/japan/products/18014/index.html",
+        "https://www.tamiya.com/cms/japan/mini4wd/jr_news/jr_news16/pdf/000191.pdf"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18014; modern retail and JAN4950344080878 belong to2024. Original1988 Oshika package/band confirmed by Mandarake769492; closed archive, no new price."
+    },
+    {
+      "id": "9db74896-9b0d-5fb6-aaf8-6a55b3d1bcb9",
+      "item_number": "18017",
+      "edition_name": "Rising Bird — 1989 Original (Japan / Type 3)",
+      "barcode_jan": null,
+      "chassis": "Type 3",
+      "release_year": 1989,
+      "sources": [
+        "https://www.tamiya.com/cms/japan/mini4wd/jr_news/jr_news16/pdf/000191.pdf",
+        "https://w.atwiki.jp/mini4vipwiki/pages/89.html",
+        "https://aucfan.com/search1/q-~a5e9a5a4a5b8a5f3a5b0a5d0a1bca5c9/s-ya/",
+        "https://www.ebay.com/itm/147214683216"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18017; Japanese1989 package differs from2007 and USA pack. Known eBay147214683216 could not be freshly verified through web tool; no availability claim."
+    },
+    {
+      "id": "6a02cb8b-7f7c-4824-99bb-67a0ec82f195",
+      "item_number": "18017",
+      "edition_name": "Rising Bird — 1989 USA MRC / Lightning Racers Special Pack",
+      "barcode_jan": null,
+      "chassis": "Type 3",
+      "release_year": 1989,
+      "sources": [
+        "https://plaza.rakuten.co.jp/mini4museum/diary/ctgylist/?ctgy=3",
+        "https://www.chrisisoninfiniteearths.com/2020/01/bonus-book-lightning-racers-1990.html",
+        "https://www.deseret.com/1989/12/21/18837680/one-size-fits-all-toys-are-winners-in-stockings/",
+        "https://www.ebay.com/itm/146460684069"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Known exact eBay146460684069 USA Lightning Racers pack is offered fromJapan; displayed import terms targetUS30349, not Italy. No Italy comparable cost/price imported."
+    },
+    {
+      "id": "3cc0ada7-0916-4c25-a4cb-f89b590bd4a0",
+      "item_number": "18019",
+      "edition_name": "Dash-3 Shooting Star — 2007 Reissue (Type 3)",
+      "barcode_jan": "4950344180196",
+      "chassis": "Type 3",
+      "release_year": 2007,
+      "sources": [
+        "https://www.suruga-ya.jp/kaitori/kaitori_detail/603007835",
+        "https://www.tamiya.com/japan/products/18019/index.html",
+        "https://www.1999.co.jp/10087279"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18019 and JAN4950344180196; existing family provenance explicitly flags generation ambiguity. Suruga603007835 identifies2007 but main seller shown out of stock; other sellers' floor not adopted."
+    },
+    {
+      "id": "96adee91-eaec-5c73-9269-cf3875cfe02d",
+      "item_number": "18025",
+      "edition_name": "Dash-1 Emperor — 1990 Original (Type 3)",
+      "barcode_jan": null,
+      "chassis": "Type 3",
+      "release_year": 1990,
+      "sources": [
+        "https://www.tamiya.com/japan/products/18025/index.html",
+        "https://www.tamiya.com/japan/products/18025/index.html",
+        "https://k.mandarake.co.jp/auction/item/itemInfoEn.html?index=769510"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared ITEM18025; modern JAN4950344089789 belongs to2026 reissue. Mandarake769510 confirms1990 package, but auction is closed; starting bid27000JPY is not a transaction."
+    },
+    {
+      "id": "2928fbca-b220-5d72-9b03-417ab13a70d8",
+      "item_number": "18074",
+      "edition_name": "DASH-X1 Proto-Emperor Premium — Sanfrecce Hiroshima Special Edition",
+      "barcode_jan": null,
+      "chassis": "Super II",
+      "release_year": 2023,
+      "sources": [
+        "https://www.sanfrecce.co.jp/news/goods/8780"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared base ITEM18074. Proposed barcode4570105151298 lacks independent corroboration; not added. eBay206562162850 explicitly contains10 empty boxes, excluded."
+    },
+    {
+      "id": "e0081f9e-e423-5f90-a30f-968978b36ed0",
+      "item_number": "18614",
+      "edition_name": "Avante Mk.II Gamba Osaka Special Edition (J.League 30th Anniversary)",
+      "barcode_jan": null,
+      "chassis": "MS",
+      "release_year": 2023,
+      "sources": [
+        "https://www.gamba-osaka.net/news/index/no/15284/",
+        "https://www.ebay.com/itm/166247307960"
+      ],
+      "status": "shared_identifier_review",
+      "reason": "Shared base ITEM18614. Official Gamba announcement confirms edition; Mercari m71684664999 includesAvante+Astralster lot, not single-kit valuation. No validated autonomous identifier."
+    },
+    {
+      "id": "057f6e89-225a-583a-8ec6-390a7e5a0887",
+      "item_number": null,
+      "edition_name": "Magnum Saber Tokyo Anime Center Model",
+      "barcode_jan": null,
+      "chassis": "Super II",
+      "release_year": 2026,
+      "sources": [
+        "https://tokyoanimecenter.jp/event/letsgo_30exh/",
+        "https://tokyoanimecenter.jp/event/letsgo_30exh_popup/",
+        "https://www.atpress.ne.jp/news/7275106",
+        "https://jp.mercari.com/item/m78366053057"
+      ],
+      "status": "no_autonomous_identifier",
+      "reason": "No verified autonomous Item/JAN. Official popup updated toHyogo9Oct–4Nov and post-event goods announcement5Nov; this is not stock proof nor confirmation that the kit is in post-event range. eBay307168418751 ended;840000579317 used; other exact asksJapan/import incomplete."
+    },
+    {
+      "id": "d6617c26-9ec3-5adf-892f-ebeb1c782b70",
+      "item_number": null,
+      "edition_name": "Manta Ray Mk.II Black Metallic Special",
+      "barcode_jan": null,
+      "chassis": "MS",
+      "release_year": 2012,
+      "sources": [
+        "https://www.tea-league.com/mt/tea/archives/2012/07/20121_9.html",
+        "https://www.tea-league.com/mt/tea/archives/2012/07/20122_7.html"
+      ],
+      "status": "no_autonomous_identifier",
+      "reason": "No autonomous manufacturer identifier. Newly found Suruga603024755 documents black metallic body, blue plated wheels,N02/MS. Internal retailer code2210218615028 not promoted to Tamiya JAN; buyback1900JPY not an ASK."
+    },
+    {
+      "id": "d0c9c45e-3d75-52d1-92cb-84cf9f5f2a07",
+      "item_number": null,
+      "edition_name": "Manta Ray Mk.II Pink Metallic Special",
+      "barcode_jan": null,
+      "chassis": "MS",
+      "release_year": 2007,
+      "sources": [
+        "https://www.tea-league.com/mt/tea/archives/2007/01/2007_12.html",
+        "https://www.tea-league.com/mt/tea/archives/2007/01/2007_13.html"
+      ],
+      "status": "no_autonomous_identifier",
+      "reason": "2007 pink plated body/silver plated wheels independently recorded in contemporary event reporting. No autonomous Item/JAN or eligible current exact kit offer established."
+    },
+    {
+      "id": "9a231f02-7a7e-5489-b44d-b4eb10b60a78",
+      "item_number": null,
+      "edition_name": "Manta Ray Mk.II Silver Metallic Semi-Finished Model",
+      "barcode_jan": null,
+      "chassis": "MS",
+      "release_year": 2010,
+      "sources": [
+        "https://www.tea-league.com/mt/tea/archives/2010/07/index.php?page=all",
+        "https://www.tea-league.com/mt/tea/archives/2010/01/2010_25.html"
+      ],
+      "status": "no_autonomous_identifier",
+      "reason": "2010 silver metallic semi-finished event format differs fromnew complete unbuilt. No autonomous identifier; do not borrow general Manta Ray or body-only pricing."
+    },
+    {
+      "id": "d1e21f8b-140e-4ab9-9d23-92c8b8d9a7f5",
+      "item_number": null,
+      "edition_name": "Super Dragon Jr. — Year of the Dragon 2000 Gold",
+      "barcode_jan": null,
+      "chassis": "Type 1",
+      "release_year": 2000,
+      "sources": [
+        "https://www.suruga-ya.jp/kaitori/kaitori_detail/603024760"
+      ],
+      "status": "no_autonomous_identifier",
+      "reason": "2000 Gold exact Suruga603024760 known, but product page inaccessible in fresh lookup. No current availability or manufacturer code inferred."
+    },
+    {
+      "id": "7bffba2c-a601-41e5-8acb-c8e9341e2180",
+      "item_number": null,
+      "edition_name": "Super Dragon Jr. — Year of the Dragon 2000 Green Metallic (Second Edition)",
+      "barcode_jan": null,
+      "chassis": "Type 1",
+      "release_year": 2000,
+      "sources": [
+        "https://ekizo.mandarake.co.jp/auction/item/itemInfoEn.html?index=613962",
+        "https://www.suruga-ya.jp/product/detail/603021774"
+      ],
+      "status": "no_autonomous_identifier",
+      "reason": "2000 Green exact Suruga603021774 shows used inventory andJapan domestic shipping, with differing live snapshots/seller floors. Complete unbuilt condition and Italy import total unverified; no public price imported."
+    }
+  ]
+}
