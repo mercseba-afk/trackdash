@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
+  Store,
   LibraryBig,
   Boxes,
   Heart,
@@ -31,6 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getShopAccessAction } from "@/lib/actions/shop-access"
 import { getSpeedChampionsAccessAction } from "@/lib/actions/speed-champions-access"
 import { getUnreadMessagingCountAction } from "@/lib/actions/messaging"
 import { createClient } from "@/lib/supabase/client"
@@ -42,6 +44,7 @@ import { cn } from "@/lib/utils"
 type NavItem = {
   href?: string
   labelKey: string
+  label?: string
   icon: typeof LayoutDashboard
   disabled?: boolean
 }
@@ -190,8 +193,18 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useStore()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
+  const [shopAccess, setShopAccess] = React.useState(false)
+  React.useEffect(() => {
+    let current = true
+    setShopAccess(false)
+    if (user?.email.toLowerCase() === "merc.seba@gmail.com") {
+      getShopAccessAction().then((allowed) => { if (current) setShopAccess(allowed) })
+        .catch(() => { if (current) setShopAccess(false) })
+    }
+    return () => { current = false }
+  }, [user?.id, user?.email])
   const [speedChampionsAccess, setSpeedChampionsAccess] = React.useState(false)
   React.useEffect(() => {
     let current = true
@@ -204,8 +217,9 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
     return () => { current = false }
   }, [user?.id])
   const hotWheelsPilotUser = user?.email.toLowerCase() === "merc.seba@gmail.com"
-  const desktopNav = vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : MINI4WD_DESKTOP_NAV
-  const mobileNav = vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : MINI4WD_MOBILE_NAV
+  const shopItem: NavItem = { href: "/shop", labelKey: "", label: locale === "it" ? "In vendita" : "For sale", icon: Store }
+  const desktopNav = vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : shopAccess ? [...MINI4WD_DESKTOP_NAV.slice(0, -1), shopItem, MINI4WD_DESKTOP_NAV.at(-1)!] : MINI4WD_DESKTOP_NAV
+  const mobileNav = vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : shopAccess ? [...MINI4WD_MOBILE_NAV.slice(0, 3), shopItem, MINI4WD_MOBILE_NAV[3]] : MINI4WD_MOBILE_NAV
 
   React.useEffect(() => {
     if (!hotWheelsPilotUser) return
@@ -289,7 +303,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
                     className="relative inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground/45"
                   >
                     <item.icon className="size-4" />
-                    {t(item.labelKey)}
+                    {item.label ?? t(item.labelKey)}
                     <span className="rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]">Beta</span>
                   </span>
                 )
@@ -305,7 +319,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
                   )}
                 >
                   <item.icon className="size-4" />
-                  {t(item.labelKey)}
+                  {item.label ?? t(item.labelKey)}
                   {isMessages ? <UnreadBadge count={unreadMessages} /> : null}
                   {active ? <span className="absolute inset-x-3 -bottom-[17px] h-0.5 bg-brand-red" /> : null}
                 </Link>
@@ -351,7 +365,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
                   <item.icon className="size-5" />
                   <span className="absolute -right-3 -top-2 rounded-full bg-muted px-1 text-[7px] font-bold uppercase">Beta</span>
                 </span>
-                <span className="max-w-[68px] truncate">{t(item.labelKey)}</span>
+                <span className="max-w-[68px] truncate">{item.label ?? t(item.labelKey)}</span>
               </span>
             )
           }
@@ -369,7 +383,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
                 <item.icon className="size-5" />
                 {isMessages ? <UnreadBadge count={unreadMessages} compact /> : null}
               </span>
-              <span className="max-w-[68px] truncate">{t(item.labelKey)}</span>
+              <span className="max-w-[68px] truncate">{item.label ?? t(item.labelKey)}</span>
               {active ? <span className="absolute bottom-1.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-brand-red" /> : null}
             </Link>
           )
