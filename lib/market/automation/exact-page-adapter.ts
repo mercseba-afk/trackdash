@@ -77,6 +77,8 @@ function parseMoney(value: unknown): number | null {
 function mapAvailability(value: unknown): ParsedAvailability {
   if (typeof value !== "string") return "unknown"
   const compact = value.toLowerCase().replace(/[^a-z]/g, "")
+  // Negated stock labels must never match the positive InStock substring.
+  if (compact.includes("notinstock") || compact.includes("outofstock") || compact.includes("soldout") || compact.includes("notavailable")) return "out_of_stock"
   if (compact.includes("instock")) return "in_stock"
   if (compact.includes("limitedavailability") || compact.includes("lowstock")) return "low_stock"
   if (compact.includes("preorder") || compact.includes("presale")) return "preorder"
@@ -155,11 +157,20 @@ interface StructuredOffer {
   aggregate: boolean
 }
 
-function extractStructuredOffers(html: string): StructuredOffer[] {
+function extractStructuredOffers(html: string, options: ParseOptions): StructuredOffer[] {
   const offers: StructuredOffer[] = []
   for (const block of jsonLdBlocks(html)) {
     walk(block, (node) => {
       if (!hasType(node, "Product")) return
+      // Product recommendations can have their own cheap, in-stock Offers.
+      // A different product URL is never the verified endpoint's product.
+      if (typeof node.url === "string") {
+        try {
+          const productUrl = new URL(node.url, options.pageUrl)
+          const pageUrl = new URL(options.pageUrl)
+          if (productUrl.origin !== pageUrl.origin || productUrl.pathname.replace(/\/$/, "") !== pageUrl.pathname.replace(/\/$/, "")) return
+        } catch { return }
+      }
       const title = typeof node.name === "string" ? stripTags(node.name) : null
       const productOffers = Array.isArray(node.offers) ? node.offers : node.offers ? [node.offers] : []
       for (const rawOffer of productOffers) {
@@ -283,7 +294,7 @@ function parseGenericExactRetailPage(html: string, options: ParseOptions): Exact
   const itemNumberSeen = containsItemNumber(html, options.itemNumber)
   if (!itemNumberSeen) warnings.push("ITEM_NUMBER_NOT_FOUND_ON_PAGE")
 
-  const structured = extractStructuredOffers(html)
+  const structured = extractStructuredOffers(html, options)
     .sort((a, b) => Number(a.aggregate) - Number(b.aggregate) || a.price - b.price)
   const direct = structured.find((offer) => !offer.aggregate)
   if (direct) {
@@ -353,6 +364,38 @@ export function parseExactRetailPage(html: string, options: ParseOptions): Exact
   const snapshot = parseGenericExactRetailPage(html, options)
   let host: string
   try { host = new URL(options.pageUrl).hostname.toLowerCase() } catch { return snapshot }
+  if (["iltempiodellemini4wd.it", "www.iltempiodellemini4wd.it", "www.caputomodellismo.it", "caputomodellismo.it"].includes(host)) {
+    // Scope to the main product buy box, before product metadata/related cards.
+    const heading = /<h1\b[^>]*>[\s\S]*?<\/h1>/i.exec(html)
+    const start = heading ? heading.index + heading[0].length : -1
+    const tail = start >= 0 ? html.slice(start) : ""
+    const end = tail.search(/<div\b[^>]*class=["'][^"']*\bproduct_meta\b/i)
+    const box = end >= 0 ? tail.slice(0, end) : ""
+    const stock = /<p\b[^>]*class=["']([^"']*\bstock\b[^"']*)["'][^>]*>([\s\S]*?)<\/p>/i.exec(box)
+    let availability: ParsedAvailability = "unknown"
+    let rawAvailability: string | null = stock ? stripTags(stock[2]) : null
+    if (stock && /\bout-of-stock\b/i.test(stock[1])) availability = "out_of_stock"
+    else if (/\b(?:in arrivo|su ordinazione|preordine|prenotazione)\b/i.test(rawAvailability ?? "")) availability = "backorder"
+    else {
+      const forms = box.match(/<form\b[^>]*>[\s\S]*?<\/form>/gi) ?? []
+      const checkout = forms.some((form) => {
+        const open = form.slice(0, form.indexOf(">") + 1)
+        if (!(attrValue(open, "class") ?? "").split(/\s+/).includes("cart")) return false
+        const action = attrValue(open, "action")
+        try {
+          if (action && new URL(action, options.pageUrl).pathname !== new URL(options.pageUrl).pathname) return false
+        } catch { return false }
+        return (form.match(/<button\b[^>]*>/gi) ?? []).some((button) =>
+          (attrValue(button, "class") ?? "").split(/\s+/).includes("single_add_to_cart_button") &&
+          !/\sdisabled(?:\s|=|>)/i.test(button) && attrValue(button, "aria-disabled") !== "true")
+      })
+      if (checkout && (snapshot.availability === "in_stock" || snapshot.availability === "low_stock")) availability = snapshot.availability
+    }
+    const warnings = [...snapshot.warnings]
+    if (availability === "unknown") warnings.push("RETAIL_BUY_BOX_UNVERIFIED")
+    else if (availability !== snapshot.availability) warnings.push("RETAIL_STOCK_METADATA_CONFLICT")
+    return { ...snapshot, availability, rawAvailability: rawAvailability ?? (availability === "in_stock" ? "Main product checkout available" : null), warnings }
+  }
   if (host !== "www.briosigiocattoli.it" && host !== "briosigiocattoli.it") return snapshot
 
   let availability: ParsedAvailability = "unknown"
