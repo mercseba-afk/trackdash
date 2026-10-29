@@ -20,7 +20,8 @@ import {
 import { ProductImage } from "@/components/catalog/product-image"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { collectorMarketTrend } from "@/lib/market/presentation"
+import { latestVerifiedAskingRows, recentCollectorMarketTrend as collectorMarketTrend, verifiedAskingObservation } from "@/lib/market/highlights"
+import { representativeAskingCaption } from "@/lib/market/presentation"
 import { formatMoney } from "@/lib/format"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
@@ -141,7 +142,10 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       })
       .sort((a, b) => marketScore(b) - marketScore(a))
 
-    return distinctByProduct(ranked, 4)
+    const checked = latestVerifiedAskingRows(releases.filter(
+      (entry): entry is ReleaseEntry & { signal: ReleaseMarketSignalView } => entry.signal != null && Boolean(entry.release.itemNumber),
+    ))
+    return distinctByProduct([...checked, ...ranked], 4)
   }, [releases])
 
   const familyProduct = React.useMemo(() => {
@@ -151,7 +155,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         const score = (product: Product) =>
           product.releases.length * 10 +
           product.releases.filter((release) => signals[release.id]?.valueEUR != null).length * 4 +
-          product.releases.filter((release) => (signals[release.id]?.trendPercent ?? 0) > 0).length * 6
+          product.releases.filter((release) => (collectorMarketTrend(signals[release.id]) ?? 0) > 0).length * 6
         return score(b) - score(a)
       })[0]
   }, [products, signals])
@@ -165,20 +169,19 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
       .filter(
         ({ signal }) =>
           signal?.valueEUR != null &&
-          signal.trendPercent != null &&
-          signal.trendPercent > 0 &&
+          (collectorMarketTrend(signal) ?? 0) > 0 &&
           signal.lowEUR != null &&
           signal.highEUR != null &&
           signal.highEUR > signal.lowEUR,
       )
-      .sort((a, b) => (b.signal?.trendPercent ?? 0) - (a.signal?.trendPercent ?? 0))
+      .sort((a, b) => (collectorMarketTrend(b.signal) ?? 0) - (collectorMarketTrend(a.signal) ?? 0))
 
     if (growing[0]) return growing[0]
 
     return releases
       .filter(({ signal }) =>
         signal?.valueEUR != null &&
-        (signal.trendPercent == null || signal.trendPercent > 0),
+        (collectorMarketTrend(signal) == null || (collectorMarketTrend(signal) ?? 0) > 0),
       )
       .sort((a, b) => marketScore(b) - marketScore(a))[0] ?? null
   }, [releases])
@@ -292,8 +295,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
                   {it
-                    ? "Una selezione basata sui dati che TrackDash sta osservando: trend, vendite recenti e attività di mercato."
-                    : "A selection based on the data TrackDash is observing: trends, recent sales and market activity."}
+                    ? "Le ultime quotazioni verificate e le evidenze di mercato, distinguendo richieste negli annunci e vendite concluse."
+                    : "The latest verified quotes and market evidence, keeping listing asks separate from completed sales."}
                 </p>
               </div>
               <div className="hidden gap-2 sm:flex">
@@ -466,7 +469,7 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
           <div className="flex flex-col justify-center">
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/65">{it ? "ANALISI DI MERCATO" : "PRICE INTELLIGENCE"}</p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.96] tracking-[-0.06em] md:text-6xl">
-              {marketDemo?.signal?.trendPercent != null
+              {collectorMarketTrend(marketDemo?.signal) != null
                 ? (it ? "Capisci quanto vale oggi. E come si sta muovendo." : "Understand what it is worth today. And how it is moving.")
                 : (it ? "Capisci quanto vale oggi." : "Understand what it is worth today.")}
             </h2>
@@ -657,6 +660,8 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
 
 function WatchCard({ entry, it, locale }: { entry: ReleaseEntry; it: boolean; locale: PublicLocale }) {
   const { product, release, signal } = entry
+  const checked = verifiedAskingObservation(signal)
+  const price = checked?.priceEUR ?? signal?.valueEUR
 
   return (
     <Link
@@ -675,8 +680,9 @@ function WatchCard({ entry, it, locale }: { entry: ReleaseEntry; it: boolean; lo
         <p className="mt-1 text-xs text-muted-foreground">{release.releaseYear ?? "—"} · {release.chassis ?? product.chassis ?? "—"}</p>
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it ? "Valore di mercato" : "Market Value"}</p>
-            <p className="mt-0.5 text-lg font-semibold text-navy">{signal?.valueEUR != null ? formatMoney(signal.valueEUR) : (it ? "Dati in arrivo" : "Data coming soon")}</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{checked ? (checked.representative ? representativeAskingCaption(signal, it) : (it ? "Prezzo negli annunci" : "Listing asking price")) : (it ? "Valore di mercato" : "Market Value")}</p>
+            <p className="mt-0.5 text-lg font-semibold text-navy">{price != null ? formatMoney(price) : (it ? "Dati in arrivo" : "Data coming soon")}</p>
+            {checked ? <p className="mt-1 text-[11px] text-muted-foreground">{it ? "Verificato il" : "Checked on"} {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome" }).format(new Date(checked.observedAt))} · {it ? "spedizione esclusa" : "shipping excluded"}{checked.origin === "extra_eu" ? (it ? " · possibili oneri d'importazione" : " · possible import charges") : ""}</p> : null}
           </div>
           {trendText(signal, it) ? (
             <span className="text-sm font-semibold text-emerald-700">
@@ -748,7 +754,7 @@ function MarketPreview({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">{it ? "ESEMPIO REALE" : "REAL EXAMPLE"}</p>
           <p className="mt-1 text-sm font-semibold">{release.editionName}</p>
         </div>
-        {signal.trendPercent != null && signal.trendPercent > 0 ? (
+        {(collectorMarketTrend(signal) ?? 0) > 0 ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
             <TrendingUp className="size-3.5" /> {trendText(signal, it)}
           </span>
@@ -767,7 +773,7 @@ function MarketPreview({ entry, it }: { entry: ReleaseEntry; it: boolean }) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{it ? "Valore di mercato" : "Market Value"}</p>
           <div className="mt-2 flex items-end gap-3">
             <p className="text-4xl font-semibold tracking-[-0.06em] text-navy">{signal.valueEUR != null ? formatMoney(signal.valueEUR) : "—"}</p>
-            {signal.trendPercent != null ? <span className="pb-1 text-sm font-semibold text-emerald-700">{trendText(signal, it)}</span> : null}
+            {collectorMarketTrend(signal) != null ? <span className="pb-1 text-sm font-semibold text-emerald-700">{trendText(signal, it)}</span> : null}
           </div>
           <div className="mt-5 h-16 overflow-hidden border-b border-line">
             <svg viewBox="0 0 320 64" className="h-full w-full" preserveAspectRatio="none" aria-hidden="true">

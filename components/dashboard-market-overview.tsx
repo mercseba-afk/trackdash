@@ -2,13 +2,15 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Activity, ArrowRight, Gem, History, TrendingUp } from "lucide-react"
+import { Activity, ArrowRight, Clock, Gem, History, TrendingUp } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
 import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice, observedMarketPrice } from "@/lib/market/presentation"
+import { latestVerifiedAskingRows, recentCollectorMarketTrend, verifiedAskingObservation } from "@/lib/market/highlights"
+import { representativeAskingCaption } from "@/lib/market/presentation"
 import { ProductImage } from "@/components/catalog/product-image"
 import { RarityBadge, TrendIndicator } from "@/components/market-bits"
 import { Badge } from "@/components/ui/badge"
@@ -105,7 +107,10 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
 
   const gainers = React.useMemo(() => takeDistinctProducts(rows
     .filter((row) => row.signal.valueEUR != null && row.signal.valueEUR > 0 && (collectorMarketTrend(row.signal) ?? 0) > 0)
+    .filter((row) => recentCollectorMarketTrend(row.signal) != null)
     .sort((a, b) => (collectorMarketTrend(b.signal) ?? 0) - (collectorMarketTrend(a.signal) ?? 0)), 4), [rows])
+
+  const latestVerifications = React.useMemo(() => latestVerifiedAskingRows(rows), [rows])
 
   // A separate ranking of CURRENT purchasable asking prices, not completed
   // sales or historical quotes. The helper enforces the existing TTL-valid,
@@ -125,7 +130,7 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
     .filter((row) => row.signal.recentSoldUnits3m != null && row.signal.recentSoldUnits3m > 0)
     .sort((a, b) => (b.signal.recentSoldUnits3m ?? 0) - (a.signal.recentSoldUnits3m ?? 0)), 4), [active])
 
-  const sectionCount = [gainers, highestAsks, mostTraded, vintage].filter((section) => section.length > 0).length
+  const sectionCount = [latestVerifications, gainers, highestAsks, mostTraded, vintage].filter((section) => section.length > 0).length
   if (sectionCount === 0) return null
 
   return (
@@ -135,8 +140,8 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
           <h2 id="market-now-title" className="text-lg font-semibold tracking-tight">{it ? "Mercato in evidenza" : "Market highlights"}</h2>
           <p className="max-w-3xl text-sm text-muted-foreground">
             {it
-              ? "Le Release da seguire per crescita, valore e vendite recenti."
-              : "Releases worth following for growth, value and recent sales."}
+              ? "Quotazioni verificate di recente e movimenti confermati, con prezzi richiesti e vendite distinti."
+              : "Recently verified quotes and confirmed movements, keeping asking prices separate from sales."}
           </p>
         </div>
         <Button variant="ghost" size="sm" render={<Link href="/market" />}>
@@ -145,10 +150,20 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
+        {latestVerifications.length > 0 ? (
+          <MarketBlock
+            title={it ? "Ultime verifiche prezzi" : "Latest price checks"}
+            subtitle={it ? "Le quotazioni controllate più di recente, non aumenti di valore né vendite concluse." : "The most recently checked quotes, not value increases or completed sales."}
+            rows={latestVerifications}
+            priceMode="verified_asking"
+            icon={Clock}
+            it={it}
+          />
+        ) : null}
         {gainers.length > 0 ? (
           <MarketBlock
             title={it ? "In crescita" : "Growing"}
-            subtitle={it ? "Le Release con l'andamento positivo più significativo." : "Releases with the strongest positive movement."}
+            subtitle={it ? "Andamenti positivi confermati negli ultimi 30 giorni. Le nuove richieste negli annunci non bastano a dimostrare una crescita." : "Positive movements confirmed in the last 30 days. New listing asks alone do not establish growth."}
             rows={gainers}
             icon={TrendingUp}
             it={it}
@@ -201,7 +216,7 @@ function MarketBlock({
   title: string
   subtitle: string
   rows: MarketRow[]
-  priceMode?: "market" | "asking"
+  priceMode?: "market" | "asking" | "verified_asking"
   icon: React.ComponentType<{ className?: string }>
   it: boolean
 }) {
@@ -218,11 +233,12 @@ function MarketBlock({
   )
 }
 
-function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; priceMode: "market" | "asking" }) {
+function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; priceMode: "market" | "asking" | "verified_asking" }) {
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const year = releaseYear(row.release)
   const salesLabel = recentSalesLabel(row.signal, it)
-  const displayPrice = priceMode === "asking" ? observedMarketPrice(row.signal) : observedMarketDisplayPrice(row.signal)
+  const verification = priceMode === "verified_asking" ? verifiedAskingObservation(row.signal) : null
+  const displayPrice = verification ? verification.priceEUR : priceMode === "asking" ? observedMarketPrice(row.signal) : observedMarketDisplayPrice(row.signal)
   const displayKind = priceMode === "asking" ? "ask" : observedMarketDisplayKind(row.signal)
   const showProductFamily = row.release.editionName.trim().toLowerCase() !== row.product.name.trim().toLowerCase()
 
@@ -238,25 +254,28 @@ function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; pr
           {row.release.rarity ? <RarityBadge rarity={row.release.rarity} /> : null}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span>{salesLabel}</span>
+          <span>{verification
+            ? `${it ? "Verificato il" : "Checked on"} ${new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome" }).format(new Date(verification.observedAt))}`
+            : salesLabel}</span>
           {row.signal.currentOfferCount > 0 ? <><span aria-hidden>·</span><span>{row.signal.currentOfferCount} {it ? "annunci osservati" : "observed listings"}</span></> : null}
         </div>
       </div>
       <div className="max-w-36 shrink-0 text-right">
-        {priceMode !== "asking" && row.signal.valueEUR != null ? (
+        {priceMode === "market" && row.signal.valueEUR != null ? (
           <>
             <p className="text-[10px] text-muted-foreground">{it ? "Valore stimato" : "Estimated value"}</p>
             <p className="text-sm font-semibold tabular-nums">{formatMoney(row.signal.valueEUR)}</p>
           </>
         ) : displayPrice != null ? (
           <>
-            <p className="text-[10px] text-muted-foreground">{priceMode === "asking" ? (it ? "Prezzo richiesto" : "Asking price") : observedMarketDisplayLabel(row.signal, it)}</p>
+            <p className="text-[10px] text-muted-foreground">{priceMode === "verified_asking" ? (verification?.representative ? representativeAskingCaption(row.signal, it) : (it ? "Prezzo negli annunci" : "Listing asking price")) : priceMode === "asking" ? (it ? "Prezzo richiesto" : "Asking price") : observedMarketDisplayLabel(row.signal, it)}</p>
             <p className="text-sm font-semibold tabular-nums">{displayKind === "sold" ? "≈ " : ""}{formatMoney(displayPrice)}</p>
+            {verification ? <p className="text-[10px] text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}{verification.origin === "extra_eu" ? (it ? " · possibili oneri d'importazione" : " · possible import charges") : ""}</p> : null}
           </>
         ) : (
           <Badge variant="secondary">{it ? "Valore in verifica" : "Value under review"}</Badge>
         )}
-        {priceMode !== "asking" && collectorMarketTrend(row.signal) != null ? (
+        {priceMode === "market" && recentCollectorMarketTrend(row.signal) != null ? (
           <div className="mt-0.5 flex flex-col items-end">
             <TrendIndicator value={collectorMarketTrend(row.signal)!} className="text-xs" />
             {row.signal.trendWindowMonths != null
@@ -264,6 +283,7 @@ function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; pr
                   ? row.signal.trendWindowMonths === 1 ? "ultimo mese" : `ultimi ${row.signal.trendWindowMonths} mesi`
                   : row.signal.trendWindowMonths === 1 ? "last month" : `last ${row.signal.trendWindowMonths} months`}</span>
               : null}
+            <span className="text-[10px] text-muted-foreground">{it ? "Confermato il" : "Confirmed on"} {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome" }).format(new Date(row.signal.trendUpdatedAt!))}</span>
           </div>
         ) : null}
       </div>

@@ -41,7 +41,7 @@
     "cron:test": "node --experimental-strip-types --test scripts/test-cron-reliability.mjs && node --experimental-strip-types --test scripts/test-ebay-market-watch-catchup.mjs && node --experimental-strip-types scripts/test-retail-source-canary.mjs",
     "market:cache:test": "node --experimental-strip-types scripts/test-market-cache-lifecycle.mjs",
     "market:efficiency:test": "node --experimental-strip-types scripts/test-market-efficiency.mjs",
-    "market:ui:test": "node scripts/test-market-ui.mjs",
+    "market:ui:test": "node scripts/test-market-ui.mjs && node --experimental-strip-types --test scripts/test-market-highlights.mjs",
     "market:ui:browser": "node scripts/test-market-ui-browser.mjs",
     "auth:migration:test": "node --experimental-strip-types --test scripts/test-p09-auth-migration.mjs scripts/test-password-recovery-mfa.mjs scripts/test-account-photo-cleanup.mjs",
     "proxy:test": "node --experimental-strip-types --test scripts/test-proxy-sessionless-routes.mjs",

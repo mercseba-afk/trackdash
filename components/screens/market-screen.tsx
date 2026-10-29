@@ -19,7 +19,8 @@ import { useMarketSignals } from "@/lib/market/context"
 import { useI18n } from "@/lib/i18n"
 import { useStore } from "@/lib/store"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { recentCollectorMarketTrend as collectorMarketTrend } from "@/lib/market/highlights"
 import type { Product, ProductRelease } from "@/lib/types"
 import { localizePublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
@@ -275,7 +276,7 @@ export function MarketScreen({ products }: { products: Product[] }) {
               </TabsContent>
               <TabsContent value="trends" className="mt-4">
                 {trends.length === 0 ? (
-                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun trend disponibile per ora" : "No trend available yet"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "I trend compariranno quando avremo abbastanza osservazioni comparabili nel tempo per quella specifica Release." : "Trends will appear once there are enough comparable observations over time for that specific Release."}</p></CardContent></Card>
+                  <Card><CardContent className="py-8 text-center"><TrendingUp className="mx-auto mb-3 size-6 text-muted-foreground" /><p className="font-medium">{it ? "Nessun movimento confermato negli ultimi 30 giorni" : "No confirmed movement in the last 30 days"}</p><p className="mx-auto mt-1 max-w-lg text-sm text-muted-foreground">{it ? "Servono nuove evidenze comparabili: un annuncio o una quotazione aggiornata non dimostrano da soli un rialzo del valore." : "New comparable evidence is required: a listing or a refreshed quote alone does not establish an increase in value."}</p></CardContent></Card>
                 ) : (
                   <div className="grid gap-4 lg:grid-cols-2"><TrendCard title={it ? "In crescita" : "Rising"} rows={trends.filter((entry) => entry.trend >= 0).map((entry) => entry.row)} icon={ArrowUpRight} /><TrendCard title={it ? "In calo" : "Falling"} rows={[...trends].reverse().filter((entry) => entry.trend < 0).map((entry) => entry.row)} icon={ArrowDownRight} /></div>
                 )}
