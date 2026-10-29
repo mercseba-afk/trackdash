@@ -27,3 +27,13 @@ Tempio's recommended-product stock labels initially looked like main-product con
 Shipping remains separate and unknown unless verified; no assumption of free shipping. RCJaz remains planned/inactive for scanning, with Asia-Pacific origin and no new price import. Its 10 stored observations are historical (September), outside current retail TTL. No scheduler, frequency increase or eBay budget change.
 
 Validation: existing exact-page tests18, new availability guards10, market-model/publication tests33, TypeScript check. Deployment and production pilot results must be verified separately.
+
+## Production result
+
+- Production deployment dpl_3bhtv3MzfCEFL5zJhJHugASrbtAd READY; trackdash.it /api/version independently returns fcf589b3c3cc27156bf4ffb5b3afe1570089a109.
+- Audited selected starting-offer states: unavailable0, expired retail0, expired marketplace0.
+- Registration dry-run rolled back successfully, then single-endpoint pilot committed.
+- Existing GitHub Actions run40853254505, job123533315460 completed successfully. Worker HTTP200, EUR14.50 in_stock accepted at2026-10-29T15:07:17Z (16:07 Italy); no extraction warnings, shipping unknown retained NULL.
+- Avante Mk.II standard retail anchor recomputed toEUR14.50 at15:07:19Z. This is a current retail request, not a completed sale or a new canonical Market Value.
+- Next pilot scan2026-11-26T15:07:19Z, source include_by_default=false: no automatic bulk enrollment.
+- Tests:18 existing exact-page+10 new availability+33 model/publication+23 automation+18 cron=102passed; TypeScript clean. One production deployment; existing scheduling and bounded batches unchanged.
