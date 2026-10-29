@@ -57,7 +57,7 @@ test('reservation lookup errors fail closed',async()=>{
 })
 test('available copies show exact photo and price without private collection identifiers',async()=>{
   const [copy]=await fixture().getShopCopies(shareId)
-  assert.equal(copy.imageUrl,'signed-copy.jpg');assert.equal(copy.askingPrice,25);assert.equal(copy.isMine,false)
+  assert.equal(copy.imageUrl,'signed-copy.jpg');assert.equal(copy.fallbackImageUrl,'release.jpg');assert.equal(copy.askingPrice,25);assert.equal(copy.isMine,false)
   assert.equal(copy.releaseHref,'/catalog/avante/releases/special')
   assert.equal('collectionItemId' in copy,false);assert.equal('userId' in copy,false)
 })

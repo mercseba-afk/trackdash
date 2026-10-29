@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 function CopyImage({ copy, large = false }: { copy: ShopCopy; large?: boolean }) {
-  const [failed, setFailed] = React.useState(false)
+  const [imageIndex, setImageIndex] = React.useState(0)
+  const imageUrls = [...new Set([copy.imageUrl, copy.fallbackImageUrl].filter((url): url is string => Boolean(url)))]
+  const imageUrl = imageUrls[imageIndex]
   return <div className={`flex items-center justify-center overflow-hidden bg-[#f5f7fb] ${large ? "aspect-square rounded-2xl" : "aspect-[4/3]"}`}>
-    {copy.imageUrl && !failed
+    {imageUrl
       // Signed copy photos use their original URL, keeping the private bucket private.
       // eslint-disable-next-line @next/next/no-img-element
-      ? <img src={copy.imageUrl} alt={`${copy.name} — ${copy.editionName}`} loading="lazy" className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105" onError={() => setFailed(true)} />
+      ? <img src={imageUrl} alt={`${copy.name} — ${copy.editionName}`} loading="lazy" className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105" onError={() => setImageIndex((index) => index + 1)} />
       : <Package className="size-16 text-slate-300" aria-hidden="true" />}
   </div>
 }

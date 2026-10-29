@@ -19,3 +19,9 @@ Cards link to the specific copy detail: photo, requested price or Su proposta, s
 - Controlled browser fixture added in `scripts/test-shop-browser.mjs`; execution could not proceed because Chromium is absent and the standard Playwright download returned truncated archives. Browser interaction and owner-session production rendering are not claimed as verified.
 
 No scanner changes, extra scans, price changes, subscriptions or database migrations.
+
+## Image fallback correction
+
+Owner reported missing preview on the EUR30 copy (actual Item 95450, rather than 95440). Its two photo records correspond to the two deferred pre-migration Storage objects: 98,870 + 97,152 = 196,022 bytes, created 18 September. `docs/recovery/public-restored-2026-10-19.md` explicitly records that file bodies were not migrated. Object metadata existence alone does not establish downloadable bytes. No original file recovery or source-project access attempted here.
+
+The exact release JPEG responds HTTP200 image/jpeg (82,134 bytes). Shop DTO now provides that exact release image as a separate fallback for personal photos. The image component retries it on a personal-photo load error before showing the placeholder. Existing user photo records and storage policies are preserved. Owner gate/data tests and TypeScript passed after the change.

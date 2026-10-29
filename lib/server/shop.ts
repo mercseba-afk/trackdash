@@ -22,6 +22,7 @@ export type ShopCopy = {
   askingPrice: number | null
   askingCurrency: Currency | null
   imageUrl: string | null
+  fallbackImageUrl: string | null
   isCopyPhoto: boolean
   releaseHref: string
   isMine: boolean
@@ -78,6 +79,7 @@ export async function getShopCopies(shareId?: string): Promise<ShopCopy[]> {
       askingPrice: row.askingPrice ? Number(row.askingPrice) : null,
       askingCurrency: row.askingCurrency as Currency | null,
       imageUrl: copyPhoto ?? releaseImage ?? productImage ?? null,
+      fallbackImageUrl: copyPhoto ? releaseImage ?? null : null,
       isCopyPhoto: Boolean(copyPhoto),
       releaseHref: releasePublicPath(row.product, { ...row.release, itemNumber: row.release.itemNumber ?? undefined, releaseYear: row.release.releaseYear ?? undefined }),
       isMine: user.id === row.userId,
