@@ -314,7 +314,6 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           </nav>
 
           <div className="flex items-center gap-1.5">
-            <FacebookLink compact className="hidden xl:inline-flex" />
             {hotWheelsPilotUser || speedChampionsAccess ? <CollectibleVerticalSwitch active={vertical} showSpeedChampions={speedChampionsAccess} /> : null}
             {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
