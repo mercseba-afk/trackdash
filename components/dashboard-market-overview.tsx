@@ -142,8 +142,8 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
       <div className="grid gap-4 xl:grid-cols-2">
         {latestVerifications.length > 0 ? (
           <MarketBlock
-            title={it ? "Ultime verifiche prezzi" : "Latest price checks"}
-            subtitle={it ? "Quotazioni verificate di recente." : "Recently verified quotes."}
+            title={it ? "Novità dal mercato" : "Market updates"}
+            subtitle={it ? "Prezzi richiesti dai venditori, verificati di recente." : "Sellers’ asking prices, recently verified."}
             rows={latestVerifications}
             priceMode="verified_asking"
             icon={Clock}
@@ -162,8 +162,8 @@ export function DashboardMarketOverview({ products }: { products: Product[] }) {
 
         {highestAsks.length > 0 ? (
           <MarketBlock
-            title={it ? "Prezzi richiesti più alti" : "Highest asking prices"}
-            subtitle={it ? "Le quotazioni più alte tra gli annunci verificati." : "The highest quotes among verified listings."}
+            title={it ? "Le richieste più alte" : "Highest asking prices"}
+            subtitle={it ? "Le release con i prezzi richiesti più elevati." : "Releases with the highest asking prices."}
             rows={highestAsks}
             priceMode="asking"
             icon={Gem}
@@ -211,7 +211,7 @@ function MarketBlock({
   it: boolean
 }) {
   return (
-    <Card>
+    <Card className={priceMode === "verified_asking" ? "border-brand/20 bg-brand/5" : undefined}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base"><Icon className="size-4 text-brand" /> {title}</CardTitle>
         <p className="text-xs text-muted-foreground">{subtitle}</p>
