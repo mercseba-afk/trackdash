@@ -199,3 +199,13 @@ test("public mercatino and copy details are accessible while offers and messages
     assert.equal((await app.proxy(request(path))).kind, "redirect")
   }
 })
+
+test("English mercatino public routes pin English locale without admitting lookalikes", async () => {
+ const app=createProxy()
+ for(const path of ['/en/shop','/en/shop/11111111-1111-4111-8111-111111111111']) {
+  const req=request(path);const response=await app.proxy(req)
+  assert.equal(response.kind,'next')
+  assert.ok(req.cookieWrites.some(([key,value])=>key==='trackdash.locale'&&value==='en'))
+ }
+ assert.equal((await app.proxy(request('/en/shop-lookalike'))).kind,'redirect')
+})

@@ -73,6 +73,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ])
 
+  const shopRoutes: MetadataRoute.Sitemap = PUBLIC_LOCALES.map((locale) => ({
+    url: `${SITE_URL}${locale === "en" ? "/en/shop" : "/shop"}`,
+    alternates: { languages: { it: `${SITE_URL}/shop`, en: `${SITE_URL}/en/shop` } },
+    changeFrequency: "daily", priority: 0.85,
+  }))
+
   const availableProducts = products.filter((product) => product.catalogLaunchStatus !== "coming_soon")
 
   const productRoutes: MetadataRoute.Sitemap = availableProducts.flatMap((product) => {
@@ -97,5 +103,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   )
 
-  return [...staticRoutes, { url: `${SITE_URL}/shop`, changeFrequency: "daily", priority: 0.85 }, ...productRoutes, ...releaseRoutes]
+  return [...staticRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes]
 }

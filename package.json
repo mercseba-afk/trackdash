@@ -46,7 +46,7 @@
     "auth:migration:test": "node --experimental-strip-types --test scripts/test-p09-auth-migration.mjs scripts/test-password-recovery-mfa.mjs scripts/test-account-photo-cleanup.mjs",
     "proxy:test": "node --experimental-strip-types --test scripts/test-proxy-sessionless-routes.mjs",
     "speed-champions:test": "node --experimental-strip-types scripts/test-speed-champions.mjs",
-    "shop:test": "node --test scripts/test-shop-pilot.mjs"
+    "shop:test": "node --experimental-strip-types --test scripts/test-shop-pilot.mjs scripts/test-shop-completion.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

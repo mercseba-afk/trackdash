@@ -12,6 +12,7 @@ createRoot(document.getElementById('root')).render(<AppShell><ShopScreen copies=
 const mocks={
  'next/link':`import React from 'react';export default function Link({children,prefetch,...props}){return <a {...props}>{children}</a>}`,
  'next/navigation':`export const usePathname=()=>'/shop';export const useRouter=()=>({replace(){},push(){}});`,
+ '@/lib/seo/catalog-paths':`export const localizePublicPath=(path,locale)=>locale==='en'?'/en'+path:path;`,
  '@/lib/i18n':`export const useI18n=()=>({locale:'it',t:(key)=>({'nav.catalog':'Catalogo','nav.collection':'Collezione','nav.scanner':'Scanner','nav.messages':'Messaggi','menu.profile':'Profilo','nav.dashboard':'Home'}[key]||key)});`,
  '@/lib/store':`export const useStore=()=>({hydrated:true,user:{id:window.owner?'owner':'normal',username:'demo',email:window.owner?'merc.seba@gmail.com':'normal@example.com'},logout(){}});`,
  '@/lib/actions/shop-access':`export const getShopAccessAction=async()=>window.owner;`,

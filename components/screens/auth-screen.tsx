@@ -26,7 +26,7 @@ function withNext(path: string, nextPath?: string) {
   return nextPath ? `${path}?next=${encodeURIComponent(nextPath)}` : path
 }
 
-export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextPath?: string }) {
+export function AuthScreen({ mode, nextPath, confirmationError = false }: { mode: "login" | "signup"; nextPath?: string; confirmationError?: boolean }) {
   const { locale, setLocale } = useI18n()
   const it = locale === "it"
   const highlights = mode === "signup"
@@ -124,7 +124,7 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
             </div>
           </div>
           <div className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-8">
-            {mode === "login" ? <LoginForm nextPath={nextPath} /> : <SignupForm nextPath={nextPath} />}
+            {mode === "login" ? <LoginForm nextPath={nextPath} confirmationError={confirmationError} /> : <SignupForm nextPath={nextPath} />}
           </div>
           <Link href="/catalog" className="mx-auto mt-5 flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
             {it ? "Continua a esplorare il catalogo" : "Continue browsing the catalog"}<ArrowRight className="size-3.5" />
@@ -135,7 +135,7 @@ export function AuthScreen({ mode, nextPath }: { mode: "login" | "signup"; nextP
   )
 }
 
-function LoginForm({ nextPath }: { nextPath?: string }) {
+function LoginForm({ nextPath, confirmationError = false }: { nextPath?: string; confirmationError?: boolean }) {
   const router = useRouter()
   const { locale } = useI18n()
   const it = locale === "it"
@@ -171,6 +171,7 @@ function LoginForm({ nextPath }: { nextPath?: string }) {
         <h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{it ? "Accedi a TrackDash." : "Sign in to TrackDash."}</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{nextPath ? (it ? "Dopo l'accesso tornerai esattamente dove eri." : "After signing in, you'll return exactly where you were.") : (it ? "Continua nella tua Collection e nei tuoi strumenti personali." : "Continue to your Collection and personal tools.")}</p>
       </div>
+      {confirmationError ? <p role="alert" className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm leading-6 text-navy">{it ? "Apri il link di conferma più recente, poi accedi per continuare dalla pagina che avevi scelto." : "Open your latest confirmation link, then sign in to continue from the page you chose."}</p> : null}
       <GoogleAuthButton nextPath={nextPath} />
       <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
@@ -218,7 +219,16 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username: username.trim(), country, onboarding_completed: false } },
+      options: {
+        data: { username: username.trim(), country, onboarding_completed: false },
+        emailRedirectTo: (() => {
+          const callback = new URL("/auth/callback", window.location.origin)
+          callback.searchParams.set("flow", "signup")
+          callback.searchParams.set("next", nextPath ?? "/dashboard")
+          callback.searchParams.set("locale", locale)
+          return callback.toString()
+        })(),
+      },
     })
     setPending(false)
     if (error) return toast.error(error.message)
@@ -235,7 +245,7 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
   if (confirmationSent) {
     return (
       <div className="flex flex-col gap-5">
-        <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Quasi fatto" : "Almost there"}</p><h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"} <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per completare la creazione dell'account, poi accedi: prima di entrare in TrackDash completerai il breve onboarding." : "Follow it to finish creating your account, then sign in: you'll complete the short onboarding before entering TrackDash."}</p></div>
+        <div><p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-brand">{it ? "Quasi fatto" : "Almost there"}</p><h1 className="text-2xl font-semibold tracking-tight">{it ? "Controlla la tua email" : "Check your email"}</h1><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{it ? "Abbiamo inviato un link di conferma a" : "We sent a confirmation link to"} <span className="font-medium text-foreground">{email}</span>. {it ? "Aprilo per confermare l’account: dopo il breve onboarding tornerai alla pagina da cui sei partito." : "Follow it to confirm your account. After the short onboarding, you’ll return to the page you started from."}</p></div>
         <Button variant="outline" className="rounded-xl" render={<Link href={withNext("/login", nextPath)} />}>{it ? "Torna all'accesso" : "Back to sign in"}</Button>
       </div>
     )

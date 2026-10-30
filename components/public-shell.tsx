@@ -144,7 +144,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="py-2 transition-colors hover:text-navy">
               {copy.scanner}
             </Link>
-            <Link href="/shop" className="py-2 transition-colors hover:text-navy">
+            <Link href={publicHref("/shop")} className="py-2 transition-colors hover:text-navy">
               {copy.shop}
             </Link>
             <Link href={`${publicHref("/")}#how-it-works`} className="py-2 transition-colors hover:text-navy">
@@ -187,14 +187,14 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         <div className={cn("border-t border-border bg-white md:hidden", menuOpen ? "block" : "hidden")}>
           <nav className="mx-auto flex max-w-7xl flex-col px-4 py-3 text-sm font-semibold text-[#24446f]">
             {PUBLIC_NAV.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
+              <Link key={item.href} href={publicHref(item.href)} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
                 {copy[item.key]}
               </Link>
             ))}
             <Link href={scannerHref} className="flex items-center gap-2 rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               <ScanLine className="size-4" /> {copy.scanner}
             </Link>
-            <Link href="/shop" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
+            <Link href={publicHref("/shop")} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               {copy.shop}
             </Link>
             <Link href="/#how-it-works" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
@@ -247,7 +247,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">TrackDash</span>
-              <Link href="/shop" className={FOOTER_LINK_CLASS}>{copy.shop}</Link>
+              <Link href={publicHref("/shop")} className={FOOTER_LINK_CLASS}>{copy.shop}</Link>
               <Link href="/#how-it-works" className={FOOTER_LINK_CLASS}>{copy.how}</Link>
               <Link href={supportHref} className={FOOTER_LINK_CLASS}>{copy.support}</Link>
               <Link href="/privacy" className={FOOTER_LINK_CLASS}>{copy.privacy}</Link>

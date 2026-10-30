@@ -18,7 +18,7 @@ function writeLocaleCookie(locale: AppLocale) {
 }
 
 function isPublicSeoRoute(pathname: string) {
-  return pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/") || pathname === "/market" || pathname === "/hotwheels" || pathname.startsWith("/hotwheels/")
+  return pathname === "/shop" || pathname.startsWith("/shop/") || pathname === "/en/shop" || pathname.startsWith("/en/shop/") || pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/") || pathname === "/market" || pathname === "/hotwheels" || pathname.startsWith("/hotwheels/")
 }
 
 export function I18nBootstrap({

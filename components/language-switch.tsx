@@ -27,6 +27,10 @@ export function LanguageSwitch({
       currentPath.startsWith("/catalog/") ||
       currentPath === "/en/catalog" ||
       currentPath.startsWith("/en/catalog/") ||
+      currentPath === "/shop" ||
+      currentPath.startsWith("/shop/") ||
+      currentPath === "/en/shop" ||
+      currentPath.startsWith("/en/shop/") ||
       currentPath === "/market" ||
       currentPath.startsWith("/market/") ||
       currentPath === "/en/market" ||

@@ -9,8 +9,8 @@ function safeInternalNext(value: string | string[] | undefined): string | undefi
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string | string[] }>
+  searchParams: Promise<{ next?: string | string[]; confirmation_error?: string }>
 }) {
   const params = await searchParams
-  return <AuthScreen mode="login" nextPath={safeInternalNext(params.next)} />
+  return <AuthScreen mode="login" nextPath={safeInternalNext(params.next)} confirmationError={params.confirmation_error === "1"} />
 }

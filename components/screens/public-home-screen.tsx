@@ -8,8 +8,6 @@ import {
   Boxes,
   ChevronLeft,
   ChevronRight,
-  HandCoins,
-  Handshake,
   MessageCircle,
   ScanLine,
   Search,
@@ -487,94 +485,16 @@ export function PublicHomeScreen({ products }: { products: Product[] }) {
         </div>
       </section>
 
-      <section data-reveal id="community" className="border-y border-line bg-[#f8fafc]">
-        <div className="mx-auto grid w-full max-w-7xl gap-9 px-4 py-14 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:px-8 lg:py-16">
-          <div className="flex flex-col justify-center">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-              {it ? "TRA COLLEZIONISTI" : "COLLECTOR TO COLLECTOR"}
-            </p>
-            <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-[.97] tracking-[-0.055em] text-ink md:text-5xl">
-              {it ? "Trova la Release che cerchi, contatta il collezionista e fai la tua offerta." : "Find the Release you want, contact the collector and make your offer."}
-            </h2>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
-              {it
-                ? "Le copie condivise dai collezionisti possono comparire direttamente nella scheda della Release. Da lì puoi entrare in contatto con il proprietario, aprire una conversazione e inviare un’offerta."
-                : "Copies shared by collectors can appear directly on the Release page. From there you can contact the owner, start a conversation and make an offer."}
-            </p>
-
-            <div className="mt-7 grid gap-3">
-              <CollectionPoint
-                icon={MessageCircle}
-                title={it ? "Chat tra collezionisti" : "Collector chat"}
-                text={it ? "Parlate della Release e dei dettagli prima di concludere." : "Discuss the Release and the details before agreeing a deal."}
-              />
-              <CollectionPoint
-                icon={HandCoins}
-                title={it ? "Offerte e controproposte" : "Offers and counteroffers"}
-                text={it ? "Invia una proposta; il venditore può accettare, rifiutare o controproporre." : "Send an offer; the seller can accept, decline or counter."}
-              />
-              <CollectionPoint
-                icon={Handshake}
-                title={it ? "Accordo e vendita confermata" : "Agreement and confirmed sale"}
-                text={it ? "Una vendita conclusa può essere confermata da entrambi e contribuire ai dati aggregati di mercato." : "A completed sale can be confirmed by both collectors and contribute to aggregated market data."}
-              />
-            </div>
-
-            <p className="mt-5 max-w-xl border-l-2 border-brand pl-4 text-xs leading-5 text-muted-foreground">
-              {it
-                ? "Pagamento e spedizione vengono concordati direttamente tra gli utenti. TrackDash facilita contatto, trattativa e conferma dell’accordo."
-                : "Collectors arrange payment and shipping directly. TrackDash supports contact, negotiation and confirmation of the agreement."}
-            </p>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link href="/signup?next=%2Fmessages" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-semibold text-white">
-                {it ? "Crea account gratuito" : "Create free account"} <ArrowRight className="size-4" />
-              </Link>
-              <Link href="/login?next=%2Fmessages" className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-5 text-sm font-semibold text-navy">
-                {it ? "Accedi ai messaggi" : "Open messages"}
-              </Link>
-            </div>
+      <section data-reveal id="community" className="border-y border-line bg-[#eef4ff]">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-7 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-8 lg:py-14">
+          <div className="max-w-2xl">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">{it ? "IL MERCATINO TRACKDASH" : "THE TRACKDASH MARKETPLACE"}</p>
+            <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-[-0.045em] text-ink md:text-4xl">{it ? "La prossima Mini 4WD della tua collezione è qui." : "Find the next Mini 4WD for your collection."}</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">{it ? "Scopri le copie in vendita, guarda foto e prezzi e fai la tua offerta al collezionista." : "Explore copies for sale, browse photos and prices, and make your offer to the collector."}</p>
           </div>
-
-          <div className="flex items-center">
-            <div className="w-full overflow-hidden border border-line bg-white shadow-[0_20px_55px_rgba(11,50,117,0.10)]">
-              <div className="flex items-center justify-between border-b border-line bg-navy px-5 py-4 text-white">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60">{it ? "TRATTATIVA" : "DEAL"}</p>
-                  <p className="mt-1 font-semibold">{it ? "Una Release tra due collezionisti" : "A Release between two collectors"}</p>
-                </div>
-                <Handshake className="size-5 text-white/80" />
-              </div>
-              <div className="space-y-3 p-5 sm:p-6">
-                <div className="ml-auto max-w-[82%] rounded-2xl rounded-br-sm bg-brand px-4 py-3 text-sm leading-5 text-white">
-                  {it ? "Ciao! È ancora disponibile? Vorrei farti un’offerta." : "Hi! Is it still available? I’d like to make an offer."}
-                </div>
-                <div className="max-w-[82%] rounded-2xl rounded-bl-sm bg-brand-muted px-4 py-3 text-sm leading-5 text-navy">
-                  {it ? "Sì, è disponibile. Mandami pure la proposta." : "Yes, it is. Send me your offer."}
-                </div>
-                <div className="mt-5 border border-line bg-[#f8fafc] p-4">
-                  <div className="flex items-center gap-2">
-                    <HandCoins className="size-4 text-brand" />
-                    <p className="text-sm font-semibold text-ink">{it ? "Offerta strutturata" : "Structured offer"}</p>
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    {it ? "Il venditore può accettare, rifiutare o inviare una controproposta." : "The seller can accept, decline or send a counteroffer."}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white">{it ? "Accetta" : "Accept"}</span>
-                    <span className="rounded-md border border-line bg-white px-3 py-2 text-xs font-semibold text-navy">{it ? "Controproponi" : "Counter"}</span>
-                    <span className="rounded-md border border-line bg-white px-3 py-2 text-xs font-semibold text-muted-foreground">{it ? "Rifiuta" : "Decline"}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 border border-brand/20 bg-brand/5 p-4">
-                  <Handshake className="size-5 shrink-0 text-brand" />
-                  <div>
-                    <p className="text-sm font-semibold text-ink">{it ? "Accordo raggiunto" : "Deal agreed"}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{it ? "Pagamento e spedizione vengono concordati direttamente tra i due collezionisti." : "Payment and shipping are arranged directly between the two collectors."}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex shrink-0 flex-col items-start gap-3">
+            <Link href={localizePublicPath("/shop", locale)} className="inline-flex h-12 items-center justify-center gap-3 rounded-xl bg-brand px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0e49c7]">{it ? "Esplora il mercatino" : "Explore the marketplace"}<ArrowRight className="size-4" /></Link>
+            <span className="text-xs text-muted-foreground">{it ? "Hai una release da vendere? Fai il tuo prezzo." : "Have a release to sell? Set your price."}</span>
           </div>
         </div>
       </section>

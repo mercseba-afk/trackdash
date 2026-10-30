@@ -115,6 +115,7 @@ test('anonymous offer click opens account invitation with exact-copy return, sig
       '@/lib/store':{useStore:()=>({hydrated:true,user:signedIn?{id:'buyer'}:null})},
       '@/lib/i18n':{useI18n:()=>({locale:'it'})},
       '@/lib/format':{formatMoney:value=>`${value} €`},
+      '@/lib/seo/catalog-paths':{localizePublicPath:(path,locale)=>locale==='en'?'/en'+path:path},
       '@/components/ui/dialog':components,
       '@/components/ui/button':components,
       '@/components/ui/input':components,

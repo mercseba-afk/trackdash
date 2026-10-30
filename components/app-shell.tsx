@@ -207,7 +207,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
     return () => { current = false }
   }, [user?.id])
   const hotWheelsPilotUser = user?.email.toLowerCase() === "merc.seba@gmail.com"
-  const shopItem: NavItem = { href: "/shop", labelKey: "", label: locale === "it" ? "In vendita" : "For sale", icon: Store }
+  const shopItem: NavItem = { href: locale === "en" ? "/en/shop" : "/shop", labelKey: "", label: locale === "it" ? "In vendita" : "For sale", icon: Store }
   const desktopNav = vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : shopAccess ? [...MINI4WD_DESKTOP_NAV.slice(0, -1), shopItem, MINI4WD_DESKTOP_NAV.at(-1)!] : MINI4WD_DESKTOP_NAV
   const mobileNav = vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : shopAccess ? [...MINI4WD_MOBILE_NAV.slice(0, 3), shopItem, MINI4WD_MOBILE_NAV[3]] : MINI4WD_MOBILE_NAV
 

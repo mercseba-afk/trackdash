@@ -49,7 +49,7 @@ function matchesPrefix(pathname: string, prefix: string) {
 }
 
 function publicSeoLocale(pathname: string): "it" | "en" | null {
-  if (pathname === "/en" || matchesPrefix(pathname, "/en/catalog") || matchesPrefix(pathname, "/en/market")) return "en"
+  if (pathname === "/en" || matchesPrefix(pathname, "/en/catalog") || matchesPrefix(pathname, "/en/market") || matchesPrefix(pathname, "/en/shop")) return "en"
 
   if (
     pathname === "/" ||

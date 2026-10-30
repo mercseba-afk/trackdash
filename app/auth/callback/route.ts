@@ -45,23 +45,27 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code")
   const flow = searchParams.get("flow")
   const isGoogleFlow = flow === "google"
+  const isSignupFlow = flow === "signup"
   const selectedLocale = oauthLocale(searchParams.get("locale"))
-  const fallback = isGoogleFlow ? DEFAULT_APP_PATH : RECOVERY_PATH
+  const fallback = isGoogleFlow || isSignupFlow ? DEFAULT_APP_PATH : RECOVERY_PATH
   const next = resolveNextPath(searchParams.get("next"), origin, fallback)
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    // Current Auth SDK stores independent PKCE verifiers per flow. Preserve
+    // the callback flow ID so simultaneous Google/signup tabs cannot mix them.
+    const flowId = searchParams.get("sb_flow_id")
+    const { error } = await supabase.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined)
 
     if (!error) {
       let destination = next
 
-      if (isGoogleFlow) {
+      if (isGoogleFlow || isSignupFlow) {
         const { data } = await supabase.auth.getUser()
         const user = data.user
         const onboardingComplete = user?.user_metadata?.onboarding_completed === true
 
-        if (user && !onboardingComplete && isFreshAccount(user)) {
+        if (user && !onboardingComplete && (isSignupFlow || isFreshAccount(user))) {
           if (selectedLocale) {
             await supabase
               .from("profiles")
@@ -81,9 +85,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (isGoogleFlow) {
+  if (isGoogleFlow || isSignupFlow) {
     const url = new URL("/login", origin)
-    url.searchParams.set("oauth_error", "google")
+    if (isGoogleFlow) url.searchParams.set("oauth_error", "google")
+    else url.searchParams.set("confirmation_error", "1")
     const requestedNext = resolveNextPath(searchParams.get("next"), origin, DEFAULT_APP_PATH)
     if (requestedNext !== DEFAULT_APP_PATH) url.searchParams.set("next", requestedNext)
     return NextResponse.redirect(url)
