@@ -1,3 +1,4 @@
+import { getShopCopies } from "@/lib/server/shop"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { PwaRootLaunchRedirect } from "@/components/pwa-root-launch-redirect"
@@ -43,10 +44,11 @@ export default async function Page() {
     console.error("Failed to load catalog data for public home:", error)
   }
 
+  const copies = await getShopCopies().catch(() => [])
   return (
     <PublicShell>
       <PwaRootLaunchRedirect />
-      <PublicHomeScreen products={products} />
+      <PublicHomeScreen products={products} copies={copies} />
     </PublicShell>
   )
 }

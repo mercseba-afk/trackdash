@@ -203,3 +203,5 @@
     animation: none;
   }
 }
+
+.td-public-home .bg-navy.text-white :is(h3,p,a,span),.td-public-home .bg-brand.text-white :is(h3,p,a,span){color:#fff}

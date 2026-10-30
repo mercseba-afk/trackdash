@@ -98,3 +98,15 @@ for(const locale of ['it','en']) {
   assert.match(html,locale==='en'?/How the marketplace works/:/Come funziona il mercatino/)
  })
 }
+
+test('home release example uses live values and concise captions without changing underlying market provenance',()=>{
+ const {load,signals}=fixture('it',{user:null,hydrated:true})
+ signals.r0={valueEUR:34.91,soldUnits:10,representativeAskItemEUR:51.81,representativeAskSellerCount:3,representativeAskOrigin:'extra_eu'}
+ const products=[{id:'family',name:'Avante Mk.III',releases:[{id:'r0',itemNumber:'95087',editionName:'Japan Cup 2015',releaseYear:2015,images:['example.jpg']}]}]
+ const html=renderToStaticMarkup(React.createElement(load('components/home-discovery.tsx').HomeDiscovery,{products,copies:[]}))
+ assert.match(html,/34,91/);assert.match(html,/51,81/)
+ assert.match(html,/10.*vendite concluse osservate/);assert.match(html,/Prezzi rilevati/)
+ assert.doesNotMatch(html,/Mediana|extra-UE|provenienza da verificare|Stima TrackDash/)
+ assert.equal(signals.r0.representativeAskOrigin,'extra_eu')
+ assert.match(html,/18012-1988-original-confezione/)
+})

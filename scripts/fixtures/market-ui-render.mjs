@@ -21,6 +21,8 @@ export function fixture(locale, state, path='/market', sources={}) {
   const source=ts.transpileModule((sources[p] ?? readFileSync(p,'utf8')),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText
   vm.runInNewContext(source,{exports,require(name){
    if(mocks[name])return mocks[name]
+   if(name.endsWith('.css'))return {}
+   if(name==='@/components/home-discovery')return load('components/home-discovery.tsx')
    if(name.startsWith('@/components/')||name==='lucide-react') return new Proxy({}, {get:(_,key)=>key==='__esModule'?true:({children})=>React.createElement('div',{'data-component':String(key)},children)})
    if(name.startsWith('@/'))return load(name.slice(2))
    if(name.startsWith('.'))return load(resolve(dirname(p),name))
