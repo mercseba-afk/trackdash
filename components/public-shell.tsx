@@ -78,7 +78,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         collection: "Collezione",
         signIn: "Accedi",
         signUp: "Crea account",
-        community: "Community",
+        shop: "Mercatino",
         exploreCatalog: "Esplora catalogo",
         footerTagline: "Scopri quanto vale ogni Release, registra la tua collezione, controlla il mercato e compra o vendi con altri collezionisti Mini 4WD.",
         explore: "Esplora",
@@ -101,7 +101,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         collection: "Collection",
         signIn: "Sign in",
         signUp: "Create account",
-        community: "Community",
+        shop: "Marketplace",
         exploreCatalog: "Explore catalog",
         footerTagline: "Discover what each Release is worth, build your collection, watch the market and buy or sell with other Mini 4WD collectors.",
         explore: "Explore",
@@ -144,8 +144,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="py-2 transition-colors hover:text-navy">
               {copy.scanner}
             </Link>
-            <Link href={`${publicHref("/")}#community`} className="py-2 transition-colors hover:text-navy">
-              {copy.community}
+            <Link href="/shop" className="py-2 transition-colors hover:text-navy">
+              {copy.shop}
             </Link>
             <Link href={`${publicHref("/")}#how-it-works`} className="py-2 transition-colors hover:text-navy">
               {copy.how}
@@ -194,8 +194,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="flex items-center gap-2 rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               <ScanLine className="size-4" /> {copy.scanner}
             </Link>
-            <Link href="/#community" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
-              {copy.community}
+            <Link href="/shop" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
+              {copy.shop}
             </Link>
             <Link href="/#how-it-works" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               {copy.how}
@@ -247,7 +247,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">TrackDash</span>
-              <Link href="/#community" className={FOOTER_LINK_CLASS}>{copy.community}</Link>
+              <Link href="/shop" className={FOOTER_LINK_CLASS}>{copy.shop}</Link>
               <Link href="/#how-it-works" className={FOOTER_LINK_CLASS}>{copy.how}</Link>
               <Link href={supportHref} className={FOOTER_LINK_CLASS}>{copy.support}</Link>
               <Link href="/privacy" className={FOOTER_LINK_CLASS}>{copy.privacy}</Link>

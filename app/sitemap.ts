@@ -97,5 +97,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   )
 
-  return [...staticRoutes, ...productRoutes, ...releaseRoutes]
+  return [...staticRoutes, { url: `${SITE_URL}/shop`, changeFrequency: "daily", priority: 0.85 }, ...productRoutes, ...releaseRoutes]
 }

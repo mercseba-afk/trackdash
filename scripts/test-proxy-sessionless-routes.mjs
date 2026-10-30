@@ -188,3 +188,14 @@ test("each excluded route authenticates independently before touching data", () 
   assert.ok(daily.includes('request.headers.get("authorization") !== `Bearer ${secret}`'))
   assert.ok(ebay.includes("isCronSecret(token) || await isTrustedGithubAction(token)"))
 })
+
+
+test("public mercatino and copy details are accessible while offers and messages remain protected", async () => {
+  const app = createProxy()
+  for (const path of ["/shop", "/shop/11111111-1111-4111-8111-111111111111"]) {
+    assert.equal((await app.proxy(request(path))).kind, "next")
+  }
+  for (const path of ["/messages", "/collection", "/shop-lookalike"]) {
+    assert.equal((await app.proxy(request(path))).kind, "redirect")
+  }
+})
