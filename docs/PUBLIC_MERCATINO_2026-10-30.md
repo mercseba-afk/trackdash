@@ -12,3 +12,10 @@
 - No scanner runs, scheduler changes, caps, market-price recalculation or database migration.
 
 Validation: full verify including TypeScript, catalog/market/auth/proxy regression checks; 11 shop tests covering anonymous/authenticated projection, hidden/archived and reserved exclusions, fail-closed reservation lookup, private-ID stripping, mobile navigation, offer invitation return paths and server-side authentication before writes. Browser binary unavailable in this workspace; no browser end-to-end claim. Production anonymous HTTP and metadata checks recorded at release.
+
+## Production verification
+
+Production `64c11f362e26ea9add7cc0a03d6ee9db768a67a5`, Vercel `dpl_CnGj8VSpyw8SaVFzyg4Tiqwm7ahG`, READY.
+Initial anonymous HTTP test caught a 500: Supabase logs showed permission denied on collection_shares for the backend service role. Applied idempotent SELECT grants on only the required columns of collection_shares, collector_profiles, products, brands, product_images and release_images (see scripts/sql/grant-public-shop-server-projection-2026-10-30.sql). No anon grants or RLS policy changes. Existing service grants on product_releases/photos/deal tables retained.
+Anonymous `/shop` then returned 200 with exact H1, SEO title and four active copy links. Homepage returned 200 and the Mercatino navigation link. Runtime Vercel logs were inaccessible (403); diagnosis used Supabase postgres/edge logs instead. Security advisors reviewed before/after; existing unrelated notices remain outside this change.
+Detail copy returned 200 with offer CTA and noindex/follow; malformed share ID returned 404. Sitemap includes /shop; messages still redirect to login. Public HTML has canonical, index/follow, Open Graph title and no private projection identifiers.
