@@ -18,7 +18,8 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } from "@/lib/market/collector-sold-trend-comparison"
 import { classifyOfferOrigin } from "@/lib/market/offer-origin"
-import { representativeAskingMedian, collectionAskingMedian } from "@/lib/market/representative-asking"
+import { withCatalogAskingReference } from "@/lib/market/collection-valuation"
+import { representativeAskingMedian } from "@/lib/market/representative-asking"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -263,19 +264,6 @@ export function toPublicMarketSignalView(
     }
   })
   const representativeAsk = representativeAskingMedian(askingCandidates, asOf)
-  // The collection may keep a dated quote when current offers are sparse.
-  // observedOffers already excludes unavailable states; retain exact/source
-  // checks while allowing a longer clearly dated ASK reference.
-  const collectionCandidates = observedOffers.map((offer) => ({
-    listingKey: offer.listingKey, sellerFingerprint: offer.sellerFingerprint,
-    itemPriceEUR: numberOrNull(offer.itemPriceEUR),
-    origin: classifyOfferOrigin(offer.originCountry, offer.sourceMarketRegion),
-    originCountry: offer.originCountry, sourceSlug: offer.sourceSlug,
-    sourceMarketRegion: offer.sourceMarketRegion, deliveredToItaly: false,
-    checkedAt: new Date(offer.lastCheckedAt).toISOString(),
-    acceptedExactKit: offer.acceptedExactKit,
-  }))
-  const collectionAsk = collectionAskingMedian(collectionCandidates, asOf)
   // A formerly observed ASK is valuable historical evidence, NOT proof that
   // its listing is still purchasable. Preserve its dated KIT-ONLY component
   // separately, without feeding stale quotes into the current-offer pipeline.
@@ -333,15 +321,9 @@ export function toPublicMarketSignalView(
 
   if (!hasMarketEvidence) return null
 
-  return {
+  const view: ReleaseMarketSignalView = {
     offersValidUntil: offerDeadlines.length ? new Date(Math.min(...offerDeadlines)).toISOString() : null,
     marketRegime: signal.marketRegime as ReleaseMarketRegime,
-    collectionAskItemEUR: collectionAsk?.itemPriceEUR ?? null,
-    collectionAskSellerCount: collectionAsk?.sellerCount ?? 0,
-    collectionAskObservedAt: collectionAsk?.observedAt ?? null,
-    collectionAskOrigin: collectionAsk?.origin ?? "unknown",
-    collectionAskIsHistorical: collectionAsk?.isHistorical ?? false,
-    collectionAskValidUntil: collectionAsk?.validUntil ?? null,
     valueEUR: valueEUR != null && valueEUR > 0 ? valueEUR : null,
     lowEUR: numberOrNull(signal.lowEUR),
     highEUR: numberOrNull(signal.highEUR),
@@ -415,6 +397,7 @@ export function toPublicMarketSignalView(
         : null,
     computedAt: signal.computedAt instanceof Date ? signal.computedAt.toISOString() : String(signal.computedAt),
   }
+  return withCatalogAskingReference(view)
 }
 
 export async function getPublicMarketSignalForRelease(

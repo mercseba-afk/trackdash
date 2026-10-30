@@ -201,7 +201,7 @@ function PreviewPricePanel({
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
         <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-semibold leading-snug text-foreground/85 sm:text-xs">
           <Tag className="size-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-          {it ? "Prezzo negli annunci" : "Listing price"}
+          {it ? "Prezzi negli annunci" : "Listing prices"}
         </span>
         {askingEUR != null ? (
           <div className="text-right">

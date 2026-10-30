@@ -71,7 +71,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       <DashboardMarketOverview products={catalogProducts} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dashboard.collectionValue")} value={summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : <span className="text-base font-medium">{it ? "Da valutare" : "Awaiting valuation"}</span>} icon={Coins} accent hint={<span>{summary.marketReferenceCount}/{summary.count} {it ? "copie valutate · prezzi richiesti" : "copies valued · asking prices"}{summary.marketReferenceCount < summary.count ? (it ? " · totale parziale" : " · partial total") : ""}</span>} />
+        <StatCard label={t("dashboard.collectionValue")} value={summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : <span className="text-base font-medium">{it ? "Da valutare" : "Awaiting valuation"}</span>} icon={Coins} accent hint={<span>{summary.marketReferenceCount}/{summary.count} {it ? "copie · prezzi negli annunci" : "copies valued · asking prices"}{summary.marketReferenceCount < summary.count ? (it ? " · totale parziale" : " · partial total") : ""}</span>} />
         <StatCard label={it ? "Differenza indicativa" : "Indicative difference"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati sufficienti non ancora disponibili" : "Not enough data yet"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
@@ -80,8 +80,8 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.soldReferenceCount > 0 || summary.observedPriceCount > 0 ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Prezzi richiesti osservati, con priorità Italia e UE. Provenienza e numero di venditori accompagnano ogni riferimento. Prezzi del solo kit."
-            : "Seller asking prices, with Italy/EU priority. Each reference shows provenance and seller count. Kit prices only."}
+            ? "Valore basato sui prezzi negli annunci. Gli importi corrispondono a quelli mostrati nel catalogo. Prezzi del solo kit."
+            : "Value based on listing prices. Amounts match the catalog. Kit prices only."}
         </p>
       ) : null}
 
@@ -98,7 +98,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
               <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
-              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
+              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{it ? "Prezzi negli annunci" : "Listing prices"}</p><p className="text-[10px] text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
             </Link>
           ))}
         </CardContent>
@@ -116,7 +116,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
                 {entry.marketReferenceValue != null ? (
-                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)}</p></div>
+                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{it ? "Prezzi negli annunci" : "Listing prices"}</p><p className="text-[10px] text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)}</p></div>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{it ? "Da valutare" : "Awaiting valuation"}</p>
                 )}

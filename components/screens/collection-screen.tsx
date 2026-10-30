@@ -159,8 +159,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "Il totale segue i prezzi richiesti osservati per la stessa release: priorità Italia e UE, poi mercato internazionale. Una quotazione offre un riferimento; più venditori formano una mediana. Le quotazioni precedenti mantengono la data di osservazione. Prezzi del solo kit."
-      : "The total follows observed asking prices for the same release: Italy/EU first, then international markets. One quote is a reference; multiple sellers form a median. Earlier quotes retain their observation date. Kit prices only."}
+      ? "Il totale somma i prezzi negli annunci mostrati nel catalogo per le tue copie sigillate. Una quotazione offre un riferimento; più venditori formano una mediana. Prezzi del solo kit, spedizione esclusa."
+      : "The total sums the catalog listing prices for your sealed copies. One quote is a reference; multiple sellers form a median. Kit prices only, shipping excluded."}
   </p>
 ) : null}
             </div>
@@ -290,12 +290,13 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           </div>
 
           <div className="mt-7">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore indicativo della collezione" : "Indicative collection value"}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "La tua collezione, oggi" : "Your collection, today"}</p>
 <p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : (it ? "Da valutare" : "Awaiting valuation")}</p>
+<p className="mt-2 text-sm text-muted-foreground">{it ? "Valore basato sui prezzi negli annunci." : "Value based on listing prices."}</p>
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
   {summary.marketReferenceCount}/{summary.count} {it ? "copie valutate" : "copies valued"}
   {summary.marketReferenceCount < summary.count ? (it ? " · totale parziale" : " · partial total") : ""}.
-  {" "}{it ? "Prezzi richiesti osservati · solo kit, spedizione esclusa." : "Seller asking prices · kit only, shipping excluded."}
+
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
@@ -330,7 +331,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         <div className="min-w-0 pr-3">
           <p className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-foreground/85 sm:text-xs">
             <Coins className="size-3.5 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <span>{it ? "Valore indicativo" : "Indicative value"}</span>
+            <span>{it ? "Prezzi negli annunci" : "Listing prices"}</span>
           </p>
           <strong className="mt-1 block text-base font-semibold tabular-nums text-foreground sm:text-lg">
             {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : (it ? "Da valutare" : "Awaiting valuation")}

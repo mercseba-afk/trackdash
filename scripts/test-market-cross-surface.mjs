@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
+import { expirePublicMarketSignals } from "../lib/market/snapshot-expiry.ts"
 import { sealedCollectionReference } from "../lib/market/collection-valuation.ts"
 
 // Snapshot changes must propagate through one shared client market-signal map.
@@ -52,7 +53,7 @@ const s = (extra = {}) => ({
   historicalAskItemEUR: null, ...extra,
 })
 const clock = Date.parse("2026-10-30T08:00:00Z")
-const quote = (value) => s({collectionAskItemEUR:value,collectionAskSellerCount:2,collectionAskObservedAt:new Date(clock).toISOString(),offersValidUntil:"2026-11-01T00:00:00Z"})
+const quote = (value) => s({representativeAskItemEUR:value,representativeAskSellerCount:2,collectionAskItemEUR:value,collectionAskSellerCount:2,collectionAskObservedAt:new Date(clock).toISOString(),offersValidUntil:"2026-11-01T00:00:00Z"})
 const portfolio = (snapshot) => Object.values(snapshot).reduce((total, signal) => total + (sealedCollectionReference(signal, clock)?.valueEUR ?? 0), 0)
 const initial = {dyna:quote(25),manta:quote(30),avante:quote(20)}
 assert.equal(portfolio(initial),75)
@@ -61,6 +62,6 @@ assert.equal(portfolio(changedSold),75,"SOLD/MV updates cannot change an ASK-onl
 const refreshed = {...initial,dyna:quote(28)}
 assert.equal(portfolio(refreshed),78,"New external asking medians update the collection")
 const expired = {...refreshed,avante:{...refreshed.avante,offersValidUntil:"2026-10-29T00:00:00Z"}}
-assert.equal(portfolio(expired),58,"Expired quotes leave a partial total, never a SOLD fallback")
+assert.equal(portfolio(expirePublicMarketSignals(expired, clock)),58,"Expired quotes leave a partial total, never a SOLD fallback")
 assert.equal(sealedCollectionReference(s({valueEUR:14.92,soldAnchorEUR:16.13,soldUnits:5}),clock),null)
 console.log("Cross-surface contract passed: shared refresh, ASK-only totals/ranking, no SOLD fallback and TTL expiry")

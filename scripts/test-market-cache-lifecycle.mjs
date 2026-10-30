@@ -139,7 +139,7 @@ test("projection deadlines preserve inclusive 15/31d TTL and representative ASK'
   assert.equal(project([retail]).offersValidUntil, iso(Date.parse(retail.lastCheckedAt) + 31 * DAY))
 })
 
-test("immutable expiry preserves MV/SOLD/trend/history, excludes expired ASK from Collection and Wishlist", () => {
+test("immutable expiry retains dated catalog/Collection ASK and removes purchasable Wishlist claims", () => {
   const clock = { now: BASE }, { project, load } = projection(clock)
   const original = { r: project([offer("a", 10)]) }
   const { expirePublicMarketSignals } = load("lib/market/snapshot-expiry.ts")
@@ -154,9 +154,9 @@ test("immutable expiry preserves MV/SOLD/trend/history, excludes expired ASK fro
   const { observedMarketKnownPurchaseCost, observedMarketReferenceIsHistorical } = load("lib/market/presentation.ts")
   assert.equal(observedMarketKnownPurchaseCost(expired.r), null)
   assert.equal(observedMarketReferenceIsHistorical(expired.r), true)
-  assert.equal(sealedCollectionReference(expired.r), null)
-  assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null }), null)
-  assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null, soldUnits: 0, soldAnchorEUR: null }), null)
+  assert.equal(sealedCollectionReference(expired.r).valueEUR, 10)
+  assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null }).valueEUR, 10)
+  assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null, soldUnits: 0, soldAnchorEUR: null }).valueEUR, 10)
   assert.equal(expirePublicMarketSignals(expired, Date.parse(original.r.observedPriceAt) + 180 * DAY + 1).r.historicalAskItemEUR, null)
 })
 
@@ -380,9 +380,9 @@ test("real analytics use ASK-only totals and rankings while Wishlist keeps separ
   const { expirePublicMarketSignals } = load("lib/market/snapshot-expiry.ts")
   const current = project([offer("a", 10), {...offer("b", 20), sourceSlug:"ebay_active_public"}])
   const signals = {
-    mv: { ...current, collectionAskItemEUR:30, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500) },
-    sold: { ...current, collectionAskItemEUR:25, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500), valueEUR: null, soldAnchorEUR: 25 },
-    ask: { ...current, collectionAskItemEUR:10, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500), valueEUR: null, soldAnchorEUR: null, soldUnits: 0 },
+    mv: { ...current, representativeAskItemEUR:30, collectionAskItemEUR:30, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500) },
+    sold: { ...current, representativeAskItemEUR:25, collectionAskItemEUR:25, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500), valueEUR: null, soldAnchorEUR: 25 },
+    ask: { ...current, representativeAskItemEUR:10, collectionAskItemEUR:10, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500), valueEUR: null, soldAnchorEUR: null, soldUnits: 0 },
   }
   const catalog = [{ id: "p", releases: Object.keys(signals).map((id) => ({ id })) }]
   const owned = ["mv", "sold", "ask"].map((releaseId, i) => ({ id: String(i), productId: "p", releaseId, condition: "Sealed", acquisitionPriceEUR: 20 }))
@@ -399,25 +399,25 @@ test("real analytics use ASK-only totals and rankings while Wishlist keeps separ
   assert.equal(enrichWishlist(wishlist, signals, catalog)[0].belowTarget, true)
   const expired = expirePublicMarketSignals(signals, BASE + 501)
   const after = portfolioSummary(enrichCollection(owned, expired, catalog))
-  assert.equal(after.marketReferenceValue, 65)
+  assert.equal(after.marketReferenceValue, 30)
   assert.equal(after.marketReferenceCount, 3)
-  assert.equal(after.gain, 5)
+  assert.equal(after.gain, -30)
   assert.equal(enrichWishlist(wishlist, expired, catalog)[0].belowTarget, false)
-  const outdated = expirePublicMarketSignals(signals, Date.parse(current.collectionAskValidUntil) + 1)
+  const outdated = expirePublicMarketSignals(signals, BASE + 181 * DAY)
   assert.equal(portfolioSummary(enrichCollection(owned, outdated, catalog)).marketReferenceValue, 0)
   assert.equal(JSON.stringify(owned), unchanged, "never mutate copy identities/conditions/acquisition data")
 })
 
-test("collection projection uses an independent EU median and preserves the separate international ASK", () => {
+test("collection projection mirrors the exact catalog asking price for every geography", () => {
   const { project } = projection({now:BASE})
   const external = (id, price, country) => ({...offer(id,price,BASE),sourceSlug:"ebay_active_public",originCountry:country})
   const result = project([external("it-a",30,"IT"),external("it-b",40,"IT"),external("jp",1,"JP")])
-  assert.equal(result.collectionAskItemEUR,35)
-  assert.equal(result.collectionAskSellerCount,2)
+  assert.equal(result.collectionAskItemEUR,30)
+  assert.equal(result.collectionAskSellerCount,3)
   assert.equal(result.representativeAskItemEUR,30)
   assert.equal(result.valueEUR,30)
   const sparse = project([external("it-a",30,"IT"),external("jp",1,"JP")])
-  assert.equal(sparse.collectionAskItemEUR,30)
+  assert.equal(sparse.collectionAskItemEUR,15.5)
   const changed = project([external("it-a",30,"IT"),external("it-b",50,"IT")])
   assert.equal(changed.collectionAskItemEUR,40)
 })

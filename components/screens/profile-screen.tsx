@@ -126,7 +126,7 @@ export function ProfileScreen() {
         <ProfileStat label={t("profile.shared")} value={String(shares.length)} icon={Globe} />
         <ProfileStat label={t("profile.offers")} value={String(offers)} icon={Handshake} />
         <ProfileStat label={t("profile.wishlist")} value={String(wishlist.length)} icon={Heart} />
-        <ProfileStat label={`${locale === "it" ? "Valore indicativo" : "Indicative value"} · ${summary.marketReferenceCount}/${summary.count}`} value={marketValueLabel} icon={Trophy} />
+        <ProfileStat label={`${locale === "it" ? "La tua collezione, oggi" : "Your collection, today"} · ${summary.marketReferenceCount}/${summary.count}`} value={marketValueLabel} icon={Trophy} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">

@@ -1,5 +1,7 @@
 import type { ReleaseMarketSignalMap, ReleaseMarketSignalView } from "./view-types"
 
+import { withCatalogAskingReference } from "./collection-valuation.ts"
+
 const HISTORICAL_ASK_MAX_AGE_MS = 180 * 86_400_000
 
 function historicalDeadline(signal: ReleaseMarketSignalView): number | null {
@@ -45,11 +47,6 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
         currentOfferCount: 0, activeOfferCount: 0, retailSourceCount: 0,
       }
     }
-    const collectionExpiry = Date.parse(signal.collectionAskValidUntil ?? "")
-    if (signal.collectionAskItemEUR != null && (!Number.isFinite(collectionExpiry) || now > collectionExpiry)) {
-      signal = { ...signal, collectionAskItemEUR: null, collectionAskSellerCount: 0,
-        collectionAskObservedAt: null, collectionAskOrigin: "unknown", collectionAskIsHistorical: false, collectionAskValidUntil: null }
-    }
     const historicalExpiry = historicalDeadline(signal)
     if (historicalExpiry != null && now > historicalExpiry) {
       signal = {
@@ -58,6 +55,7 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
         historicalAskShippingEUR: null, historicalAskItemPlusShippingEUR: null,
       }
     }
+    if (Object.hasOwn(original, "collectionAskItemEUR")) signal = withCatalogAskingReference(signal)
     if (signal !== original) {
       if (result === signals) result = { ...signals }
       result[id] = signal

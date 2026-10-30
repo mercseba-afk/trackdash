@@ -115,7 +115,7 @@ if (!marketInline.includes("showBothReferences") || !marketInline.includes("Vend
 }
 if (!marketInline.includes("<PreviewPricePanel") ||
     !marketInline.includes("Riferimento mercato") ||
-    !marketInline.includes("Prezzo negli annunci") ||
+    !marketInline.includes("Prezzi negli annunci") ||
     !marketInline.includes("Ultima offerta osservata") ||
     !marketInline.includes("vendite concluse")) {
   errors.push("Release previews must keep identical plain-language market/ask rows with optional sale evidence")
@@ -161,7 +161,7 @@ if (!marketOverview.includes("const reference = mv ?? sold") ||
   errors.push("Release detail must prefer canonical MV, then use SOLD only as a clearly identified weaker reference")
 }
 if (!marketOverview.includes("Riferimento mercato") ||
-    !marketOverview.includes("Prezzo negli annunci") ||
+    !marketOverview.includes("Prezzi negli annunci") ||
     !marketOverview.includes("vendita conclusa") ||
     !marketOverview.includes("vendite concluse")) {
   errors.push("Release detail must retain separate market-reference and seller-ASK rows, with real completed-sale count")
@@ -297,7 +297,7 @@ if (!analyticsSource.includes("marketReferenceValue != null") || !analyticsSourc
   errors.push("Collection comparisons must use the same asking-price basis as its total")
 }
 const collectionReferencePolicy = fs.readFileSync("lib/market/collection-valuation.ts", "utf8")
-if (!collectionReferencePolicy.includes("signal.collectionAskItemEUR") ||
+if (!collectionReferencePolicy.includes("observedMarketReferencePrice(signal)") ||
     collectionReferencePolicy.includes('kind: "sold"') || collectionReferencePolicy.includes('kind: "estimated"')) {
   errors.push("Collection must use only the verified collection asking median")
 }
@@ -444,7 +444,7 @@ if (!collectionScreen.includes("CollectionMarketValue entry={entry} it={it}") ||
     !collectionScreen.includes('entry.marketSignal.soldUnits > 0')) {
   errors.push("Collection must show an evidence badge only when real SOLD exists")
 }
-if (!collectionScreen.includes("Valore indicativo") ||
+if (!collectionScreen.includes("Prezzi negli annunci") ||
     !collectionScreen.includes("Prezzo richiesto") ||
     !collectionScreen.includes("Vendite concluse") ||
     !collectionScreen.includes("const mainPrice = entry.marketReferenceValue")) {

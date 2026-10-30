@@ -196,7 +196,7 @@ export function CollectionItemDetailScreen({
       ) : null}
 
       <Card><CardContent className="pt-6">
-        <p className="text-xs font-medium text-muted-foreground">{it ? "Valore indicativo della copia" : "Indicative copy value"}</p>
+        <p className="text-xs font-medium text-muted-foreground">{it ? "Prezzi negli annunci" : "Listing prices"}</p>
         <p className="mt-1 text-2xl font-semibold text-brand">{entry.marketReferenceValue != null ? `≈ ${formatMoney(entry.marketReferenceValue)}` : (it ? "Da valutare" : "Awaiting valuation")}</p>
         <p className="mt-2 text-xs text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)} · {it ? "solo kit" : "kit only"}</p>
       </CardContent></Card>

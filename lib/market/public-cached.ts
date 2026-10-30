@@ -16,7 +16,7 @@ export const PUBLIC_MARKET_MAP_REVALIDATE_SECONDS = 60
 
 const readCachedPublicMarketSignalMap = unstable_cache(
   async () => getPublicMarketSignalMap(),
-  ["trackdash-public-market-signal-map-v4-flexible-collection-ask"],
+  ["trackdash-public-market-signal-map-v5-catalog-collection-same-ask"],
   { revalidate: PUBLIC_MARKET_MAP_REVALIDATE_SECONDS },
 )
 
