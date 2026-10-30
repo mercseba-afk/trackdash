@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, ScanLine, X } from "lucide-react"
+import { Menu, ScanLine, Store, X } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { BrandMark } from "@/components/brand-mark"
 import { SocialFollow } from "@/components/facebook-link"
@@ -144,11 +144,11 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="py-2 transition-colors hover:text-navy">
               {copy.scanner}
             </Link>
-            <Link href={publicHref("/shop")} className="py-2 transition-colors hover:text-navy">
-              {copy.shop}
-            </Link>
             <Link href={`${publicHref("/")}#how-it-works`} className="py-2 transition-colors hover:text-navy">
               {copy.how}
+            </Link>
+            <Link href={publicHref("/shop")} aria-current={currentPath === publicHref("/shop") || currentPath.startsWith(`${publicHref("/shop")}/`) ? "page" : undefined} className="inline-flex items-center gap-2 rounded-lg bg-brand-muted px-3 py-2 font-semibold text-brand transition-colors hover:bg-blue-100">
+              <Store className="size-4" aria-hidden="true" /> {copy.shop}
             </Link>
           </nav>
 
@@ -194,11 +194,11 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link href={scannerHref} className="flex items-center gap-2 rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               <ScanLine className="size-4" /> {copy.scanner}
             </Link>
-            <Link href={publicHref("/shop")} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
-              {copy.shop}
-            </Link>
-            <Link href="/#how-it-works" className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
+            <Link href={`${publicHref("/")}#how-it-works`} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
               {copy.how}
+            </Link>
+            <Link href={publicHref("/shop")} className="flex items-center gap-2 rounded-lg bg-brand-muted px-3 py-3 text-brand transition-colors hover:bg-blue-100" onClick={() => setMenuOpen(false)}>
+              <Store className="size-4" aria-hidden="true" /> {copy.shop}
             </Link>
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
               <Link
