@@ -194,11 +194,16 @@ export function CollectionItemDetailScreen({
         </div>
       ) : null}
 
+      <Card><CardContent className="pt-6">
+        <p className="text-xs font-medium text-muted-foreground">{it ? "Valore indicativo della copia" : "Indicative copy value"}</p>
+        <p className="mt-1 text-2xl font-semibold text-brand">{entry.marketReferenceValue != null ? `≈ ${formatMoney(entry.marketReferenceValue)}` : (it ? "Da valutare" : "Awaiting valuation")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{it ? "Mediana dei prezzi richiesti verificati · Italia/UE · spedizione esclusa" : "Verified asking-price median · Italy/EU · shipping excluded"}</p>
+      </CardContent></Card>
       <ReleaseMarketOverview signal={entry.marketSignal} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">{it ? "Prezzo pagato" : "Purchase price"}</p><p className="mt-1 text-xl font-semibold">{entry.item.acquisitionPrice > 0 ? formatMoney(entry.item.acquisitionPrice, entry.item.acquisitionCurrency) : "—"}</p><p className="mt-1 text-xs text-muted-foreground">{entry.item.acquisitionDate ? formatDate(entry.item.acquisitionDate) : (it ? "Data non indicata" : "Date not provided")}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">{it ? "Rendimento personale" : "Personal performance"}</p><p className="mt-1 text-xl font-semibold">{gain != null ? `${gain > 0 ? "+" : ""}${formatMoney(gain)}` : "—"}</p><p className="mt-1 text-xs text-muted-foreground">{gainPercent != null ? formatPercent(gainPercent) : (it ? "Non calcolabile" : "Not available")}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">{it ? "Differenza indicativa" : "Indicative difference"}</p><p className="mt-1 text-xl font-semibold">{gain != null ? `${gain > 0 ? "+" : ""}${formatMoney(gain)}` : "—"}</p><p className="mt-1 text-xs text-muted-foreground">{gainPercent != null ? formatPercent(gainPercent) : (it ? "Non calcolabile" : "Not available")}</p></CardContent></Card>
       </div>
 
       {editing ? (

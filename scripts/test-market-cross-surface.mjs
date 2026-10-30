@@ -51,25 +51,16 @@ const s = (extra = {}) => ({
   startingCostBasis: null, currentAskOrigin: "unknown", observedShippingEUR: null,
   historicalAskItemEUR: null, ...extra,
 })
-const portfolio = (snapshot) => Object.values(snapshot).reduce((total, signal) => {
-  return total + (sealedCollectionReference(signal)?.valueEUR ?? 0)
-}, 0)
-const initial = {
-  dyna: s({ valueEUR: 14.92, soldAnchorEUR: 14.92, soldUnits: 5 }),
-  proto: s({ valueEUR: 12.72, soldAnchorEUR: 12.72, soldUnits: 7 }),
-  manta: s({ soldAnchorEUR: 16.13, soldUnits: 1, historicalAskItemEUR: 13.39 }),
-  avante: s({ startingItemPriceEUR: 16.05, startingEffectiveCostEUR: 27.36, startingCostBasis: "delivered", observedShippingEUR: 11.31 }),
-}
-assert.equal(Math.round(portfolio(initial) * 100), 5982)
-const refreshed = {
-  ...initial,
-  dyna: { ...initial.dyna, valueEUR: 22.42, soldAnchorEUR: 22.42 },
-  manta: { ...initial.manta, soldAnchorEUR: 19.13 },
-}
-assert.equal(Math.round(portfolio(refreshed) * 100), 7032, "New MV and SOLD change the indicative collection total")
-const expiredAsk = { ...refreshed, avante: s({ historicalAskItemEUR: 16.05 }) }
-assert.equal(Math.round(portfolio(expiredAsk) * 100), 5427, "Expired ASK cannot keep an owned-kit valuation")
-assert.equal(sealedCollectionReference(s({ startingItemPriceEUR: 13.39, currentAskOrigin: "extra_eu" })), null)
-assert.equal(sealedCollectionReference(s({ soldAnchorEUR: 16.13, soldUnits: 0 })), null)
-
-console.log("Cross-surface market contract passed: shared polling, mobile refresh, live total/ranking, MV/SOLD/ASK updates and TTL expiry")
+const clock = Date.parse("2026-10-30T08:00:00Z")
+const quote = (value) => s({collectionAskItemEUR:value,collectionAskSellerCount:2,collectionAskObservedAt:new Date(clock).toISOString(),offersValidUntil:"2026-11-01T00:00:00Z"})
+const portfolio = (snapshot) => Object.values(snapshot).reduce((total, signal) => total + (sealedCollectionReference(signal, clock)?.valueEUR ?? 0), 0)
+const initial = {dyna:quote(25),manta:quote(30),avante:quote(20)}
+assert.equal(portfolio(initial),75)
+const changedSold = {...initial,dyna:{...initial.dyna,valueEUR:999,soldAnchorEUR:999,soldUnits:50}}
+assert.equal(portfolio(changedSold),75,"SOLD/MV updates cannot change an ASK-only total")
+const refreshed = {...initial,dyna:quote(28)}
+assert.equal(portfolio(refreshed),78,"New external asking medians update the collection")
+const expired = {...refreshed,avante:{...refreshed.avante,offersValidUntil:"2026-10-29T00:00:00Z"}}
+assert.equal(portfolio(expired),58,"Expired quotes leave a partial total, never a SOLD fallback")
+assert.equal(sealedCollectionReference(s({valueEUR:14.92,soldAnchorEUR:16.13,soldUnits:5}),clock),null)
+console.log("Cross-surface contract passed: shared refresh, ASK-only totals/ranking, no SOLD fallback and TTL expiry")

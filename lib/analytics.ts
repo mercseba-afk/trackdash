@@ -67,9 +67,8 @@ export function enrichCollection(
       const marketSignal = marketSignals[release.id] ?? null
       const comparableCondition = conditionUsesNewUnbuiltReference(item.condition)
       const marketValue = comparableCondition ? marketSignal?.valueEUR ?? null : null
-      // The UI may still show the last dated ASK on the Release card, but
-      // the portfolio only sums canonically estimated MV, exact completed-sale
-      // references or genuinely comparable current ASK (in that order).
+      // Collection references have one asking-price basis. Release-level
+      // MV and completed sales remain separate market context.
       const observedPrice = comparableCondition ? observedMarketReferencePrice(marketSignal) : null
       const portfolioReference = comparableCondition ? sealedCollectionReference(marketSignal) : null
       const marketReferenceValue = portfolioReference?.valueEUR ?? null
@@ -77,11 +76,11 @@ export function enrichCollection(
       const marketTrend = comparableCondition ? collectorMarketTrend(marketSignal) : null
       const acquisitionBasisEUR = item.acquisitionPriceEUR ?? null
       const canCalculatePersonalPerformance =
-        marketValue != null &&
+        marketReferenceValue != null &&
         acquisitionBasisEUR != null &&
         acquisitionBasisEUR > 0
       const personalGainEUR = canCalculatePersonalPerformance
-        ? marketValue - acquisitionBasisEUR
+        ? marketReferenceValue! - acquisitionBasisEUR
         : null
       const personalGainPercent = canCalculatePersonalPerformance
         ? (personalGainEUR! / acquisitionBasisEUR) * 100
@@ -135,7 +134,7 @@ export function portfolioSummary(enriched: EnrichedCollectionItem[]): PortfolioS
   const referenced = enriched.filter((entry) => entry.marketReferenceValue != null)
   const marketReferenceValue = referenced.reduce((sum, entry) => sum + (entry.marketReferenceValue ?? 0), 0)
   const observedPriceCount = referenced.filter((entry) => entry.marketReferenceKind === "observed").length
-  const soldReferenceCount = referenced.filter((entry) => entry.marketReferenceKind === "sold").length
+  const soldReferenceCount = 0 // collection totals never use SOLD fallbacks
 
   const normalizedPurchases = enriched.filter(
     (entry) => entry.item.acquisitionPriceEUR != null && entry.item.acquisitionPriceEUR > 0,
@@ -200,9 +199,9 @@ export function breakdownBy(
     const label = key(entry)
     const current = map.get(label) ?? { label, count: 0, valuedCount: 0, value: 0 }
     current.count += 1
-    if (entry.marketValue != null) {
+    if (entry.marketReferenceValue != null) {
       current.valuedCount += 1
-      current.value += entry.marketValue
+      current.value += entry.marketReferenceValue
     }
     map.set(label, current)
   }

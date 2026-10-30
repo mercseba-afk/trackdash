@@ -18,7 +18,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } from "@/lib/market/collector-sold-trend-comparison"
 import { classifyOfferOrigin } from "@/lib/market/offer-origin"
-import { representativeAskingMedian } from "@/lib/market/representative-asking"
+import { representativeAskingMedian, collectionAskingMedian } from "@/lib/market/representative-asking"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -240,7 +240,7 @@ export function toPublicMarketSignalView(
   const observedOffer = startingFreshObservedOffer(freshOffers, signal.startingOfferCandidateId, asOf)
   // Presentation-only median from current exact-Release listing evidence.
   // This cannot change the canonically selected shopping offer or Market Value.
-  const representativeAsk = representativeAskingMedian(freshOffers.map((offer) => {
+  const askingCandidates = freshOffers.map((offer) => {
     const itemPriceEUR = numberOrNull(offer.itemPriceEUR)
     const shippingEUR = numberOrNull(offer.shippingEUR)
     const effectiveCostEUR = numberOrNull(offer.effectiveCostEUR)
@@ -250,6 +250,9 @@ export function toPublicMarketSignalView(
       effectiveCostEUR != null && effectiveCostEUR > 0 &&
       Math.abs(itemPriceEUR + shippingEUR - effectiveCostEUR) <= 0.025
     return {
+      originCountry: offer.originCountry,
+      sourceSlug: offer.sourceSlug,
+      sourceMarketRegion: offer.sourceMarketRegion,
       listingKey: offer.listingKey,
       sellerFingerprint: offer.sellerFingerprint,
       itemPriceEUR,
@@ -258,7 +261,9 @@ export function toPublicMarketSignalView(
       checkedAt: offer.lastCheckedAt instanceof Date ? offer.lastCheckedAt.toISOString() : String(offer.lastCheckedAt),
       acceptedExactKit: offer.acceptedExactKit,
     }
-  }), asOf)
+  })
+  const representativeAsk = representativeAskingMedian(askingCandidates, asOf)
+  const collectionAsk = collectionAskingMedian(askingCandidates, asOf)
   // A formerly observed ASK is valuable historical evidence, NOT proof that
   // its listing is still purchasable. Preserve its dated KIT-ONLY component
   // separately, without feeding stale quotes into the current-offer pipeline.
@@ -319,6 +324,9 @@ export function toPublicMarketSignalView(
   return {
     offersValidUntil: offerDeadlines.length ? new Date(Math.min(...offerDeadlines)).toISOString() : null,
     marketRegime: signal.marketRegime as ReleaseMarketRegime,
+    collectionAskItemEUR: collectionAsk?.itemPriceEUR ?? null,
+    collectionAskSellerCount: collectionAsk?.sellerCount ?? 0,
+    collectionAskObservedAt: collectionAsk?.observedAt ?? null,
     valueEUR: valueEUR != null && valueEUR > 0 ? valueEUR : null,
     lowEUR: numberOrNull(signal.lowEUR),
     highEUR: numberOrNull(signal.highEUR),

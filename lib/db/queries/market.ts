@@ -40,6 +40,7 @@ export interface CurrentObservedOfferRow {
   lastCheckedAt: Date
   /** Seller's verified shipping origin, never eBay marketplace country. */
   originCountry: string | null
+  sourceSlug?: string | null
   sourceMarketRegion: string | null
   /** Private, server-side-only metadata for deduplicated representative ASK. */
   listingKey: string | null
@@ -138,6 +139,7 @@ export async function listCurrentObservedOffers(
       costBasis: marketOfferStates.costBasis,
       lastCheckedAt: marketOfferStates.lastCheckedAt,
       sourceMarketRegion: priceSources.marketRegion,
+      sourceSlug: priceSources.slug,
     })
     .from(marketOfferStates)
     .leftJoin(priceSources, eq(priceSources.id, marketOfferStates.sourceId))

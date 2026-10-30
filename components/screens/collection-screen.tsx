@@ -7,7 +7,6 @@ import { Boxes, Coins, Eye, Globe2, Handshake, Layers, LockKeyhole, Pencil, Plus
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
-import { observedMarketOfferOrigin, observedMarketReferenceIsHistorical, observedMarketReferencePrice, representativeAskingCaption } from "@/lib/market/presentation"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
@@ -153,14 +152,14 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
             <div className="border-t border-border/60 p-4 sm:p-5">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <StatCard label={it ? "Speso" : "Spent"} value={summary.acquisitionCostCount > 0 ? formatMoney(summary.acquisitionCost) : "—"} icon={Layers} hint={<span>{summary.acquisitionCostCount}/{summary.count} {it ? "acquisti con base EUR" : "purchases with EUR basis"}</span>} />
-                <StatCard label={it ? "Guadagno / perdita" : "Gain / loss"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Nessun confronto disponibile" : "No comparison available"}</span>} />
+                <StatCard label={it ? "Differenza indicativa" : "Indicative difference"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Nessun confronto disponibile" : "No comparison available"}</span>} />
                 <StatCard label={it ? "Sigillati" : "Sealed"} value={summary.sealedCount} icon={Boxes} hint={<span>{it ? "su" : "of"} {summary.count}</span>} />
               </div>
               {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "Il valore indicativo delle copie sigillate usa in ordine: Market Value consolidato; riferimento da vendite concluse della Release esatta (anche una sola vendita, non una stima); infine un prezzo richiesto recente con provenienza europea o consegna in Italia verificata. Non sommiamo vecchi annunci, richieste extra-UE senza confronto affidabile, spedizione o oneri d'importazione. Le copie aperte, montate, usate o incomplete sono escluse, senza inventare svalutazioni. Gli acquisti in valuta estera usano il cambio storico ECB."
-      : "The sealed-copy indicative reference uses canonical Market Value first, exact completed-sale evidence next (even one sale is a reference, not an estimate), and then only a recent European asking price or an offer with verified Italian delivery. Historical asks and non-comparable extra-EU quotes cannot inflate or depress the total; shipping and import duties are excluded. Opened, built, used or incomplete copies are not automatically valued. Foreign-currency purchases use historical ECB rates."}
+      ? "Il totale segue la mediana dei prezzi richiesti verificati in Italia e UE, con almeno due venditori indipendenti per release. Le copie sigillate sono confrontate con kit nuovi e completi. Gli acquisti in valuta estera usano il cambio storico ECB."
+      : "The total follows verified Italian/EU asking-price medians from at least two independent sellers per release. Sealed copies are compared with complete new kits. Foreign purchases use historical ECB rates."}
   </p>
 ) : null}
             </div>
@@ -290,14 +289,12 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
           </div>
 
           <div className="mt-7">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore indicativo · copie sigillate" : "Indicative value · sealed copies"}</p>
-<p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"}</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{it ? "Valore indicativo della collezione" : "Indicative collection value"}</p>
+<p className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-brand sm:text-5xl">{summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : (it ? "Da valutare" : "Awaiting valuation")}</p>
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-  {summary.marketReferenceCount}/{summary.sealedCount} {it ? "copie sigillate con un riferimento di mercato disponibile" : "sealed copies with an available market reference"}.
-  <span> {it
-    ? `${summary.marketValueCount} stime · ${summary.soldReferenceCount} riferimenti da vendite · ${summary.observedPriceCount} prezzi richiesti verificati. Prezzi del solo kit, spedizione esclusa. Una vendita isolata è solo un riferimento, non una stima né un ricavo garantito.`
-    : `${summary.marketValueCount} estimates · ${summary.soldReferenceCount} completed-sale references · ${summary.observedPriceCount} verified asking prices. Kit only, shipping excluded. A single sale is a reference, not a valuation or guaranteed resale proceeds.`}
-  </span>
+  {summary.marketReferenceCount}/{summary.count} {it ? "copie valutate" : "copies valued"}
+  {summary.marketReferenceCount < summary.count ? (it ? " · totale parziale" : " · partial total") : ""}.
+  {" "}{it ? "Mediana dei prezzi richiesti verificati · Italia/UE · spedizione esclusa." : "Verified asking-price medians · Italy/EU · shipping excluded."}
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
@@ -321,12 +318,8 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; it: boolean }) {
   const signal = entry.marketSignal
   const sealed = entry.item.condition === "Sealed"
-  const mv = sealed ? entry.marketValue : null
+  const mainPrice = entry.marketReferenceValue
   const sold = sealed && signal?.soldAnchorEUR != null && signal.soldAnchorEUR > 0 ? signal.soldAnchorEUR : null
-  const mainPrice = mv ?? sold
-  const ask = observedMarketReferencePrice(signal)
-  const historical = observedMarketReferenceIsHistorical(signal)
-  const medianCaption = representativeAskingCaption(signal, it)
   const comparison = sealed ? signal?.soldTrendComparison : null
   const trendPercent = comparison ? entry.marketTrend : null
 
@@ -336,47 +329,34 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         <div className="min-w-0 pr-3">
           <p className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-foreground/85 sm:text-xs">
             <Coins className="size-3.5 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <span>{it ? "Riferimento mercato" : "Market reference"}</span>
+            <span>{it ? "Valore indicativo" : "Indicative value"}</span>
           </p>
           <strong className="mt-1 block text-base font-semibold tabular-nums text-foreground sm:text-lg">
-            {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : "—"}
+            {mainPrice != null ? `≈ ${formatMoney(mainPrice)}` : (it ? "Da valutare" : "Awaiting valuation")}
           </strong>
           <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
-            {!sealed
-              ? (it ? "Copia non stimata" : "Copy not estimated")
-              : mv != null
-                ? (it ? "Stima TrackDash" : "TrackDash estimate")
-                : sold != null
-                  ? (it ? "Vendite concluse · non stima" : "Completed sales · not an estimate")
-                  : (it ? "Valore in osservazione" : "Value under observation")}
+            {mainPrice != null
+              ? (it ? `Mediana · ${signal?.collectionAskSellerCount ?? 0} venditori` : `Median · ${signal?.collectionAskSellerCount ?? 0} sellers`)
+              : (it ? "Raccolta quotazioni in corso" : "Collecting comparable quotes")}
           </p>
         </div>
         <div className="min-w-0 border-l border-sky-200/75 pl-3 dark:border-sky-800/50">
           <p className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-foreground/85 sm:text-xs">
             <Tag className="size-3.5 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <span>{it ? "Prezzo richiesto" : "Asking price"}</span>
+            <span>{it ? "Vendite concluse" : "Completed sales"}</span>
           </p>
           <strong className="mt-1 block text-base font-semibold tabular-nums text-foreground sm:text-lg">
-            {ask != null ? formatMoney(ask) : "—"}
+            {sold != null ? formatMoney(sold) : "—"}
           </strong>
           <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
-            {ask == null
-              ? (it ? "Nessuna offerta osservata" : "No observed offer")
-              : medianCaption
-                ? medianCaption
-                : historical
-                ? (it ? "Ultima offerta osservata" : "Last observed offer")
-                : (it ? "Verificata di recente" : "Recently verified")}
+            {sold != null
+              ? (it ? `${signal?.soldUnits ?? 0} vendite osservate` : `${signal?.soldUnits ?? 0} observed sales`)
+              : (it ? "Storico in aggiornamento" : "Sales history updating")}
           </p>
         </div>
       </div>
       <p className="mt-2 border-t border-sky-200/75 pt-2 text-[10px] leading-snug text-muted-foreground dark:border-sky-800/50">
-        {it ? "Spedizione esclusa" : "Shipping excluded"}
-        {historical && ask != null ? (it ? " · disponibilità da verificare" : " · availability unverified") : null}
-        {ask != null && observedMarketOfferOrigin(signal) === "extra_eu"
-          ? (it ? " · extra-UE, costi d'importazione da verificare" : " · non-EU, import costs unknown")
-          : null}
-        {!sealed ? (it ? " · riferimenti della Release, non della copia" : " · Release references, not a copy valuation") : null}
+        {it ? "Prezzi richiesti · Italia/UE · spedizione esclusa" : "Asking prices · Italy/EU · shipping excluded"}
       </p>
       {comparison && trendPercent != null ? (
         <div className={cn(

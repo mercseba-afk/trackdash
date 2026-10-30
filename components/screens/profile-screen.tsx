@@ -55,7 +55,7 @@ export function ProfileScreen() {
   const joined = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(locale === "it" ? "it-IT" : "en-GB", { month: "long", year: "numeric" })
     : "—"
-  const marketValueLabel = summary.marketValueCount > 0 ? formatMoney(summary.marketValue) : "—"
+  const marketValueLabel = summary.marketReferenceCount > 0 ? `≈ ${formatMoney(summary.marketReferenceValue)}` : (locale === "it" ? "Da valutare" : "Awaiting valuation")
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -126,7 +126,7 @@ export function ProfileScreen() {
         <ProfileStat label={t("profile.shared")} value={String(shares.length)} icon={Globe} />
         <ProfileStat label={t("profile.offers")} value={String(offers)} icon={Handshake} />
         <ProfileStat label={t("profile.wishlist")} value={String(wishlist.length)} icon={Heart} />
-        <ProfileStat label={t("profile.value")} value={marketValueLabel} icon={Trophy} />
+        <ProfileStat label={`${locale === "it" ? "Valore indicativo" : "Indicative value"} · ${summary.marketReferenceCount}/${summary.count}`} value={marketValueLabel} icon={Trophy} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">

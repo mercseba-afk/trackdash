@@ -90,3 +90,39 @@ export function representativeAskingMedian(
     observedAt: last,
   }
 }
+
+
+export interface CollectionAskCandidate extends RepresentativeAskCandidate {
+  originCountry?: string | null
+  sourceSlug?: string | null
+  sourceMarketRegion?: string | null
+}
+
+/** Collection values use ONE basis: current external EU asking prices.
+ * Two independently identified sellers are required. Prefer an Italian
+ * sample when it has two sellers; otherwise use the full EU sample.
+ * A merchant gets one vote (its lowest exact-kit quote), irrespective of
+ * listing count. Internal collection/share asks never enter this projection.
+ * No SOLD, shipping, unverified import charges or historical-price fallback.
+ */
+export function collectionAskingMedian(candidates: CollectionAskCandidate[], asOf = new Date()) {
+  const cutoff = asOf.getTime() - 15 * 86_400_000
+  const latest = new Map<string, CollectionAskCandidate>()
+  for (const offer of candidates) {
+    const timestamp = Date.parse(offer.checkedAt)
+    if (!offer.acceptedExactKit || !offer.listingKey || !offer.sellerFingerprint ||
+        !offer.sourceSlug || /trackdash|internal/i.test(offer.sourceSlug) ||
+        offer.sourceMarketRegion === "internal" ||
+        offer.itemPriceEUR == null || !Number.isFinite(offer.itemPriceEUR) || offer.itemPriceEUR <= 0 ||
+        !Number.isFinite(timestamp) || timestamp < cutoff || timestamp > asOf.getTime()) continue
+    const previous = latest.get(offer.listingKey)
+    if (!previous || Date.parse(previous.checkedAt) < timestamp) latest.set(offer.listingKey, offer)
+  }
+  // Resolve listing revisions before geography: a later overseas quote must
+  // not resurrect an older EU version of the same listing.
+  const european = [...latest.values()].filter((offer) => offer.origin === "eu")
+  const italian = european.filter((offer) => offer.originCountry === "IT")
+  const it = representativeAskingMedian(italian, asOf)
+  const selected = it && it.sellerCount >= 2 ? it : representativeAskingMedian(european, asOf)
+  return selected && selected.sellerCount >= 2 ? selected : null
+}

@@ -154,8 +154,8 @@ test("immutable expiry preserves MV/SOLD/trend/history, excludes expired ASK fro
   const { observedMarketKnownPurchaseCost, observedMarketReferenceIsHistorical } = load("lib/market/presentation.ts")
   assert.equal(observedMarketKnownPurchaseCost(expired.r), null)
   assert.equal(observedMarketReferenceIsHistorical(expired.r), true)
-  assert.equal(sealedCollectionReference(expired.r).kind, "estimated")
-  assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null }).kind, "sold")
+  assert.equal(sealedCollectionReference(expired.r), null)
+  assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null }), null)
   assert.equal(sealedCollectionReference({ ...expired.r, valueEUR: null, soldUnits: 0, soldAnchorEUR: null }), null)
   assert.equal(expirePublicMarketSignals(expired, Date.parse(original.r.observedPriceAt) + 180 * DAY + 1).r.historicalAskItemEUR, null)
 })
@@ -365,12 +365,12 @@ test("browser timeout cap rearms and delayed expired responses never revive ASK"
 test("public projection/cache excludes raw audit, candidate, seller and user payload", () => {
   const clock = { now: BASE }, { project } = projection(clock), canary = "PRIVATE_IDENTITY_CANARY"
   const result = project([{ ...offer("a", 10), raw_payload: canary, sellerFingerprint: canary, candidateId: canary }], { ...row, startingOfferCandidateId: canary, user_id: canary, collection: canary })
-  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_IDENTITY_CANARY|raw_payload|sellerFingerprint|candidateId|user_id|collection/)
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE_IDENTITY_CANARY|raw_payload|sellerFingerprint|candidateId|user_id|"collection":/)
   assert.doesNotMatch(read("lib/market/public-cached.ts"), /cookies\(|headers\(|withUserContext|collection_items|wishlist_items|marketplace_sales/)
   assert.match(read("public/sw.js"), /event.request.method !== "GET" \|\| event.request.mode !== "navigate"/)
 })
 
-test("real analytics retain sealed-only MV/SOLD/ASK totals, rankings, gain and Wishlist after expiry", () => {
+test("real analytics use ASK-only totals and rankings while Wishlist keeps separate market context", () => {
   const clock = { now: BASE }, { project } = projection(clock)
   const load = loader(clock, { "@/lib/data/corrected-products": {
     getProductById: () => { throw Error("UNEXPECTED_CATALOG_FALLBACK") },
@@ -378,11 +378,11 @@ test("real analytics retain sealed-only MV/SOLD/ASK totals, rankings, gain and W
   } })
   const { enrichCollection, portfolioSummary, topValued, enrichWishlist } = load("lib/analytics.ts")
   const { expirePublicMarketSignals } = load("lib/market/snapshot-expiry.ts")
-  const current = project([offer("a", 10)])
+  const current = project([offer("a", 10), {...offer("b", 20), sourceSlug:"ebay_active_public"}])
   const signals = {
-    mv: current,
-    sold: { ...current, valueEUR: null, soldAnchorEUR: 25 },
-    ask: { ...current, valueEUR: null, soldAnchorEUR: null, soldUnits: 0 },
+    mv: { ...current, collectionAskItemEUR:30, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500) },
+    sold: { ...current, collectionAskItemEUR:25, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500), valueEUR: null, soldAnchorEUR: 25 },
+    ask: { ...current, collectionAskItemEUR:10, collectionAskSellerCount:2, collectionAskObservedAt:iso(BASE), offersValidUntil:iso(BASE+500), valueEUR: null, soldAnchorEUR: null, soldUnits: 0 },
   }
   const catalog = [{ id: "p", releases: Object.keys(signals).map((id) => ({ id })) }]
   const owned = ["mv", "sold", "ask"].map((releaseId, i) => ({ id: String(i), productId: "p", releaseId, condition: "Sealed", acquisitionPriceEUR: 20 }))
@@ -392,16 +392,30 @@ test("real analytics retain sealed-only MV/SOLD/ASK totals, rankings, gain and W
   const summary = portfolioSummary(enriched)
   assert.equal(summary.marketReferenceValue, 65)
   assert.equal(summary.marketReferenceCount, 3)
-  assert.equal(summary.gainCount, 1)
-  assert.equal(summary.gain, 10)
+  assert.equal(summary.gainCount, 3)
+  assert.equal(summary.gain, 5)
   assert.equal(topValued(enriched, 5).map((entry) => entry.release.id).join(","), "mv,sold,ask")
   const wishlist = [{ productId: "p", releaseId: "ask", targetPrice: 12 }]
   assert.equal(enrichWishlist(wishlist, signals, catalog)[0].belowTarget, true)
   const expired = expirePublicMarketSignals(signals, BASE + 501)
   const after = portfolioSummary(enrichCollection(owned, expired, catalog))
-  assert.equal(after.marketReferenceValue, 55)
-  assert.equal(after.marketReferenceCount, 2)
-  assert.equal(after.gain, 10)
+  assert.equal(after.marketReferenceValue, 0)
+  assert.equal(after.marketReferenceCount, 0)
+  assert.equal(after.gainCount, 0)
   assert.equal(enrichWishlist(wishlist, expired, catalog)[0].belowTarget, false)
   assert.equal(JSON.stringify(owned), unchanged, "never mutate copy identities/conditions/acquisition data")
+})
+
+test("collection projection uses an independent EU median and preserves the separate international ASK", () => {
+  const { project } = projection({now:BASE})
+  const external = (id, price, country) => ({...offer(id,price,BASE),sourceSlug:"ebay_active_public",originCountry:country})
+  const result = project([external("it-a",30,"IT"),external("it-b",40,"IT"),external("jp",1,"JP")])
+  assert.equal(result.collectionAskItemEUR,35)
+  assert.equal(result.collectionAskSellerCount,2)
+  assert.equal(result.representativeAskItemEUR,30)
+  assert.equal(result.valueEUR,30)
+  const sparse = project([external("it-a",30,"IT"),external("jp",1,"JP")])
+  assert.equal(sparse.collectionAskItemEUR,null)
+  const changed = project([external("it-a",30,"IT"),external("it-b",50,"IT")])
+  assert.equal(changed.collectionAskItemEUR,40)
 })

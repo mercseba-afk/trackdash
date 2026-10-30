@@ -70,8 +70,8 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       <DashboardMarketOverview products={catalogProducts} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dashboard.collectionValue")} value={summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : "—"} icon={Coins} accent hint={<span>{summary.marketReferenceCount}/{summary.sealedCount} {it ? "sigillate con riferimento" : "sealed with market reference"} · {summary.marketValueCount} MV / {summary.soldReferenceCount} SOLD / {summary.observedPriceCount} ASK</span>} />
-        <StatCard label={t("dashboard.gain")} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati sufficienti non ancora disponibili" : "Not enough data yet"}</span>} />
+        <StatCard label={t("dashboard.collectionValue")} value={summary.marketReferenceCount > 0 ? <>≈ {formatMoney(summary.marketReferenceValue)}</> : <span className="text-base font-medium">{it ? "Da valutare" : "Awaiting valuation"}</span>} icon={Coins} accent hint={<span>{summary.marketReferenceCount}/{summary.count} {it ? "copie valutate · prezzi richiesti" : "copies valued · asking prices"}{summary.marketReferenceCount < summary.count ? (it ? " · totale parziale" : " · partial total") : ""}</span>} />
+        <StatCard label={it ? "Differenza indicativa" : "Indicative difference"} value={summary.gainCount > 0 ? formatMoney(summary.gain) : "—"} icon={TrendingUp} hint={summary.gainCount > 0 ? <TrendIndicator value={summary.gainPercent} className="text-xs" /> : <span>{it ? "Dati sufficienti non ancora disponibili" : "Not enough data yet"}</span>} />
         <StatCard label={t("dashboard.unique")} value={summary.uniqueProducts} icon={Layers} hint={<span>{t("dashboard.sealed", { count: summary.sealedCount })}</span>} />
         <StatCard label={t("dashboard.trend")} value={summary.avgTrend90d != null ? <TrendIndicator value={summary.avgTrend90d} showIcon={false} /> : "—"} icon={TrendingUp} hint={summary.trendCount > 0 ? t("dashboard.avgHoldings") : (it ? "Storico ancora insufficiente" : "Not enough history yet")} />
       </div>
@@ -79,8 +79,8 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.soldReferenceCount > 0 || summary.observedPriceCount > 0 ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Il valore indicativo della collezione usa solo copie sigillate: prima le stime Market Value, poi i riferimenti da vendite concluse e infine i prezzi richiesti correnti e confrontabili. Le vendite isolate sono riferimenti, non stime. Prezzi richiesti storici o extra-UE non confrontabili e copie aperte, montate, usate o incomplete restano esclusi dal totale."
-            : "The indicative collection total includes sealed copies only: canonical Market Value first, then completed-sale references, then current comparable asking prices. Single sales are references, not estimates. Historical or non-comparable non-EU asks and opened, built, used or incomplete copies stay out of the total."}
+            ? "Mediana dei prezzi richiesti verificati in Italia e UE, da almeno due venditori indipendenti per release. Confronti per copie sigillate, spedizione esclusa."
+            : "Verified Italian/EU asking-price medians from at least two independent sellers per release. Sealed-copy comparisons, shipping excluded."}
         </p>
       ) : null}
 
@@ -97,7 +97,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
               <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
-              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{entry.marketReferenceKind === "estimated" ? (it ? "Stima TrackDash" : "TrackDash estimate") : entry.marketReferenceKind === "sold" ? (it ? "Vendite concluse · non stima" : "Completed sales · not an estimate") : (it ? "Prezzo richiesto verificato" : "Verified asking price")}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
+              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{it ? "Mediana prezzi richiesti" : "Asking-price median"}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
             </Link>
           ))}
         </CardContent>
@@ -115,16 +115,9 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
                 {entry.marketReferenceValue != null ? (
-                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{entry.marketReferenceKind === "estimated" ? (it ? "Stima TrackDash" : "TrackDash estimate") : entry.marketReferenceKind === "sold" ? (it ? "Vendite concluse · non stima" : "Completed sales · not an estimate") : (it ? "Prezzo richiesto verificato" : "Verified asking price")}</p></div>
-                ) : entry.item.condition !== "Sealed" ? (
-                  <p className="text-[11px] text-muted-foreground">{it ? "Valore copia non stimato" : "Copy value not estimated"}</p>
-                ) : entry.observedPrice != null ? (
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">{observedMarketDisplayLabel(entry.marketSignal, it)}</p>
-                    <p className="text-xs font-semibold tabular-nums">{observedMarketDisplayKind(entry.marketSignal) === "sold" ? "≈ " : ""}{formatMoney(entry.observedPrice)}</p>
-                  </div>
+                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{it ? "Mediana prezzi richiesti" : "Asking-price median"}</p></div>
                 ) : (
-                  <p className="text-[11px] text-muted-foreground">{it ? "Dati di mercato in verifica" : "Market data under review"}</p>
+                  <p className="text-[11px] text-muted-foreground">{it ? "Da valutare" : "Awaiting valuation"}</p>
                 )}
               </Link>
             ))}

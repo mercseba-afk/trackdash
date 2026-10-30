@@ -35,6 +35,7 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
             Math.abs(signal.startingEffectiveCostEUR - signal.startingItemPriceEUR! - signal.observedShippingEUR) <= 0.025
               ? signal.startingEffectiveCostEUR : null,
         } : {}),
+        collectionAskItemEUR: null, collectionAskSellerCount: 0, collectionAskObservedAt: null,
         offersValidUntil: null,
         startingItemPriceEUR: null, startingEffectiveCostEUR: null, startingCostBasis: null,
         observedPriceAt: null, observedPriceChannel: null, observedShippingEUR: null, currentAskOrigin: "unknown",
