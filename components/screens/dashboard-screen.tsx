@@ -14,6 +14,7 @@ import {
   recentAdditions,
   topValued,
 } from "@/lib/analytics"
+import { collectionReferenceCaption } from "@/lib/market/collection-valuation"
 import { formatMoney } from "@/lib/format"
 import { observedMarketAskLabel, observedMarketDisplayKind, observedMarketDisplayLabel } from "@/lib/market/presentation"
 import type { Product } from "@/lib/types"
@@ -79,8 +80,8 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
       {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.soldReferenceCount > 0 || summary.observedPriceCount > 0 ? (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {it
-            ? "Mediana dei prezzi richiesti verificati in Italia e UE, da almeno due venditori indipendenti per release. Confronti per copie sigillate, spedizione esclusa."
-            : "Verified Italian/EU asking-price medians from at least two independent sellers per release. Sealed-copy comparisons, shipping excluded."}
+            ? "Prezzi richiesti osservati, con priorità Italia e UE. Provenienza e numero di venditori accompagnano ogni riferimento. Prezzi del solo kit."
+            : "Seller asking prices, with Italy/EU priority. Each reference shows provenance and seller count. Kit prices only."}
         </p>
       ) : null}
 
@@ -97,7 +98,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
               <span className="w-4 text-center font-mono text-xs text-muted-foreground">{index + 1}</span>
               <ProductImage product={entry.product} release={entry.release} size="sm" className="h-9 w-14 shrink-0" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{entry.product.name}</p><p className="truncate text-xs text-muted-foreground">{entry.label} · {entry.item.condition}</p></div>
-              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{it ? "Mediana prezzi richiesti" : "Asking-price median"}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
+              <div className="text-right"><p className="text-sm font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue!)}</p><p className="text-[10px] text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)}</p>{entry.marketTrend != null ? <TrendIndicator value={entry.marketTrend} className="justify-end text-xs" /> : null}</div>
             </Link>
           ))}
         </CardContent>
@@ -115,7 +116,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
                 <ProductImage product={entry.product} release={entry.release} className="aspect-[4/3] w-full" />
                 <p className="truncate text-xs font-medium group-hover:text-brand">{entry.product.name}</p>
                 {entry.marketReferenceValue != null ? (
-                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{it ? "Mediana prezzi richiesti" : "Asking-price median"}</p></div>
+                  <div><p className="text-xs font-semibold tabular-nums">≈ {formatMoney(entry.marketReferenceValue)}</p><p className="text-[10px] text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)}</p></div>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{it ? "Da valutare" : "Awaiting valuation"}</p>
                 )}

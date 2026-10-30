@@ -35,7 +35,7 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
             Math.abs(signal.startingEffectiveCostEUR - signal.startingItemPriceEUR! - signal.observedShippingEUR) <= 0.025
               ? signal.startingEffectiveCostEUR : null,
         } : {}),
-        collectionAskItemEUR: null, collectionAskSellerCount: 0, collectionAskObservedAt: null,
+        collectionAskIsHistorical: signal.collectionAskItemEUR != null,
         offersValidUntil: null,
         startingItemPriceEUR: null, startingEffectiveCostEUR: null, startingCostBasis: null,
         observedPriceAt: null, observedPriceChannel: null, observedShippingEUR: null, currentAskOrigin: "unknown",
@@ -44,6 +44,11 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
         retailAnchorEUR: null, activeAnchorEUR: null, activeLowEUR: null, activeHighEUR: null,
         currentOfferCount: 0, activeOfferCount: 0, retailSourceCount: 0,
       }
+    }
+    const collectionExpiry = Date.parse(signal.collectionAskValidUntil ?? "")
+    if (signal.collectionAskItemEUR != null && (!Number.isFinite(collectionExpiry) || now > collectionExpiry)) {
+      signal = { ...signal, collectionAskItemEUR: null, collectionAskSellerCount: 0,
+        collectionAskObservedAt: null, collectionAskOrigin: "unknown", collectionAskIsHistorical: false, collectionAskValidUntil: null }
     }
     const historicalExpiry = historicalDeadline(signal)
     if (historicalExpiry != null && now > historicalExpiry) {
@@ -65,6 +70,7 @@ export function nextPublicMarketExpiry(signals: ReleaseMarketSignalMap): number 
   const deadlines = Object.values(signals).flatMap((signal) => [
     signal.offersValidUntil == null ? null : Date.parse(signal.offersValidUntil),
     historicalDeadline(signal),
+    signal.collectionAskValidUntil == null ? null : Date.parse(signal.collectionAskValidUntil),
   ]).filter((value): value is number => value != null && Number.isFinite(value))
   return deadlines.length ? Math.min(...deadlines) : null
 }

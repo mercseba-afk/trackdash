@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { ArrowLeft, ExternalLink, Pencil, Save, X } from "lucide-react"
 import { enrichCollection } from "@/lib/analytics"
+import { collectionReferenceCaption } from "@/lib/market/collection-valuation"
 import { formatDate, formatMoney, formatPercent } from "@/lib/format"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
@@ -197,7 +198,7 @@ export function CollectionItemDetailScreen({
       <Card><CardContent className="pt-6">
         <p className="text-xs font-medium text-muted-foreground">{it ? "Valore indicativo della copia" : "Indicative copy value"}</p>
         <p className="mt-1 text-2xl font-semibold text-brand">{entry.marketReferenceValue != null ? `≈ ${formatMoney(entry.marketReferenceValue)}` : (it ? "Da valutare" : "Awaiting valuation")}</p>
-        <p className="mt-2 text-xs text-muted-foreground">{it ? "Mediana dei prezzi richiesti verificati · Italia/UE · spedizione esclusa" : "Verified asking-price median · Italy/EU · shipping excluded"}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{collectionReferenceCaption(entry.marketSignal, it)} · {it ? "solo kit" : "kit only"}</p>
       </CardContent></Card>
       <ReleaseMarketOverview signal={entry.marketSignal} />
 

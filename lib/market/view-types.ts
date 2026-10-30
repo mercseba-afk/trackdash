@@ -12,10 +12,13 @@ export type ReleaseMarketConfidence = "low" | "medium" | "high"
 export interface ReleaseMarketSignalView {
   /** Inclusive deadline of this offer projection; a clock change requires re-projection, not a TTL extension. */
   offersValidUntil?: string | null
-  /** Current external EU ASK median for collections, at least two sellers. */
+  /** External asking reference for collections: one quote or seller median. */
   collectionAskItemEUR?: number | null
   collectionAskSellerCount?: number
   collectionAskObservedAt?: string | null
+  collectionAskOrigin?: OfferOrigin
+  collectionAskIsHistorical?: boolean
+  collectionAskValidUntil?: string | null
   marketRegime: ReleaseMarketRegime
   valueEUR: number | null
   lowEUR: number | null

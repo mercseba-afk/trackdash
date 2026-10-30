@@ -1,36 +1,31 @@
-# Collection asking-price valuation — 30 October 2026
+# Collection asking-price references — 30 October 2026
 
-## Decision and scope
+## Final policy
 
-The owner approved a single consistent basis for collection totals: current external asking prices. Completed-sale evidence and canonical Market Value remain separate Release market context and never fill gaps in this total. This replaces the previous MV → SOLD → individual ASK fallback chain.
+The owner rejected the first implementation's two-EU-seller threshold because it hid useful data. Collection values retain one consistent ASK basis with flexible coverage:
 
-- At least two independently identified sellers for an exact, complete, new/unbuilt Release.
-- Prefer a sample of at least two Italian sellers; otherwise use the full verified EU sample.
-- One vote per seller, taking that seller's lowest comparable quote; normalized listing identifiers remove duplicate eBay records.
-- Asking observations no older than 15 days, future/malformed timestamps excluded. Current stock and accepted exact-edition/condition checks remain upstream.
-- For now only EU-origin evidence qualifies. Unknown origin and extra-EU quotes cannot establish import-comparable cost with the stored fields. Basic item-plus-shipping metadata is not a complete import quote.
-- Explicitly exclude TrackDash/internal sources. User-entered collection prices cannot affect valuation.
-- Kit-only median, shipping excluded. No SOLD/MV, historical ASK or single-seller fallback.
-- Owned physical copies must be Sealed to use the currently available new/unbuilt benchmark. Other conditions remain awaiting valuation; no invented condition multipliers.
+1. Current quotes (within 15 days): Italian first, then EU, then international.
+2. If no current quote exists, use previously observed asking evidence up to 180 days and display its observation date, using the same geographic preference.
+3. One identified seller provides an individual quote; multiple independent sellers provide a median. One seller gets one vote (its lowest exact-kit quote), with normalized listing deduplication.
 
-## Implementation
+The current data layer supplies only last-observed in-stock/low-stock offers. Out-of-stock retail and explicit unavailable states remain excluded. A dated quote is evidence of a previously observed price, not a claim of present stock.
 
-Server projection adds three safe fields: collectionAskItemEUR, collectionAskSellerCount, collectionAskObservedAt. Private candidate/seller identities remain server-only. The existing international informational ASK median and canonical SOLD/MV are unchanged. No database migrations, writes, scanner runs, scheduler changes, limits or extra upstream calls.
+Only accepted exact-edition, complete new/unbuilt candidates qualify for the currently supported Sealed-copy benchmark. Internal/TrackDash sources and user-entered own prices are excluded. Other physical conditions remain unvalued without an appropriate benchmark; no condition multipliers are invented.
 
-Collection, Dashboard, Profile, copy detail, rankings and breakdowns consume the same collection reference. Missing references show “Da valutare”; covered/total counts accompany totals and partial totals are explicitly identified. Recent collection cards do not fall back to international display quotes. Purchase-price comparisons use this same ASK reference and are labeled “Differenza indicativa”. Completed sales stay separate in the Collection card and Release market details.
+International item-only prices are usable indicative references, with provenance and kit-only scope visible. They are not Italian checkout prices and no shipping/import estimate is fabricated. Existing Italian/EU quotes take precedence over cheaper overseas quotes.
 
-Server cache key is bumped to prevent a pre-change map from being served after release. Current-offer deadlines remove collection medians on expiry; the next shared refresh recomputes from surviving offers. The client also rejects missing/expired projection fields. No fallback to an old SOLD-based valuation during outages.
+Canonical Market Value, SOLD and the separate international informational ASK remain unchanged. SOLD/MV never fill gaps in this collection total. Collection, Dashboard, Profile, copy detail and rankings use the same asking reference. Missing records are not treated as zero; partial coverage is disclosed.
 
-## Current evidence and limitation
+## Implementation and lifecycle
 
-Read-only production audit: 11 public Mini 4WD releases have at least two distinct eligible EU sellers, and 5 have only one, before normalized-listing deduplication. This is evidence coverage, not a newly scanned market.
+Public projection exposes safe price/count/date/origin/historical/valid-until fields, never private seller or collection identities. Current and dated asking references have independent validity from active shopping offers. On current-offer expiry the collection reference becomes dated; after its bounded historical deadline it is removed. Returning to the app triggers the existing shared refresh; no new scan, database writes, migrations or polling cadence changes.
 
-The owner's currently held #95425, #95466 and #95467 have only non-EU current quotes in the stored sample. Under the agreed import safeguards all three remain awaiting valuation. The previous EUR31.05 total (Manta 16.13 plus Dyna 14.92, Avante absent) is not retained as an asking-price collection total. Acquiring independently verified Italian/EU quotes is needed to cover them; no replacement prices are fabricated.
+Cache key bumped to prevent the strict-policy snapshot from surviving the release. Shared collection captions identify “1 quotazione” versus a seller median, region, and historical observation date. Purchase comparisons retain the same ASK basis and “Differenza indicativa” label.
 
 ## Validation
 
-Full npm verify passed; TypeScript passed. Updated pure collection policy tests cover independent sellers, listing duplicates, Italy preference, extreme prices, internal and unknown/extra-EU origins, invalid/future/stale dates, no SOLD/MV fallback and expiry. Fourteen cache/projection/provider/analytics tests pass, including real server projection retaining the separate international ASK, independent collection median and cross-surface updates. Public surface and cross-surface contract checks pass after the final UI adjustment.
+Full npm verify and TypeScript passed. Dedicated tests cover international and single quotes, seller deduplication, Italy/EU preference, current-over-historical precedence, source/identity/date guards, preservation as dated evidence, 180-day expiry and no SOLD mixing. Fourteen cache/provider/analytics/projection regressions pass; public and cross-surface contracts pass. No user collections, real offers or original evidence rows were modified.
 
-No live user offers or private collection rows were modified. Authenticated browser validation has not been completed; checks use actual source with deterministic boundary mocks plus read-only production evidence. Production release must be verified against its exact build SHA.
+Owner-session browser rendering has not been tested in this environment. Verify the deployed build SHA and public projection of #95425, #95466, #95467 after release. Those records have international asking data and should no longer be suppressed solely by region or single-seller sample size.
 
-Rollback: deploy the prior code commit 26696257824d6e1199784351ba273a14d4a77df1. No data rollback needed.
+Rollback code: 5a099fcb73ef388cc16c2024c8866535adac9d9c restores the stricter policy; no data rollback is needed.

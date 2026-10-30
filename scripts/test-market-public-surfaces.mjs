@@ -399,7 +399,7 @@ if (!dashboardMarket.includes("isEditoriallyPositive")) {
 if (!dashboardScreen.includes("entry.marketReferenceValue") || !dashboardScreen.includes("Da valutare")) {
   errors.push("Dashboard recent additions are not using the condition-aware Collection market reference")
 }
-if (!dashboardScreen.includes("Mediana prezzi richiesti") ||
+if (!dashboardScreen.includes("collectionReferenceCaption") ||
     !collectionScreen.includes("entry.marketReferenceValue") ||
     !collectionScreen.includes("const mainPrice = entry.marketReferenceValue")) {
   errors.push("Dashboard and Collection must preserve ASK vs SOLD vs MV reference semantics")

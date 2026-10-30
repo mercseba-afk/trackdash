@@ -8,6 +8,7 @@ import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
 import { useMarketSignals } from "@/lib/market/context"
 import { enrichCollection, portfolioSummary, type EnrichedCollectionItem } from "@/lib/analytics"
+import { collectionReferenceCaption } from "@/lib/market/collection-valuation"
 import { formatMoney } from "@/lib/format"
 import type { CollectionItem, Condition, Currency, Product } from "@/lib/types"
 import { CONDITIONS, CURRENCIES } from "@/lib/types"
@@ -158,8 +159,8 @@ export function CollectionScreen({ catalogProducts }: { catalogProducts: Product
               {summary.marketReferenceCount < summary.sealedCount || summary.sealedCount < summary.count || summary.acquisitionCostCount < summary.count ? (
   <p className="mt-4 max-w-4xl text-xs leading-relaxed text-muted-foreground">
     {it
-      ? "Il totale segue la mediana dei prezzi richiesti verificati in Italia e UE, con almeno due venditori indipendenti per release. Le copie sigillate sono confrontate con kit nuovi e completi. Gli acquisti in valuta estera usano il cambio storico ECB."
-      : "The total follows verified Italian/EU asking-price medians from at least two independent sellers per release. Sealed copies are compared with complete new kits. Foreign purchases use historical ECB rates."}
+      ? "Il totale segue i prezzi richiesti osservati per la stessa release: priorità Italia e UE, poi mercato internazionale. Una quotazione offre un riferimento; più venditori formano una mediana. Le quotazioni precedenti mantengono la data di osservazione. Prezzi del solo kit."
+      : "The total follows observed asking prices for the same release: Italy/EU first, then international markets. One quote is a reference; multiple sellers form a median. Earlier quotes retain their observation date. Kit prices only."}
   </p>
 ) : null}
             </div>
@@ -294,7 +295,7 @@ function CollectionOverview({ summary, it }: { summary: ReturnType<typeof portfo
 <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
   {summary.marketReferenceCount}/{summary.count} {it ? "copie valutate" : "copies valued"}
   {summary.marketReferenceCount < summary.count ? (it ? " · totale parziale" : " · partial total") : ""}.
-  {" "}{it ? "Mediana dei prezzi richiesti verificati · Italia/UE · spedizione esclusa." : "Verified asking-price medians · Italy/EU · shipping excluded."}
+  {" "}{it ? "Prezzi richiesti osservati · solo kit, spedizione esclusa." : "Seller asking prices · kit only, shipping excluded."}
 </p>
 <div className="mt-5 h-1.5 max-w-xl overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} /></div>
             <p className="mt-2 text-[11px] text-muted-foreground">{it ? `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} posti disponibili nel piano Free` : `${Math.max(0, FREE_COLLECTION_LIMIT - summary.count)} spots available on Free`}</p>
@@ -336,7 +337,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
           </strong>
           <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
             {mainPrice != null
-              ? (it ? `Mediana · ${signal?.collectionAskSellerCount ?? 0} venditori` : `Median · ${signal?.collectionAskSellerCount ?? 0} sellers`)
+              ? collectionReferenceCaption(signal, it)
               : (it ? "Raccolta quotazioni in corso" : "Collecting comparable quotes")}
           </p>
         </div>
@@ -356,7 +357,7 @@ function CollectionMarketValue({ entry, it }: { entry: EnrichedCollectionItem; i
         </div>
       </div>
       <p className="mt-2 border-t border-sky-200/75 pt-2 text-[10px] leading-snug text-muted-foreground dark:border-sky-800/50">
-        {it ? "Prezzi richiesti · Italia/UE · spedizione esclusa" : "Asking prices · Italy/EU · shipping excluded"}
+        {it ? "Prezzi richiesti · solo kit, spedizione esclusa" : "Asking prices · kit only, shipping excluded"}
       </p>
       {comparison && trendPercent != null ? (
         <div className={cn(

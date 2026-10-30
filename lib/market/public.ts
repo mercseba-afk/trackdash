@@ -263,7 +263,19 @@ export function toPublicMarketSignalView(
     }
   })
   const representativeAsk = representativeAskingMedian(askingCandidates, asOf)
-  const collectionAsk = collectionAskingMedian(askingCandidates, asOf)
+  // The collection may keep a dated quote when current offers are sparse.
+  // observedOffers already excludes unavailable states; retain exact/source
+  // checks while allowing a longer clearly dated ASK reference.
+  const collectionCandidates = observedOffers.map((offer) => ({
+    listingKey: offer.listingKey, sellerFingerprint: offer.sellerFingerprint,
+    itemPriceEUR: numberOrNull(offer.itemPriceEUR),
+    origin: classifyOfferOrigin(offer.originCountry, offer.sourceMarketRegion),
+    originCountry: offer.originCountry, sourceSlug: offer.sourceSlug,
+    sourceMarketRegion: offer.sourceMarketRegion, deliveredToItaly: false,
+    checkedAt: new Date(offer.lastCheckedAt).toISOString(),
+    acceptedExactKit: offer.acceptedExactKit,
+  }))
+  const collectionAsk = collectionAskingMedian(collectionCandidates, asOf)
   // A formerly observed ASK is valuable historical evidence, NOT proof that
   // its listing is still purchasable. Preserve its dated KIT-ONLY component
   // separately, without feeding stale quotes into the current-offer pipeline.
@@ -327,6 +339,9 @@ export function toPublicMarketSignalView(
     collectionAskItemEUR: collectionAsk?.itemPriceEUR ?? null,
     collectionAskSellerCount: collectionAsk?.sellerCount ?? 0,
     collectionAskObservedAt: collectionAsk?.observedAt ?? null,
+    collectionAskOrigin: collectionAsk?.origin ?? "unknown",
+    collectionAskIsHistorical: collectionAsk?.isHistorical ?? false,
+    collectionAskValidUntil: collectionAsk?.validUntil ?? null,
     valueEUR: valueEUR != null && valueEUR > 0 ? valueEUR : null,
     lowEUR: numberOrNull(signal.lowEUR),
     highEUR: numberOrNull(signal.highEUR),

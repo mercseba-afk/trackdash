@@ -51,8 +51,9 @@ function median(values: number[]): number {
 export function representativeAskingMedian(
   candidates: RepresentativeAskCandidate[],
   asOf = new Date(),
+  maxAgeDays = 15,
 ): RepresentativeAsk | null {
-  const cutoffMs = asOf.getTime() - 15 * 86_400_000
+  const cutoffMs = asOf.getTime() - maxAgeDays * 86_400_000
   const byListing = new Map<string, RepresentativeAskCandidate>()
   for (const offer of candidates) {
     if (!offer.acceptedExactKit || !offer.listingKey || !offer.sellerFingerprint ||
@@ -98,15 +99,15 @@ export interface CollectionAskCandidate extends RepresentativeAskCandidate {
   sourceMarketRegion?: string | null
 }
 
-/** Collection values use ONE basis: current external EU asking prices.
- * Two independently identified sellers are required. Prefer an Italian
- * sample when it has two sellers; otherwise use the full EU sample.
- * A merchant gets one vote (its lowest exact-kit quote), irrespective of
- * listing count. Internal collection/share asks never enter this projection.
- * No SOLD, shipping, unverified import charges or historical-price fallback.
+/** One consistent ASK basis, with geographic preference rather than veto.
+ * Prefer current Italian, then EU, then international evidence. A single
+ * identified seller is a quote; multiple sellers produce a deduplicated
+ * median. If current quotes are absent, retain dated asking evidence up to
+ * 180 days, from last-observed in-stock offers only. Never use SOLD, internal
+ * collection prices, out-of-stock retail prices or invented import costs.
  */
 export function collectionAskingMedian(candidates: CollectionAskCandidate[], asOf = new Date()) {
-  const cutoff = asOf.getTime() - 15 * 86_400_000
+  const cutoff = asOf.getTime() - 180 * 86_400_000
   const latest = new Map<string, CollectionAskCandidate>()
   for (const offer of candidates) {
     const timestamp = Date.parse(offer.checkedAt)
@@ -118,11 +119,17 @@ export function collectionAskingMedian(candidates: CollectionAskCandidate[], asO
     const previous = latest.get(offer.listingKey)
     if (!previous || Date.parse(previous.checkedAt) < timestamp) latest.set(offer.listingKey, offer)
   }
-  // Resolve listing revisions before geography: a later overseas quote must
-  // not resurrect an older EU version of the same listing.
-  const european = [...latest.values()].filter((offer) => offer.origin === "eu")
+  const all = [...latest.values()]
+  const current = all.filter((offer) => asOf.getTime() - Date.parse(offer.checkedAt) <= 15 * 86_400_000)
+  const pool = current.length ? current : all
+  const european = pool.filter((offer) => offer.origin === "eu")
   const italian = european.filter((offer) => offer.originCountry === "IT")
-  const it = representativeAskingMedian(italian, asOf)
-  const selected = it && it.sellerCount >= 2 ? it : representativeAskingMedian(european, asOf)
-  return selected && selected.sellerCount >= 2 ? selected : null
+  const sample = italian.length ? italian : european.length ? european : pool
+  const selected = representativeAskingMedian(sample, asOf, 180)
+  if (!selected) return null
+  return {
+    ...selected,
+    isHistorical: current.length === 0,
+    validUntil: new Date(Math.min(...sample.map((offer) => Date.parse(offer.checkedAt) + 180 * 86_400_000))).toISOString(),
+  }
 }
