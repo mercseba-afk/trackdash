@@ -338,6 +338,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
 
       <footer className="border-t border-border/60 bg-muted/20 px-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] pt-4 lg:pb-4">
         <SocialFollow className="mx-auto max-w-7xl flex-row flex-wrap items-center justify-center gap-3" />
+        <p className="mt-3 text-center text-xs text-muted-foreground">Powered by <a href="https://xebdesign.it/" target="_blank" rel="noopener noreferrer" className="font-medium text-slate-600 underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Xebdesign</a></p>
       </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/96 pb-[max(env(safe-area-inset-bottom),0px)] backdrop-blur-md lg:hidden">
