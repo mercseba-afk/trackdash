@@ -1,3 +1,9 @@
+## Aero Thunder Shot — 2 novembre 2026
+
+Pubblicata con6kit verificati,6foto,6JAN e descrizioniIT/EN; cinqueUUID conservati, aggiunto92461TKC. Sei scan eBay reali riusciti, retailGandolfi92461 persistito,6segnali ricalcolati. Quattro release con prezzi negli annunci, nessunMV/SOLD artificiale;94967/94990 senza offerta corrente. Refresh esistente7/30giorni e retail28giorni; due batch iniziali sul workflow esistente, cap24/giorno invariato. Ricerca aperta FreshGreen2022 con codice condiviso e RedMetallic. [Audit e limiti](AERO_THUNDER_SHOT_FAMILY_AUDIT_2026-11-02.md). Nessun deploy codice né modifica collezioni/wishlist.
+
+---
+
 ## Riferimento operativo del ripristino — 22 ottobre 2026
 
 Per il workflow di nuove famiglie/Release leggere [NEW_RELEASE_RUNBOOK.md](NEW_RELEASE_RUNBOOK.md). Per l'ultimo runtime verificato leggere [checkpoint Creativeweb del 21 ottobre](recovery/creativeweb-staged-2026-10-21.md): unico clock GitHub orario, modalità combinata massima 2 exact retail + 1 eBay Active + 4 recompute; scheduler Vercel duplicato disabilitato. La route in recovery/frankfurt-migration conferma questi batch quando TRACKDASH_HOURLY_MARKET_ENABLED=true. Le sezioni storiche qui sotto su cron giornaliero e batch diversi non descrivono questa modalità; verificare deployment/configurazione prima di intervenire. Nessun comportamento operativo è cambiato con questo aggiornamento documentale.

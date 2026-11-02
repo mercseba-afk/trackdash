@@ -1,3 +1,9 @@
+## Aero Thunder Shot — 2 novembre 2026
+
+Pubblicata con6kit verificati,6foto,6JAN e descrizioniIT/EN; cinqueUUID conservati, aggiunto92461TKC. Sei scan eBay reali riusciti, retailGandolfi92461 persistito,6segnali ricalcolati. Quattro release con prezzi negli annunci, nessunMV/SOLD artificiale;94967/94990 senza offerta corrente. Refresh esistente7/30giorni e retail28giorni; due batch iniziali sul workflow esistente, cap24/giorno invariato. Ricerca aperta FreshGreen2022 con codice condiviso e RedMetallic. [Audit e limiti](AERO_THUNDER_SHOT_FAMILY_AUDIT_2026-11-02.md). Nessun deploy codice né modifica collezioni/wishlist.
+
+---
+
 # Checkpoint — Aero Avante pubblicata, 23 ottobre 2026
 
 [Audit operativo](AERO_AVANTE_FAMILY_AUDIT_2026-10-23.md): famiglia Frankfurt c8132bd5-23ee-5f36-b3f6-a75ef0c27ea3 ora available.6UUID esistenti conservati,10kit aggiunti inclusi2StarterPack:16Release pubbliche con16foto,descrizioniIT/EN,7JAN verificati.16scan eBay reali23Ott11:27–11:45UTC,zeroerrori e16recompute canonici.54offerte correnti,12prezzi richiesti visibili;18701=23.51EUR,95267=67.63EUR,95655=54.39EUR(mediana7venditori).Gandolfi95655 acquisita realmente16EURin_stock,distinta dalla mediana.95038/95058/95210/92396 senzaASK;nessunMV/SOLD/trend inventato.6collaborazioni candidate restano inricerca,nondichiarare famigliaesaustiva. RCJazplanned/codeAero parcheggiate. Refreshworkeresistente7/10/30giorni,Gandolfi28giorni;nessunsecondoclock.16NextImageHTTP200,6pagineIT/ENHTTP200canonical/hreflangcorretti,sitemap34URL. TestprivatiScanner/Collection/Wishlist/PWA/notifiche nonrieseguiti. ProposteSQL/applicazione/limiti nell'audit. Nessunmerge/deploy,cambioprivacy/pricing/scheduler/vecchioDB;codiceProduction verificato780c9a4db49175a1e39b9f8a3fc4b9d6dba7cf77.
