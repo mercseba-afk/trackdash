@@ -51,3 +51,17 @@ Empty-market second pass for94967/94990: TQ RC Racing94967 out of stock, Chico94
 - Authenticated camera scan, collection/wishlist mutations and installed PWA/offline interactions NOT executed. Database JAN uniqueness/exact release associations and shared public projections verified; do not claim private E2E.
 
 SQL: proposals/aero-thunder-shot-completion-20261102.sql plus follow-up proposals/aero-thunder-shot-followup-20261102.sql. The baseline guard intentionally rejects repeating a completed launch.
+
+
+## Bounded follow-up — 2 November 2026
+
+User explicitly requested a short targeted check of Fresh Green and Red Metallic, without prolonged research when comparable market activity is thin. Research closed for this pass; no new scanner calls, queue changes, catalogue rows, price evidence or code deployment.
+
+**Fresh Green:** manufacturer page already cited confirms the distinct sticker-equipped complete kit, 18 March2022 and two-store distribution. Suruga exact603154190 currently exposes used-classified offers (e.g. JPY2700 on the direct product page at retrieval), not enough to establish the condition required for new_complete_unbuilt or landed Italian cost. Search for exact English name plus eBay did not establish usable new-kit offers or completed transactions. No conclusion of zero real-world activity; source coverage remains limited. Shared18702/JAN4950344064496 would affect the ordinary release's automatic identity gate if another canonical row were inserted without handling shared physical variants. Defer that change, preserving the current standard release's pipeline.
+
+**Red Metallic:** stronger contemporary evidence now supersedes “existence unresolved”: TEA-League21June2013 https://www.tea-league.com/mt/tea/archives/2013/06/201311_1.html reproduces the event sales programme, explicitly calls it the first JapanCup2013 venue-exclusive complete kit and distinguishes it from the blue/orange94967 commemorative kit. Eyewitness23June2013 report https://www.tea-league.com/mt/tea/archives/2013/06/20131_13.html corroborates sale at the event. Wiki statements about red-plated prize bodies refer to a different possible object and do not invalidate the complete kit. Primary historical Tamiya links retained in the contemporary report, not claimed freshly accessible.
+
+Secondary buyback list https://www.puramodel-kaitori.com/43543/ associates4950344949885 with this kit; no verified independent package photograph/code inspection was completed in this bounded pass, so do not promote inferred ITEM94988 to canonical data. A2018 buyback list https://chibakan.com/wp-content/uploads/2018/07/7ee8e8e8c0dc1a28951108753fb32bd2.pdf includes it among kits, but its buyback amount is historical context, not an active selling price or completed sale. Mercari search exposes isolated requests aroundJPY4150–4500; exact listing condition/stock/completeness not established. No accepted automated source, dated paid transaction or reliable volume established.
+
+Outcome: both are documented collector variants, but remain deferred research candidates. Six published kits unchanged. No additional effort scheduled automatically. Revisit only when a concrete exact-kit source/packaging record or useful comparable evidence becomes available.
+
