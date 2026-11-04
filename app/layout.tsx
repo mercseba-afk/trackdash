@@ -55,10 +55,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/pwa/icon-v6-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/pwa/icon-v6.png", type: "image/png", sizes: "512x512" },
+      { url: "/pwa/icon-v7-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/pwa/icon-v7.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: [{ url: "/pwa/icon-v6.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/pwa/icon-v7.png", type: "image/png", sizes: "512x512" }],
   },
   appleWebApp: {
     capable: true,
