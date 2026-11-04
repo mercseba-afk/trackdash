@@ -18,7 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
-import { FacebookLink, SocialFollow } from "@/components/facebook-link"
+import { SocialFollow } from "@/components/facebook-link"
 import { CollectibleVerticalSwitch, type CollectibleUiVertical } from "@/components/collectible-vertical-switch"
 import { LanguageSwitch } from "@/components/language-switch"
 import { NotificationCenter } from "@/components/notification-center"
@@ -152,7 +152,6 @@ function UserMenu() {
             <LifeBuoy />
             {locale === "it" ? "Assistenza e suggerimenti" : "Support & suggestions"}
           </Link>
-          <FacebookLink className="justify-start border-0 bg-transparent" />
           {user.email.toLowerCase() === "merc.seba@gmail.com" ? (
             <Link href="/admin" className={ACCOUNT_LINK_CLASS} role="menuitem">
               <ShieldCheck />
