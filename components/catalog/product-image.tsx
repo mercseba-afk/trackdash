@@ -7,6 +7,8 @@ import { resolveDisplayImageUrl } from "@/lib/images/resolve"
 import { ProductArt } from "@/components/product-art"
 import { cn } from "@/lib/utils"
 
+const MAGNUM_SABER_PRODUCT_ID = "fa551244-1a12-54ec-b937-ad1b5603e8bb"
+
 // Drop-in replacement for <ProductArt>: identical prop shape, so every
 // existing call site (components/product-card.tsx,
 // components/screens/*.tsx, components/add-item-dialogs.tsx, ...) swaps
@@ -58,6 +60,9 @@ export function ProductImage({
         alt={alt}
         fill
         sizes={sizes}
+        // The audited Magnum Saber sources serve usable images directly.
+        // Keep them visible when the hosted optimizer rejects a transform.
+        unoptimized={product.id === MAGNUM_SABER_PRODUCT_ID}
         className="object-contain"
         onError={() => setFailed(true)}
       />
