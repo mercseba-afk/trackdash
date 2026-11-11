@@ -8,7 +8,7 @@ on:
   # retain a 7–45-day adaptive scan interval. More frequent dispatch does NOT
   # rescan every Release hourly, and failed scans are never auto-retried.
   # Push remains the protected post-deployment smoke check.
-  # Market evidence audit: DCR-01, 2026-11-11 (complete the initial family scan).
+  # Market evidence audit: Mach Frame, 2026-11-11 (initial family scan).
   push:
     branches: [main]
     paths:
