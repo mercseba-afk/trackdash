@@ -8,7 +8,7 @@ on:
   # retain a 7–45-day adaptive scan interval. More frequent dispatch does NOT
   # rescan every Release hourly, and failed scans are never auto-retried.
   # Push remains the protected post-deployment smoke check.
-  # Market evidence audit: Magnum Saber Premium, 2026-11-04 (bounded recompute).
+  # Market evidence audit: DCR-01, 2026-11-11 (first bounded scan batch).
   push:
     branches: [main]
     paths:
