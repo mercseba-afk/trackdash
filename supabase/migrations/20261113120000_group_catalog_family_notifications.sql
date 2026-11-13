@@ -69,9 +69,8 @@ begin
 end;
 $$;
 
-drop trigger if exists trg_trackdash_catalog_release_inserted on public.product_releases;
-create trigger trg_trackdash_catalog_release_inserted
-after insert or update of catalog_visibility, verification_status on public.product_releases
+create trigger trg_trackdash_catalog_release_published
+after update of catalog_visibility, verification_status on public.product_releases
 for each row execute function private.trackdash_notify_catalog_release_inserted();
 
 create or replace function private.trackdash_notify_catalog_family_available()
