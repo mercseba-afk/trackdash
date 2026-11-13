@@ -59,3 +59,5 @@ jobs:
           node --experimental-strip-types scripts/ebay-market-watch-diagnostics.mjs result.json "${status}" "${curl_exit}"
           TRACKDASH_SCAN_TOKEN="${token}" node --experimental-strip-types scripts/ebay-market-watch-catchup.mjs result.json
           unset token
+
+# Initial Shadow Shark market checks.
