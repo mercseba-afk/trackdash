@@ -43,3 +43,30 @@ self.addEventListener("fetch", (event) => {
     }),
   )
 })
+
+self.addEventListener("push", (event) => {
+  let payload
+  try {
+    payload = event.data?.json()
+  } catch {
+    return
+  }
+  if (!payload || typeof payload.body !== "string") return
+  event.waitUntil(self.registration.showNotification("TrackDash", {
+    body: payload.body,
+    icon: "/pwa/icon-v7-192.png",
+    tag: "trackdash-pilot",
+  }))
+})
+
+self.addEventListener("notificationclick", (event) => {
+  if (event.notification.tag !== "trackdash-pilot") return
+  event.notification.close()
+  event.waitUntil((async () => {
+    const target = new URL("/profile", self.location.origin).href
+    const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
+    const existing = clients.find((client) => client.url === target)
+    if (existing) return existing.focus()
+    return self.clients.openWindow(target)
+  })())
+})
