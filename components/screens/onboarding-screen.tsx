@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client"
 import { BrandMark } from "@/components/brand-mark"
 import { ProductImage } from "@/components/catalog/product-image"
 import { Button } from "@/components/ui/button"
+import { PushPilot } from "@/components/push-pilot"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -21,7 +22,7 @@ const STARTER_PICKS = (() => {
   return [...preferred, ...rest].slice(0, 6)
 })()
 
-export function OnboardingScreen({ nextPath }: { nextPath?: string }) {
+export function OnboardingScreen({ nextPath, pushPublicKey }: { nextPath?: string; pushPublicKey?: string | null }) {
   const router = useRouter()
   const { addToCollection, user } = useStore()
   const { locale, setLocale } = useI18n()
@@ -295,6 +296,8 @@ export function OnboardingScreen({ nextPath }: { nextPath?: string }) {
               )}
             </div>
           </div>
+
+          {step === steps.length - 1 && pushPublicKey && <PushPilot publicKey={pushPublicKey} onboarding />}
 
           <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-5">
             <Button variant="ghost" className="rounded-xl" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || finishing}>
