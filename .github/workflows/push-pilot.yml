@@ -26,3 +26,5 @@ jobs:
           curl --silent --show-error --fail --max-time 25 \
             -H "Authorization: Bearer ${token}" \
             https://trackdash.it/api/cron/push-pilot
+
+# Verify the Shadow Shark pilot notification after its grouping window.
