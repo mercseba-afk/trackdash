@@ -101,6 +101,16 @@ function copyFor(notification: AppNotification, it: boolean) {
     }
     case "catalog_release_available": {
       const productName = asText(notification.metadata.product_name) ?? (it ? "Mini 4WD" : "Mini 4WD")
+      if (Array.isArray(notification.metadata.release_ids)) {
+        const count = notification.metadata.release_ids.length
+        return {
+          title: it ? `Novità per ${productName}` : `What's new for ${productName}`,
+          body: it
+            ? (count === 1 ? "Una nuova Release nel catalogo." : `${count} nuove Release nel catalogo.`)
+            : (count === 1 ? "One new Release in the catalog." : `${count} new Releases in the catalog.`),
+          icon: PackagePlus,
+        }
+      }
       const editionName = asText(notification.metadata.edition_name) ?? (it ? "Nuova Release" : "New Release")
       const itemNumber = asText(notification.metadata.item_number)
       return {
@@ -245,10 +255,14 @@ export function NotificationCenter() {
       .subscribe()
 
     const onFocus = () => void refresh()
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") onFocus()
+    }, 60_000)
     window.addEventListener("focus", onFocus)
     // Opening a conversation directly also acknowledges associated bell alerts.
     window.addEventListener("trackdash:messaging-read", onFocus)
     return () => {
+      window.clearInterval(interval)
       window.removeEventListener("focus", onFocus)
       window.removeEventListener("trackdash:messaging-read", onFocus)
       void supabase.removeChannel(channel)

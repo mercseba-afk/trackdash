@@ -1,0 +1,28 @@
+name: TrackDash Push Pilot
+on:
+  schedule:
+    - cron: '4-59/5 * * * *'
+  push:
+    branches: [main]
+    paths: ['.github/workflows/push-pilot.yml']
+permissions:
+  id-token: write
+concurrency:
+  group: trackdash-push-pilot
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Dispatch pending TrackDash push notifications
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(curl --silent --fail --max-time 10 \
+            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=trackdash-push-pilot" | jq -er '.value')"
+          echo "::add-mask::${token}"
+          curl --silent --fail --max-time 25 \
+            -H "Authorization: Bearer ${token}" \
+            https://trackdash.it/api/cron/push-pilot

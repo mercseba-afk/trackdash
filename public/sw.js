@@ -55,15 +55,18 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification("TrackDash", {
     body: payload.body,
     icon: "/pwa/icon-v7-192.png",
-    tag: "trackdash-pilot",
+    tag: payload.id ? `trackdash-pilot:${payload.id}` : "trackdash-pilot",
+    data: { href: payload.href },
   }))
 })
 
 self.addEventListener("notificationclick", (event) => {
-  if (event.notification.tag !== "trackdash-pilot") return
+  if (!/^trackdash-pilot(?::|$)/.test(event.notification.tag)) return
   event.notification.close()
   event.waitUntil((async () => {
-    const target = new URL("/profile", self.location.origin).href
+    const href = event.notification.data?.href
+    const target = new URL(typeof href === "string" && /^\/(catalog|messages)(?:[/?]|$)/.test(href)
+      ? href : "/profile", self.location.origin).href
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
     const existing = clients.find((client) => client.url === target)
     if (existing) return existing.focus()

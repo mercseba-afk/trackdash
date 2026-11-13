@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { sendPushPilot } from "@/lib/actions/push-pilot"
+import { registerPushPilot, sendPushPilot, unregisterPushPilot } from "@/lib/actions/push-pilot"
 
 export function PushPilot({ publicKey }: { publicKey: string }) {
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>()
@@ -19,7 +19,11 @@ export function PushPilot({ publicKey }: { publicKey: string }) {
     void navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
       .then(() => navigator.serviceWorker.ready)
       .then(async (ready) => {
-        setSubscription(await ready.pushManager.getSubscription())
+        const current = await ready.pushManager.getSubscription()
+        setSubscription(current)
+        if (current && !await registerPushPilot(current.toJSON() as Parameters<typeof registerPushPilot>[0])) {
+          setMessage("Avvisi automatici non attivati. Ricarica la pagina per riprovare.")
+        }
         setRegistration(ready)
       })
       .catch(() => setMessage("Impossibile inizializzare le notifiche. Ricarica la pagina."))
@@ -55,7 +59,9 @@ export function PushPilot({ publicKey }: { publicKey: string }) {
                   : "Invio non riuscito. Riprova tra poco.")
               })}>Invia una notifica di prova</Button>
               <Button variant="outline" disabled={pending} onClick={() => void run(async () => {
-                await subscription.unsubscribe()
+                const removed = await unregisterPushPilot(subscription.endpoint)
+                const unsubscribed = await subscription.unsubscribe()
+                if (!removed && !unsubscribed) throw new Error("Could not unsubscribe")
                 setSubscription(null)
               })}>Disattiva su questo dispositivo</Button>
             </>
@@ -64,7 +70,10 @@ export function PushPilot({ publicKey }: { publicKey: string }) {
               if (!registration) return
               const base64 = publicKey.replace(/-/g, "+").replace(/_/g, "/")
               const applicationServerKey = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0))
-              setSubscription(await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey }))
+              const current = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })
+              setSubscription(current)
+              const registered = await registerPushPilot(current.toJSON() as Parameters<typeof registerPushPilot>[0])
+              setMessage(registered ? "Avvisi automatici attivi su questo dispositivo." : "Ricarica la pagina per attivare gli avvisi automatici.")
             })}>Attiva notifiche push</Button>
           )}
         </div>

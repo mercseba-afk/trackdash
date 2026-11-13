@@ -278,6 +278,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const api = React.useMemo<Store>(() => {
     const logout: Store["logout"] = async () => {
       const supabase = createClient()
+      if ("serviceWorker" in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration("/")
+          const subscription = await registration?.pushManager?.getSubscription()
+          await subscription?.unsubscribe()
+        } catch {
+          // The session can still be closed if the browser's push service is offline.
+        }
+      }
       await supabase.auth.signOut()
       // onAuthStateChange above will clear user/collection/wishlist.
     }

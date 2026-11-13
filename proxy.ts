@@ -18,6 +18,7 @@ const SESSIONLESS_SERVER_PATHS = new Set([
   "/api/ebay/marketplace-account-deletion",
   "/api/cron/market-scan",
   "/api/cron/ebay-scan",
+  "/api/cron/push-pilot",
 ])
 
 function isSessionlessServerPath(pathname: string): boolean {
@@ -142,6 +143,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/ebay/marketplace-account-deletion/?$|api/cron/(?:market-scan|ebay-scan)/?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/ebay/marketplace-account-deletion/?$|api/cron/(?:market-scan|ebay-scan|push-pilot)/?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

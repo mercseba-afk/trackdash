@@ -1,14 +1,15 @@
 "use server"
 
-import { sendNotification, WebPushError, type PushSubscription } from "web-push"
+import type { PushSubscription } from "web-push"
 import { getCurrentUser } from "@/lib/auth/current-user"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { deliverPilotPush, pushPilotConfig } from "@/lib/push-pilot-server"
 
 async function pilotConfig() {
-  const { TRACKDASH_PUSH_USER_ID, TRACKDASH_PUSH_PUBLIC_KEY, TRACKDASH_PUSH_PRIVATE_KEY } = process.env
-  if (!TRACKDASH_PUSH_USER_ID || !TRACKDASH_PUSH_PUBLIC_KEY || !TRACKDASH_PUSH_PRIVATE_KEY) return null
+  const config = pushPilotConfig()
+  if (!config) return null
   const user = await getCurrentUser()
-  if (user?.id !== TRACKDASH_PUSH_USER_ID) return null
-  return { publicKey: TRACKDASH_PUSH_PUBLIC_KEY, privateKey: TRACKDASH_PUSH_PRIVATE_KEY }
+  return user?.id === config.userId ? config : null
 }
 
 export async function getPushPilotKey() {
@@ -35,18 +36,26 @@ export async function sendPushPilot(subscription: PushSubscription) {
   const config = await pilotConfig()
   if (!config || !validSubscription(subscription)) return "unavailable"
 
-  try {
-    await sendNotification(subscription, JSON.stringify({
-      body: "Le notifiche push di prova sono attive su questo dispositivo.",
-    }), {
-      vapidDetails: { ...config, subject: "mailto:info@xebdesign.it" },
-      TTL: 120,
-      topic: "trackdash-pilot",
-      timeout: 5000,
-    })
-    return "sent"
-  } catch (error) {
-    if (error instanceof WebPushError && [404, 410].includes(error.statusCode)) return "expired"
-    return "failed"
-  }
+  return deliverPilotPush(config, subscription, {
+    body: "Le notifiche push di prova sono attive su questo dispositivo.",
+  })
+}
+
+export async function registerPushPilot(subscription: PushSubscription) {
+  const config = await pilotConfig()
+  if (!config || !validSubscription(subscription)) return false
+  const { error } = await createAdminClient().from("push_pilot_subscriptions").upsert({
+    endpoint: subscription.endpoint,
+    user_id: config.userId,
+    keys: subscription.keys,
+  }, { onConflict: "endpoint", ignoreDuplicates: true })
+  return !error
+}
+
+export async function unregisterPushPilot(endpoint: string) {
+  const config = await pilotConfig()
+  if (!config) return false
+  const { error } = await createAdminClient().from("push_pilot_subscriptions")
+    .delete().eq("user_id", config.userId).eq("endpoint", endpoint)
+  return !error
 }
