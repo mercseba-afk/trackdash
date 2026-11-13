@@ -61,6 +61,7 @@ function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }
     ...(env ? { process: { env } } : {}),
     ...(fetchImpl ? { fetch: fetchImpl } : {}),
   }
+  imports["@/lib/auth/github-oidc"] = compile("lib/auth/github-oidc.ts", { "server-only": {} }, extras)
   return {
     daily: compile("app/api/cron/market-scan/route.ts", imports, extras),
     ebay: compile("app/api/cron/ebay-scan/route.ts", imports, extras), calls, logs,
