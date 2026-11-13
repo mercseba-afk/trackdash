@@ -1,6 +1,6 @@
 "use server"
 
-import webPush, { type PushSubscription } from "web-push"
+import { sendNotification, WebPushError, type PushSubscription } from "web-push"
 import { getCurrentUser } from "@/lib/auth/current-user"
 
 async function pilotConfig() {
@@ -36,7 +36,7 @@ export async function sendPushPilot(subscription: PushSubscription) {
   if (!config || !validSubscription(subscription)) return "unavailable"
 
   try {
-    await webPush.sendNotification(subscription, JSON.stringify({
+    await sendNotification(subscription, JSON.stringify({
       body: "Le notifiche push di prova sono attive su questo dispositivo.",
     }), {
       vapidDetails: { ...config, subject: "mailto:info@xebdesign.it" },
@@ -46,7 +46,7 @@ export async function sendPushPilot(subscription: PushSubscription) {
     })
     return "sent"
   } catch (error) {
-    if (error instanceof webPush.WebPushError && [404, 410].includes(error.statusCode)) return "expired"
+    if (error instanceof WebPushError && [404, 410].includes(error.statusCode)) return "expired"
     return "failed"
   }
 }
