@@ -2,8 +2,8 @@ import "server-only"
 import { sendNotification, WebPushError, type PushSubscription } from "web-push"
 
 export function pushPilotConfig() {
-  const { TRACKDASH_PUSH_USER_ID: userId, TRACKDASH_PUSH_PUBLIC_KEY: publicKey, TRACKDASH_PUSH_PRIVATE_KEY: privateKey } = process.env
-  return userId && publicKey && privateKey ? { userId, publicKey, privateKey } : null
+  const { TRACKDASH_PUSH_PUBLIC_KEY: publicKey, TRACKDASH_PUSH_PRIVATE_KEY: privateKey } = process.env
+  return publicKey && privateKey ? { publicKey, privateKey } : null
 }
 
 export async function deliverPilotPush(

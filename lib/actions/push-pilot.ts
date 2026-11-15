@@ -9,7 +9,7 @@ async function pilotConfig() {
   const config = pushPilotConfig()
   if (!config) return null
   const user = await getCurrentUser()
-  return user?.id === config.userId ? config : null
+  return user ? { ...config, userId: user.id } : null
 }
 
 export async function getPushPilotKey() {
@@ -34,11 +34,20 @@ function validSubscription(subscription: PushSubscription) {
 
 export async function sendPushPilot(subscription: PushSubscription) {
   const config = await pilotConfig()
-  if (!config || !validSubscription(subscription)) return "unavailable"
+  if (!config || !validSubscription(subscription) || !await hasPushSubscription(subscription.endpoint)) return "unavailable"
 
   return deliverPilotPush(config, subscription, {
     body: "Le notifiche push di prova sono attive su questo dispositivo.",
   })
+}
+
+export async function hasPushSubscription(endpoint: string) {
+  const config = await pilotConfig()
+  if (!config || typeof endpoint !== "string" || endpoint.length > 2048) return false
+  const { data, error } = await createAdminClient().from("push_pilot_subscriptions").select("user_id")
+    .eq("endpoint", endpoint).eq("user_id", config.userId).maybeSingle()
+  if (error) throw new Error("Could not check push subscription")
+  return Boolean(data)
 }
 
 export async function registerPushPilot(subscription: PushSubscription) {
@@ -48,7 +57,8 @@ export async function registerPushPilot(subscription: PushSubscription) {
     endpoint: subscription.endpoint,
     user_id: config.userId,
     keys: subscription.keys,
-  }, { onConflict: "endpoint", ignoreDuplicates: true })
+    created_at: new Date().toISOString(),
+  }, { onConflict: "endpoint" })
   return !error
 }
 

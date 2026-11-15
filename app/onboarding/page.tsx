@@ -1,3 +1,4 @@
+import { getPushPilotKey } from "@/lib/actions/push-pilot"
 import { AuthGate } from "@/components/auth-gate"
 import { OnboardingScreen } from "@/components/screens/onboarding-screen"
 
@@ -12,11 +13,11 @@ export default async function OnboardingPage({
 }: {
   searchParams: Promise<{ next?: string | string[] }>
 }) {
-  const params = await searchParams
+  const [params, pushPublicKey] = await Promise.all([searchParams, getPushPilotKey()])
 
   return (
     <AuthGate>
-      <OnboardingScreen nextPath={safeInternalNext(params.next)} />
+      <OnboardingScreen nextPath={safeInternalNext(params.next)} pushPublicKey={pushPublicKey} />
     </AuthGate>
   )
 }

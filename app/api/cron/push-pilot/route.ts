@@ -8,7 +8,7 @@ type Delivery = {
   notification_id: string
   endpoint: string
   keys: { auth: string; p256dh: string }
-  type: string
+  user_id: string
   href: string | null
 }
 
@@ -23,22 +23,18 @@ export async function GET(request: Request) {
   const config = pushPilotConfig()
   if (!config) return new Response(null, { status: 503 })
   const supabase = createAdminClient()
-  const { data, error } = await supabase.rpc("trackdash_claim_pilot_pushes", { p_user: config.userId })
+  const { data, error } = await supabase.rpc("trackdash_claim_catalog_pushes")
   if (error) return new Response(null, { status: 503 })
 
   const deliveries = (data ?? []) as Delivery[]
   const outcomes = await Promise.all(deliveries.map(async (delivery) => {
-    const catalog = delivery.type.startsWith("catalog_")
-    const body = catalog ? "Una famiglia del catalogo TrackDash è stata aggiornata."
-      : delivery.type === "marketplace_counteroffer_received" ? "Hai ricevuto una controproposta su TrackDash."
-      : "Hai ricevuto una nuova offerta su TrackDash."
     const result = await deliverPilotPush(config, delivery, {
       id: delivery.notification_id,
-      href: delivery.href ?? (catalog ? "/catalog" : "/messages"),
-      body,
+      href: delivery.href ?? "/catalog",
+      body: "Ci sono nuove release nel catalogo TrackDash.",
     })
     if (result === "expired") {
-      await supabase.from("push_pilot_subscriptions").delete().eq("endpoint", delivery.endpoint).eq("user_id", config.userId)
+      await supabase.from("push_pilot_subscriptions").delete().eq("endpoint", delivery.endpoint).eq("user_id", delivery.user_id)
     } else if (result === "failed") {
       await supabase.from("push_pilot_deliveries").delete()
         .eq("notification_id", delivery.notification_id).eq("endpoint", delivery.endpoint)
