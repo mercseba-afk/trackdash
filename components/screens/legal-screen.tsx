@@ -201,8 +201,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
             </p>
             <p>
               {it
-                ? "Se in futuro verranno introdotti cookie o tecnologie non necessarie che richiedono consenso, questa informativa e le relative scelte verranno aggiornate prima dell'attivazione."
-                : "If non-essential cookies or technologies requiring consent are introduced in the future, this notice and the related choices will be updated before they are enabled."}
+                ? "Con il tuo consenso, Google Analytics 4 misura le visualizzazioni delle pagine pubbliche del catalogo tramite cookie come _ga e _ga_QJ1XLZTK3W. Puoi modificare o revocare la scelta in qualsiasi momento con il pulsante Preferenze analytics su questa pagina."
+                : "With your consent, Google Analytics 4 measures views of public catalog pages using cookies such as _ga and _ga_QJ1XLZTK3W. You can change or withdraw your choice at any time with the Analytics preferences button on this page."}
             </p>
           </Section>
 
