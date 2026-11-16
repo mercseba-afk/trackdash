@@ -8,11 +8,10 @@ import { useMarketSignals } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayLabel, observedMarketDisplayPrice } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayPrice, observedMarketReferenceIsHistorical } from "@/lib/market/presentation"
 import { highestVerifiedAskingRows, latestVerifiedAskingRows, recentCollectorMarketTrend, verifiedAskingObservation } from "@/lib/market/highlights"
-import { representativeAskingCaption } from "@/lib/market/presentation"
 import { ProductImage } from "@/components/catalog/product-image"
-import { RarityBadge, TrendIndicator } from "@/components/market-bits"
+import { TrendIndicator } from "@/components/market-bits"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,27 +51,6 @@ function takeDistinctProducts(rows: MarketRow[], limit: number): MarketRow[] {
   }
 
   return result
-}
-
-function recentSalesLabel(signal: ReleaseMarketSignalView, it: boolean): string {
-  if (signal.recentSoldUnits3m != null && signal.recentSoldPeriodStart && signal.recentSoldPeriodEnd) {
-    const start = new Date(`${signal.recentSoldPeriodStart}T00:00:00Z`)
-    const end = new Date(`${signal.recentSoldPeriodEnd}T00:00:00Z`)
-    const locale = it ? "it-IT" : "en-US"
-    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" })
-    const startMonth = monthFormatter.format(start).replace(".", "")
-    const endMonth = monthFormatter.format(end).replace(".", "")
-    const period = start.getUTCFullYear() === end.getUTCFullYear()
-      ? `${startMonth}–${endMonth} ${end.getUTCFullYear()}`
-      : `${startMonth} ${start.getUTCFullYear()}–${endMonth} ${end.getUTCFullYear()}`
-    return it
-      ? `${signal.recentSoldUnits3m} ${signal.recentSoldUnits3m === 1 ? "vendita" : "vendite"} · ${period}`
-      : `${signal.recentSoldUnits3m} ${signal.recentSoldUnits3m === 1 ? "sale" : "sales"} · ${period}`
-  }
-
-  return it
-    ? `${signal.soldUnits} ${signal.soldUnits === 1 ? "vendita osservata" : "vendite osservate"}`
-    : `${signal.soldUnits} observed ${signal.soldUnits === 1 ? "sale" : "sales"}`
 }
 
 export function DashboardMarketOverview({ products }: { products: Product[] }) {
@@ -216,7 +194,7 @@ function MarketBlock({
         <CardTitle className="flex items-center gap-2 text-base"><Icon className="size-4 text-brand" /> {title}</CardTitle>
         <p className="text-xs text-muted-foreground">{subtitle}</p>
       </CardHeader>
-      <CardContent className="flex flex-col gap-0.5">
+      <CardContent className="divide-y divide-border/70">
         {rows.map((row) => <MarketRowItem key={row.release.id} row={row} it={it} priceMode={priceMode} />)}
       </CardContent>
     </Card>
@@ -226,56 +204,45 @@ function MarketBlock({
 function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; priceMode: "market" | "asking" | "verified_asking" }) {
   const href = `/catalog/${row.product.id}/releases/${row.release.id}`
   const year = releaseYear(row.release)
-  const salesLabel = recentSalesLabel(row.signal, it)
-  const verification = priceMode !== "market" ? verifiedAskingObservation(row.signal) : null
-  const displayPrice = priceMode === "market" ? observedMarketDisplayPrice(row.signal) : verification?.priceEUR ?? null
-  const displayKind = priceMode === "market" ? observedMarketDisplayKind(row.signal) : "ask"
-  const showProductFamily = row.release.editionName.trim().toLowerCase() !== row.product.name.trim().toLowerCase()
+  const isMarket = priceMode === "market"
+  const displayPrice = isMarket
+    ? observedMarketDisplayPrice(row.signal)
+    : verifiedAskingObservation(row.signal)?.priceEUR ?? null
+  const displayKind = isMarket ? observedMarketDisplayKind(row.signal) : "ask"
+  const estimate = isMarket ? row.signal.valueEUR : null
+  const price = estimate ?? displayPrice
+  const trend = isMarket ? recentCollectorMarketTrend(row.signal) : null
+  const priceLabel = estimate != null
+    ? (it ? "Riferimento mercato" : "Market reference")
+    : displayKind === "sold"
+      ? (it ? "Vendite concluse" : "Completed sales")
+      : isMarket && observedMarketReferenceIsHistorical(row.signal)
+        ? (it ? "Ultimo prezzo osservato" : "Last observed asking price")
+        : (it ? "Prezzi negli annunci" : "Listing prices")
+  const identity = [row.release.itemNumber ? `#${row.release.itemNumber}` : null, year].filter(Boolean).join(" · ")
 
   return (
-    <Link href={href} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
-      <ProductImage product={row.product} release={row.release} size="sm" className="h-12 w-16 shrink-0" />
+    <Link href={href} className="flex items-center gap-3 rounded-md px-1 py-3 hover:bg-accent sm:gap-4 sm:px-2">
+      <ProductImage
+        product={row.product}
+        release={row.release}
+        sizes="(min-width: 640px) 112px, 96px"
+        className="aspect-[4/3] w-24 shrink-0 rounded-lg bg-white sm:w-28"
+      />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{row.release.editionName}</p>
-        {showProductFamily ? <p className="truncate text-[11px] text-muted-foreground">{row.product.name}</p> : null}
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-          {year != null ? <span className="text-xs text-muted-foreground">{year}</span> : null}
-          <span className="text-xs text-muted-foreground">#{row.release.itemNumber ?? "—"}</span>
-          {row.release.rarity ? <RarityBadge rarity={row.release.rarity} /> : null}
+        <p className="text-sm leading-snug font-semibold wrap-anywhere sm:text-base">{row.release.editionName}</p>
+        {identity ? <p className="mt-0.5 text-xs text-muted-foreground">{identity}</p> : null}
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          {price != null ? (
+            <>
+              <span className="text-sm font-semibold tabular-nums whitespace-nowrap">{estimate == null && displayKind === "sold" ? "≈ " : ""}{formatMoney(price)}</span>
+              <span className="text-xs text-muted-foreground">{priceLabel}</span>
+            </>
+          ) : (
+            <Badge variant="secondary">{it ? "Valore in verifica" : "Value under review"}</Badge>
+          )}
+          {trend != null ? <TrendIndicator value={trend} className="text-xs" /> : null}
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span>{verification
-            ? `${it ? "Verificato il" : "Checked on"} ${new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome" }).format(new Date(verification.observedAt))}`
-            : salesLabel}</span>
-          {row.signal.currentOfferCount > 0 ? <><span aria-hidden>·</span><span>{row.signal.currentOfferCount} {it ? "annunci osservati" : "observed listings"}</span></> : null}
-        </div>
-      </div>
-      <div className="max-w-36 shrink-0 text-right">
-        {priceMode === "market" && row.signal.valueEUR != null ? (
-          <>
-            <p className="text-[10px] text-muted-foreground">{it ? "Valore stimato" : "Estimated value"}</p>
-            <p className="text-sm font-semibold tabular-nums">{formatMoney(row.signal.valueEUR)}</p>
-          </>
-        ) : displayPrice != null ? (
-          <>
-            <p className="text-[10px] text-muted-foreground">{priceMode !== "market" ? (verification?.representative ? representativeAskingCaption(row.signal, it) : (it ? "Prezzo negli annunci" : "Listing asking price")) : observedMarketDisplayLabel(row.signal, it)}</p>
-            <p className="text-sm font-semibold tabular-nums">{displayKind === "sold" ? "≈ " : ""}{formatMoney(displayPrice)}</p>
-            {verification ? <p className="text-[10px] text-muted-foreground">{it ? "Spedizione esclusa" : "Shipping excluded"}{verification.origin === "extra_eu" ? (it ? " · possibili oneri d'importazione" : " · possible import charges") : ""}</p> : null}
-          </>
-        ) : (
-          <Badge variant="secondary">{it ? "Valore in verifica" : "Value under review"}</Badge>
-        )}
-        {priceMode === "market" && recentCollectorMarketTrend(row.signal) != null ? (
-          <div className="mt-0.5 flex flex-col items-end">
-            <TrendIndicator value={collectorMarketTrend(row.signal)!} className="text-xs" />
-            {row.signal.trendWindowMonths != null
-              ? <span className="text-[10px] text-muted-foreground">{it
-                  ? row.signal.trendWindowMonths === 1 ? "ultimo mese" : `ultimi ${row.signal.trendWindowMonths} mesi`
-                  : row.signal.trendWindowMonths === 1 ? "last month" : `last ${row.signal.trendWindowMonths} months`}</span>
-              : null}
-            <span className="text-[10px] text-muted-foreground">{it ? "Confermato il" : "Confirmed on"} {new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Rome" }).format(new Date(row.signal.trendUpdatedAt!))}</span>
-          </div>
-        ) : null}
       </div>
     </Link>
   )
