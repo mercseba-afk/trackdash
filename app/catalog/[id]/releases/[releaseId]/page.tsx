@@ -236,6 +236,8 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
     ],
   }
 
+  const amazonAsin = amazonItalyAsinByRelease[release.id]
+
   return (
     <PublicShell>
       <script
@@ -248,19 +250,8 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
           release={release}
           localizedDescription={localizedCopy?.releases[release.id]}
           collectorOffers={collectorOffers}
+          amazonUrl={amazonAsin ? `https://www.amazon.it/dp/${amazonAsin}` : undefined}
         />
-        {amazonItalyAsinByRelease[release.id] && (
-          <a
-            href={`https://www.amazon.it/dp/${amazonItalyAsinByRelease[release.id]}`}
-            data-amazon-item={release.itemNumber}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border bg-card px-4 text-sm font-medium hover:bg-muted"
-          >
-            {it ? "Vedi su Amazon" : "View on Amazon Italy"}
-            <span aria-hidden="true">↗</span>
-          </a>
-        )}
         <ReleaseFamilyLinks
           product={product}
           releases={siblingReleases}

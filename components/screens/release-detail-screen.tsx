@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { ArrowLeft, Check, Heart, Plus, Tag } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, Check, Heart, Plus, Tag } from "lucide-react"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
 import { ProductImage } from "@/components/catalog/product-image"
 import { ReleaseCollectorOffers } from "@/components/release-collector-offers"
@@ -42,11 +42,13 @@ export function ReleaseDetailScreen({
   release,
   localizedDescription,
   collectorOffers,
+  amazonUrl,
 }: {
   product: Product
   release: ProductRelease
   localizedDescription?: { en: string | null; it: string | null }
   collectorOffers: PublicCollectorOffer[]
+  amazonUrl?: string
 }) {
   const { collection, user } = useStore()
   const { locale } = useI18n()
@@ -162,20 +164,32 @@ export function ReleaseDetailScreen({
                       ? "Aggiungila ai Desideri e tienila monitorata. Ti avvisiamo se un collezionista la rende disponibile alle offerte."
                       : "Add it to your Wishlist and keep an eye on it. We’ll notify you if a collector opens a copy to offers."}
                   </p>
-                  <div className="mt-3">
-                    {user ? (
-                      <AddToWishlistDialog product={product} defaultReleaseId={release.id} defaultOpen={openWishlistFromIntent}>
-                        <Button size="sm" variant="outline" className="gap-1.5 bg-white">
-                          <Heart className="size-3.5" /> {it ? "La sto cercando" : "I'm looking for it"}
-                        </Button>
-                      </AddToWishlistDialog>
-                    ) : (
-                      <Button size="sm" variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5 bg-white">
-                        <Heart className="size-3.5" /> {it ? "La sto cercando" : "I'm looking for it"}
-                      </Button>
-                    )}
-                  </div>
                 </div>
+              </div>
+              <div className={cn("mt-3 flex flex-wrap items-center gap-2", !amazonUrl && "pl-12")}>
+                {user ? (
+                  <AddToWishlistDialog product={product} defaultReleaseId={release.id} defaultOpen={openWishlistFromIntent}>
+                    <Button size="sm" variant="outline" className={cn("gap-1.5 bg-white", amazonUrl && "min-h-10")}>
+                      <Heart className="size-3.5" /> {it ? "La sto cercando" : "I'm looking for it"}
+                    </Button>
+                  </AddToWishlistDialog>
+                ) : (
+                  <Button size="sm" variant="outline" render={<Link href={wishlistSignupHref} />} className={cn("gap-1.5 bg-white", amazonUrl && "min-h-10")}>
+                    <Heart className="size-3.5" /> {it ? "La sto cercando" : "I'm looking for it"}
+                  </Button>
+                )}
+                {amazonUrl && (
+                  <a
+                    href={amazonUrl}
+                    data-amazon-item={release.itemNumber}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[#ffd814] px-2.5 text-[0.8rem] font-semibold text-[#181818] transition-colors hover:bg-[#f7ca00] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f4bb4]"
+                  >
+                    {it ? "Vedi su Amazon" : "View on Amazon"}
+                    <ArrowUpRight aria-hidden="true" className="size-3.5" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
