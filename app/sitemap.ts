@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+import { guides } from "@/lib/guides"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { listMarketSignals } from "@/lib/db/queries/market"
 import { productPublicPath, releasePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
@@ -103,5 +104,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   )
 
-  return [...staticRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes]
+  const guideRoutes: MetadataRoute.Sitemap = PUBLIC_LOCALES.flatMap(locale => [
+    { url: `${SITE_URL}${locale === "en" ? "/en" : ""}/guide`, lastModified: guides.map(g => g.published).sort().at(-1), changeFrequency: "weekly" as const, priority: 0.8 },
+    ...guides.map(guide => ({ url: `${SITE_URL}${locale === "en" ? "/en" : ""}/guide/${guide.slug}`, lastModified: guide.published, changeFrequency: "monthly" as const, priority: 0.7, alternates: { languages: { it: `${SITE_URL}/guide/${guide.slug}`, en: `${SITE_URL}/en/guide/${guide.slug}` } } })),
+  ])
+  return [...staticRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes, ...guideRoutes]
 }

@@ -7,7 +7,7 @@ import { isCatalogOnlyPreview, isCatalogPreviewRequest } from "@/lib/catalog-pre
 // Collection, Wishlist, Scanner, Messages and account tools remain protected.
 const SIGNED_OUT_AUTH_PATHS = ["/login", "/signup", "/forgot-password"]
 const PUBLIC_CONTENT_PATHS = ["/", "/privacy", "/terms"]
-const PUBLIC_CONTENT_PREFIXES = ["/catalog", "/market", "/shop", "/hotwheels", "/speed-champions"]
+const PUBLIC_CONTENT_PREFIXES = ["/guide", "/catalog", "/market", "/shop", "/hotwheels", "/speed-champions"]
 const PUBLIC_LOCALE_COOKIE = "trackdash.locale"
 const PUBLIC_LOCALE_MAX_AGE = 60 * 60 * 24 * 365
 
@@ -50,11 +50,12 @@ function matchesPrefix(pathname: string, prefix: string) {
 }
 
 function publicSeoLocale(pathname: string): "it" | "en" | null {
-  if (pathname === "/en" || matchesPrefix(pathname, "/en/catalog") || matchesPrefix(pathname, "/en/market") || matchesPrefix(pathname, "/en/shop")) return "en"
+  if (pathname === "/en" || matchesPrefix(pathname, "/en/catalog") || matchesPrefix(pathname, "/en/market") || matchesPrefix(pathname, "/en/shop") || matchesPrefix(pathname, "/en/guide")) return "en"
 
   if (
     pathname === "/" ||
     matchesPrefix(pathname, "/catalog") ||
+    matchesPrefix(pathname, "/guide") ||
     matchesPrefix(pathname, "/speed-champions") ||
     matchesPrefix(pathname, "/shop") ||
     matchesPrefix(pathname, "/market")

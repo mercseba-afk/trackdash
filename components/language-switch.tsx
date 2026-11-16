@@ -21,6 +21,8 @@ export function LanguageSwitch({
 
     const currentPath = pathname || "/"
     const isPublicSeoRoute =
+      currentPath === "/guide" || currentPath.startsWith("/guide/") ||
+      currentPath === "/en/guide" || currentPath.startsWith("/en/guide/") ||
       currentPath === "/" ||
       currentPath === "/en" ||
       currentPath === "/catalog" ||

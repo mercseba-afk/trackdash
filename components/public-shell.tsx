@@ -18,6 +18,7 @@ import { localizePublicPath } from "@/lib/seo/catalog-paths"
 const PUBLIC_NAV = [
   { href: "/catalog", key: "catalog" as const },
   { href: "/market", key: "price" as const },
+  { href: "/guide", key: "guides" as const },
 ]
 
 const BRAND_HOME_LINK_CLASS =
@@ -26,7 +27,7 @@ const BRAND_HOME_LINK_CLASS =
 const FOOTER_LINK_CLASS =
   "-mx-2 inline-flex min-h-10 items-center rounded-md px-2 text-foreground transition-colors hover:bg-brand-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 
-export function PublicShell({ children }: { children: React.ReactNode }) {
+export function PublicShell({ children, websiteOnly = false }: { children: React.ReactNode; websiteOnly?: boolean }) {
   const { user, hydrated } = useStore()
   const { locale } = useI18n()
   const pathname = usePathname()
@@ -63,13 +64,14 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (user) {
+  if (user && !websiteOnly) {
     return <AppShell contentMode="public">{children}</AppShell>
   }
 
   const copy = locale === "it"
     ? {
         catalog: "Catalogo",
+        guides: "Guide",
         price: "Valori di mercato",
         scanner: "Scanner",
         how: "Come funziona",
@@ -93,6 +95,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       }
     : {
         catalog: "Catalog",
+        guides: "Guides",
         price: "Market values",
         scanner: "Scanner",
         how: "How it works",
@@ -123,7 +126,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <BrandMark />
           </Link>
 
-          <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
+          <nav className="hidden items-center gap-4 text-sm font-medium text-muted-foreground xl:flex">
             {PUBLIC_NAV.map((item) => {
               const href = publicHref(item.href)
               const active = currentPath === href || currentPath.startsWith(`${href}/`)
@@ -152,7 +155,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </Link>
           </nav>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className="hidden items-center gap-2 xl:flex">
             <LanguageSwitch />
             <PwaInstallButton />
             <Link
@@ -169,7 +172,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          <div className="flex items-center gap-1.5 md:hidden">
+          <div className="flex items-center gap-1.5 xl:hidden">
             <LanguageSwitch compact />
             <PwaInstallButton />
             <button
@@ -184,7 +187,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <div className={cn("border-t border-border bg-white md:hidden", menuOpen ? "block" : "hidden")}>
+        <div className={cn("border-t border-border bg-white xl:hidden", menuOpen ? "block" : "hidden")}>
           <nav className="mx-auto flex max-w-7xl flex-col px-4 py-3 text-sm font-semibold text-[#24446f]">
             {PUBLIC_NAV.map((item) => (
               <Link key={item.href} href={publicHref(item.href)} className="rounded-md px-2 py-3" onClick={() => setMenuOpen(false)}>
@@ -236,6 +239,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{copy.explore}</span>
               <Link href={publicHref("/catalog")} className={FOOTER_LINK_CLASS}>{copy.catalog}</Link>
               <Link href={publicHref("/market")} className={FOOTER_LINK_CLASS}>{copy.price}</Link>
+              <Link href={publicHref("/guide")} className={FOOTER_LINK_CLASS}>{copy.guides}</Link>
               <Link href={scannerHref} className={FOOTER_LINK_CLASS}>{copy.scanner}</Link>
             </div>
             <div className="flex flex-col gap-1">
