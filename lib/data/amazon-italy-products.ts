@@ -1,0 +1,9 @@
+// Keyed by release ID so a listing never appears on another edition of the kit.
+export const amazonItalyAsinByRelease: Partial<Record<string, string>> = {
+  "a2baec17-32b5-5ca7-996b-4cdc2da725ba": "B086CJB4ZZ", // 18701 Aero Avante
+  "5a123617-c84c-5012-ab20-1a9d493259e0": "B0859Y1TBQ", // 18614 Avante Mk.II
+  "497455cb-838d-5430-97dd-ae0be52e69e4": "B09BFRS2ZG", // 18626 Avante Mk.III Azure
+  "86763fe4-bfc0-551e-8541-c3fc9c2442b7": "B0BR9JMVTV", // 18627 Avante Mk.III Nero
+  "cc1fb7fa-67db-5303-9514-80b9705fe732": "B07K4Q3NNQ", // 95464 Azure Clear Special
+  "c91957f4-907f-5f1a-9a49-faeddc3abd8d": "B0FPQ45FYM", // 18662 Nero Advanced Pack
+}

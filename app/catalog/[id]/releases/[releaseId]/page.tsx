@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 import { cache } from "react"
 import { PublicShell } from "@/components/public-shell"
 import { ReleaseFamilyLinks } from "@/components/release-family-links"
+import { amazonItalyAsinByRelease } from "@/lib/data/amazon-italy-products"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
 import { CatalogComingSoonScreen } from "@/components/screens/catalog-coming-soon-screen"
 import { fetchCatalogProductByRouteKey } from "@/lib/actions/catalog"
@@ -248,6 +249,18 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
           localizedDescription={localizedCopy?.releases[release.id]}
           collectorOffers={collectorOffers}
         />
+        {amazonItalyAsinByRelease[release.id] && (
+          <a
+            href={`https://www.amazon.it/dp/${amazonItalyAsinByRelease[release.id]}`}
+            data-amazon-item={release.itemNumber}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border bg-card px-4 text-sm font-medium hover:bg-muted"
+          >
+            {it ? "Vedi su Amazon" : "View on Amazon Italy"}
+            <span aria-hidden="true">↗</span>
+          </a>
+        )}
         <ReleaseFamilyLinks
           product={product}
           releases={siblingReleases}

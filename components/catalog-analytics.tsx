@@ -68,12 +68,31 @@ export function CatalogAnalytics() {
       script.src = "https://www.googletagmanager.com/gtag/js?id=" + measurementId
       document.head.append(script)
     }
-    if (lastPage.current === pathname) return
-    lastPage.current = pathname
-    tag("event", "page_view", {
-      page_location: location.origin + pathname, page_referrer: "",
-      page_title: document.title,
-    })
+    if (lastPage.current !== pathname) {
+      lastPage.current = pathname
+      tag("event", "page_view", {
+        page_location: location.origin + pathname, page_referrer: "",
+        page_title: document.title,
+      })
+    }
+
+    function recordAmazonClick(event: MouseEvent) {
+      if (browser[disableKey] || event.defaultPrevented || event.button > 1) return
+      if (!(event.target instanceof Element)) return
+      const link = event.target.closest<HTMLAnchorElement>("a[data-amazon-item]")
+      if (!link?.dataset.amazonItem) return
+      tag("event", "amazon_product_click", {
+        item_id: link.dataset.amazonItem,
+        link_domain: "amazon.it",
+        page_location: location.origin + pathname,
+      })
+    }
+    document.addEventListener("click", recordAmazonClick)
+    document.addEventListener("auxclick", recordAmazonClick)
+    return () => {
+      document.removeEventListener("click", recordAmazonClick)
+      document.removeEventListener("auxclick", recordAmazonClick)
+    }
   }, [catalog, choice, pathname, production])
 
   function savePreference(value: "granted" | "denied") {
@@ -106,8 +125,8 @@ export function CatalogAnalytics() {
       className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 ml-auto w-auto max-w-sm rounded-xl border bg-white p-3 text-sm shadow-md sm:bottom-4 sm:right-4">
       {showChoice ? (
         <>
-          <p>{it ? "Possiamo usare Google Analytics per capire quali schede del catalogo sono più utili?" :
-            "May we use Google Analytics to understand which catalog pages are most useful?"}</p>
+          <p>{it ? "Possiamo usare Google Analytics per capire quali schede e link del catalogo sono più utili?" :
+            "May we use Google Analytics to understand which catalog pages and links are most useful?"}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button type="button" className="rounded-md border px-3 py-2 font-medium" onClick={() => savePreference("denied")}>
               {it ? "Rifiuta" : "Decline"}
