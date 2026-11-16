@@ -85,15 +85,17 @@ for (const locale of ['it', 'en']) test(`dashboard ${locale}: old gains disappea
   const html = renderToStaticMarkup(React.createElement(Component, { products }))
   assert.match(html, /Latest quote sentinel/)
   assert.match(html, /164,07/)
-  assert.match(html, /Prezzi negli annunci|Listing prices/)
+  assert.match(html, /1 annuncio attivo osservato|1 active listing observed/)
   assert.match(html, /#90001/)
   assert.doesNotMatch(html, /extra-UE|non-EU|Verificato il|Checked on|Spedizione esclusa|Shipping excluded/)
   assert.doesNotMatch(html, /\btruncate\b|\bline-clamp-/)
   assert.doesNotMatch(html, /September gain sentinel|>In crescita<|>Growing</)
   signals.r0.trendUpdatedAt = new Date(actualNow - day).toISOString()
+  signals.r0.soldUnits = 1
   const recentHtml = renderToStaticMarkup(React.createElement(Component, { products }))
   assert.match(recentHtml, /September gain sentinel/)
   assert.match(recentHtml, /In crescita|Growing/)
+  assert.match(recentHtml, /1 vendita osservata|1 observed sale/)
   assert.equal((recentHtml.match(/Latest quote sentinel/g) ?? []).length, 2,
     'a family in Growth keeps its asking quote in the independent Highest asks block')
 })

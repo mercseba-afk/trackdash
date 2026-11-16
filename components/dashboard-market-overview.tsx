@@ -8,7 +8,7 @@ import { useMarketSignals } from "@/lib/market/context"
 import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import type { Product, ProductRelease } from "@/lib/types"
 import { formatMoney } from "@/lib/format"
-import { collectorMarketTrend, observedMarketDisplayKind, observedMarketDisplayPrice, observedMarketReferenceIsHistorical } from "@/lib/market/presentation"
+import { collectorMarketTrend, observedMarketAskCountLabel, observedMarketDisplayKind, observedMarketDisplayPrice, observedMarketReferenceIsHistorical } from "@/lib/market/presentation"
 import { highestVerifiedAskingRows, latestVerifiedAskingRows, recentCollectorMarketTrend, verifiedAskingObservation } from "@/lib/market/highlights"
 import { ProductImage } from "@/components/catalog/product-image"
 import { TrendIndicator } from "@/components/market-bits"
@@ -212,13 +212,17 @@ function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; pr
   const estimate = isMarket ? row.signal.valueEUR : null
   const price = estimate ?? displayPrice
   const trend = isMarket ? recentCollectorMarketTrend(row.signal) : null
-  const priceLabel = estimate != null
-    ? (it ? "Riferimento mercato" : "Market reference")
-    : displayKind === "sold"
-      ? (it ? "Vendite concluse" : "Completed sales")
-      : isMarket && observedMarketReferenceIsHistorical(row.signal)
-        ? (it ? "Ultimo prezzo osservato" : "Last observed asking price")
-        : (it ? "Prezzi negli annunci" : "Listing prices")
+  const soldPrice = estimate != null || displayKind === "sold"
+  const salesCount = row.signal.soldUnits
+  const priceLabel = soldPrice
+    ? (salesCount > 0
+        ? (it
+            ? `${salesCount} ${salesCount === 1 ? "vendita osservata" : "vendite osservate"}`
+            : `${salesCount} observed ${salesCount === 1 ? "sale" : "sales"}`)
+        : (it ? "Riferimento mercato" : "Market reference"))
+    : isMarket && observedMarketReferenceIsHistorical(row.signal)
+      ? (it ? "Ultimo prezzo osservato" : "Last observed asking price")
+      : observedMarketAskCountLabel(row.signal, it)
   const identity = [row.release.itemNumber ? `#${row.release.itemNumber}` : null, year].filter(Boolean).join(" · ")
 
   return (
@@ -235,8 +239,8 @@ function MarketRowItem({ row, it, priceMode }: { row: MarketRow; it: boolean; pr
         <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           {price != null ? (
             <>
-              <span className="text-sm font-semibold tabular-nums whitespace-nowrap">{estimate == null && displayKind === "sold" ? "≈ " : ""}{formatMoney(price)}</span>
-              <span className="text-xs text-muted-foreground">{priceLabel}</span>
+              <span className="text-base font-bold text-brand tabular-nums whitespace-nowrap">{estimate == null && displayKind === "sold" ? "≈ " : ""}{formatMoney(price)}</span>
+              {priceLabel ? <span className="text-xs text-muted-foreground">{priceLabel}</span> : null}
             </>
           ) : (
             <Badge variant="secondary">{it ? "Valore in verifica" : "Value under review"}</Badge>
