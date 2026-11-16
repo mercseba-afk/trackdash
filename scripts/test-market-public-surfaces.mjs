@@ -407,7 +407,11 @@ if (!dashboardScreen.includes("collectionReferenceCaption") ||
 if (dashboardMarket.includes("askTrendWindowDays")) {
   errors.push("Dashboard collector trend can be mislabeled with an ASK trend day window")
 }
-if (!dashboardMarket.includes("observedMarketDisplayPrice(row.signal)") || !dashboardMarket.includes("observedMarketDisplayLabel(row.signal, it)") || !dashboardMarket.includes("observedMarketDisplayKind(row.signal)")) {
+if (
+  !dashboardMarket.includes("observedMarketDisplayPrice(row.signal)") ||
+  !dashboardMarket.includes("observedMarketDisplayKind(row.signal)") ||
+  !dashboardMarket.includes("observedMarketReferenceIsHistorical(row.signal)")
+) {
   errors.push("Dashboard market highlights are not using the shared ASK/SOLD display fallback")
 }
 if (!dashboardMarket.includes("const gainers") || !dashboardMarket.includes("collectorMarketTrend(row.signal) ?? 0) > 0")) {
