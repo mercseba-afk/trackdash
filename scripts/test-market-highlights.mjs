@@ -74,7 +74,7 @@ test('highest asks use the displayed fresh quote, update their order and keep di
   assert.deepEqual(highestVerifiedAskingRows([a], 0, now), [])
 })
 
-for (const locale of ['it', 'en']) test(`dashboard ${locale}: old gains disappear while new quotes carry dates and origin`, () => {
+for (const locale of ['it', 'en']) test(`dashboard ${locale}: old gains disappear and fresh quotes stay compact`, () => {
   const { load, products, signals } = fixture(locale, { user: { id: 'qa' }, hydrated: true })
   const actualNow = Date.now()
   products[0].releases[0].editionName = 'September gain sentinel'
@@ -85,9 +85,10 @@ for (const locale of ['it', 'en']) test(`dashboard ${locale}: old gains disappea
   const html = renderToStaticMarkup(React.createElement(Component, { products }))
   assert.match(html, /Latest quote sentinel/)
   assert.match(html, /164,07/)
-  assert.match(html, /extra-UE|non-EU/)
-  assert.match(html, /Verificato il|Checked on/)
-  assert.match(html, /Spedizione esclusa|Shipping excluded/)
+  assert.match(html, /Prezzi negli annunci|Listing prices/)
+  assert.match(html, /#90001/)
+  assert.doesNotMatch(html, /extra-UE|non-EU|Verificato il|Checked on|Spedizione esclusa|Shipping excluded/)
+  assert.doesNotMatch(html, /\btruncate\b|\bline-clamp-/)
   assert.doesNotMatch(html, /September gain sentinel|>In crescita<|>Growing</)
   signals.r0.trendUpdatedAt = new Date(actualNow - day).toISOString()
   const recentHtml = renderToStaticMarkup(React.createElement(Component, { products }))
