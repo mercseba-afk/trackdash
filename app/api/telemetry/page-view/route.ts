@@ -32,6 +32,19 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     const admin = createAdminClient()
+    if (user) {
+      const { data: adminMembership, error: membershipError } = await admin
+        .from("app_admins")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle()
+
+      if (membershipError) throw membershipError
+      if (adminMembership) {
+        return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } })
+      }
+    }
+
     const { error } = await admin.rpc("trackdash_record_page_view", {
       p_path: body.path,
       p_signed_in: Boolean(user),
