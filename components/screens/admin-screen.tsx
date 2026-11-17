@@ -23,8 +23,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { HotWheelsMarketAudit } from "@/components/admin/hotwheels-market-audit"
 import { Mini4wdSoldRecoveryAudit } from "@/components/admin/mini4wd-sold-recovery-audit"
+
+const trafficNumber = new Intl.NumberFormat("it-IT")
+const trafficDate = new Intl.DateTimeFormat("it-IT", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+})
+
+function formatTrafficDay(day: string) {
+  return trafficDate.format(new Date(day + "T00:00:00Z"))
+}
 
 function fmtDate(value: string | null) {
   if (!value) return "—"
@@ -309,6 +320,7 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
   const router = useRouter()
   const [data, setData] = React.useState(initialData)
   const [query, setQuery] = React.useState("")
+  const [selectedTrafficDay, setSelectedTrafficDay] = React.useState<string>()
   const [runningMarketRefresh, startMarketRefresh] = React.useTransition()
   const [marketAuditRefreshKey, setMarketAuditRefreshKey] = React.useState(0)
 
@@ -326,6 +338,9 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
   }, [data.users, query])
 
   const maxTraffic = Math.max(1, ...data.dailyTraffic.map((row) => row.pageViews))
+  const latestTraffic = data.dailyTraffic.at(-1)
+  const selectedTraffic = data.dailyTraffic.find((row) => row.day === selectedTrafficDay) ?? latestTraffic
+  const totalTraffic = data.dailyTraffic.reduce((total, row) => total + row.pageViews, 0)
 
   function runMarketRefresh() {
     startMarketRefresh(async () => {
@@ -366,6 +381,85 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
         <p className="text-xs text-muted-foreground">Aggiornato {fmtDate(data.generatedAt)}</p>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Utilizzo dell'app</CardTitle>
+          <CardDescription>
+            Visualizzazioni di pagina aggregate per giorno UTC. Ogni apertura di pagina conteggiata contribuisce al totale.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+          <div>
+            <p className="mb-3 text-sm font-medium">Ultimi 14 giorni · {trafficNumber.format(totalTraffic)} visualizzazioni</p>
+            {selectedTraffic && (
+              <p aria-live="polite" className="mb-3 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                <time dateTime={selectedTraffic.day}>{formatTrafficDay(selectedTraffic.day)}</time>
+                {" · "}
+                <strong className="text-brand tabular-nums">{trafficNumber.format(selectedTraffic.pageViews)}</strong>
+                {selectedTraffic.pageViews === 1 ? " visualizzazione" : " visualizzazioni"}
+                {selectedTraffic.day === latestTraffic?.day && " · giornata in corso"}
+              </p>
+            )}
+            <div className="flex h-36 items-end gap-1.5 rounded-xl border border-border/60 bg-muted/20 p-3">
+              {data.dailyTraffic.map((row) => (
+                <button
+                  key={row.day}
+                  type="button"
+                  className="group flex h-full min-w-0 flex-1 items-end rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label={formatTrafficDay(row.day) + " · " + trafficNumber.format(row.pageViews) + (row.pageViews === 1 ? " visualizzazione" : " visualizzazioni")}
+                  aria-pressed={selectedTraffic?.day === row.day}
+                  onClick={() => setSelectedTrafficDay(row.day)}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="w-full rounded-t bg-brand/70 transition-colors group-hover:bg-brand group-aria-pressed:bg-brand"
+                    style={{ height: Math.max(row.pageViews > 0 ? 6 : 1, (row.pageViews / maxTraffic) * 100) + "%" }}
+                    title={row.day + ": " + row.pageViews + " visualizzazioni"}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+              <span>{data.dailyTraffic[0] ? formatTrafficDay(data.dailyTraffic[0].day) : "—"}</span>
+              <span>{latestTraffic ? formatTrafficDay(latestTraffic.day) : "—"}</span>
+            </div>
+            <table className="mt-4 w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr>
+                  <th scope="col" className="pb-2 text-left font-medium">Giorno</th>
+                  <th scope="col" className="pb-2 text-right font-medium">Visualizzazioni</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...data.dailyTraffic].reverse().map((row) => (
+                  <tr key={row.day} className="border-t border-border/60">
+                    <td className="py-1.5"><time dateTime={row.day}>{formatTrafficDay(row.day)}</time></td>
+                    <td className="py-1.5 text-right font-semibold tabular-nums">{trafficNumber.format(row.pageViews)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <p className="mb-3 text-xs font-medium text-muted-foreground">Pagine più viste · 30 giorni</p>
+            <div className="flex flex-col gap-2">
+              {data.topRoutes.length === 0 ? (
+                <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                  I dati inizieranno a comparire dalle prossime visualizzazioni.
+                </p>
+              ) : data.topRoutes.map((route, index) => (
+                <div key={route.path} className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2">
+                  <span className="w-4 text-center font-mono text-[10px] text-muted-foreground">{index + 1}</span>
+                  <code className="min-w-0 flex-1 truncate text-xs">{route.path}</code>
+                  <strong className="text-xs tabular-nums">{route.pageViews}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-brand/20 bg-brand/[0.03]">
         <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -385,8 +479,6 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
       </Card>
 
       <Mini4wdSoldRecoveryAudit refreshKey={marketAuditRefreshKey} />
-
-      <HotWheelsMarketAudit />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <AdminMetric label="Account" value={data.stats.totalAccounts} note={data.stats.new30d + " nuovi / 30 gg"} icon={Users} />
@@ -455,52 +547,6 @@ export function AdminScreen({ initialData }: { initialData: AdminDashboardData }
             <p className="mt-2">
               Offerta → accettazione → venditore segnala la vendita → compratore conferma → TrackDash trasferisce la copia nella Collection del compratore.
             </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Utilizzo dell'app</CardTitle>
-          <CardDescription>
-            Page view aggregate, senza IP, user agent o cronologia associata al singolo account. Non sono visitatori unici; il conteggio parte dalla pubblicazione di questa funzione.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
-          <div>
-            <p className="mb-3 text-xs font-medium text-muted-foreground">Ultimi 14 giorni</p>
-            <div className="flex h-36 items-end gap-1.5 rounded-xl border border-border/60 bg-muted/20 p-3">
-              {data.dailyTraffic.map((row) => (
-                <div key={row.day} className="group flex h-full min-w-0 flex-1 items-end">
-                  <div
-                    className="w-full rounded-t bg-brand/70 transition-colors group-hover:bg-brand"
-                    style={{ height: Math.max(row.pageViews > 0 ? 6 : 1, (row.pageViews / maxTraffic) * 100) + "%" }}
-                    title={row.day + ": " + row.pageViews + " visualizzazioni"}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-              <span>{data.dailyTraffic[0]?.day ?? "—"}</span>
-              <span>{data.dailyTraffic.at(-1)?.day ?? "—"}</span>
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-3 text-xs font-medium text-muted-foreground">Pagine più viste · 30 giorni</p>
-            <div className="flex flex-col gap-2">
-              {data.topRoutes.length === 0 ? (
-                <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                  I dati inizieranno a comparire dalle prossime visualizzazioni.
-                </p>
-              ) : data.topRoutes.map((route, index) => (
-                <div key={route.path} className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2">
-                  <span className="w-4 text-center font-mono text-[10px] text-muted-foreground">{index + 1}</span>
-                  <code className="min-w-0 flex-1 truncate text-xs">{route.path}</code>
-                  <strong className="text-xs tabular-nums">{route.pageViews}</strong>
-                </div>
-              ))}
-            </div>
           </div>
         </CardContent>
       </Card>
