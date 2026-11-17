@@ -201,8 +201,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
             </p>
             <p>
               {it
-                ? "Con il tuo consenso, Google Analytics 4 misura le visualizzazioni delle pagine pubbliche del catalogo tramite cookie come _ga e _ga_QJ1XLZTK3W. Puoi modificare o revocare la scelta in qualsiasi momento con il pulsante Preferenze analytics su questa pagina."
-                : "With your consent, Google Analytics 4 measures views of public catalog pages using cookies such as _ga and _ga_QJ1XLZTK3W. You can change or withdraw your choice at any time with the Analytics preferences button on this page."}
+                ? "Con il tuo consenso, Google Analytics 4 misura le visualizzazioni delle pagine pubbliche del catalogo e i clic verso Amazon tramite cookie come _ga e _ga_QJ1XLZTK3W. Puoi modificare o revocare la scelta in qualsiasi momento con il pulsante Preferenze cookie su questa pagina."
+                : "With your consent, Google Analytics 4 measures public catalog page views and outbound Amazon clicks using cookies such as _ga and _ga_QJ1XLZTK3W. You can change or withdraw your choice at any time with the Cookie preferences button on this page."}
             </p>
           </Section>
 
