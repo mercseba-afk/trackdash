@@ -120,26 +120,60 @@ export function CatalogAnalytics() {
   const showChoice = (catalog && choice === null) || (privacy && editing)
   if (!showChoice && !privacy) return null
 
+  const title = it ? "Preferenze cookie" : "Cookie preferences"
+  const actionClass = "rounded-lg border border-border bg-background px-3 py-2 font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+
   return (
-    <aside aria-label={it ? "Preferenze analytics" : "Analytics preferences"}
-      className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 ml-auto w-auto max-w-sm rounded-xl border bg-white p-3 text-sm shadow-md sm:bottom-4 sm:right-4">
+    <aside aria-label={title}
+      className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 ml-auto max-h-[65dvh] w-auto max-w-md overflow-y-auto rounded-2xl border border-border bg-background p-4 text-sm text-foreground shadow-lg sm:bottom-4 sm:right-4">
       {showChoice ? (
         <>
-          <p>{it ? "Possiamo usare Google Analytics per capire quali schede e link del catalogo sono più utili?" :
-            "May we use Google Analytics to understand which catalog pages and links are most useful?"}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <button type="button" className="rounded-md border px-3 py-2 font-medium" onClick={() => savePreference("denied")}>
-              {it ? "Rifiuta" : "Decline"}
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold">{title}</h2>
+            <button
+              type="button"
+              className="grid size-9 shrink-0 place-items-center rounded-lg text-xl hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={it ? "Chiudi e usa solo i cookie necessari" : "Close and use necessary cookies only"}
+              onClick={() => savePreference("denied")}
+            >
+              <span aria-hidden="true">×</span>
             </button>
-            <button type="button" className="rounded-md border px-3 py-2 font-medium" onClick={() => savePreference("granted")}>
-              {it ? "Accetta" : "Accept"}
-            </button>
-            <Link className="px-2 underline" href={it ? "/privacy" : "/en/privacy"}>{it ? "Privacy" : "Privacy notice"}</Link>
           </div>
+          <p className="mt-1 text-muted-foreground">
+            {it ? "Usiamo cookie necessari per far funzionare TrackDash. Con il tuo consenso, usiamo anche cookie per misurare visite e clic nel catalogo. Se chiudi, restano attivi solo quelli necessari." :
+              "We use necessary cookies to run TrackDash. With your consent, we also use cookies to measure visits and clicks in the catalog. Closing keeps only necessary cookies enabled."}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className={actionClass} onClick={() => savePreference("denied")}>
+              {it ? "Solo necessari" : "Necessary only"}
+            </button>
+            <button type="button" className={actionClass} onClick={() => savePreference("granted")}>
+              {it ? "Accetta tutti" : "Accept all"}
+            </button>
+          </div>
+          <details className="mt-3">
+            <summary className="w-fit cursor-pointer underline underline-offset-2">
+              {it ? "Dettagli e preferenze" : "Details and preferences"}
+            </summary>
+            <dl className="mt-2 space-y-2 text-muted-foreground">
+              <div>
+                <dt className="font-medium text-foreground">{it ? "Necessari · sempre attivi" : "Necessary · always enabled"}</dt>
+                <dd>{it ? "Servono per sessione, sicurezza e preferenze." : "Support sessions, security and preferences."}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-foreground">{it ? "Statistiche · facoltativi" : "Statistics · optional"}</dt>
+                <dd>{it ? "Google Analytics misura le pagine viste e i clic verso Amazon nel catalogo." :
+                  "Google Analytics measures page views and outbound Amazon clicks in the catalog."}</dd>
+              </div>
+            </dl>
+          </details>
+          <Link className="mt-2 inline-block underline underline-offset-2" href={it ? "/privacy" : "/en/privacy"}>
+            {it ? "Informativa privacy e cookie" : "Privacy and cookie notice"}
+          </Link>
         </>
       ) : (
-        <button type="button" className="rounded-md border px-3 py-2 font-medium" onClick={() => setEditing(true)}>
-          {it ? "Preferenze analytics" : "Analytics preferences"}
+        <button type="button" className={actionClass} onClick={() => setEditing(true)}>
+          {title}
         </button>
       )}
     </aside>
