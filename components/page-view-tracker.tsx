@@ -17,10 +17,24 @@ function normalizeRoute(pathname: string) {
   return pathname || "/"
 }
 
+// Open a test tab with ?trackdash_test=1 before navigating.
+const testSessionKey = "trackdash.internal-traffic"
+
+function isTestSession() {
+  const marked = new URLSearchParams(window.location.search).get("trackdash_test") === "1"
+  try {
+    if (marked) window.sessionStorage.setItem(testSessionKey, "1")
+    return marked || window.sessionStorage.getItem(testSessionKey) === "1"
+  } catch {
+    return marked
+  }
+}
+
 export function PageViewTracker() {
   const pathname = usePathname()
 
   React.useEffect(() => {
+    if (isTestSession()) return
     const path = normalizeRoute(pathname)
     if (!path) return
 
