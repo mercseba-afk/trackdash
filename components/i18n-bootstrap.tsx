@@ -18,7 +18,7 @@ function writeLocaleCookie(locale: AppLocale) {
 }
 
 function isPublicSeoRoute(pathname: string) {
-  return pathname === "/shop" || pathname.startsWith("/shop/") || pathname === "/en/shop" || pathname.startsWith("/en/shop/") || pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/") || pathname === "/market" || pathname === "/hotwheels" || pathname.startsWith("/hotwheels/")
+  return pathname === "/guide" || pathname.startsWith("/guide/") || pathname === "/en/guide" || pathname.startsWith("/en/guide/") || pathname === "/shop" || pathname.startsWith("/shop/") || pathname === "/en/shop" || pathname.startsWith("/en/shop/") || pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/") || pathname === "/market" || pathname === "/hotwheels" || pathname.startsWith("/hotwheels/")
 }
 
 export function I18nBootstrap({
@@ -54,9 +54,13 @@ export function I18nBootstrap({
 
   React.useEffect(() => {
     if (!ready) return
-    document.documentElement.lang = locale
-    writeLocaleCookie(locale)
-  }, [locale, ready])
+    const guideLocale = pathname === "/en/guide" || pathname?.startsWith("/en/guide/") ? "en"
+      : pathname === "/guide" || pathname?.startsWith("/guide/") ? "it" : null
+    const target = guideLocale ?? locale
+    if (locale !== target) setLocale(target)
+    document.documentElement.lang = target
+    writeLocaleCookie(target)
+  }, [locale, ready, pathname, setLocale])
 
   if (!ready && !publicSeoRoute) {
     return (
