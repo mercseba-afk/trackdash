@@ -7,6 +7,7 @@ import type { ReleaseMarketSignalView } from "@/lib/market/view-types"
 import {
   observedMarketKnownShipping,
   representativeAskingCaption,
+  recentRetailReserveCaption,
   observedMarketOfferOrigin,
   observedMarketReferenceIsHistorical,
   observedMarketReferencePrice,
@@ -78,7 +79,9 @@ export function ReleaseMarketOverview({
                   : representative
                     ? `${representative}${date ? ` · ${date}` : ""}`
                     : historical
-                    ? (it
+                    ? (recentRetailReserveCaption(signal, it)
+                      ? `${recentRetailReserveCaption(signal, it)}${date ? ` · ${date}` : ""}`
+                      : it
                       ? `Ultima offerta osservata${date ? ` · ${date}` : ""} · da verificare`
                       : `Last observed offer${date ? ` · ${date}` : ""} · unverified`)
                     : (it ? "Offerta verificata di recente" : "Recently verified offer")}

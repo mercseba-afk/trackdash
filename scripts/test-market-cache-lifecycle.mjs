@@ -421,3 +421,52 @@ test("collection projection mirrors the exact catalog asking price for every geo
   const changed = project([external("it-a",30,"IT"),external("it-b",50,"IT")])
   assert.equal(changed.collectionAskItemEUR,40)
 })
+
+test("retail reserve flows through real public projection and is replaced without changing canonical metrics", () => {
+  const clock = { now: BASE }, { load, project } = projection(clock)
+  const convert = load("lib/market/public.ts").toPublicMarketSignalView
+  const reserve = { releaseId: "r", releaseDate: "2026-10-10", itemPriceEUR: 1,
+    checkedAt: iso(BASE), origin: "extra_eu", acceptedExactKit: true,
+    availability: "out_of_stock", channel: "retail" }
+  const empty = { ...row, startingOfferCandidateId: null }
+  const unquoted = { ...empty, marketValueEUR: null, soldAnchorEUR: null, soldUnits: 0 }
+  assert.equal(convert(unquoted, null, []), null)
+  assert.equal(convert(unquoted, null, [], 0, null, [reserve]).collectionAskItemEUR, 1)
+  assert.equal(convert(unquoted, null, [], 0, null, [{ ...reserve, acceptedExactKit: false }]), null)
+  const original = convert(empty, null, [])
+  const fallback = convert(empty, null, [], 0, null, [reserve])
+  assert.equal(fallback.historicalAskItemEUR, 1)
+  assert.equal(fallback.collectionAskItemEUR, 1)
+  assert.equal(fallback.currentOfferCount, 0)
+  for (const field of ["valueEUR", "soldAnchorEUR", "soldUnits", "trendPercent", "trendBasis", "activeOfferCount", "retailSourceCount"]) assert.equal(fallback[field], original[field], field)
+  for (const offers of [[offer("a", 33.6, BASE)], [offer("a", 27.37, BASE), offer("b", 29.99, BASE)], [offer("old", 20, BASE - 90 * DAY)]]) {
+    const before = project(offers)
+    const after = convert(row, null, offers, 0, null, [reserve])
+    assert.deepEqual(after, before, "even an inexpensive reserve leaves every existing quote unchanged")
+  }
+  const current = convert(empty, null, [offer("live", 25, BASE)], 0, null, [reserve])
+  assert.equal(current.representativeAskItemEUR, 25)
+  assert.equal(current.collectionAskItemEUR, 25)
+  assert.notEqual(current.historicalAskKind, "recent_retail_out_of_stock")
+})
+
+test("optional reserve source failure preserves public map and release detail", async () => {
+  const clock = { now: BASE }
+  const queries = {
+    listMarketSignals: async () => [{ ...row, releaseId: "r" }],
+    getMarketSignalForRelease: async () => ({ ...row, releaseId: "r" }),
+    listMarketMonthlySignals: async () => [], getMarketMonthlySignalsForRelease: async () => [],
+    listCurrentObservedOffers: async () => [offer("a", 30, BASE)],
+    listRecentRetailReserveOffers: async () => { throw Error("OPTIONAL_SOURCE_UNAVAILABLE") },
+  }
+  const admin = { createAdminClient: () => ({ from: () => {
+    const query = { select: () => query, eq: () => query, in: () => query, not: () => query,
+      then: (resolve) => Promise.resolve({ data: [], error: null }).then(resolve) }
+    return query
+  } }) }
+  const load = loader(clock, { "@/lib/db/queries/market": queries, "@/lib/supabase/admin": admin })
+  const api = load("lib/market/public.ts")
+  const [map, detail] = await Promise.all([api.getPublicMarketSignalMap(["r"]), api.getPublicMarketSignalForRelease("r")])
+  assert.equal(map.r.representativeAskItemEUR, 30)
+  assert.deepEqual(map.r, detail)
+})

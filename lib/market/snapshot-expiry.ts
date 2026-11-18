@@ -5,6 +5,10 @@ import { withCatalogAskingReference } from "./collection-valuation.ts"
 const HISTORICAL_ASK_MAX_AGE_MS = 180 * 86_400_000
 
 function historicalDeadline(signal: ReleaseMarketSignalView): number | null {
+  if (signal.historicalAskValidUntil != null) {
+    const expiry = Date.parse(signal.historicalAskValidUntil)
+    return Number.isFinite(expiry) ? expiry : 0
+  }
   const checkedAt = Date.parse(signal.historicalAskObservedAt ?? "")
   return signal.historicalAskItemEUR != null && Number.isFinite(checkedAt)
     ? checkedAt + HISTORICAL_ASK_MAX_AGE_MS : null
@@ -28,6 +32,7 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
         ...signal,
         ...(keepQuote ? {
           historicalAskItemEUR: signal.startingItemPriceEUR,
+          historicalAskKind: null, historicalAskValidUntil: null,
           historicalAskObservedAt: signal.observedPriceAt,
           historicalAskOrigin: signal.currentAskOrigin,
           historicalAskShippingEUR: signal.observedShippingEUR,
@@ -52,6 +57,7 @@ export function expirePublicMarketSignals(signals: ReleaseMarketSignalMap, now =
       signal = {
         ...signal,
         historicalAskItemEUR: null, historicalAskObservedAt: null, historicalAskOrigin: "unknown",
+        historicalAskKind: null, historicalAskValidUntil: null,
         historicalAskShippingEUR: null, historicalAskItemPlusShippingEUR: null,
       }
     }

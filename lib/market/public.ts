@@ -4,6 +4,7 @@ import {
   getMarketMonthlySignalsForRelease,
   getMarketSignalForRelease,
   listCurrentObservedOffers,
+  listRecentRetailReserveOffers,
   listMarketMonthlySignals,
   listMarketSignals,
   type CurrentObservedOfferRow,
@@ -20,6 +21,7 @@ import { getCollectorSoldTrendComparison, type CollectorSoldTrendComparison } fr
 import { classifyOfferOrigin } from "@/lib/market/offer-origin"
 import { withCatalogAskingReference } from "@/lib/market/collection-valuation"
 import { representativeAskingMedian } from "@/lib/market/representative-asking"
+import { withRecentRetailReserve, type RecentRetailReserveOffer } from "@/lib/market/recent-retail-reserve"
 import type {
   ReleaseMarketConfidence,
   ReleaseMarketRegime,
@@ -229,6 +231,7 @@ export function toPublicMarketSignalView(
   observedOffers: CurrentObservedOfferRow[] = [],
   marketContextEvidenceCount = 0,
   soldTrendComparison: CollectorSoldTrendComparison | null = null,
+  retailReserveOffers: RecentRetailReserveOffer[] = [],
 ): ReleaseMarketSignalView | null {
   if (!signal) return null
 
@@ -319,7 +322,7 @@ export function toPublicMarketSignalView(
     signal.soldUnits > 0 ||
     marketContextEvidenceCount > 0
 
-  if (!hasMarketEvidence) return null
+  if (!hasMarketEvidence && !retailReserveOffers.length) return null
 
   const view: ReleaseMarketSignalView = {
     offersValidUntil: offerDeadlines.length ? new Date(Math.min(...offerDeadlines)).toISOString() : null,
@@ -397,18 +400,20 @@ export function toPublicMarketSignalView(
         : null,
     computedAt: signal.computedAt instanceof Date ? signal.computedAt.toISOString() : String(signal.computedAt),
   }
-  return withCatalogAskingReference(view)
+  const enriched = withRecentRetailReserve(withCatalogAskingReference(view), retailReserveOffers)
+  return hasMarketEvidence || enriched.historicalAskKind === "recent_retail_out_of_stock" ? enriched : null
 }
 
 export async function getPublicMarketSignalForRelease(
   releaseId: string,
 ): Promise<ReleaseMarketSignalView | null> {
-  const [row, monthlyRows, observedOffers, contextRows, trendAuditRows] = await Promise.all([
+  const [row, monthlyRows, observedOffers, contextRows, trendAuditRows, reserveOffers] = await Promise.all([
     getMarketSignalForRelease(releaseId),
     getMarketMonthlySignalsForRelease(releaseId, undefined, 6),
     listCurrentObservedOffers([releaseId]),
     listSafeMarketContextEvidence([releaseId]),
     listCollectorTrendAuditRows([releaseId]),
+    listRecentRetailReserveOffers([releaseId]).catch(() => []),
   ])
   return toPublicMarketSignalView(
     row,
@@ -416,6 +421,7 @@ export async function getPublicMarketSignalForRelease(
     observedOffers,
     contextRows[0]?.evidenceCount ?? 0,
     publishedSoldTrendComparison(row, trendAuditRows),
+    reserveOffers,
   )
 }
 
@@ -426,12 +432,13 @@ export async function getPublicMarketSignalMap(
   // cache the full map independently from exact Release views: after a market
   // recompute, Catalog, Collection, Dashboard, Scanner and Release detail must
   // all resolve the same market_release_signals state.
-  const [rows, monthlyRows, observedOffers, contextRows, trendAuditRows] = await Promise.all([
+  const [rows, monthlyRows, observedOffers, contextRows, trendAuditRows, reserveOffers] = await Promise.all([
     listMarketSignals(releaseIds),
     listMarketMonthlySignals(releaseIds),
     listCurrentObservedOffers(releaseIds),
     listSafeMarketContextEvidence(releaseIds),
     listCollectorTrendAuditRows(releaseIds),
+    listRecentRetailReserveOffers(releaseIds).catch(() => []),
   ])
 
   const monthlyByRelease = new Map<string, MarketReleaseMonthlySignal[]>()
@@ -456,6 +463,12 @@ export async function getPublicMarketSignalMap(
     trendsByRelease.set(row.release_id, bucket)
   }
   const result: ReleaseMarketSignalMap = {}
+  const reservesByRelease = new Map<string, RecentRetailReserveOffer[]>()
+  for (const offer of reserveOffers) {
+    const bucket = reservesByRelease.get(offer.releaseId) ?? []
+    bucket.push(offer)
+    reservesByRelease.set(offer.releaseId, bucket)
+  }
 
   for (const row of rows) {
     const recentSoldActivity = deriveRecentSoldActivity(monthlyByRelease.get(row.releaseId) ?? [])
@@ -466,6 +479,7 @@ export async function getPublicMarketSignalMap(
       releaseObservedOffers,
       contextByRelease.get(row.releaseId) ?? 0,
       publishedSoldTrendComparison(row, trendsByRelease.get(row.releaseId) ?? []),
+      reservesByRelease.get(row.releaseId) ?? [],
     )
     if (view) result[row.releaseId] = view
   }

@@ -16,6 +16,7 @@ import {
   observedMarketReferencePrice,
   observedMarketReferenceIsHistorical,
   representativeAskingCaption,
+  recentRetailReserveCaption,
 } from "@/lib/market/presentation"
 
 export function MarketSignalInline({
@@ -67,7 +68,7 @@ export function MarketSignalInline({
         askingEUR={hasAsk ? askPrice : null}
         historical={askHistorical}
         observedAt={signal.representativeAskObservedAt ?? signal.historicalAskObservedAt}
-        sellerCaption={representativeAskingCaption(signal, it)}
+        sellerCaption={representativeAskingCaption(signal, it) ?? recentRetailReserveCaption(signal, it)}
         soldCount={signal.soldUnits ?? 0}
       />
     )
@@ -93,7 +94,7 @@ export function MarketSignalInline({
           </div>
           <span className="text-[10px] leading-tight text-muted-foreground">
             {askHistorical
-              ? (it ? "Ultima offerta osservata, disponibilità da verificare · spedizione esclusa." : "Last observed offer, availability unverified · shipping excluded.")
+              ? (recentRetailReserveCaption(signal, it) ? `${recentRetailReserveCaption(signal, it)} · ${it ? "spedizione esclusa" : "shipping excluded"}` : (it ? "Ultima offerta osservata, disponibilità da verificare · spedizione esclusa." : "Last observed offer, availability unverified · shipping excluded."))
               : (it ? "Offerta verificata di recente · spedizione esclusa." : "Recently verified offer · shipping excluded.")}
           </span>
         </div>
@@ -115,7 +116,7 @@ export function MarketSignalInline({
               {observedKind === "sold" ? <BadgeCheck className="size-2.5" /> : <Tag className="size-2.5" />}
               {observedKind === "sold"
                 ? (it ? "Vendite concluse" : "Completed sales")
-                : (it ? "Annunci attivi" : "Active listings")}
+                : recentRetailReserveCaption(signal, it) ? (it ? "Prezzo in negozio" : "Shop price") : (it ? "Annunci attivi" : "Active listings")}
             </span>
             <span className="text-xs font-medium text-muted-foreground">{observedMarketDisplayLabel(signal, it)}</span>
           </div>

@@ -33,7 +33,7 @@
     "market:public:test": "node scripts/test-market-public-surfaces.mjs",
     "market:collection:test": "node --experimental-strip-types scripts/test-collection-valuation.mjs",
     "market:cross-surface:test": "node --experimental-strip-types scripts/test-market-cross-surface.mjs",
-    "market:asking:test": "node --experimental-strip-types scripts/test-representative-asking.mjs",
+    "market:asking:test": "node --experimental-strip-types scripts/test-representative-asking.mjs && node --experimental-strip-types scripts/test-recent-retail-reserve.mjs",
     "market:audit:test": "node --experimental-strip-types scripts/test-market-audit-v1.mjs",
     "seo:paths:test": "node --experimental-strip-types scripts/test-seo-catalog-paths.mjs",
     "seo:localization:test": "node --experimental-strip-types scripts/test-public-localization.mjs",

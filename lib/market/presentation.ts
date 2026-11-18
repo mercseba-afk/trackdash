@@ -58,6 +58,11 @@ export function observedMarketReferenceIsHistorical(
     signal?.historicalAskItemEUR != null && signal.historicalAskItemEUR > 0
 }
 
+export function recentRetailReserveCaption(signal: ReleaseMarketSignalView | null | undefined, it: boolean): string | null {
+  return observedMarketReferenceIsHistorical(signal) && signal?.historicalAskKind === "recent_retail_out_of_stock"
+    ? (it ? "Ultimo prezzo in negozio · esaurito" : "Last shop price · out of stock") : null
+}
+
 // The warning follows the SAME selected or dated historical offer as the
 // displayed ASK, not another source or an eBay marketplace locale.
 export function observedMarketOfferOrigin(
@@ -140,7 +145,7 @@ export function observedMarketDisplayEvidenceLabel(
     return `${count} ${count === 1 ? "completed sale observed" : "completed sales observed"}`
   }
   if (observedMarketReferenceIsHistorical(signal)) {
-    return it ? "Ultima osservazione, disponibilità da verificare" : "Last observation, availability not verified"
+    return recentRetailReserveCaption(signal, it) ?? (it ? "Ultima osservazione, disponibilità da verificare" : "Last observation, availability not verified")
   }
   return observedMarketAskCountLabel(signal, it)
 }

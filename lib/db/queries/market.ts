@@ -1,6 +1,8 @@
 import "server-only"
 
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, gte, lte } from "drizzle-orm"
+import { classifyOfferOrigin } from "@/lib/market/offer-origin"
+import type { RecentRetailReserveOffer } from "@/lib/market/recent-retail-reserve"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { normalizeMarketListingKey } from "@/lib/market/representative-asking"
 import type { InferSelectModel } from "drizzle-orm"
@@ -21,6 +23,66 @@ import {
 } from "../schema"
 
 export const COLLECTOR_VALUE_CONDITION = "new_complete_unbuilt"
+
+/** Separate read lane: out-of-stock shop quotes must never enter active ASK,
+ * purchase availability, scanner statistics or the canonical price engine. */
+export async function listRecentRetailReserveOffers(releaseIds?: string[]): Promise<RecentRetailReserveOffer[]> {
+  if (releaseIds?.length === 0) return []
+  const now = new Date()
+  const cutoff = new Date(now.getTime() - 30 * 86_400_000)
+  // The public DB role intentionally sees only purchasable offers. Keep that
+  // policy intact: discover recent releases publicly, then read the optional
+  // sold-out lane with the existing server-only client and strip private data.
+  try {
+    const releases = await db.select({ id: productReleases.id, date: productReleases.releaseDate })
+      .from(productReleases).where(and(
+        gte(productReleases.releaseDate, cutoff.toISOString().slice(0, 10)),
+        lte(productReleases.releaseDate, now.toISOString().slice(0, 10)),
+        releaseIds ? inArray(productReleases.id, releaseIds) : undefined,
+      ))
+    if (!releases.length) return []
+    const releaseDates = new Map(releases.map((r) => [r.id, r.date]))
+    const admin = createAdminClient()
+    const { data: rows, error: offersError } = await admin.from("market_offer_states")
+      .select("candidate_id,release_id,item_price_eur,last_checked_at,price_sources(market_region)")
+      .eq("condition", COLLECTOR_VALUE_CONDITION).eq("channel", "retail")
+      .eq("availability", "out_of_stock")
+      .gte("last_checked_at", cutoff.toISOString()).lte("last_checked_at", now.toISOString())
+      .in("release_id", releases.map((r) => r.id))
+    if (offersError) throw offersError
+    if (!rows?.length) return []
+    const exact = new Map<string, { releaseId: string; country: string | null }>()
+    const ids = [...new Set(rows.map((row) => row.candidate_id))]
+    for (let offset = 0; offset < ids.length; offset += 200) {
+      const { data, error } = await admin.from("market_candidates")
+        .select("id,resolved_release_id,decision,condition,is_complete,is_lot,match_confidence,needs_revalidation,raw_payload")
+        .in("id", ids.slice(offset, offset + 200))
+      if (error) throw error
+      for (const c of data ?? []) {
+        if (c.decision !== "accepted" || c.needs_revalidation === true || c.condition !== COLLECTOR_VALUE_CONDITION ||
+          c.is_complete !== true || c.is_lot !== false ||
+          !["exact", "strong"].includes(c.match_confidence) || !c.resolved_release_id) continue
+        const country = c.raw_payload?.itemLocationCountry
+        exact.set(c.id, { releaseId: c.resolved_release_id,
+          country: typeof country === "string" && /^[A-Z]{2}$/.test(country) ? country : null })
+      }
+    }
+    return rows.flatMap((row) => {
+      const match = exact.get(row.candidate_id)
+      const releaseDate = releaseDates.get(row.release_id)
+      if (!match || match.releaseId !== row.release_id || !releaseDate) return []
+      const source = Array.isArray(row.price_sources) ? row.price_sources[0] : row.price_sources
+      return [{ releaseId: row.release_id, releaseDate,
+        itemPriceEUR: Number(row.item_price_eur), checkedAt: row.last_checked_at,
+        origin: classifyOfferOrigin(match.country, source?.market_region), acceptedExactKit: true,
+        availability: "out_of_stock", channel: "retail" }]
+    })
+  } catch (error) {
+    // Failure of this optional reserve cannot blank existing prices.
+    console.error("[public-market] retail reserve unavailable", error instanceof Error ? error.message : String(error))
+    return []
+  }
+}
 
 export type PricePoint = InferSelectModel<typeof pricePoints>
 export type MarketEstimate = InferSelectModel<typeof marketEstimates>

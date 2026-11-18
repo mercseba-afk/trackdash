@@ -45,6 +45,9 @@ export interface ReleaseMarketSignalView {
   historicalAskOrigin: OfferOrigin
   /** Last observed asking price (kit only), kept as dated historical evidence. */
   historicalAskItemEUR: number | null
+  /** Display-only fallback; never contributes to active offers, MV or SOLD. */
+  historicalAskKind?: "recent_retail_out_of_stock" | null
+  historicalAskValidUntil?: string | null
   historicalAskShippingEUR: number | null
   historicalAskObservedAt: string | null
   /** Last observed item+shipping amount, NEVER an Italian landed-cost guarantee. */

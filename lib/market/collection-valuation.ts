@@ -30,7 +30,9 @@ export function collectionReferenceCaption(signal: ReleaseMarketSignalView | nul
   const date = historical ? signal?.historicalAskObservedAt : signal?.observedPriceAt
   const origin = observedMarketOfferOrigin(signal)
   const region = origin === "eu" ? (it ? "UE" : "EU") : origin === "extra_eu" ? (it ? "Extra UE" : "Non-EU") : (it ? "Internazionale" : "International")
-  return `${it ? "1 quotazione" : "1 quote"} · ${region}${date ? ` · ${new Date(date).toLocaleDateString(it ? "it-IT" : "en-GB")}` : ""}`
+  const stock = historical && signal?.historicalAskKind === "recent_retail_out_of_stock"
+    ? (it ? " · negozio esaurito" : " · shop out of stock") : ""
+  return `${it ? "1 quotazione" : "1 quote"} · ${region}${date ? ` · ${new Date(date).toLocaleDateString(it ? "it-IT" : "en-GB")}` : ""}${stock}`
 }
 
 /** Compatibility fields mirror the same catalog selector. No second engine.
@@ -48,7 +50,7 @@ export function withCatalogAskingReference(signal: ReleaseMarketSignalView): Rel
     collectionAskOrigin: observedMarketOfferOrigin(signal),
     collectionAskIsHistorical: historical,
     collectionAskValidUntil: price == null ? null : historical && date && Number.isFinite(Date.parse(date))
-      ? new Date(Date.parse(date) + 180 * 86_400_000).toISOString() : signal.offersValidUntil ?? null,
+      ? signal.historicalAskValidUntil ?? new Date(Date.parse(date) + 180 * 86_400_000).toISOString() : signal.offersValidUntil ?? null,
   }
   return Object.entries(fields).some(([key, value]) => signal[key as keyof ReleaseMarketSignalView] !== value)
     ? { ...signal, ...fields } : signal
