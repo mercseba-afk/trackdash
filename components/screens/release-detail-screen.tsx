@@ -183,7 +183,7 @@ export function ReleaseDetailScreen({
                     href={amazonUrl}
                     data-amazon-item={release.itemNumber}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="sponsored noopener noreferrer"
                     className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[#ffd814] px-2.5 text-[0.8rem] font-semibold text-[#181818] transition-colors hover:bg-[#f7ca00] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f4bb4]"
                   >
                     {it ? "Vedi su Amazon" : "View on Amazon"}
@@ -191,6 +191,14 @@ export function ReleaseDetailScreen({
                   </a>
                 )}
               </div>
+              {amazonUrl && (
+                <p className="mt-3 text-xs leading-relaxed text-[#52647a]">
+                  <span className="font-medium">{it ? "Link affiliato. " : "Affiliate link. "}</span>
+                  {it
+                    ? "In qualità di Affiliato Amazon io ricevo un guadagno dagli acquisti idonei."
+                    : "As an Amazon Associate I earn from qualifying purchases."}
+                </p>
+              )}
             </div>
           </div>
 

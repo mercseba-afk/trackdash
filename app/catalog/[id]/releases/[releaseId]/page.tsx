@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 import { cache } from "react"
 import { PublicShell } from "@/components/public-shell"
 import { ReleaseFamilyLinks } from "@/components/release-family-links"
-import { amazonItalyAsinByRelease } from "@/lib/data/amazon-italy-products"
+import { amazonItalyUrlForRelease } from "@/lib/data/amazon-italy-products"
 import { ReleaseDetailScreen } from "@/components/screens/release-detail-screen"
 import { CatalogComingSoonScreen } from "@/components/screens/catalog-coming-soon-screen"
 import { fetchCatalogProductByRouteKey } from "@/lib/actions/catalog"
@@ -236,7 +236,7 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
     ],
   }
 
-  const amazonAsin = amazonItalyAsinByRelease[release.id]
+  const amazonUrl = amazonItalyUrlForRelease(release.id)
 
   return (
     <PublicShell>
@@ -250,7 +250,7 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
           release={release}
           localizedDescription={localizedCopy?.releases[release.id]}
           collectorOffers={collectorOffers}
-          amazonUrl={amazonAsin ? `https://www.amazon.it/dp/${amazonAsin}` : undefined}
+          amazonUrl={amazonUrl}
         />
         <ReleaseFamilyLinks
           product={product}

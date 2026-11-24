@@ -9,3 +9,11 @@ export const amazonItalyAsinByRelease: Partial<Record<string, string>> = {
   "51267c3e-03cc-54c4-8b9b-1c4e413d75b8": "B08KR2LXCV", // 95598 Neo-VQS Advanced Pack; user-supplied exact product link
   "01e1ea1d-0513-5562-8e55-63c11f24fbe5": "B083JYP59Y", // 18094 Neo-VQS VZ; user-supplied exact product link
 }
+
+// Public tracking identifier supplied by the TrackDash account owner.
+export const amazonItalyAssociateTag = "trackdash-21"
+
+export function amazonItalyUrlForRelease(releaseId: string): string | undefined {
+  const asin = amazonItalyAsinByRelease[releaseId]
+  return asin ? `https://www.amazon.it/dp/${asin}?tag=${amazonItalyAssociateTag}` : undefined
+}
