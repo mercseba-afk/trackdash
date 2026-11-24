@@ -91,6 +91,21 @@ export function MessagesScreenV2() {
   }, [requestedConversationId])
 
   React.useEffect(() => {
+    if (!user) return
+    const supabase = createClient()
+    // RLS limits these events to the two participants. Refresh the list even
+    // when no chat is open, including when the owner accepts a request.
+    const refresh = () => void refreshConversations().catch(() => {})
+    const channel = supabase
+      .channel(`conversation-list:${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, refresh)
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") refresh()
+      })
+    return () => { void supabase.removeChannel(channel) }
+  }, [user, refreshConversations])
+
+  React.useEffect(() => {
     let cancelled = false
     setLoading(true)
     getMyConversationsAction()
@@ -416,7 +431,7 @@ export function MessagesScreenV2() {
                   <h2 className="text-sm font-semibold text-foreground">{it ? "Offerte e compravendita" : "Offers and transaction"}</h2>
                   <span className="text-[11px] text-muted-foreground">{it ? "Sempre visibili nella conversazione" : "Always visible in this conversation"}</span>
                 </div>
-                <DealPanel conversation={selected} locale={it ? "it" : "en"} onActivity={refreshConversations} />
+                <DealPanel key={selected.id} conversation={selected} locale={it ? "it" : "en"} onActivity={refreshConversations} />
               </section>
 
               <div ref={messageViewportRef} className="flex min-h-[320px] max-h-[55vh] flex-col gap-3 overflow-y-auto rounded-2xl border bg-muted/15 p-3 sm:p-4">

@@ -53,7 +53,7 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
               : "This notice explains what personal data TrackDash processes, why it processes it, how it is protected, and the choices you have over your account."}
           </p>
           <p className="mt-4 text-xs text-muted-foreground">
-            {it ? "Ultimo aggiornamento: 28 ottobre 2026" : "Last updated: October 28, 2026"}
+            {it ? "Ultimo aggiornamento: 24 novembre 2026" : "Last updated: November 24, 2026"}
           </p>
         </div>
 
@@ -108,6 +108,14 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
                   : "Aggregate usage statistics, such as page views and the most visited routes."}
               </li>
             </BulletList>
+          </Section>
+
+          <Section title={it ? "Trattative tra collezionisti" : "Deals between collectors"}>
+            <p>
+              {it
+                ? "TrackDash tratta messaggi, offerte e conferme per consentire ai collezionisti di comunicare e tenere traccia delle trattative. La compravendita avviene direttamente tra gli utenti: pagamento, spedizione e consegna vengono gestiti al di fuori di TrackDash. TrackDash non richiede dati di pagamento per concludere una trattativa. Eventuali dati personali condivisi volontariamente nella chat sono visibili all'altro partecipante."
+                : "TrackDash processes messages, offers and confirmations so collectors can communicate and keep track of their deals. Sales take place directly between users: payment, shipping and delivery are handled outside TrackDash. TrackDash does not request payment details to complete a deal. Any personal data voluntarily shared in chat is visible to the other participant."}
+            </p>
           </Section>
 
           <Section title={it ? "3. Accesso con Google" : "3. Sign in with Google"}>
@@ -298,7 +306,7 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
             : "These Terms govern access to and use of TrackDash, including Collection, market data, community, and user-to-user trading features."}
         </p>
         <p className="mt-4 text-xs text-muted-foreground">
-          {it ? "Ultimo aggiornamento: 28 ottobre 2026" : "Last updated: October 28, 2026"}
+          {it ? "Ultimo aggiornamento: 24 novembre 2026" : "Last updated: November 24, 2026"}
         </p>
       </div>
 
@@ -358,8 +366,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
         <Section title={it ? "5. Offerte e compravendite tra utenti" : "5. Offers and user-to-user transactions"}>
           <p>
             {it
-              ? "TrackDash può consentire agli utenti di contattarsi, inviare offerte e registrare l'esito di una trattativa. Salvo futura indicazione espressa, TrackDash non è il venditore, l'acquirente, il mandatario, l'intermediario finanziario o il servizio di escrow della compravendita."
-              : "TrackDash may allow users to contact each other, make offers, and record the outcome of a deal. Unless expressly stated otherwise in the future, TrackDash is not the seller, buyer, agent, financial intermediary, or escrow service for the transaction."}
+              ? "TrackDash mette in contatto i collezionisti tramite annunci, chat, offerte e controproposte e consente di registrare l'esito di una trattativa. La compravendita avviene direttamente tra venditore e acquirente: pagamento, spedizione e consegna sono gestiti al di fuori di TrackDash. TrackDash non è parte del contratto tra gli utenti, non incassa il prezzo dell'oggetto e non fornisce un servizio di escrow."
+              : "TrackDash connects collectors through listings, chat, offers and counteroffers, and lets them record the outcome of a deal. Sales take place directly between seller and buyer: payment, shipping and delivery are handled outside TrackDash. TrackDash is not a party to the contract between users, does not collect the item's purchase price, and does not provide an escrow service."}
           </p>
           <p>
             {it

@@ -21,3 +21,22 @@ Assertions included:
 The transfer smoke completed successfully against the migrated production schema on 2026-09-11.
 
 This is in addition to the ordinary TrackDash build gates (typecheck, catalog/image/FX/market pipeline/R3/Market Method/public-surface tests) and the dedicated TrackDash sale-evidence regression gate in `pnpm verify`.
+
+## Recheck on 24 November 2026
+
+The deployed Frankfurt database passed the rolled-back integration audit again,
+including the real authenticated role and row-level policies. No fixture or test
+notification persisted and no push was sent. Checks covered chat requests,
+messages in both directions, outsider isolation, offers and counteroffers,
+acceptance, sale reporting, buyer confirmation and collection transfer.
+
+Additional assertions executed the SQL extracted from
+`lib/db/queries/deal-notifications.ts`: an incoming counteroffer counts for the
+buyer and clears after reading the conversation. Offer, counteroffer, acceptance,
+buyer confirmation and seller confirmation bell alerts were also verified.
+
+Component regression coverage in `scripts/test-messaging-refresh.mjs` checks
+new-request/acceptance refresh, reconnects, return from background, and cleanup.
+This validates application logic and database behavior; it is not a two-device
+browser or operating-system push-delivery certification. The current scheduled
+push sender handles catalog notifications only.

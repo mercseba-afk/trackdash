@@ -99,12 +99,23 @@ export function DealPanel({
 
   React.useEffect(() => {
     const supabase = createClient()
+    let active = true
+    const refreshVisible = () => {
+      if (active && document.visibilityState === "visible") void refresh().catch(() => {})
+    }
     const channel = supabase
       .channel(`deal:${conversation.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_offers", filter: `conversation_id=eq.${conversation.id}` }, () => void refresh())
-      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_sales", filter: `conversation_id=eq.${conversation.id}` }, () => void refresh())
-      .subscribe()
-    return () => { void supabase.removeChannel(channel) }
+      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_offers", filter: `conversation_id=eq.${conversation.id}` }, refreshVisible)
+      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_sales", filter: `conversation_id=eq.${conversation.id}` }, refreshVisible)
+      .subscribe((status) => { if (status === "SUBSCRIBED") refreshVisible() })
+    window.addEventListener("focus", refreshVisible)
+    document.addEventListener("visibilitychange", refreshVisible)
+    return () => {
+      active = false
+      window.removeEventListener("focus", refreshVisible)
+      document.removeEventListener("visibilitychange", refreshVisible)
+      void supabase.removeChannel(channel)
+    }
   }, [conversation.id, refresh])
 
   const pendingOffer = [...state.offers].reverse().find((offer) => offer.status === "pending") ?? null

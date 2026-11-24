@@ -256,8 +256,12 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
     const channel = supabase
       .channel(`messaging-badge:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => void refreshUnread())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "conversations" }, () => void refreshUnread())
-      .subscribe()
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void refreshUnread())
+      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_offers" }, () => void refreshUnread())
+      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_sales" }, () => void refreshUnread())
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") void refreshUnread()
+      })
 
     const refreshOnFocus = () => void refreshUnread()
     const refreshOnRead = () => void refreshUnread()

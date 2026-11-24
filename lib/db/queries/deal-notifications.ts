@@ -15,7 +15,7 @@ export async function getUnreadDealNotificationCount(
       join public.conversations c on c.id = o.conversation_id
       left join public.conversation_reads cr
         on cr.conversation_id = c.id and cr.user_id = ${userId}::uuid
-      where c.owner_id = ${userId}::uuid
+      where (c.owner_id = ${userId}::uuid or c.requester_id = ${userId}::uuid)
         and c.status = 'accepted'
         and o.creator_id <> ${userId}::uuid
         and o.status = 'pending'
