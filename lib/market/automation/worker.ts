@@ -16,6 +16,7 @@ import {
 import { guardAutomatedPrice } from "./price-guard"
 import { isObservedRetailSellThrough } from "./retail-sell-through"
 import { collectorScanIntervalHours, materialPriceChange } from "./market-activity"
+import { scanClaimedAmazonJob } from "./amazon-worker"
 
 const SUPPORTED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
 const USER_AGENT = "TrackDashMarketBot/1.0 (+https://trackdash-dusky.vercel.app)"
@@ -403,6 +404,7 @@ async function scanClaimedJob(
   repo: MarketR3Repository,
   job: ClaimedJob,
 ): Promise<MarketAdapterJobResult> {
+  if (job.source_slug === "amazon_it_public") return scanClaimedAmazonJob(client, repo, job)
   const observedAt = new Date().toISOString()
   const release = await loadRelease(client, job.release_id)
   if (!job.exact_release_verified || !release.item_number) {
