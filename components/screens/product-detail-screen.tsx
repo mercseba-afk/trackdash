@@ -8,7 +8,7 @@ import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
 import { useI18n } from "@/lib/i18n"
-import { conditionLabel, productDescriptionForLocale } from "@/lib/i18n/catalog-labels"
+import { conditionLabel, productDescriptionForLocale, releaseTypeLabel } from "@/lib/i18n/catalog-labels"
 import { useMarketSignals } from "@/lib/market/context"
 import { conditionUsesNewUnbuiltReference, enrichCollection, itemsForProduct } from "@/lib/analytics"
 import { formatMoney, formatDate } from "@/lib/format"
@@ -229,7 +229,7 @@ function ReleaseRow({
             "absolute left-2.5 top-2.5 rounded-full px-2 py-1 text-[10px] font-semibold shadow-sm",
             release.isOriginal ? "border border-border/70 bg-white/90 text-foreground" : "bg-brand text-white",
           )}>
-            {release.isOriginal ? t("common.original") : t("common.reissue")}
+            {releaseTypeLabel(release.releaseType, locale === "it")}
           </span>
         </Link>
 

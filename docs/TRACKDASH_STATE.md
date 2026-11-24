@@ -1,3 +1,9 @@
+## Neo-VQS — pubblicazione 24 novembre 2026
+
+Famiglia `neo-vqs` pubblicata nel Supabase Frankfurt: 7 kit verificati IT/EN, 16 foto dedicate, 4 JAN con fonte e checksum. Primo scan eBay realmente riuscito per tutte le 7 release; 3 endpoint retail verificati dal worker e collegati al refresh esistente. Cinque prezzi negli annunci pubblici, nessun MV/SOLD artificiale. Health Watch 7/7, coda recompute vuota. #18106 annunciata per il 19 dicembre 2026 in Giappone; #95598 separata con link Amazon B08KR2LXCV. Corretto il badge che chiamava ristampe tutte le speciali; pricing e scheduler invariati. [Audit, limiti e QA](NEO_VQS_FAMILY_AUDIT_2026-11-24.md). Verificare il codice effettivamente online nel metadata `family_audit` del prodotto e `/api/version`.
+
+---
+
 ## Aero Thunder Shot — 2 novembre 2026
 
 Pubblicata con6kit verificati,6foto,6JAN e descrizioniIT/EN; cinqueUUID conservati, aggiunto92461TKC. Sei scan eBay reali riusciti, retailGandolfi92461 persistito,6segnali ricalcolati. Quattro release con prezzi negli annunci, nessunMV/SOLD artificiale;94967/94990 senza offerta corrente. Refresh esistente7/30giorni e retail28giorni; due batch iniziali sul workflow esistente, cap24/giorno invariato. Ricerca aperta FreshGreen2022 con codice condiviso e RedMetallic. [Audit e limiti](AERO_THUNDER_SHOT_FAMILY_AUDIT_2026-11-02.md). Nessun deploy codice né modifica collezioni/wishlist.

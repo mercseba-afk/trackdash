@@ -1,0 +1,158 @@
+{
+  "product_id": "6f989d2f-58e1-5f0a-be6a-9553f11c85dc",
+  "releases": [
+    {
+      "code": "18094",
+      "name": "Neo-VQS (VZ Chassis)",
+      "year": 2020,
+      "date": "2020-03-28",
+      "chassis": "VZ",
+      "color": "Black / red wheels",
+      "market": "International",
+      "kind": "original",
+      "status": "active",
+      "rarity": "Common",
+      "jan": "4950344180943",
+      "jan_source": "https://www.tamiyausa.com/media/files/map-feb-2026-1239-08db.pdf",
+      "source": "https://www.tamiya.com/japan/products/18094/index.html",
+      "images": [
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/1/18094/18094_1.jpg",
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/1/18094/18094_4c2.jpg",
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/1/18094/18094_4c3.jpg"
+      ],
+      "en": "The original Neo-VQS introduced the VZ chassis in March 2020. Its angular black ABS body reinterprets the Vanquish Jr., with red five-spoke wheels, low-profile tires and 3.5:1 gears.",
+      "it": "La Neo-VQS originale introduce il telaio VZ nel marzo 2020. La carrozzeria angolare in ABS nero riprende la Vanquish Jr., con cerchi rossi a cinque razze, gomme a basso profilo e rapporto 3,5:1.",
+      "id": "01e1ea1d-0513-5562-8e55-63c11f24fbe5"
+    },
+    {
+      "code": "95130",
+      "name": "Neo-VQS Japan Cup 2020 (Polycarbonate Body)",
+      "year": 2020,
+      "date": "2020-08-01",
+      "chassis": "VZ",
+      "color": "Clear polycarbonate / fluorescent yellow chassis",
+      "market": "International",
+      "kind": "japan_cup",
+      "status": "discontinued",
+      "rarity": "Uncommon",
+      "jan": null,
+      "source": "https://www.tamiya.com/japan/products/95130/index.html",
+      "images": [
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/9/95130/95130_1.jpg",
+        "https://www.tamiya.com/cms/img/usr/item/9/95130/95130_p.jpg",
+        "https://www.tamiya.com/cms/img/usr/item/9/95130/95130_4c2.jpg"
+      ],
+      "en": "Japan Cup 2020 commemorative complete kit with a clear polycarbonate body, fluorescent-yellow VZ chassis, carbon-reinforced Y-spoke wheels and super-hard low-profile tires with event lettering. The official assembled photo shows the body painted.",
+      "it": "Kit completo commemorativo Japan Cup 2020, con carrozzeria in policarbonato trasparente, telaio VZ giallo fluorescente, cerchi a Y rinforzati al carbonio e gomme super hard a basso profilo con scritte dedicate. La foto ufficiale del modello montato mostra la carrozzeria verniciata.",
+      "id": "669d720c-3900-5cf1-a6f8-a9654ceadfaf"
+    },
+    {
+      "code": "95598",
+      "name": "Neo-VQS Advanced Pack (2020)",
+      "year": 2020,
+      "date": null,
+      "chassis": "VZ",
+      "color": "Smoke / black chassis / yellow wheels",
+      "market": "International",
+      "kind": "special",
+      "status": "discontinued",
+      "rarity": "Common",
+      "jan": "4950344955985",
+      "jan_source": "https://iltempiodellemini4wd.it/prodotto/mini4wd-neo-vqs-advanced-pack-vz-chassis/",
+      "source": "https://www.tamiya.com/japan/products/95598/index.html",
+      "images": [
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/9/95598/95598_1.jpg",
+        "https://www.tamiya.com/cms/img/usr/item/9/95598/95598_main3.jpg",
+        "https://www.tamiya.com/cms/img/usr/item/9/95598/95598_main4_03.jpg"
+      ],
+      "en": "Advanced Pack first introduced in December 2020, with a smoke ABS body, black VZ chassis, clear-yellow A parts and yellow wheels. Includes a Light-Dash motor, FRP stays, brakes, side mass dampers and 3.7:1 gears. The July 2023 production is retained within this edition; the later item #18106 has its own catalog record.",
+      "it": "Advanced Pack introdotto nel dicembre 2020, con carrozzeria ABS fumé, telaio VZ nero, parti A giallo trasparente e cerchi gialli. Include motore Light-Dash, supporti FRP, freni, mass damper laterali e rapporto 3,7:1. La produzione del luglio 2023 appartiene a questa edizione; il successivo articolo #18106 ha una scheda distinta.",
+      "id": "51267c3e-03cc-54c4-8b9b-1c4e413d75b8"
+    },
+    {
+      "code": "95617",
+      "name": "Neo-VQS Asia Challenge 2021 Special",
+      "year": 2021,
+      "date": null,
+      "chassis": "VZ",
+      "color": "Clear blue / periwinkle chassis / maroon tires",
+      "market": "Asia",
+      "kind": "limited",
+      "status": "unknown",
+      "rarity": "Uncommon",
+      "jan": "4950344956173",
+      "jan_source": "https://www.tamiyausa.com/media/files/map-feb-2026-1239-08db.pdf",
+      "source": "https://tamiyablog.com/2021/02/tamiya-95617-neo-vqs-asia-challenge-2021-special-vz-chassis/",
+      "images": [
+        "https://www.omnimodellismo.it/cdn/shop/products/IMG20211204123836_2048x2048.jpg?v=1638618510",
+        "https://myrcstation.com/cdn/shop/products/b436b0bb857d5338caeed83e7ed2a951_1024x1024.jpg?v=1650798770"
+      ],
+      "en": "Asia Challenge 2021 complete kit on the VZ chassis. Clear-blue body, periwinkle-colored frame, carbon-reinforced five-spoke wheels and maroon super-hard low-profile tires distinguish it from the standard and Japan Cup editions.",
+      "it": "Kit completo Asia Challenge 2021 su telaio VZ. La carrozzeria blu trasparente, il telaio color pervinca, i cerchi a cinque razze rinforzati al carbonio e le gomme super hard color bordeaux lo distinguono dalla standard e dalla Japan Cup.",
+      "id": "5e030d48-9ca1-5061-a36a-b14e13a42827"
+    },
+    {
+      "code": "95633",
+      "name": "Neo-VQS Polycarbonate Body Special (VS Chassis)",
+      "year": 2021,
+      "date": null,
+      "chassis": "VS",
+      "color": "Clear polycarbonate / turquoise chassis / white tires",
+      "market": "Japan / International",
+      "kind": "special",
+      "status": "discontinued",
+      "rarity": "Uncommon",
+      "jan": "4950344956333",
+      "jan_source": "https://www.rcjaz.com/tamiya-95633-132-neo-vqs-polycarbonate-body-special-vs-chassis-model-kit-p-25976.html",
+      "source": "https://www.tamiya.com/japan/products/95633/index.html",
+      "images": [
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/9/95633/95633_1.jpg"
+      ],
+      "en": "Complete kit on the compact VS chassis, with a clear polycarbonate body, carbon-reinforced Y-spoke wheels and white hard low-profile tires. Initially an event item associated with Japan Cup 2021; wider Japanese Mini 4WD Station distribution followed on 31 March 2022. Both distributions remain one edition.",
+      "it": "Kit completo su telaio VS compatto, con carrozzeria in policarbonato trasparente, cerchi a Y rinforzati al carbonio e gomme hard bianche a basso profilo. Inizialmente legato agli eventi Japan Cup 2021, arriva nella distribuzione giapponese Mini 4WD Station il 31 marzo 2022. Le due distribuzioni restano una sola edizione.",
+      "id": "44d94956-6bbd-5a46-ae0c-e1f309254726"
+    },
+    {
+      "code": "92447",
+      "name": "Neo-VQS Tokyo Yakult Swallows Collaboration Model",
+      "year": 2024,
+      "date": null,
+      "chassis": "VZ",
+      "color": "White / navy chassis / red wheels",
+      "market": "Japan",
+      "kind": "limited",
+      "status": "unknown",
+      "rarity": "Uncommon",
+      "jan": null,
+      "source": "https://shop.yakult-swallows.co.jp/products/19162",
+      "images": [
+        "https://shop.yakult-swallows.co.jp/contents/products/19162/sub_01.jpg",
+        "https://shop.yakult-swallows.co.jp/contents/products/19162/main.jpg"
+      ],
+      "en": "2024 collaboration with the Tokyo Yakult Swallows baseball team, distributed through its official shops. White body with team graphics, navy VZ chassis, red five-spoke wheels and super-hard tires with printed logos. Dedicated team packaging identifies this complete kit.",
+      "it": "Collaborazione del 2024 con la squadra di baseball Tokyo Yakult Swallows, distribuita nei suoi negozi ufficiali. Carrozzeria bianca con grafiche della squadra, telaio VZ blu navy, cerchi rossi a cinque razze e gomme super hard con loghi stampati. Il kit completo ha una confezione dedicata.",
+      "id": "b72112dc-9835-56c4-bccb-ca087f734704"
+    },
+    {
+      "code": "18106",
+      "name": "Neo-VQS Advanced Pack (2026)",
+      "year": 2026,
+      "date": "2026-12-19",
+      "chassis": "VZ",
+      "color": "Smoke / black chassis / yellow wheels",
+      "market": "Japan / International",
+      "kind": "special",
+      "status": "announced",
+      "rarity": null,
+      "jan": null,
+      "source": "https://www.tamiya.com/japan/products/18106/index.html",
+      "images": [
+        "https://d7z22c0gz59ng.cloudfront.net/cms/img/usr/item/9/95598/95598_1.jpg",
+        "https://www.tamiya.com/cms/img/usr/item/9/95598/95598_main3.jpg"
+      ],
+      "en": "The Advanced Pack under the new item number #18106. Tamiya Japan schedules release for 19 December 2026; availability dates can differ by country. Smoke body, VZ chassis and Light-Dash motor with FRP stays, brakes and mass dampers.",
+      "it": "Advanced Pack con il nuovo codice articolo #18106. Tamiya Japan annuncia l’uscita per il 19 dicembre 2026; la disponibilità può variare per Paese. Carrozzeria fumé, telaio VZ e motore Light-Dash con supporti FRP, freni e mass damper.",
+      "id": "dfe74321-44de-5d6c-a0a5-d3411d8ec655"
+    }
+  ]
+}
