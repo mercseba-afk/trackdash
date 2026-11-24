@@ -1,3 +1,5 @@
+> CURRENT STATUS: Amazon price imports are PAUSED by owner decision. Affiliate buttons remain active. Do not re-enable scans automatically. See [pause decision](AMAZON_PRICE_IMPORT_PAUSED_2026-11-24.md) before future work.
+
 # Amazon Italy affiliate expansion — 2026-11-24
 
 Scope: 13 additional Mini 4WD release mappings; 8 existing mappings retained (21 total).
