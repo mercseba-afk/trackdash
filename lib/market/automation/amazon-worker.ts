@@ -18,7 +18,6 @@ function checked(error: { message?: string } | null) {
 // Responses, URLs and thrown fetch errors are never logged: they can contain keys.
 async function readJson(url: string, options: RequestInit = {}) {
   const response = await fetch(url, { ...options, redirect: "error", cache: "no-store", signal: AbortSignal.timeout(10_000) })
-  if (!response.ok) throw new Error(`AMAZON_PROVIDER_HTTP_${response.status}`)
   if (!response.body) throw new Error("AMAZON_PROVIDER_EMPTY_RESPONSE")
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
@@ -33,6 +32,12 @@ async function readJson(url: string, options: RequestInit = {}) {
     }
     text += decoder.decode()
   } finally { reader.releaseLock() }
+  if (!response.ok) {
+    // Only fixed diagnostic labels can cross the boundary, never response text
+    // (a provider validation error may echo a credential-bearing request).
+    const field = /max_cost/i.test(text) ? "_COST_PARAMETER" : /condition/i.test(text) ? "_CONDITION_PARAMETER" : /api.?key/i.test(text) ? "_API_KEY" : /callback/i.test(text) ? "_CALLBACK_PARAMETER" : ""
+    throw new Error(`AMAZON_PROVIDER_HTTP_${response.status}${field}`)
+  }
   try { return JSON.parse(text) as Record<string, any> } catch { throw new Error("AMAZON_PROVIDER_INVALID_JSON") }
 }
 
@@ -78,7 +83,10 @@ export async function scanClaimedAmazonJob(client: SupabaseClient, repo: MarketR
       await persistState({ asin: pilot.asin, phase: "submitting", requestStartedAt: now, nextSubmitAt: new Date(Date.now() + DAY).toISOString() })
       const submitted = await readJson("https://async.scraperapi.com/structured/amazon/offers", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: key, asin: pilot.asin, country_code: "it", tld: "it", condition: "F_New", max_cost: 5 }),
+        // SDE async's documented request contract differs from synchronous
+        // playground filters and generic /jobs apiParams. Send ONLY its fields.
+        // New-only filtering still happens on every returned seller offer.
+        body: JSON.stringify({ apiKey: key, asin: pilot.asin, country_code: "it", tld: "it" }),
       })
       if (!UUID.test(String(submitted.id ?? "")) || (submitted.asin && submitted.asin !== pilot.asin)) throw new Error("AMAZON_PROVIDER_JOB_INVALID")
       await persistState({ ...state, phase: "pending", providerJobId: submitted.id })

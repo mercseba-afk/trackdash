@@ -31,7 +31,11 @@ No extra cron, browser dependency, paid subscription or package dependency.
 
 One chargeable async submission per ASIN per24h, with a persisted reservation
 BEFORE submission; an ambiguous response never causes an immediate paid retry.
-Base cost cap5/request: at most310 base credits/31days for the pilot, plus tests.
+Standard request cost5: at most310 base credits/31days for the pilot, plus tests.
+No premium, rendering or other cost-increasing flags are submitted. The SDE
+async request accepts only apiKey, asin, country_code and tld; synchronous
+playground condition/max_cost parameters caused HTTP400 and were removed.
+New-only selection is enforced again when parsing each returned seller offer.
 Provider accepts jobs quickly; later queue invocations poll the fixed provider
 status endpoint, each with a10s deadline and750KB body limit, below Vercel's limit.
 No remote statusURL is followed. The provider key is sent only to ScraperAPI over

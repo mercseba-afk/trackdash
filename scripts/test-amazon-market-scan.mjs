@@ -61,7 +61,7 @@ test('one submission, no credential persisted, fixed URL, pending response holds
   assert.equal((await h.run()).status,'review')
   assert.equal(h.db.requests.length,1)
   assert.equal(h.db.requests[0].url,'https://async.scraperapi.com/structured/amazon/offers')
-  assert.equal(JSON.parse(h.db.requests[0].options.body).max_cost,5)
+  assert.deepEqual(Object.keys(JSON.parse(h.db.requests[0].options.body)).sort(),['apiKey','asin','country_code','tld'])
   assert.equal(h.db.state.providerJobId,uuid)
   assert.ok(!JSON.stringify(h.db.state).includes('test-only-secret'))
   assert.equal(h.db.offers.length,0)
