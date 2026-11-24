@@ -7,4 +7,5 @@ export const amazonItalyAsinByRelease: Partial<Record<string, string>> = {
   "cc1fb7fa-67db-5303-9514-80b9705fe732": "B07K4Q3NNQ", // 95464 Azure Clear Special
   "c91957f4-907f-5f1a-9a49-faeddc3abd8d": "B0FPQ45FYM", // 18662 Nero Advanced Pack
   "51267c3e-03cc-54c4-8b9b-1c4e413d75b8": "B08KR2LXCV", // 95598 Neo-VQS Advanced Pack; user-supplied exact product link
+  "01e1ea1d-0513-5562-8e55-63c11f24fbe5": "B083JYP59Y", // 18094 Neo-VQS VZ; user-supplied exact product link
 }
