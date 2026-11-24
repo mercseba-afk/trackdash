@@ -15,6 +15,7 @@ const payload = (...listings) => ({item:{name:'Tamiya Item 18094 Neo VQS VZ Chas
 test('exact identity, new condition, EUR, seller dedup and no invented shipping',()=>{
   assert.throws(()=>parser.parseAmazonOffers({item:{name:'Tamiya 95598'},listings:[]},'18094'))
   assert.throws(()=>parser.parseAmazonOffers({item:{name:'Tamiya 18094 body set'},listings:[]},'18094'))
+  assert.throws(()=>parser.parseAmazonOffers(payload({pinned_offer:true,condition:'',seller_name:''}),'18094'),/AMAZON_OFFERS_INCOMPLETE/)
   const result=parser.parseAmazonOffers(payload(listing(),listing({price:31}),listing({seller_id:'ABCDE12345',price:38.14,shipping_price:null}),listing({condition:'Usato'}),listing({price_symbol:'$'})),'18094')
   assert.deepEqual(result.offers.map(o=>[o.price,o.shipping]),[[30,0],[38.14,null]])
   assert.equal(parser.parseAmazonOffers({item:{name:'Tamiya 95598 Neo VQS Advanced Pack'},listings:[listing({price:408.36})]},'95598').offers[0].price,408.36)
@@ -60,7 +61,7 @@ test('one submission, no credential persisted, fixed URL, pending response holds
   const h=harness({responses:[{id:uuid,status:'running',asin:'B083JYP59Y'}]})
   assert.equal((await h.run()).status,'review')
   assert.equal(h.db.requests.length,1)
-  assert.equal(h.db.requests[0].url,'https://async.scraperapi.com/structured/amazon/offers')
+  assert.equal(h.db.requests[0].url,'https://async.scraperapi.com/structured/amazon/offers/v1')
   assert.deepEqual(Object.keys(JSON.parse(h.db.requests[0].options.body)).sort(),['apiKey','asin','country_code','tld'])
   assert.equal(h.db.state.providerJobId,uuid)
   assert.ok(!JSON.stringify(h.db.state).includes('test-only-secret'))
@@ -77,10 +78,11 @@ test('lost submission response reserves a full day and cannot spend twice',async
 })
 
 test('finished async response persists independent sellers; no SOLD or false EU origin',async()=>{
-  const h=harness({state:{asin:'B083JYP59Y',providerJobId:uuid,requestStartedAt:new Date().toISOString(),nextSubmitAt:new Date(Date.now()+86400000).toISOString()},responses:[{status:'finished',response:payload(listing(),listing({seller_id:'A1RP831ATRGZHA',seller_name:'Amazon US',price:38.14}))}]})
+  const h=harness({state:{asin:'B083JYP59Y',providerJobId:uuid,requestStartedAt:new Date().toISOString(),nextSubmitAt:new Date(Date.now()+86400000).toISOString()},responses:[{status:'finished',response:{statusCode:200,credits:5,body:JSON.stringify(payload(listing(),listing({seller_id:'A1RP831ATRGZHA',seller_name:'Amazon US',price:38.14})))}}]})
   assert.equal((await h.run()).status,'accepted')
   assert.equal(h.db.requests.length,1)
   assert.equal(h.db.requests[0].options.method,undefined)
+  assert.equal(h.db.requests[0].url,'https://async.scraperapi.com/jobs/'+uuid)
   assert.equal(h.db.offers.length,2)
   assert.notEqual(h.db.offers[0].sellerFingerprint,h.db.offers[1].sellerFingerprint)
   assert.equal(h.db.recomputed,1)

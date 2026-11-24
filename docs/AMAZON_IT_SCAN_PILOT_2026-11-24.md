@@ -36,6 +36,12 @@ No premium, rendering or other cost-increasing flags are submitted. The SDE
 async request accepts only apiKey, asin, country_code and tld; synchronous
 playground condition/max_cost parameters caused HTTP400 and were removed.
 New-only selection is enforced again when parsing each returned seller offer.
+Live protocol checks also found that the legacy documentation's structured
+status URL returns404. Poll the current /jobs/:id resource instead. Submit to
+the versioned offers/v1 endpoint (also used by the current playground): the
+unversioned95598 parser returned an incomplete pinned-offer placeholder. Such
+rows raise AMAZON_OFFERS_INCOMPLETE and never erase accepted evidence. The
+real provider response envelope has response.body and credits=5; tests use it.
 Provider accepts jobs quickly; later queue invocations poll the fixed provider
 status endpoint, each with a10s deadline and750KB body limit, below Vercel's limit.
 No remote statusURL is followed. The provider key is sent only to ScraperAPI over

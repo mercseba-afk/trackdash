@@ -81,7 +81,7 @@ export async function scanClaimedAmazonJob(client: SupabaseClient, repo: MarketR
       // Persist the 24h reservation BEFORE the chargeable request. Even a lost
       // response/process crash cannot cause repeated submissions the same day.
       await persistState({ asin: pilot.asin, phase: "submitting", requestStartedAt: now, nextSubmitAt: new Date(Date.now() + DAY).toISOString() })
-      const submitted = await readJson("https://async.scraperapi.com/structured/amazon/offers", {
+      const submitted = await readJson("https://async.scraperapi.com/structured/amazon/offers/v1", {
         method: "POST", headers: { "Content-Type": "application/json" },
         // SDE async's documented request contract differs from synchronous
         // playground filters and generic /jobs apiParams. Send ONLY its fields.
@@ -96,7 +96,7 @@ export async function scanClaimedAmazonJob(client: SupabaseClient, repo: MarketR
 
     if (!UUID.test(state.providerJobId) || state.asin !== pilot.asin) throw new Error("AMAZON_PROVIDER_STATE_INVALID")
     // Construct a fixed provider URL; never follow a response-supplied statusUrl.
-    const result = await readJson(`https://async.scraperapi.com/structured/amazon/offers/${state.providerJobId}`)
+    const result = await readJson(`https://async.scraperapi.com/jobs/${state.providerJobId}`)
     if (result.status === "running" || result.status === "pending") {
       if (Date.now() - Date.parse(state.requestStartedAt ?? "") > DAY) throw new Error("AMAZON_ASYNC_EXPIRED")
       await releaseQueue(15 * 60_000)

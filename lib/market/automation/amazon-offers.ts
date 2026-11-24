@@ -21,6 +21,11 @@ export function parseAmazonOffers(payload: unknown, item: string) {
   }
   if (/\b(body\s+set|spare\s+parts|carrozzeria|ricambi|lotto)\b/i.test(title)) throw new Error("AMAZON_NOT_COMPLETE_KIT")
   if (!Array.isArray(data?.listings)) throw new Error("AMAZON_OFFERS_SCHEMA_INVALID")
+  // Older provider parsers can return a pinned-offer placeholder with no price,
+  // seller or condition. That is a failed extraction, not an empty marketplace.
+  if (data.listings.some((row: any) => !row || (row.pinned_offer && !row.condition && row.price == null))) {
+    throw new Error("AMAZON_OFFERS_INCOMPLETE")
+  }
   const offers = new Map<string, AmazonOffer>()
   for (const row of data.listings) {
     if (!row || !/^(new|nuovo)$/i.test(String(row.condition ?? "").trim())) continue
