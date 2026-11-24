@@ -1,0 +1,58 @@
+name: Amazon Italy read-only preflight
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/amazon-it-preflight.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read two fixed exact product pages without credentials or database writes
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          for (const [item, asin] of [["18094","B083JYP59Y"],["95598","B08KR2LXCV"]]) {
+            const result = {item, asin};
+            try {
+              const response = await fetch("https://www.amazon.it/dp/" + asin, {
+                redirect: "error",
+                headers: {"User-Agent":"TrackDashMarketBot/1.0 (+https://trackdash.it)","Accept":"text/html"},
+                signal: AbortSignal.timeout(15000)
+              });
+              result.httpStatus = response.status;
+              result.contentType = response.headers.get("content-type");
+              let html = "";
+              let bytes = 0;
+              const reader = response.body?.getReader();
+              if (reader) {
+                try {
+                  const decoder = new TextDecoder();
+                  while (true) {
+                    const chunk = await reader.read();
+                    if (chunk.done) break;
+                    bytes += chunk.value.byteLength;
+                    if (bytes > 2500000) { await reader.cancel(); result.tooLarge = true; break; }
+                    html += decoder.decode(chunk.value, {stream:true});
+                  }
+                } finally { reader.releaseLock(); }
+              }
+              result.bytes = bytes;
+              result.itemIdentityPresent = html.includes(item) && html.toLowerCase().includes("tamiya");
+              result.asinPresent = html.includes(asin);
+              result.priceMarkupPresent = /a-price-whole|priceToPay|priceAmount/.test(html);
+              result.buyBoxPresent = /id=["'](?:buybox|desktop_buybox|add-to-cart-button)["']/.test(html);
+              result.challengePresent = /validateCaptcha|Robot Check|api-services-support@amazon|automated access to Amazon/i.test(html);
+              result.usable = response.ok && !result.tooLarge && result.itemIdentityPresent && result.asinPresent && result.priceMarkupPresent && result.buyBoxPresent && !result.challengePresent;
+            } catch (error) {
+              result.error = error?.name === "TimeoutError" ? "FETCH_TIMEOUT" : "FETCH_FAILED";
+              result.usable = false;
+            }
+            console.log(JSON.stringify(result));
+          }
+          JS
