@@ -1,6 +1,10 @@
 # Amazon Italy affiliate expansion — 2026-11-24
 
-Scope: 13 additional public Mini 4WD releases; 8 existing mappings retained (21 total).
+Scope: 13 additional Mini 4WD release mappings; 8 existing mappings retained (21 total).
+Final parent-family gate check: 10 new mappings are publicly visible (18 total
+public links). Great Emperor18075, Hurricane Sonic19415 and Vanguard Sonic19435
+still have parent launch_status=coming_soon; their 3 mappings are prepared but
+not displayed. No family launch state was changed.
 Owner-approved affiliate ID trackdash-21. Direct product links use the existing
 IT/EN disclosure and sponsored link attributes. No prices, availability promises,
 images or reviews are copied into the catalog. Existing market calculations,
@@ -13,7 +17,7 @@ six requests => maximum30 discovery credits (no premium/render flags).
 Dashboard displayed4945 credits remaining after reload; counters may settle later.
 No recurring jobs were created by this expansion.
 
-All added releases were confirmed catalog_visibility=public and matched by exact
+All added release rows were confirmed catalog_visibility=public and matched by exact
 Tamiya code + edition/chassis name. Product number reused across distinct
 editions is insufficient by itself. Existing release IDs were used without
 creating or publishing families.
@@ -43,5 +47,7 @@ only explicit manufacturer_part_number19431/model_number19431-000 was used.
 Catalog specifications were not overwritten.
 
 Validation: TypeScript, 21 unique valid ASIN mappings, exact trackdash-21 tags,
-unmapped DCR remains unlinked. Full repository gate and public HTTP spot-checks
-are required before declaring publication complete.
+unmapped DCR remains unlinked. Full repository verification passed. Deployed5a233ae9c7aef281166a6f53f91701475243b8d0
+was verified on /api/version and Vercel Ready. Public Mach Frame page shows the
+exact B07MM3WLBB URL with trackdash-21 and disclosure. Final HTTP checks cover
+all10 publicly available releases and preserve all3 coming-soon family gates.
