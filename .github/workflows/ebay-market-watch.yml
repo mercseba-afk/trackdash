@@ -66,3 +66,5 @@ jobs:
 
 # Initial market audit: Neo-VQS family, 24 November 2026; existing daily cap unchanged.
 # Complete the remaining exact-retail initial check using the same bounded worker.
+
+# 2026-11-24: bounded Amazon IT pilot initial server submission check.
