@@ -65,3 +65,24 @@ Validation: parser and real worker tests cover identity, used/non-EUR exclusion,
 seller dedup, unknown shipping, daily cooldown, lost submission response, deferred
 polling, credential redaction, stale evidence preservation and fixed endpoint
 allowlist. New test is part of the repository verify gate.
+
+
+## Production verification — 2026-11-24 20:16 UTC
+
+Live deployed code bcedf8081f132a0648939adfbc757d192e95ab89 was verified
+through /api/version and the Vercel Current Production domain. The existing
+hourly scanner workflow completed successfully; no additional cron was added.
+Both exact Amazon queue endpoints completed with null last_error:
+- 18094: two accepted new offers, EUR30.00 and38.14. Public IT and EN
+  release views display representative listing price EUR34.07 (two sellers).
+- 95598: one accepted new offer EUR408.36, included alongside other current
+  listings. Public listing price remains EUR78.66 across14 sellers, not408.36.
+No sold evidence or sold anchor was created. Source origin remains global.
+Next submission slots: 2026-11-25T20:05:58.758Z and20:14:46.465Z,
+processed when the existing clock next claims the queue; collection can follow
+in a later hourly run after the async job completes.
+A single legacy95598 incomplete job was retired with an audited endpoint repair
+before submitting the versioned job. The final collection did not resubmit or
+spend provider credits. Do not reset cooldowns as routine operations.
+Full repository verification passed before deployment; actual server submissions,
+response.body parsing, offer persistence and public rendering were then checked.
