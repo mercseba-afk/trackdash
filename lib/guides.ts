@@ -5,6 +5,224 @@ export type Guide = { slug: string; published: string; image: string; sourceLink
 // Only reviewed, approved articles belong here. Dates describe editorial changes,
 // not page views or deployments. No scheduler or database reads are required.
 export const guides: Guide[] = [
+{
+  "slug": "gomme-mini-4wd-standard-hard-super-hard",
+  "published": "2026-11-24",
+  "image": "https://www.tamiya.com/japan_contents/img/usr/item/1/15542/15542_1.jpg",
+  "relatedPath": "/catalog/mach-frame",
+  "relatedLabel": "Mach Frame",
+  "sourceLinks": [
+    {
+      "label": "Tamiya · Mini 4WD Setup Guide",
+      "url": "https://www.tamiya.com/english/mini4wd/setupguide/setupguide.htm"
+    },
+    {
+      "label": "Tamiya · Super Hard 26 mm e cerchi #15542",
+      "url": "https://www.tamiya.com/english/products/15542/index.html"
+    },
+    {
+      "label": "Tamiya · Hard 26 mm e cerchi #15545",
+      "url": "https://www.tamiya.com/english/products/15545index.html"
+    },
+    {
+      "label": "Tamiya · Mach Frame #18714",
+      "url": "https://www.tamiya.com/english/products/18714/index.html"
+    }
+  ],
+  "it": {
+    "title": "Gomme Mini 4WD: standard, hard o super hard?",
+    "description": "Scopri cosa cambia tra gomme standard, hard e super hard per Mini 4WD: aderenza, curve, salti e controlli prima di scegliere un nuovo set.",
+    "category": "Gomme e assetto",
+    "imageAlt": "Set Tamiya #15542: gomme super hard a basso profilo da 26 mm e cerchi rinforzati",
+    "answer": "Parti dalle gomme del kit e scegli la mescola in base al comportamento in pista. Le hard e super hard offrono generalmente meno aderenza delle gomme standard più morbide: possono aiutare in curva, ma la scelta va verificata insieme a diametro, cerchi e assetto.",
+    "sections": [
+      {
+        "title": "Cosa cambia tra standard, hard e super hard?",
+        "paragraphs": [
+          "Standard indica le gomme fornite in una determinata versione del kit, non una mescola unica per tutte le Mini 4WD. Alcune release includono già gomme super hard: è il caso della Mach Frame #18714. Controlla quindi le specifiche della tua release prima di comprare un ricambio.",
+          "Hard e super hard identificano mescole più dure. Un esempio documentato è il set hard #15545, che Tamiya descrive come meno aderente delle gomme standard; il set super hard #15542 è proposto anche per limitare il rimbalzo dopo i salti."
+        ]
+      },
+      {
+        "title": "Perché meno aderenza può aiutare in curva?",
+        "paragraphs": [
+          "Nelle Mini 4WD i rulli guidano la macchina lungo le sponde. La guida Tamiya spiega che una gomma meno aderente può ridurre la perdita di velocità in curva. Il risultato dipende anche da larghezza e forma del pneumatico: la sola durezza non descrive tutto l’assetto."
+        ]
+      },
+      {
+        "title": "Le super hard risolvono i problemi nei salti?",
+        "paragraphs": [
+          "Possono essere una modifica da provare, non una soluzione universale. Nella scheda #15542 Tamiya associa queste gomme a un minore rimbalzo, ma per una macchina che esce dopo un salto vanno osservati anche velocità d’ingresso, freni e mass damper. Il consiglio pratico è capire prima in quale punto perde stabilità."
+        ]
+      },
+      {
+        "title": "Cosa controllare prima di acquistare?",
+        "paragraphs": [
+          "Verifica il codice del set, il diametro esterno, la misura e il profilo del cerchio, lo spazio sotto la carrozzeria e la compatibilità dichiarata per il telaio. Due gomme dello stesso colore possono avere specifiche diverse. Per alcuni abbinamenti Tamiya segnala la necessità di modifiche: leggi le istruzioni del componente esatto."
+        ]
+      },
+      {
+        "title": "Come fare una prova utile?",
+        "paragraphs": [
+          "Metodo pratico TrackDash: annota il set iniziale, prova più giri e cambia una sola variabile. Tieni confrontabili batterie e condizioni della pista, quindi confronta tempi e giri completati. Scegli il set che funziona sul tuo percorso, rispettando il regolamento dell’evento."
+        ]
+      }
+    ]
+  },
+  "en": {
+    "title": "Mini 4WD tires: standard, hard or super hard?",
+    "description": "Compare standard, hard and super hard Mini 4WD tires: grip, cornering, jumps and the compatibility checks to make before choosing a new set.",
+    "category": "Tires and setup",
+    "imageAlt": "Tamiya #15542 set: 26 mm super hard low-profile tires and reinforced wheels",
+    "answer": "Start with the kit tires and choose a compound based on track behavior. Hard and super hard tires generally provide less grip than softer standard tires. They can help cornering, but diameter, wheel compatibility and the complete setup matter too.",
+    "sections": [
+      {
+        "title": "How do standard, hard and super hard differ?",
+        "paragraphs": [
+          "Standard means the tires supplied with a particular kit version, not one universal compound. Some releases already include super hard tires: Mach Frame #18714 is an example. Check the specifications of your release before buying replacements.",
+          "Hard and super hard describe harder compounds. Tamiya describes the hard #15545 set as having less grip than standard tires, while the super hard #15542 set is also intended to reduce bounce after jumps."
+        ]
+      },
+      {
+        "title": "Why can less grip help cornering?",
+        "paragraphs": [
+          "Mini 4WD rollers guide the car along the lane walls. Tamiya’s setup guide explains that less grippy tires can reduce cornering speed loss. Width and tire shape also matter, so hardness alone does not describe the whole setup."
+        ]
+      },
+      {
+        "title": "Will super hard tires solve jumping problems?",
+        "paragraphs": [
+          "They are a change to test rather than a universal fix. Tamiya associates the #15542 tires with less bounce, but entry speed, brakes and mass dampers also deserve attention when a car leaves the course after a jump. First observe exactly where stability is lost."
+        ]
+      },
+      {
+        "title": "What should you check before buying?",
+        "paragraphs": [
+          "Check the set’s item number, outer diameter, wheel size and profile, body clearance and stated chassis compatibility. Matching colors do not establish identical specifications. Tamiya notes that some combinations require modifications: read the instructions for the exact component."
+        ]
+      },
+      {
+        "title": "How should you test a new set?",
+        "paragraphs": [
+          "TrackDash practical method: record the starting setup, run several laps and change one variable at a time. Keep batteries and track conditions comparable, then compare lap times and completed laps. Choose what works on your course and complies with the event rules."
+        ]
+      }
+    ]
+  }
+},
+{
+  "slug": "telaio-ma-fm-a-differenze-mini-4wd",
+  "published": "2026-11-24",
+  "image": "https://www.tamiya.com/japan_contents/img/usr/item/1/18714/18714_1.jpg",
+  "relatedPath": "/catalog/dcr-01",
+  "relatedLabel": "DCR-01",
+  "sourceLinks": [
+    {
+      "label": "Tamiya · Mini 4WD Chassis & Compatible Parts",
+      "url": "https://www.tamiya.com/english/cms/mini4wd_chassis_select.html"
+    },
+    {
+      "label": "Tamiya · DCR-01 #18646, telaio MA",
+      "url": "https://www.tamiya.com/english/products/18646/index.html"
+    },
+    {
+      "label": "Tamiya · Mach Frame #18714, telaio FM-A",
+      "url": "https://www.tamiya.com/english/products/18714/index.html"
+    },
+    {
+      "label": "Tamiya · Motor Guide",
+      "url": "https://www.tamiya.com/cms/english/mini4wd/setupguide/motorguide.pdf"
+    },
+    {
+      "label": "Tamiya · Atomic-Tuned 2 PRO #15489",
+      "url": "https://www.tamiya.com/english/products/15489/index.html"
+    }
+  ],
+  "it": {
+    "title": "Telaio MA o FM-A: differenze e quale scegliere",
+    "description": "MA e FM-A a confronto: posizione del motore, compatibilità e consigli per iniziare. Gli esempi DCR-01 #18646 e Mach Frame #18714.",
+    "category": "Telai e modelli",
+    "imageAlt": "Tamiya Mach Frame #18714, esempio di Mini 4WD con telaio FM-A e motore anteriore",
+    "answer": "Il MA ha il motore al centro e usa motori PRO a doppio albero; il FM-A lo colloca davanti e usa motori a singolo albero. Entrambi sono basi valide per iniziare: scegli il kit che ti interessa e controlla i componenti previsti per il suo telaio.",
+    "sections": [
+      {
+        "title": "Qual è la differenza più importante?",
+        "paragraphs": [
+          "È la disposizione della trasmissione. Sul MA il motore centrale a doppio albero aziona la trasmissione anteriore e posteriore. Sul FM-A il motore è anteriore. Prima di scegliere un upgrade, identifica il telaio e confronta il codice del componente con le istruzioni."
+        ]
+      },
+      {
+        "title": "Cosa offre il telaio MA?",
+        "paragraphs": [
+          "MA significa Midship AERO. Tamiya ne evidenzia il telaio monoscocca in un solo pezzo, pensato per agevolare assemblaggio e manutenzione. La DCR-01 #18646 è un esempio di kit MA: nella scelta del motore serve la variante PRO.",
+          "Per riconoscere un ricambio concreto, l’Atomic-Tuned 2 PRO #15489 è indicato da Tamiya per il MA. La parola PRO identifica qui la famiglia di motori compatibili; non significa che il kit sia riservato a piloti esperti."
+        ]
+      },
+      {
+        "title": "Cosa offre il telaio FM-A?",
+        "paragraphs": [
+          "La posizione anteriore del motore porta il baricentro verso il davanti. Nella Mach Frame #18714 Tamiya presenta questo schema per percorsi anche con frequenti cambi di quota; l’accesso al motore dal fondo facilita gli interventi. Sono caratteristiche del progetto, da valutare con l’assetto completo."
+        ]
+      },
+      {
+        "title": "Quale scegliere per iniziare?",
+        "paragraphs": [
+          "Consiglio pratico TrackDash: parti da un modello che ti piace e dai ricambi che riesci a trovare. La DCR-01 #18646 permette di iniziare sul MA; la Mach Frame #18714 sul FM-A. Monta il kit seguendo le istruzioni e prova la configurazione di partenza prima di cercare più velocità.",
+          "Il nome del telaio da solo non stabilisce quale macchina vincerà: confronta la configurazione effettiva sulla stessa pista. Per una gara, controlla anche categoria e regolamento dell’organizzatore."
+        ]
+      },
+      {
+        "title": "Motori, carrozzerie e accessori sono intercambiabili?",
+        "paragraphs": [
+          "I motori PRO a doppio albero del MA non sostituiscono quelli a singolo albero del FM-A. Per carrozzerie, supporti e altri accessori controlla invece la compatibilità del codice specifico: alcuni pezzi coprono più telai, altri richiedono componenti o adattamenti dedicati.",
+          "Nel catalogo TrackDash apri la release precisa e controlla il campo telaio. È il punto di partenza per organizzare la collezione e cercare le informazioni del tuo kit."
+        ]
+      }
+    ]
+  },
+  "en": {
+    "title": "MA or FM-A chassis: differences and how to choose",
+    "description": "Compare MA and FM-A motor layouts, compatibility and beginner choices, using the DCR-01 #18646 and Mach Frame #18714 as practical examples.",
+    "category": "Chassis and models",
+    "imageAlt": "Tamiya Mach Frame #18714, an example of a Mini 4WD with a front-motor FM-A chassis",
+    "answer": "MA places a double-shaft PRO motor in the center; FM-A places a single-shaft motor at the front. Both can be starting points for a beginner. Choose a kit you like and check the components specified for its chassis.",
+    "sections": [
+      {
+        "title": "What is the main difference?",
+        "paragraphs": [
+          "The drivetrain layout. MA uses a central double-shaft motor to drive the front and rear transmission, while FM-A places the motor at the front. Identify the chassis and check the component’s item number against the instructions before choosing an upgrade."
+        ]
+      },
+      {
+        "title": "What does the MA chassis offer?",
+        "paragraphs": [
+          "MA stands for Midship AERO. Tamiya highlights its single-piece monocoque frame, designed to make assembly and maintenance approachable. DCR-01 #18646 is an MA kit: motor upgrades need the compatible PRO version.",
+          "For a specific replacement example, Tamiya lists the Atomic-Tuned 2 PRO #15489 as compatible with MA. PRO identifies the compatible motor family here; it does not mean the kit is only for expert racers."
+        ]
+      },
+      {
+        "title": "What does the FM-A chassis offer?",
+        "paragraphs": [
+          "The front motor shifts the center of gravity forward. For Mach Frame #18714, Tamiya describes this layout as suitable for courses including frequent elevation changes. Motor access from underneath simplifies servicing. Assess these design features together with the complete setup."
+        ]
+      },
+      {
+        "title": "Which should a beginner choose?",
+        "paragraphs": [
+          "TrackDash practical advice: start with a model you enjoy and replacement parts you can obtain. DCR-01 #18646 offers an MA starting point; Mach Frame #18714 offers FM-A. Follow the kit instructions and test the original setup before chasing more speed.",
+          "A chassis name alone does not determine which car will win. Compare the actual setups on the same course, and check the organizer’s class and event rules before racing."
+        ]
+      },
+      {
+        "title": "Are motors, bodies and accessories interchangeable?",
+        "paragraphs": [
+          "MA’s double-shaft PRO motors cannot replace FM-A’s single-shaft motors. For bodies, stays and other accessories, check compatibility for the exact item number. Some parts fit multiple chassis; others need dedicated components or adaptations.",
+          "Open the precise release in the TrackDash catalog and check its chassis field. This is a useful starting point for organizing your collection and finding information about your kit."
+        ]
+      }
+    ]
+  }
+},
   {
     slug: "quale-motore-scegliere-mini-4wd", published: "2026-11-16",
     image: "https://www.tamiya.com/japan_contents/img/usr/item/1/18646/18646_1.jpg",
