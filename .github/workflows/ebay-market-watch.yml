@@ -70,3 +70,4 @@ jobs:
 # 2026-11-24: bounded Amazon IT pilot initial server submission check.
 
 # Verify Amazon v1 live offers through the existing bounded scanner clock.
+# Collect the completed pilot offer job without another provider submission.
