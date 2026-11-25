@@ -259,7 +259,8 @@ export function PublicShell({ children, websiteOnly = false }: { children: React
             </div>
           </div>
         </div>
-        <div className="mx-auto max-w-7xl border-t border-border/60 px-4 pb-5 pt-1"><p className="mt-3 text-center text-xs text-muted-foreground">Powered by <a href="https://xebdesign.it/" target="_blank" rel="noopener noreferrer" className="font-medium text-slate-600 underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Xebdesign</a></p></div>
+        <div className="mx-auto max-w-7xl border-t border-border/60 px-4 pb-5 pt-1"><p className="mx-auto mt-3 max-w-3xl text-center text-xs leading-relaxed text-muted-foreground">{locale === "it" ? "In qualità di Affiliato Amazon io ricevo un guadagno dagli acquisti idonei." : "As an Amazon Associate I earn from qualifying purchases."}</p>
+        <p className="mt-3 text-center text-xs text-muted-foreground">Powered by <a href="https://xebdesign.it/" target="_blank" rel="noopener noreferrer" className="font-medium text-slate-600 underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Xebdesign</a></p></div>
       </footer>
     </div>
   )

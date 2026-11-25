@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { ArrowLeft, ArrowUpRight, Check, Heart, Plus, Tag } from "lucide-react"
+import { ArrowLeft, Check, Heart, Plus, Tag } from "lucide-react"
 import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
+import { AmazonPurchaseButton } from "@/components/catalog/amazon-purchase-button"
 import { ProductImage } from "@/components/catalog/product-image"
 import { ReleaseCollectorOffers } from "@/components/release-collector-offers"
 import { ReleaseMarketOverview } from "@/components/release-market-overview"
@@ -179,26 +180,9 @@ export function ReleaseDetailScreen({
                   </Button>
                 )}
                 {amazonUrl && (
-                  <a
-                    href={amazonUrl}
-                    data-amazon-item={release.itemNumber}
-                    target="_blank"
-                    rel="sponsored noopener noreferrer"
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[#ffd814] px-2.5 text-[0.8rem] font-semibold text-[#181818] transition-colors hover:bg-[#f7ca00] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f4bb4]"
-                  >
-                    {it ? "Vedi su Amazon" : "View on Amazon"}
-                    <ArrowUpRight aria-hidden="true" className="size-3.5" />
-                  </a>
+                  <AmazonPurchaseButton href={amazonUrl} itemNumber={release.itemNumber} it={it} />
                 )}
               </div>
-              {amazonUrl && (
-                <p className="mt-3 text-xs leading-relaxed text-[#52647a]">
-                  <span className="font-medium">{it ? "Link affiliato. " : "Affiliate link. "}</span>
-                  {it
-                    ? "In qualità di Affiliato Amazon io ricevo un guadagno dagli acquisti idonei."
-                    : "As an Amazon Associate I earn from qualifying purchases."}
-                </p>
-              )}
             </div>
           </div>
 

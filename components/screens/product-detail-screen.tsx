@@ -4,6 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Plus, UsersRound } from "lucide-react"
+import { AmazonPurchaseButton } from "@/components/catalog/amazon-purchase-button"
+import { amazonItalyUrlForRelease } from "@/lib/data/amazon-italy-products"
 import { primaryRelease } from "@/lib/data/products"
 import { getReleaseCommunityCountsAction } from "@/lib/actions/sharing"
 import { useStore } from "@/lib/store"
@@ -205,6 +207,7 @@ function ReleaseRow({
   isAuthed: boolean
 }) {
   const { locale, t } = useI18n()
+  const amazonUrl = amazonItalyUrlForRelease(release.id)
   const marketSignal = marketSignals[release.id] ?? null
   const releaseHref = releasePublicPath(product, release, locale)
   const collectorsHref = `${releaseHref}#collectors`
@@ -273,7 +276,7 @@ function ReleaseRow({
 
           <div className="border-t border-border/60 bg-muted/10 p-3 sm:p-3.5 md:p-4">
             <MarketSignalInline signal={marketSignal} showStartingPrice showBothReferences compactPreview />
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3 grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
               <Button size="sm" variant="outline" className="h-9 min-w-0 flex-1 rounded-xl bg-white px-3 text-xs sm:flex-none" render={<Link href={releaseHref} />}>{t("product.viewRelease")}</Button>
               {isAuthed ? (
                 <AddToCollectionDialog product={product} defaultReleaseId={release.id}>
@@ -283,6 +286,9 @@ function ReleaseRow({
                 <Button size="sm" className="h-9 min-w-0 flex-1 gap-1.5 rounded-xl px-3 text-xs sm:flex-none" render={<Link href={collectionSignupHref} />}>
                   <Plus className="size-3.5" /> {locale === "it" ? "La possiedo" : "I own it"}
                 </Button>
+              )}
+              {amazonUrl && (
+                <AmazonPurchaseButton href={amazonUrl} itemNumber={release.itemNumber} it={locale === "it"} className="col-span-2 w-full sm:w-auto" />
               )}
             </div>
           </div>
