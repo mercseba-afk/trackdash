@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Check, ChevronDown, Handshake, Heart, Plus, UsersRound } from "lucide-react"
+import { ArrowLeft, Check, ChevronDown, Handshake, Plus, UsersRound } from "lucide-react"
 import { AmazonPurchaseButton } from "@/components/catalog/amazon-purchase-button"
 import { amazonItalyUrlForRelease } from "@/lib/data/amazon-italy-products"
 import { primaryRelease } from "@/lib/data/products"
@@ -23,9 +23,9 @@ import { ProductImage } from "@/components/catalog/product-image"
 import { ProductCard } from "@/components/product-card"
 import { RarityBadge } from "@/components/market-bits"
 import { MarketSignalInline } from "@/components/market-signal-inline"
-import { AddToCollectionDialog, AddToWishlistDialog } from "@/components/add-item-dialogs"
+import { AddToCollectionDialog } from "@/components/add-item-dialogs"
 import { cn } from "@/lib/utils"
-import { localizePublicPath, productPublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
+import { localizePublicPath, releasePublicPath, withCollectionIntent } from "@/lib/seo/catalog-paths"
 
 type CommunityCount = { collectors: number; openToOffers: number }
 
@@ -38,7 +38,7 @@ export function ProductDetailScreen({
   related: Product[]
   descriptionIt?: string | null
 }) {
-  const { collection, isInWishlist, user } = useStore()
+  const { collection, user } = useStore()
   const { locale, t } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -49,21 +49,15 @@ export function ProductDetailScreen({
   const sortedReleases = React.useMemo(() => sortReleasesForDisplay(product.releases), [product.releases])
   const owned = enrichCollection(collection, marketSignals)
   const mine = itemsForProduct(owned, product.id)
-  const wished = isInWishlist(product.id)
   const publicDescription = productDescriptionForLocale(product, descriptionIt, locale === "it")
-  const productPath = productPublicPath(product, locale)
   const intent = searchParams.get("intent")
-  const openCollectionFromIntent = Boolean(user && intent === "collection")
-  const openWishlistFromIntent = Boolean(user && intent === "wishlist")
-  const collectionNext = withCollectionIntent(productPath, "collection")
-  const wishlistNext = withCollectionIntent(productPath, "wishlist")
-  const collectionSignupHref = `/signup?next=${encodeURIComponent(collectionNext)}`
-  const wishlistSignupHref = `/signup?next=${encodeURIComponent(wishlistNext)}`
+  const primaryPath = releasePublicPath(product, primary, locale)
 
+  // Preserve existing family-level account links by continuing on the exact edition.
   React.useEffect(() => {
     if (!user || (intent !== "collection" && intent !== "wishlist")) return
-    router.replace(productPath, { scroll: false })
-  }, [intent, productPath, router, user])
+    router.replace(withCollectionIntent(primaryPath, intent), { scroll: false })
+  }, [intent, primaryPath, router, user])
 
   React.useEffect(() => {
     let cancelled = false
@@ -82,54 +76,49 @@ export function ProductDetailScreen({
         <ArrowLeft data-icon="inline-start" /> {t("product.back")}
       </Button>
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-        <div className="flex flex-col gap-4"><ProductImage product={product} className="aspect-[4/3] w-full rounded-xl border" size="lg" /></div>
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{product.series}</Badge></div>
-            <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{product.name}</h1>
-            {product.japaneseName && <p className="-mt-1 text-sm text-muted-foreground">{product.japaneseName}</p>}
-            {publicDescription ? <p className="leading-relaxed text-muted-foreground text-pretty">{publicDescription}</p> : null}
-            <Link href="#releases" className="group inline-flex w-fit items-center gap-2 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-brand/10">
-              <span className="font-semibold text-brand">{product.releases.length}</span>
-              <span>{locale === "it" ? "Release ed edizioni" : product.releases.length === 1 ? "Release" : "Releases & editions"}</span>
-              <ChevronDown className="size-4 text-brand transition-transform group-hover:translate-y-0.5" />
-            </Link>
+      <section aria-labelledby="family-title" className="rounded-2xl border border-brand/15 bg-brand/5 p-4 sm:p-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_108px] items-center gap-3 min-[360px]:grid-cols-[minmax(0,1fr)_128px] sm:grid-cols-[minmax(0,1fr)_240px] sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand">{locale === "it" ? "Famiglia Mini 4WD" : "Mini 4WD family"}</p>
+            {product.originalReleaseYear ? <span className="mb-2 inline-flex rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-foreground">{locale === "it" ? "Dal" : "Since"} {product.originalReleaseYear}</span> : null}
+            <h1 id="family-title" className="break-words text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{product.name}</h1>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">{product.series} · Tamiya</p>
           </div>
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-card p-4 text-sm">
-            <Spec label={t("product.firstReleased")} value={product.originalReleaseYear ? String(product.originalReleaseYear) : "—"} />
-            <Spec label={t("product.chassisOriginal")} value={product.chassis ?? "—"} />
-            <Spec label={t("product.itemOriginal")} value={primary.itemNumber ? `#${primary.itemNumber}` : "—"} />
-            <Spec label={t("product.series")} value={product.series} />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {user ? (
-              <>
-                <AddToCollectionDialog product={product} defaultOpen={openCollectionFromIntent}><Button className="gap-1.5"><Plus className="size-4" /> {locale === "it" ? "La possiedo" : "I own it"}</Button></AddToCollectionDialog>
-                <AddToWishlistDialog product={product} defaultOpen={openWishlistFromIntent}><Button variant="outline" className={cn("gap-1.5", wished && "border-brand text-brand")}><Heart className={cn("size-4", wished && "fill-brand")} /> {wished ? (locale === "it" ? "Nei miei Desideri" : "On my Wishlist") : (locale === "it" ? "La sto cercando" : "I'm looking for it")}</Button></AddToWishlistDialog>
-              </>
-            ) : (
-              <>
-                <Button render={<Link href={collectionSignupHref} />} className="gap-1.5">
-                  <Plus className="size-4" /> {locale === "it" ? "La possiedo" : "I own it"}
-                </Button>
-                <Button variant="outline" render={<Link href={wishlistSignupHref} />} className="gap-1.5">
-                  <Heart className="size-4" /> {locale === "it" ? "La sto cercando" : "I'm looking for it"}
-                </Button>
-              </>
-            )}
-          </div>
+          <ProductImage product={product} className="aspect-[16/11] w-full rounded-xl bg-white" size="md" sizes="(min-width: 1024px) 320px, (min-width: 640px) 240px, 128px" />
         </div>
-      </div>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          {locale === "it"
+            ? `Esplora le release di ${product.name}: originali, ristampe ed edizioni speciali.`
+            : `Explore the ${product.name} releases: originals, reissues and special editions.`}
+        </p>
+        <details className="group mt-4 border-t border-brand/15 pt-2">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+            {locale === "it" ? "Informazioni sulla famiglia" : "About this family"}
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+          </summary>
+          <div className="pb-2 pt-2">
+            {product.japaneseName && <p className="mb-3 text-sm text-muted-foreground">{product.japaneseName}</p>}
+            {publicDescription ? <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{publicDescription}</p> : null}
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <Spec label={t("product.firstReleased")} value={product.originalReleaseYear ? String(product.originalReleaseYear) : "—"} />
+              <Spec label={t("product.chassisOriginal")} value={product.chassis ?? "—"} />
+              <Spec label={t("product.itemOriginal")} value={primary.itemNumber ? `#${primary.itemNumber}` : "—"} />
+              <Spec label={t("product.series")} value={product.series} />
+            </div>
+          </div>
+        </details>
+        <Link href="#releases" className="mt-3 flex min-h-11 items-center justify-between gap-3 rounded-xl bg-brand px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:w-fit sm:min-w-64">
+          <span className="flex items-center gap-2"><span className="inline-flex min-w-7 items-center justify-center rounded-lg bg-white/15 px-1.5 py-1 font-semibold tabular-nums">{product.releases.length}</span>{locale === "it" ? "release da esplorare" : product.releases.length === 1 ? "release to explore" : "releases to explore"}</span>
+          <ChevronDown className="size-4 shrink-0" />
+        </Link>
+      </section>
 
       <section id="releases" className="scroll-mt-20">
         <Card className="overflow-hidden rounded-3xl border-border/70 shadow-[0_12px_36px_rgba(15,23,42,0.045)]">
           <CardHeader className="gap-1.5 border-b border-border/60 bg-gradient-to-br from-white via-white to-brand/5 px-4 py-5 sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand">{locale === "it" ? "Identità del modello" : "Model identity"}</p>
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand">{locale === "it" ? "Release della famiglia" : "Family releases"}</p>
                 <CardTitle className="flex items-center gap-2 text-lg md:text-xl">{t("product.releasesTitle")}<Badge variant="secondary" className="rounded-full">{product.releases.length}</Badge></CardTitle>
               </div>
             </div>
