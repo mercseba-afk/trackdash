@@ -53,7 +53,7 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
               : "This notice explains what personal data TrackDash processes, why it processes it, how it is protected, and the choices you have over your account."}
           </p>
           <p className="mt-4 text-xs text-muted-foreground">
-            {it ? "Ultimo aggiornamento: 24 novembre 2026" : "Last updated: November 24, 2026"}
+            {it ? "Ultimo aggiornamento: 25 novembre 2026" : "Last updated: November 25, 2026"}
           </p>
         </div>
 
@@ -211,6 +211,19 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
               {it
                 ? "Con il tuo consenso, Google Analytics 4 misura le visualizzazioni delle pagine pubbliche del catalogo e i clic verso Amazon tramite cookie come _ga e _ga_QJ1XLZTK3W. Puoi modificare o revocare la scelta in qualsiasi momento con il pulsante Preferenze cookie su questa pagina."
                 : "With your consent, Google Analytics 4 measures public catalog page views and outbound Amazon clicks using cookies such as _ga and _ga_QJ1XLZTK3W. You can change or withdraw your choice at any time with the Cookie preferences button on this page."}
+            </p>
+          </Section>
+
+          <Section title={it ? "6.1. Link affiliati Amazon" : "6.1. Amazon affiliate links"}>
+            <p>
+              {it
+                ? "Alcuni pulsanti del catalogo portano ad Amazon tramite link affiliati che includono un identificativo di TrackDash. Possiamo ricevere una commissione sugli acquisti idonei effettuati dopo il clic, senza costi aggiuntivi per l'utente."
+                : "Some catalog buttons link to Amazon using affiliate links that include a TrackDash identifier. We may earn a commission on qualifying purchases made after a click, at no additional cost to the user."}
+            </p>
+            <p>
+              {it
+                ? "Il collegamento apre un sito esterno. Amazon tratta i dati di navigazione e l'attribuzione degli acquisti secondo le proprie informative privacy e cookie. Questi pulsanti non caricano widget o cookie Amazon su TrackDash. La misurazione dei clic tramite Google Analytics avviene solo con il consenso descritto sopra."
+                : "The link opens an external website. Amazon processes browsing data and purchase attribution under its own privacy and cookie notices. These buttons do not load Amazon widgets or cookies on TrackDash. Click measurement through Google Analytics takes place only with the consent described above."}
             </p>
           </Section>
 
