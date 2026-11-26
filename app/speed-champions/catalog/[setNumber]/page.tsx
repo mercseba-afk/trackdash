@@ -5,6 +5,7 @@ import { LegoMarketPrices } from "@/components/speed-champions/market-prices"
 import { SetGallery } from "@/components/speed-champions/gallery"
 import { speedChampionsSets, legoStatusDescriptions } from "@/lib/lego/catalog"
 import { LegoStatusBadge } from "@/components/speed-champions/status-badge"
+import { loadLegoMarketSummaries } from "@/lib/server/lego-market"
 import { canAccessSpeedChampions } from "@/lib/server/speed-champions-gate"
 export const dynamic = "force-dynamic"
 
@@ -13,6 +14,8 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
   const { setNumber } = await params
   const set = speedChampionsSets.find((entry) => entry.setNumber === setNumber)
   if (!set) notFound()
+  const asOf = new Date().toISOString()
+  const market = (await loadLegoMarketSummaries([setNumber], asOf))[setNumber]
   const facts = [
     ["Codice set", set.setNumber],
     ["Anno di uscita", set.year],
@@ -54,7 +57,7 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
               completo.
             </p>
           )}
-          <LegoMarketPrices setNumber={set.setNumber} asOf={new Date().toISOString()} />
+          <LegoMarketPrices setNumber={set.setNumber} asOf={asOf} market={market} />
         </div>
       </div>
       <section className="rounded-2xl border border-slate-200 bg-white p-6">

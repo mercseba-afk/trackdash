@@ -1,7 +1,7 @@
 import observations from "./price-observations.json"
 import sales from "./sale-observations.json"
 
-// Reviewed listing snapshots, never completed-sale valuations. No automatic refresh yet.
+// Reviewed listing snapshots used before a fresh automated sample is available.
 export const PRICE_OBSERVATION_TTL_DAYS = 15
 export function getLegoAskingPrices(setNumber: string, asOf: string) {
   const now = Date.parse(asOf)
@@ -24,7 +24,7 @@ export function getPublicLegoMarketSummary(setNumber: string, asOf: string) {
     condition: prices.length ? (prices.every(row => row.condition === "sigillato") ? "Sigillato" : "Nuovo dichiarato") : null,
   }
 }
-export type LegoMarketSummary = ReturnType<typeof getPublicLegoMarketSummary>
+export type LegoMarketSummary = ReturnType<typeof getPublicLegoMarketSummary> & { automated?: boolean }
 
 // Sales are individual historical observations. This does not compute a valuation.
 export function getLegoObservedSales(setNumber: string, asOf: string) {

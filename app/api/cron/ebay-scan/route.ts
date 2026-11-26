@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { timingSafeEqual } from "node:crypto"
 import { verifyTrackDashGithubAction } from "@/lib/auth/github-oidc"
+import { after } from "next/server"
+import { runLegoAskingScan } from "@/lib/market/automation/lego-asking-worker"
 import { runEbayActiveMarketScanBatch } from "@/lib/market/automation/ebay-worker"
 import { runExactPageMarketScanBatch } from "@/lib/market/automation/worker"
 import { runMarketRecomputeBatch } from "@/lib/market/automation/recompute-worker"
@@ -49,6 +51,16 @@ export async function GET(request: NextRequest) {
   // scheduler disabled when enabling this mode; no extra trigger is created.
   // Two retail requests keep this bounded below the 60-second function budget.
   const ebayOnly = new URL(request.url).searchParams.get("lane") === "ebay"
+  if (!ebayOnly) {
+    after(async () => {
+      try {
+        await runLegoAskingScan()
+      } catch {
+        console.error("[lego-asking-scan]", "LEGO_ASK_SCAN_FAILED")
+      }
+    })
+  }
+
   if (process.env.TRACKDASH_HOURLY_MARKET_ENABLED === "true" && !ebayOnly) {
     const settled = await Promise.allSettled([
       runExactPageMarketScanBatch(2),

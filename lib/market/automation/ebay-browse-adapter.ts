@@ -26,6 +26,7 @@ export interface EbayBrowseListing {
 export interface EbayBrowseSearchOptions {
   deliveryCountry?: string
   deliveryPostalCode?: string
+  fixedPriceOnly?: boolean
 }
 
 export interface EbayListingDecision {
@@ -447,6 +448,7 @@ export async function searchEbayActiveListingsByQuery(
   const environment = ebayEnvironment()
   const token = await getApplicationToken(environment)
   const filters = ["conditionIds:{1000}"]
+  if (options.fixedPriceOnly) filters.push("buyingOptions:{FIXED_PRICE}")
   const deliveryCountry = options.deliveryCountry?.trim().toUpperCase()
   const deliveryPostalCode = options.deliveryPostalCode?.trim()
   if (deliveryCountry) filters.push(`deliveryCountry:${deliveryCountry}`)

@@ -1,16 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { formatLegoPrice } from "@/lib/lego/price-format"
-import { getLegoAskingPrices, getLegoObservedSales, getPublicLegoMarketSummary } from "@/lib/lego/market"
+import { getLegoAskingPrices, getLegoObservedSales, type LegoMarketSummary } from "@/lib/lego/market"
 
 const dateFormat = new Intl.DateTimeFormat("it-IT", {
   day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
 })
 const countryNames = new Intl.DisplayNames("it", { type: "region" })
 
-export function LegoMarketPrices({ setNumber, asOf }: { setNumber: string; asOf: string }) {
-  const market = getPublicLegoMarketSummary(setNumber, asOf)
+export function LegoMarketPrices({ setNumber, asOf, market }: { setNumber: string; asOf: string; market: LegoMarketSummary }) {
   const sales = getLegoObservedSales(setNumber, asOf)
-  const asks = getLegoAskingPrices(setNumber, asOf)
+  const asks = market.automated ? [] : getLegoAskingPrices(setNumber, asOf)
   const pickupOnly = asks.length > 0 && asks.every(row => row.pickupOnly)
   const shipping = asks.length === 1 ? asks[0].shippingPriceCents : null
   const saleCount = sales.length === 1 ? "1 vendita conclusa" : `${sales.length} vendite concluse`
