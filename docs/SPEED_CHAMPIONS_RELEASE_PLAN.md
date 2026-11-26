@@ -12,3 +12,7 @@
 Keep LEGO behind the owner gate until the new public site is ready. Launch the indexable LEGO catalog and set pages with the new home page, working links, canonical URLs and sitemap entries. Publish verified exact Amazon links for eligible sets. Show verified asking prices and available market data with their respective labels. Keep collection and wishlist private until both verticals have passed the relevant user flows.
 
 Mini 4WD public paths and existing workflow should pass a comparison before and after the release. Confirm that collection, wishlist, market calculations and scan scheduling cannot pick up records from the wrong category.
+
+## Generating the disposable database seed
+
+Run `node scripts/generate-speed-champions-preview-seed.mjs` to generate SQL from the existing manifest. The script does not connect to a database. The SQL accepts only a disposable PostgreSQL database named `trackdash_speed_preview`, after the base migrations and the Speed Champions foundation have been applied. It imports the existing set and release IDs, official references and bundled image paths. The imported rows remain in preparation and do not enroll in market scans. The owner preview still reads the manifest until the database reader and category routing have been connected.
