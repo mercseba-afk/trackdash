@@ -41,12 +41,15 @@ function compile(file, imports, extras = {}) {
 function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }), recompute = counts(), env, fetchImpl } = {}) {
   const calls = []
   const logs = []
+  const background = []
   const worker = (name, result) => async (limit) => {
     calls.push([name, limit])
     if (result instanceof Error) throw result
     return result
   }
   const imports = {
+    "next/server": { ...require("next/server"), after: task => background.push(task) },
+    "@/lib/market/automation/lego-asking-worker": { runLegoAskingScan: worker("lego") },
     "@/lib/market/automation/worker": { runExactPageMarketScanBatch: worker("retail", retail) },
     "@/lib/market/automation/ebay-worker": { runEbayActiveMarketScanBatch: worker("ebay", ebay) },
     "@/lib/market/automation/recompute-worker": { runMarketRecomputeBatch: worker("recompute", recompute) },
@@ -64,7 +67,7 @@ function routes({ retail = counts(), ebay = counts(0, 0, 0, { configured: true }
   imports["@/lib/auth/github-oidc"] = compile("lib/auth/github-oidc.ts", { "server-only": {} }, extras)
   return {
     daily: compile("app/api/cron/market-scan/route.ts", imports, extras),
-    ebay: compile("app/api/cron/ebay-scan/route.ts", imports, extras), calls, logs,
+    ebay: compile("app/api/cron/ebay-scan/route.ts", imports, extras), calls, logs, background,
   }
 }
 
@@ -80,6 +83,21 @@ test("source preflight requires authentication and never invokes any worker", as
   assert.equal(response.status, 200)
   assert.deepEqual(mocked.calls, [["canary", 1]])
   assert.equal((await response.json()).retailCanary.source, "briosi_public")
+})
+
+test("only the authenticated normal eBay dispatch schedules independent LEGO work", async () => {
+  const mocked = routes()
+  assert.equal((await mocked.ebay.GET(request("wrong"))).status, 401)
+  assert.equal(mocked.background.length, 0)
+  const catchup = new Request("https://example.invalid/api/cron/ebay-scan?lane=ebay", {
+    headers: { authorization: "Bearer test-cron-secret" },
+  })
+  await mocked.ebay.GET(catchup)
+  assert.equal(mocked.background.length, 0)
+  await mocked.ebay.GET(request())
+  assert.equal(mocked.background.length, 1)
+  await mocked.background[0]()
+  assert.deepEqual(mocked.calls, [["ebay", 1], ["ebay", 1], ["lego", undefined]])
 })
 
 for (const [status, value, http, ok, partial] of [
