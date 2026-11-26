@@ -3,15 +3,16 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink } from "lucide-react"
 import { LegoMarketPrices } from "@/components/speed-champions/market-prices"
 import { SetGallery } from "@/components/speed-champions/gallery"
-import { speedChampionsSets, legoStatusDescriptions } from "@/lib/lego/catalog"
+import { legoStatusDescriptions } from "@/lib/lego/catalog"
 import { LegoStatusBadge } from "@/components/speed-champions/status-badge"
 import { canAccessSpeedChampions } from "@/lib/server/speed-champions-gate"
+import { readSpeedChampionsPreview } from "@/lib/server/speed-champions-catalog"
 export const dynamic = "force-dynamic"
 
 export default async function Page({ params }: { params: Promise<{ setNumber: string }> }) {
   if (!(await canAccessSpeedChampions())) notFound()
   const { setNumber } = await params
-  const set = speedChampionsSets.find((entry) => entry.setNumber === setNumber)
+  const set = (await readSpeedChampionsPreview()).find((entry) => entry.setNumber === setNumber)
   if (!set) notFound()
   const facts = [
     ["Codice set", set.setNumber],

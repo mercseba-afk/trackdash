@@ -6,24 +6,27 @@ import {
   filterSpeedChampions,
   legoStatusLabels,
   speedChampionsPath,
-  speedChampionsSets,
   setImagePath,
   type LegoCatalogFilters,
+  type SpeedChampionsSet,
 } from "@/lib/lego/catalog"
 import { formatLegoPrice } from "@/lib/lego/price-format"
 import type { LegoMarketSummary } from "@/lib/lego/market"
 import { SetImage } from "./set-image"
 import { LegoStatusBadge, LegoStatusLegend } from "./status-badge"
 
-const brands = [...new Set(speedChampionsSets.map((set) => set.carBrand))].sort()
-const years = [...new Set(speedChampionsSets.map((set) => set.year))].sort((a, b) => b - a)
 const selectClass =
   "mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600"
 
-export function SpeedChampionsCatalog({ marketSummaries }: { marketSummaries: Record<string, LegoMarketSummary> }) {
+export function SpeedChampionsCatalog({ sets, marketSummaries }: {
+  sets: readonly SpeedChampionsSet[]
+  marketSummaries: Record<string, LegoMarketSummary>
+}) {
   const [filters, setFilters] = useState<LegoCatalogFilters>({})
   const [showFilters, setShowFilters] = useState(false)
-  const results = filterSpeedChampions(speedChampionsSets, filters)
+  const brands = [...new Set(sets.map((set) => set.carBrand))].sort()
+  const years = [...new Set(sets.map((set) => set.year))].sort((a, b) => b - a)
+  const results = filterSpeedChampions(sets, filters)
   const update = (key: keyof LegoCatalogFilters, value: string) =>
     setFilters((current) => ({ ...current, [key]: value }))
   const filtered = Boolean(filters.query || filters.brand || filters.year || filters.status || filters.format)
@@ -47,7 +50,7 @@ export function SpeedChampionsCatalog({ marketSummaries }: { marketSummaries: Re
         </p>
         <div className="relative mt-7 flex flex-wrap gap-6 text-sm">
           <span>
-            <strong className="text-xl">{speedChampionsSets.length}</strong> set nel pilota
+            <strong className="text-xl">{sets.length}</strong> set nel pilota
           </span>
           <span>
             <strong className="text-xl">{brands.length}</strong> marchi auto
