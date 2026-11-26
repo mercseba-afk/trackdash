@@ -52,7 +52,7 @@ try {
 
   const marketFile = path.join(directory, "market.mjs")
   await build({ entryPoints: ["lib/lego/market.ts"], bundle: true, platform: "node", format: "esm", outfile: marketFile })
-  const { getLegoAskingPrices, getPublicLegoMarketSummary } = await import(pathToFileURL(marketFile))
+  const { getLegoAskingPrices, getLegoObservedSales, getPublicLegoMarketSummary } = await import(pathToFileURL(marketFile))
   const checkedAt = "2026-10-27T12:00:00Z"
   assert.equal(getLegoAskingPrices("76901", checkedAt).length, 2)
   assert.equal(getLegoAskingPrices("76901", checkedAt)[0].itemPriceCents, 3399, "Buyer fees are not item price")
@@ -60,6 +60,17 @@ try {
   assert.equal(getLegoAskingPrices("76901", "2026-10-26").length, 0, "No future observations")
   assert.equal(getLegoAskingPrices("76901", "invalid").length, 0)
   assert.equal(getLegoAskingPrices("99999", checkedAt).length, 0)
+  const snapshotDate = "2026-11-26T12:00:00Z"
+  assert.equal(sets.filter(set => getLegoAskingPrices(set.setNumber, snapshotDate).length > 0).length, 19)
+  assert.equal(getLegoAskingPrices("76917", snapshotDate)[0].itemPriceCents, 2990)
+  assert.equal(getLegoAskingPrices("76895", snapshotDate)[0].pickupOnly, true)
+  assert.equal(sets.flatMap(set => getLegoObservedSales(set.setNumber, snapshotDate)).length, 8)
+  assert.deepEqual(getLegoObservedSales("76912", snapshotDate).map(sale => sale.itemPriceCents), [8539, 7800, 7350, 6100])
+  assert.equal(getLegoObservedSales("76934", snapshotDate).length, 0)
+  assert.equal(getLegoObservedSales("76917", "2026-11-25").length, 0, "No future sale observations")
+  assert.equal(getLegoObservedSales("76917", "2027-01-01").length, 1, "Historical sales do not expire with asks")
+  assert.equal(getLegoAskingPrices("76917", "2027-01-01").length, 0)
+
   const publicSummary = getPublicLegoMarketSummary("76901", checkedAt)
   assert.equal(publicSummary.askingLowCents, 3399)
   assert.equal(publicSummary.askingHighCents, 3778)
@@ -109,10 +120,14 @@ try {
   assert.equal(await canAccessSpeedChampions(), true)
   delete process.env.SPEED_CHAMPIONS_OWNER_ID
   assert.equal(await canAccessSpeedChampions(), false, "Missing owner config must fail closed")
-  process.env.SPEED_CHAMPIONS_OWNER_ID = "owner-fixture"
   globalThis.testAdmin = null
   process.env.VERCEL_ENV = "preview"
-  assert.equal(await canAccessSpeedChampions(), true)
+  assert.equal(await canAccessSpeedChampions(), false, "Hosted previews fail closed without owner configuration")
+  process.env.SPEED_CHAMPIONS_OWNER_ID = "owner-fixture"
+  assert.equal(await canAccessSpeedChampions(), false, "Hosted preview requires a signed-in owner")
+  globalThis.testAdmin = { id: "owner-fixture" }
+  assert.equal(await canAccessSpeedChampions(), true, "Configured owner can use hosted preview")
+  delete process.env.SPEED_CHAMPIONS_OWNER_ID
   delete process.env.VERCEL_ENV
   process.env.NODE_ENV = "development"
   assert.equal(await canAccessSpeedChampions(), true)
