@@ -17,6 +17,7 @@ export const amazonItalyAsinByRelease: Partial<Record<string, string>> = {
   "035abf4d-65da-5b0c-855d-9e611798c4e4": "B086CDYQ2Z", // 18702 Aero Thunder Shot (AR Chassis)
   "01dbe92d-064a-4978-8e93-7aea7c601222": "B07MM3WLBB", // 18714 Mach Frame
   "71addadb-04b3-579f-96f2-c5e976cf1cd5": "B014W8VPJU", // 19415 Hurricane Sonic
+  "dc47a724-7dce-4128-ba72-64a00aac6892": "B005AFAX7K", // 95603 Hurricane Sonic 30th Anniversary
   "85a3549a-d563-5dda-bc6d-bd1ac684601e": "B07YV48TMG", // 19440 Cyclone Magnum Premium
   "0bdb9bcd-e4aa-53ab-b004-984cae96fdca": "B07YV3Y9WZ", // 19434 Victory Magnum Premium
   "b3639c7d-581e-5da8-9ec4-ea1eb9d61193": "B085RZDQ7B", // 19435 Vanguard Sonic (Super II)
