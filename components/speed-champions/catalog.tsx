@@ -203,9 +203,9 @@ export function SpeedChampionsCatalog({ marketSummaries }: { marketSummaries: Re
                 <p className="mt-2 text-xs text-slate-500">
                   {set.series} · {set.carCount === 2 ? "2 auto, 1 confezione" : "1 auto"}
                 </p>
-                <div className="mt-4 rounded-xl bg-sky-50 p-3">
-                  <p className="text-xs font-medium text-slate-600">Prezzo richiesto</p>
-                  <p className="mt-1 font-bold text-sky-900">{market?.askingLowCents != null ? `Da ${formatLegoPrice(market.askingLowCents)}` : "Da rilevare"}</p>
+                <div className="mt-4 rounded-xl border border-border/70 bg-muted/30 p-3">
+                  <p className="text-xs font-medium text-slate-600">Prezzi negli annunci</p>
+                  <p className="mt-1 font-semibold tabular-nums text-foreground">{market?.askingLowCents != null ? `Da ${formatLegoPrice(market.askingLowCents)}` : "Non abbiamo un prezzo richiesto"}</p>
                   {market?.askingCount > 0 && <p className="mt-1 text-xs text-slate-500">{market.condition} · spedizione esclusa</p>}
                 </div>
                 <div className="mt-auto flex items-center justify-between gap-2 pt-5">

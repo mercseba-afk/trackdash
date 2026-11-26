@@ -55,10 +55,6 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
             </p>
           )}
           <LegoMarketPrices setNumber={set.setNumber} asOf={new Date().toISOString()} />
-          <p className="mt-5 text-sm leading-6 text-slate-500">
-            Questa anteprima permette di esplorare il catalogo. Collezione personale, wishlist e scambi LEGO saranno
-            collegati nel passaggio successivo.
-          </p>
         </div>
       </div>
       <section className="rounded-2xl border border-slate-200 bg-white p-6">

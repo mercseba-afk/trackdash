@@ -80,6 +80,15 @@ const HOTWHEELS_MOBILE_NAV: NavItem[] = [
   { href: "/profile", labelKey: "menu.profile", icon: UserIcon },
 ]
 
+const SPEED_CHAMPIONS_CATALOG: NavItem = {
+  href: "/speed-champions/catalog", labelKey: "nav.catalog", icon: LibraryBig,
+}
+const SPEED_CHAMPIONS_DESKTOP_NAV = [SPEED_CHAMPIONS_CATALOG]
+const SPEED_CHAMPIONS_MOBILE_NAV: NavItem[] = [
+  SPEED_CHAMPIONS_CATALOG,
+  { href: "/profile", labelKey: "menu.profile", icon: UserIcon },
+]
+
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard"
   if (href === "/catalog" && (pathname === "/market" || pathname.startsWith("/market/"))) return true
@@ -105,7 +114,7 @@ function UnreadBadge({ count, compact = false }: { count: number; compact?: bool
 const ACCOUNT_LINK_CLASS =
   "flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
 
-function UserMenu() {
+function UserMenu({ showWishlist = true }: { showWishlist?: boolean }) {
   const { user, logout } = useStore()
   const { t, locale } = useI18n()
   const router = useRouter()
@@ -140,10 +149,12 @@ function UserMenu() {
             <UserIcon />
             {t("menu.profile")}
           </Link>
-          <Link href="/wishlist" className={ACCOUNT_LINK_CLASS} role="menuitem">
-            <Heart />
-            {t("nav.wishlist")}
-          </Link>
+          {showWishlist && (
+            <Link href="/wishlist" className={ACCOUNT_LINK_CLASS} role="menuitem">
+              <Heart />
+              {t("nav.wishlist")}
+            </Link>
+          )}
           <Link href="/settings" className={ACCOUNT_LINK_CLASS} role="menuitem">
             <Settings />
             {t("menu.settings")}
@@ -193,22 +204,25 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
   const { user } = useStore()
   const { t, locale } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
+  const isSpeedChampions = vertical === "speedchampions"
   const shopAccess = Boolean(user)
   const [speedChampionsAccess, setSpeedChampionsAccess] = React.useState(false)
   React.useEffect(() => {
     let current = true
     setSpeedChampionsAccess(false)
-    if (user?.id) {
+    if (user?.id && !isSpeedChampions) {
       getSpeedChampionsAccessAction()
         .then((allowed) => { if (current) setSpeedChampionsAccess(allowed) })
         .catch(() => { if (current) setSpeedChampionsAccess(false) })
     }
     return () => { current = false }
-  }, [user?.id])
+  }, [isSpeedChampions, user?.id])
   const hotWheelsPilotUser = user?.email.toLowerCase() === "merc.seba@gmail.com"
   const shopItem: NavItem = { href: locale === "en" ? "/en/shop" : "/shop", labelKey: "", label: locale === "it" ? "In vendita" : "For sale", icon: Store }
-  const desktopNav = vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : shopAccess ? [...MINI4WD_DESKTOP_NAV.slice(0, -1), shopItem, MINI4WD_DESKTOP_NAV.at(-1)!] : MINI4WD_DESKTOP_NAV
-  const mobileNav = vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : shopAccess ? [...MINI4WD_MOBILE_NAV.slice(0, 3), shopItem, MINI4WD_MOBILE_NAV[3]] : MINI4WD_MOBILE_NAV
+  const desktopNav = isSpeedChampions ? SPEED_CHAMPIONS_DESKTOP_NAV
+    : vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : shopAccess ? [...MINI4WD_DESKTOP_NAV.slice(0, -1), shopItem, MINI4WD_DESKTOP_NAV.at(-1)!] : MINI4WD_DESKTOP_NAV
+  const mobileNav = isSpeedChampions ? SPEED_CHAMPIONS_MOBILE_NAV
+    : vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : shopAccess ? [...MINI4WD_MOBILE_NAV.slice(0, 3), shopItem, MINI4WD_MOBILE_NAV[3]] : MINI4WD_MOBILE_NAV
 
   React.useEffect(() => {
     if (!hotWheelsPilotUser) return
@@ -321,10 +335,12 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           </nav>
 
           <div className="flex items-center gap-1.5">
-            {hotWheelsPilotUser || speedChampionsAccess ? <CollectibleVerticalSwitch active={vertical} showSpeedChampions={speedChampionsAccess} /> : null}
+            {(hotWheelsPilotUser || isSpeedChampions || speedChampionsAccess) && (
+              <CollectibleVerticalSwitch active={vertical} showSpeedChampions={isSpeedChampions || speedChampionsAccess} />
+            )}
             {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
-            <UserMenu />
+            <UserMenu showWishlist={!isSpeedChampions} />
           </div>
         </div>
       </header>
