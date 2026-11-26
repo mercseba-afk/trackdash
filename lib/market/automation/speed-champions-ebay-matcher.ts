@@ -28,7 +28,7 @@ function decision(status: EbayListingDecision["decision"], reason: string): Ebay
 export function classifySpeedChampionsAsking(listing: EbayBrowseListing, identity: SpeedChampionsIdentity, asOf: Date): EbayListingDecision {
   const { setNumber, name, carCount } = identity
   const title = normalize(listing.title)
-  const codes = listing.title.match(/(?<![a-z0-9])\d{5}(?![a-z0-9])/gi) ?? []
+  const codes: string[] = listing.title.match(/(?<![a-z0-9])\d{5}(?![a-z0-9])/gi) ?? []
 
   if (!/^\d{5}$/.test(setNumber) || !codes.includes(setNumber)) return decision("rejected", "LEGO_SET_CODE_NOT_EXACT")
   if (NON_SET_BRAND.test(title) || NOT_A_COMPLETE_SET.test(title) || COMPONENTS.test(title) || LOOSE_OR_SINGLE_CAR.test(title)) {
