@@ -4,6 +4,8 @@ import { speedChampionsMetadata } from "@/lib/lego/seo"
 export const dynamic = "force-dynamic"
 export const metadata = speedChampionsMetadata("it")
 
-export default function Page() {
-  return <SpeedChampionsCatalogPage locale="it" />
+export default async function Page({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
+  const { q } = await searchParams
+  const initialQuery = Array.isArray(q) ? q[0] : q
+  return <SpeedChampionsCatalogPage locale="it" initialQuery={initialQuery} />
 }

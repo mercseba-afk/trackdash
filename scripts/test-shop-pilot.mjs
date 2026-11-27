@@ -8,6 +8,7 @@ function load(path, mocks, env = {}) {
   const source = ts.transpileModule(readFileSync(new URL('../' + path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
   vm.runInNewContext(source, { exports, process: { env }, Set, require(name) {
     if (name === 'server-only') return {}
+    if (name === "@/lib/racing-studio") return { isRacingStudioPreview: () => false }
     if (!(name in mocks)) throw Error('UNEXPECTED_IMPORT:' + name)
     return mocks[name]
   } })

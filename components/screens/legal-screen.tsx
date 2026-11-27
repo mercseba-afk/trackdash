@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { ShieldCheck, Scale } from "lucide-react"
+import { useRacingStudio } from "@/components/racing-studio/context"
 import { useI18n } from "@/lib/i18n"
 
 type LegalKind = "privacy" | "terms"
@@ -33,6 +34,9 @@ function InlineLink({ href, children }: { href: string; children: React.ReactNod
 export function LegalScreen({ kind }: { kind: LegalKind }) {
   const { locale } = useI18n()
   const it = locale === "it"
+  const { enabled } = useRacingStudio()
+  const collections = enabled ? "Mini 4WD e LEGO Speed Champions" : "Mini 4WD"
+  const collectionsEn = enabled ? "Mini 4WD and LEGO Speed Champions" : "Mini 4WD"
 
   if (kind === "privacy") {
     return (
@@ -61,8 +65,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
           <Section title={it ? "1. Chi gestisce il trattamento" : "1. Who controls the processing"}>
             <p>
               {it
-                ? "TrackDash è un progetto indipendente dedicato ai collezionisti di Mini 4WD. Il titolare del trattamento è il gestore del servizio TrackDash, che determina finalità e modalità dei trattamenti descritti in questa informativa."
-                : "TrackDash is an independent project for Mini 4WD collectors. The data controller is the operator of the TrackDash service, which determines the purposes and means of the processing described in this notice."}
+                ? `TrackDash è un progetto indipendente dedicato ai collezionisti di ${collections}. Il titolare del trattamento è il gestore del servizio TrackDash, che determina finalità e modalità dei trattamenti descritti in questa informativa.`
+                : `TrackDash is an independent project for ${collectionsEn} collectors. The data controller is the operator of the TrackDash service, which determines the purposes and means of the processing described in this notice.`}
             </p>
             <p>
               {it
@@ -327,8 +331,8 @@ export function LegalScreen({ kind }: { kind: LegalKind }) {
         <Section title={it ? "1. Cos'è TrackDash" : "1. What TrackDash is"}>
           <p>
             {it
-              ? "TrackDash è una piattaforma indipendente per collezionisti di Mini 4WD che consente di identificare Release specifiche, organizzare Collection e Wishlist, consultare informazioni e stime di mercato e interagire con altri collezionisti."
-              : "TrackDash is an independent platform for Mini 4WD collectors that helps identify specific Releases, organise Collections and Wishlists, view information and market estimates, and interact with other collectors."}
+              ? `TrackDash è una piattaforma indipendente per collezionisti di ${collections} che consente di identificare Release specifiche, organizzare Collection e Wishlist, consultare informazioni e stime di mercato e interagire con altri collezionisti.`
+              : `TrackDash is an independent platform for ${collectionsEn} collectors that helps identify specific Releases, organise Collections and Wishlists, view information and market estimates, and interact with other collectors.`}
           </p>
           <p>
             {it

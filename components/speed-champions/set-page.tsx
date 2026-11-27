@@ -1,4 +1,5 @@
-import { speedChampionsCatalogIsPublic } from "@/lib/lego/catalog-visibility"
+import { isRacingStudioPreview } from "@/lib/racing-studio"
+import { speedChampionsCatalogIsVisible } from "@/lib/lego/catalog-visibility"
 import { localizePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
 import { AmazonPurchaseButton } from "@/components/catalog/amazon-purchase-button"
 import { amazonItalyUrlForRelease } from "@/lib/data/amazon-italy-products"
@@ -18,11 +19,11 @@ import { localizedLegoStatusDescriptions } from "@/lib/lego/locale"
 
 export async function SpeedChampionsSetPage({ setNumber, locale }: { setNumber: string; locale: PublicLocale }) {
   const copy = (it: string, en: string) => locale === "it" ? it : en
-  if (!speedChampionsCatalogIsPublic && !(await canBrowseSpeedChampions())) notFound()
+  if (!speedChampionsCatalogIsVisible() && !(await canBrowseSpeedChampions())) notFound()
   const set = speedChampionsSets.find((entry) => entry.setNumber === setNumber)
   if (!set) notFound()
   const amazonUrl = amazonItalyUrlForRelease(set.releaseId)
-  const pilotShare = setNumber === "75890" ? await getLegoPilotShare(set.releaseId) : null
+  const pilotShare = !isRacingStudioPreview() && setNumber === "75890" ? await getLegoPilotShare(set.releaseId) : null
   const asOf = new Date().toISOString()
   const market = (await loadLegoMarketSummaries([setNumber], asOf))[setNumber]
   const facts = [

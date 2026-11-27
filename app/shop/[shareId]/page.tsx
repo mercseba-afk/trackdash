@@ -1,3 +1,4 @@
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { notFound } from "next/navigation"
@@ -14,5 +15,5 @@ export default async function ShopCopyPage({ params }: { params: Promise<{ share
   const { shareId } = await params
   const copies = await getShopCopies(shareId)
   if (!copies.length) notFound()
-  return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8"><ShopScreen copies={copies} detail /></div></PublicShell>
+  return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8"><ShopScreen preview={isRacingStudioPreview()} copies={copies} detail /></div></PublicShell>
 }

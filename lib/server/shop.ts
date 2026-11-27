@@ -1,4 +1,5 @@
 import "server-only"
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import { and, eq, sql } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth/current-user"
@@ -28,6 +29,7 @@ export type ShopCopy = {
 }
 
 export async function getShopCopies(shareId?: string): Promise<ShopCopy[]> {
+  if (isRacingStudioPreview()) return (await import("@/lib/data/racing-preview-listings")).racingPreviewListings(shareId)
   // Public, opt-in sale projection only. Never return private collection rows.
   if (shareId && !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(shareId)) notFound()
   const user = await getCurrentUser()

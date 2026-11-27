@@ -45,9 +45,14 @@ export function publicLanguageAlternates(path: string): Record<string, string> {
 }
 
 export function speedChampionsCatalogLocale(pathname: string): PublicLocale | null {
-  if (/^\/en\/speed-champions\/catalog(?:\/|$)/.test(pathname)) return "en"
-  if (/^\/speed-champions\/catalog(?:\/|$)/.test(pathname)) return "it"
+  if (/^\/en\/speed-champions\/(?:catalog|market)(?:\/|$)/.test(pathname)) return "en"
+  if (/^\/speed-champions\/(?:catalog|market)(?:\/|$)/.test(pathname)) return "it"
   return null
+}
+
+export function racingWebsiteLocale(pathname: string): PublicLocale | null {
+  if (!/^\/(?:en(?:\/|$))?(?:$|(?:catalog|market|speed-champions|guide|shop|privacy|terms|how-it-works|find)(?:\/|$))/.test(pathname)) return null
+  return pathname === "/en" || pathname.startsWith("/en/") ? "en" : "it"
 }
 
 export function productPublicSlug(product: Pick<Product, "name">): string {

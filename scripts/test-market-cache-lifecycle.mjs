@@ -34,7 +34,7 @@ function loader(clock, mocks = {}) {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
     }).outputText
     vm.runInNewContext(output, {
-      exports, Date: ClockDate, console: { error: () => {} },
+      exports, process: { env: {} }, Date: ClockDate, console: { error: () => {} },
       fetch: () => { throw Error("NETWORK_FORBIDDEN") },
       require: (name) => {
         if (Object.hasOwn(mocks, name)) return mocks[name]

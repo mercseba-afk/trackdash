@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { speedChampionsCatalogLocale } from "@/lib/seo/catalog-paths"
+import { racingWebsiteLocale, speedChampionsCatalogLocale } from "@/lib/seo/catalog-paths"
 import { getMyProfileAction } from "@/lib/actions/profile"
 import { useStore } from "@/lib/store"
 
@@ -469,14 +469,17 @@ function translate(locale: AppLocale, key: string, vars?: Vars) {
 export function I18nProvider({
   children,
   initialLocale = "en",
+  pinPublicLocale = false,
 }: {
   children: React.ReactNode
   initialLocale?: AppLocale
+  pinPublicLocale?: boolean
 }) {
   const { user } = useStore()
   const pathname = usePathname()
   const [preferredLocale, setLocaleState] = React.useState<AppLocale>(initialLocale)
-  const locale = speedChampionsCatalogLocale(pathname ?? "") ?? preferredLocale
+  const urlLocale = pinPublicLocale ? racingWebsiteLocale(pathname ?? "") : speedChampionsCatalogLocale(pathname ?? "")
+  const locale = urlLocale ?? preferredLocale
 
   const setLocale = React.useCallback((next: AppLocale) => {
     setLocaleState(next)

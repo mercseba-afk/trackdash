@@ -1,3 +1,4 @@
+import { racingStudioIsLive } from "@/lib/racing-studio"
 import type { Metadata, MetadataRoute } from "next"
 import { speedChampionsCatalogIsPublic } from "./catalog-visibility"
 import { publicAbsoluteUrl, publicLanguageAlternates, type PublicLocale } from "@/lib/seo/catalog-paths"
@@ -33,7 +34,7 @@ export function speedChampionsMetadata(locale: PublicLocale, setNumber?: string)
 
 export function speedChampionsSitemap(): MetadataRoute.Sitemap {
   if (!speedChampionsCatalogIsPublic) return []
-  const paths = [speedChampionsCatalogPath, ...speedChampionsSets.map((set) => speedChampionsPath(set.setNumber))]
+  const paths = [speedChampionsCatalogPath, ...(racingStudioIsLive ? ["/speed-champions/market"] : []), ...speedChampionsSets.map((set) => speedChampionsPath(set.setNumber))]
   return paths.flatMap((path) =>
     (["it", "en"] as const).map((locale) => ({
       url: publicAbsoluteUrl(path, locale),

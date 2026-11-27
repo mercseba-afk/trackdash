@@ -1,3 +1,4 @@
+import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
 import { AuthScreen } from "@/components/screens/auth-screen"
 
 function safeInternalNext(value: string | string[] | undefined): string | undefined {
@@ -12,5 +13,5 @@ export default async function SignupPage({
   searchParams: Promise<{ next?: string | string[] }>
 }) {
   const params = await searchParams
-  return <AuthScreen mode="signup" nextPath={safeInternalNext(params.next)} />
+  return <AuthScreen racing={isRacingStudioEnabled()} preview={isRacingStudioPreview()} mode="signup" nextPath={safeInternalNext(params.next)} />
 }

@@ -1,5 +1,6 @@
 import "server-only"
 
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import { unstable_cache } from "next/cache"
 
 import { getProductById as getProductByIdQuery, getProductBySlug as getProductBySlugQuery, listProductsForVertical as listProductsForVerticalQuery, listProductsByIds as listProductsByIdsQuery } from "@/lib/db/queries/catalog"
@@ -64,6 +65,7 @@ const readCachedPublicCatalogProducts = unstable_cache(
 )
 
 export async function fetchCatalogProductsForVertical(vertical: CollectibleVertical) {
+  if (isRacingStudioPreview()) return vertical === "mini4wd" ? (await import("@/lib/data/corrected-products")).PRODUCTS : []
   return readCachedPublicCatalogProducts(vertical)
 }
 
@@ -89,6 +91,11 @@ export async function fetchCatalogProductById(id: string) {
 
 
 export async function fetchCatalogProductByRouteKey(routeKey: string) {
+  if (isRacingStudioPreview()) {
+    const products = await fetchCatalogProducts()
+    return products.find((product) => product.id === routeKey || productPublicSlug(product) === routeKey) ?? null
+  }
+
   if (looksLikeUuid(routeKey)) {
     const directById = await getProductByIdQuery(routeKey)
     if (directById) {

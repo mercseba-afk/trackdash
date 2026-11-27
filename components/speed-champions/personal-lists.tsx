@@ -1,3 +1,4 @@
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import type { PublicLocale } from "@/lib/seo/catalog-paths"
 import { localizedLegoListConditions } from "@/lib/lego/locale"
 import Link from "next/link"
@@ -10,6 +11,7 @@ import { readLegoList } from "@/lib/server/lego-personal-lists"
 import { canAccessSpeedChampions, getSpeedChampionsOwner } from "@/lib/server/speed-champions-gate"
 
 export async function LegoListControls({ setNumber, locale }: { setNumber: string; locale: PublicLocale }) {
+  if (isRacingStudioPreview()) return null
   const copy = (it: string, en: string) => locale === "it" ? it : en
   const owner = await getSpeedChampionsOwner()
   if (!owner) return null

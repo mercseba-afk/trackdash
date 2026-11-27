@@ -16,6 +16,7 @@ function load(path,mocks,globals={}) {
  const source=ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText
  vm.runInNewContext(source,{exports,URL,URLSearchParams,console,...globals,require(name){
   if(name in mocks)return mocks[name]
+    if (name === "@/lib/racing-studio") return { isRacingStudioPreview: () => false }
   if(name==='react/jsx-runtime')return {jsx,jsxs:jsx}
   if(name==='lucide-react'||name.startsWith('@/components/'))return components
   throw Error('Unexpected import '+name)

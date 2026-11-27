@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { test } from "node:test"
 import vm from "node:vm"
 import ts from "typescript"
+import { isRacingPreviewPage } from "../lib/racing-studio.ts"
 import { speedChampionsCatalogLocale } from "../lib/seo/catalog-paths.ts"
 import { isCatalogPreviewRequest } from "../lib/catalog-preview.ts"
 
@@ -26,10 +27,11 @@ function nextResponse(request) {
     request,
     cookieWrites,
     cookies: { set: (...args) => cookieWrites.push(args) },
+    headers: new Headers(),
   }
 }
 
-function createProxy({ user = null, aal = null, catalogPreview = false } = {}) {
+function createProxy({ user = null, aal = null, catalogPreview = false, racingPreview = false } = {}) {
   const exports = {}
   const sessionCalls = []
   const transpiled = ts.transpileModule(read("proxy.ts"), {
@@ -40,6 +42,7 @@ function createProxy({ user = null, aal = null, catalogPreview = false } = {}) {
     {
       exports,
       URL,
+      Headers,
       require(name) {
         if (name === "next/server") {
           return {
@@ -57,6 +60,7 @@ function createProxy({ user = null, aal = null, catalogPreview = false } = {}) {
             },
           }
         }
+        if (name === "@/lib/racing-studio") return { isRacingStudioPreview: () => racingPreview, isRacingPreviewPage }
         if (name === "@/lib/catalog-preview") {
           return { isCatalogOnlyPreview: () => catalogPreview, isCatalogPreviewRequest }
         }
@@ -219,4 +223,18 @@ test("the English LEGO catalogue pins its route locale without enabling other En
   assert.equal(response.kind, "next")
   assert.ok(req.cookieWrites.some(([key, value]) => key === "trackdash.locale" && value === "en"))
   assert.equal((await app.proxy(request("/en/speed-champions/messages"))).kind, "redirect")
+})
+
+test("Racing Studio serves only read-only website routes and opts out of indexing", async () => {
+  const app = createProxy({ racingPreview: true })
+  for (const path of ["/", "/en/catalog/example/releases/test", "/en/speed-champions/market", "/find", "/guide", "/shop", "/signup"]) {
+    const res = await app.proxy(request(path))
+    assert.equal(res.kind, "next", path)
+    assert.equal(res.headers.get("X-Robots-Tag"), "noindex, nofollow")
+  }
+  for (const path of ["/admin", "/collection", "/speed-champions/messages", "/api/cron/ebay-scan", "/auth/callback"]) {
+    assert.equal((await app.proxy(request(path))).status, 404, path)
+  }
+  assert.equal((await app.proxy({ ...request("/signup"), method: "POST" })).status, 404)
+  assert.deepEqual(app.sessionCalls, [])
 })

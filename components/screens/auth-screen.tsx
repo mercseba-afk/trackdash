@@ -26,7 +26,7 @@ function withNext(path: string, nextPath?: string) {
   return nextPath ? `${path}?next=${encodeURIComponent(nextPath)}` : path
 }
 
-export function AuthScreen({ mode, nextPath, confirmationError = false }: { mode: "login" | "signup"; nextPath?: string; confirmationError?: boolean }) {
+export function AuthScreen({ mode, nextPath, confirmationError = false, racing = false, preview = false }: { racing?: boolean; preview?: boolean; mode: "login" | "signup"; nextPath?: string; confirmationError?: boolean }) {
   const { locale, setLocale } = useI18n()
   const it = locale === "it"
   const highlights = mode === "signup"
@@ -45,19 +45,19 @@ export function AuthScreen({ mode, nextPath, confirmationError = false }: { mode
       ]
 
   return (
-    <div className="relative min-h-svh bg-background lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,.95fr)]">
+    <div className={`relative min-h-svh bg-background lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,.95fr)] ${racing ? "racing-auth-screen" : ""}`}>
       <div className="absolute right-4 top-4 z-30 flex items-center rounded-full border border-border/70 bg-white/90 p-1 shadow-sm backdrop-blur">
         <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "en" ? "secondary" : "ghost"} onClick={() => setLocale("en")}>EN</Button>
         <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "it" ? "secondary" : "ghost"} onClick={() => setLocale("it")}>IT</Button>
       </div>
 
-      <aside className="relative hidden min-h-svh overflow-hidden border-r border-border/10 bg-[#0b3275] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-12">
+      <aside className="racing-auth-cover relative hidden min-h-svh overflow-hidden border-r border-border/10 bg-[#0b3275] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-12">
         <div className="relative z-10"><BrandMark tone="invert" /></div>
         <div className="relative z-10 max-w-xl py-10">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
             {mode === "signup"
               ? (it ? "LA TUA COLLEZIONE, SU TRACKDASH" : "YOUR COLLECTION, ON TRACKDASH")
-              : (it ? "Il tuo Mini 4WD, insieme" : "Your Mini 4WD, together")}
+              : (racing ? "MINI 4WD · LEGO SPEED CHAMPIONS" : it ? "Il tuo Mini 4WD, insieme" : "Your Mini 4WD, together")}
           </p>
           <h1 className="max-w-lg text-4xl font-semibold leading-[1.02] tracking-[-0.04em] xl:text-5xl">
             {mode === "signup"
@@ -66,7 +66,7 @@ export function AuthScreen({ mode, nextPath, confirmationError = false }: { mode
           </h1>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-white/65">
             {mode === "signup"
-              ? (it
+              ? (racing ? (it ? "Crea un account TrackDash per organizzare le tue Mini 4WD e i tuoi set LEGO Speed Champions." : "Create a TrackDash account to organize your Mini 4WD models and LEGO Speed Champions sets.") : it
                 ? "Crea il tuo account, aggiungi le Mini 4WD che possiedi e costruisci la tua collezione su TrackDash. Segui il mercato, scopri nuove Release e trova altri collezionisti con cui entrare in contatto."
                 : "Create your account, add the Mini 4WDs you own and build your collection on TrackDash. Follow the market, discover new Releases and find other collectors to connect with.")
               : (it
@@ -114,7 +114,7 @@ export function AuthScreen({ mode, nextPath, confirmationError = false }: { mode
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
                 {mode === "signup"
-                  ? (it
+                  ? (racing ? (it ? "Organizza Mini 4WD e LEGO Speed Champions con un solo account." : "Organize Mini 4WD and LEGO Speed Champions with one account.") : it
                     ? "Aggiungi le Mini 4WD che possiedi e costruisci la tua collezione, una Release alla volta."
                     : "Add the Mini 4WDs you own and build your collection, one Release at a time.")
                   : (it
@@ -124,9 +124,12 @@ export function AuthScreen({ mode, nextPath, confirmationError = false }: { mode
             </div>
           </div>
           <div className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-8">
-            {mode === "login" ? <LoginForm nextPath={nextPath} confirmationError={confirmationError} /> : <SignupForm nextPath={nextPath} />}
+            {preview && <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{it ? "Anteprima di test. Accesso e registrazione sono disattivati." : "Test preview. Sign-in and registration are disabled."}</p>}
+            <div inert={preview || undefined}>
+              {mode === "login" ? <LoginForm nextPath={nextPath} confirmationError={confirmationError} /> : <SignupForm nextPath={nextPath} />}
+            </div>
           </div>
-          <Link href="/catalog" className="mx-auto mt-5 flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+          <Link href={racing ? "/" : "/catalog"} className="mx-auto mt-5 flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
             {it ? "Continua a esplorare il catalogo" : "Continue browsing the catalog"}<ArrowRight className="size-3.5" />
           </Link>
         </div>

@@ -1,5 +1,7 @@
 "use client"
 
+import { RacingCatalogNav } from "@/components/racing-studio/catalog-nav"
+import { useRacingStudio } from "@/components/racing-studio/context"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Heart, LibraryBig, TrendingUp } from "lucide-react"
@@ -11,10 +13,13 @@ import { Button } from "@/components/ui/button"
 export function CatalogAreaNav() {
   const pathname = usePathname()
   const { locale } = useI18n()
+  const { enabled } = useRacingStudio()
   const it = locale === "it"
   const catalogHref = localizePublicPath("/catalog", locale)
   const marketHref = localizePublicPath("/market", locale)
   const marketActive = pathname === marketHref || pathname.startsWith(`${marketHref}/`)
+
+  if (enabled) return <RacingCatalogNav />
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">

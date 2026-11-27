@@ -1,3 +1,5 @@
+import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
+import { RacingHome } from "@/components/racing-studio/home"
 import { getShopCopies } from "@/lib/server/shop"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
@@ -18,6 +20,12 @@ async function requestLocale(): Promise<PublicLocale> {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await requestLocale()
   const it = locale === "it"
+  if (isRacingStudioEnabled()) {
+    const title = "TrackDash — Tamiya Mini 4WD & LEGO Speed Champions"
+    const description = it ? "Scopri i cataloghi Mini 4WD e LEGO Speed Champions, segui i prezzi e organizza le tue collezioni." : "Explore the Mini 4WD and LEGO Speed Champions catalogs, track prices and organize your collections."
+    const canonical = publicAbsoluteUrl("/", locale)
+    return { title, description, alternates: { canonical, languages: publicLanguageAlternates("/") }, openGraph: { type: "website", url: canonical, siteName: "TrackDash", title, description } }
+  }
   const title = it
     ? "TrackDash — Collezione Mini 4WD e valori di mercato"
     : "TrackDash — Mini 4WD Collection & Market Values"
@@ -42,6 +50,10 @@ export default async function Page() {
     products = await fetchCatalogProducts()
   } catch (error) {
     console.error("Failed to load catalog data for public home:", error)
+  }
+
+  if (isRacingStudioEnabled()) {
+    return <PublicShell>{!isRacingStudioPreview() && <PwaRootLaunchRedirect />}<RacingHome products={products} locale={await requestLocale()} /></PublicShell>
   }
 
   const copies = await getShopCopies().catch(() => [])

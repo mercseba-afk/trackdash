@@ -1,3 +1,4 @@
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { publicAbsoluteUrl, publicLanguageAlternates } from "@/lib/seo/catalog-paths"
@@ -23,5 +24,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic"
 export default async function ShopPage() {
   const copies = await getShopCopies()
-  return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8"><ShopScreen copies={copies} /></div></PublicShell>
+  return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8"><ShopScreen preview={isRacingStudioPreview()} copies={copies} /></div></PublicShell>
 }

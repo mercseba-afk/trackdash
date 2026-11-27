@@ -22,6 +22,7 @@ export function fixture(locale, state, path='/market', sources={}) {
   vm.runInNewContext(source,{exports,require(name){
    if(mocks[name])return mocks[name]
    if(name.endsWith('.css'))return {}
+   if(name==='@/components/racing-studio/context')return {useRacingStudio:()=>({enabled:false,preview:false})}
    if(name==='@/components/home-discovery')return load('components/home-discovery.tsx')
    if(name.startsWith('@/components/')||name==='lucide-react') return new Proxy({}, {get:(_,key)=>key==='__esModule'?true:({children})=>React.createElement('div',{'data-component':String(key)},children)})
    if(name.startsWith('@/'))return load(name.slice(2))

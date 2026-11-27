@@ -4,6 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Menu, ScanLine, Store, X } from "lucide-react"
+import { RacingShell } from "@/components/racing-studio/shell"
+import { useRacingStudio } from "@/components/racing-studio/context"
 import { AppShell } from "@/components/app-shell"
 import { BrandMark } from "@/components/brand-mark"
 import { SocialFollow } from "@/components/facebook-link"
@@ -27,7 +29,12 @@ const BRAND_HOME_LINK_CLASS =
 const FOOTER_LINK_CLASS =
   "-mx-2 inline-flex min-h-10 items-center rounded-md px-2 text-foreground transition-colors hover:bg-brand-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 
-export function PublicShell({ children, websiteOnly = false }: { children: React.ReactNode; websiteOnly?: boolean }) {
+export function PublicShell(props: { children: React.ReactNode; websiteOnly?: boolean }) {
+  const { enabled } = useRacingStudio()
+  return enabled ? <RacingShell>{props.children}</RacingShell> : <LegacyPublicShell {...props} />
+}
+
+function LegacyPublicShell({ children, websiteOnly = false }: { children: React.ReactNode; websiteOnly?: boolean }) {
   const { user, hydrated } = useStore()
   const { locale } = useI18n()
   const pathname = usePathname()

@@ -21,6 +21,7 @@ export function LanguageSwitch({
 
     const currentPath = pathname || "/"
     const isPublicSeoRoute =
+      /^\/(?:en\/)?(?:privacy|terms|find|how-it-works)$/.test(currentPath) ||
       speedChampionsCatalogLocale(currentPath) !== null ||
       currentPath === "/guide" || currentPath.startsWith("/guide/") ||
       currentPath === "/en/guide" || currentPath.startsWith("/en/guide/") ||

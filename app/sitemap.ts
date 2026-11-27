@@ -1,6 +1,9 @@
+import { racingStudioIsLive } from "@/lib/racing-studio"
+import { speedChampionsCollectingGuide } from "@/lib/lego/collecting-guide"
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import type { MetadataRoute } from "next"
 import { speedChampionsSitemap } from "@/lib/lego/seo"
-import { guides } from "@/lib/guides"
+import { guides as miniGuides } from "@/lib/guides"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { listMarketSignals } from "@/lib/db/queries/market"
 import { productPublicPath, releasePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
@@ -23,6 +26,8 @@ function latestDate(dates: Array<string | undefined | null>) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (isRacingStudioPreview()) return []
+  const guides = racingStudioIsLive ? [speedChampionsCollectingGuide, ...miniGuides] : miniGuides
   const [products, marketSignalRows] = await Promise.all([
     fetchCatalogProducts().catch((error) => {
       console.error("Failed to build catalog sitemap:", error)

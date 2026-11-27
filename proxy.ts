@@ -1,3 +1,4 @@
+import { isRacingStudioPreview, isRacingPreviewPage } from "@/lib/racing-studio"
 import { type NextRequest, NextResponse } from "next/server"
 import { speedChampionsCatalogLocale } from "@/lib/seo/catalog-paths"
 import { updateSession } from "@/lib/supabase/proxy"
@@ -51,6 +52,9 @@ function matchesPrefix(pathname: string, prefix: string) {
 }
 
 function publicSeoLocale(pathname: string): "it" | "en" | null {
+  if (/^\/en\/(?:privacy|terms|find|how-it-works)$/.test(pathname)) return "en"
+  if (/^\/(?:privacy|terms|find|how-it-works)$/.test(pathname)) return "it"
+
   const legoLocale = speedChampionsCatalogLocale(pathname)
   if (legoLocale) return legoLocale
 
@@ -77,6 +81,16 @@ function safeInternalNext(value: string | null): string | null {
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
+
+  if (isRacingStudioPreview()) {
+    if ((request.method !== "GET" && request.method !== "HEAD") || !isRacingPreviewPage(pathname)) {
+      return new NextResponse("TrackDash preview route unavailable", { status: 404 })
+    }
+    request.cookies.set(PUBLIC_LOCALE_COOKIE, pathname === "/en" || pathname.startsWith("/en/") ? "en" : "it")
+    const response = NextResponse.next({ request })
+    response.headers.set("X-Robots-Tag", "noindex, nofollow")
+    return response
+  }
 
   if (isCatalogOnlyPreview()) {
     if (pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {

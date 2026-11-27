@@ -1,8 +1,10 @@
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 import type { MetadataRoute } from "next"
 
 const SITE_URL = "https://trackdash.it"
 
 export default function robots(): MetadataRoute.Robots {
+  if (isRacingStudioPreview()) return { rules: { userAgent: "*", disallow: "/" } }
   return {
     rules: {
       userAgent: "*",

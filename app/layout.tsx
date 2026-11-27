@@ -1,8 +1,11 @@
+import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
+import { RacingStudioProvider } from "@/components/racing-studio/context"
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
 import { cookies } from "next/headers"
 import { Instrument_Sans, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import "./racing-studio.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { I18nBootstrap } from "@/components/i18n-bootstrap"
 import { PwaInstallManager } from "@/components/pwa-install-manager"
@@ -89,6 +92,8 @@ export default async function RootLayout({
     )
   }
 
+  const preview = isRacingStudioPreview()
+  const racingStudio = isRacingStudioEnabled()
   const cookieStore = await cookies()
   const cookieLocale = cookieStore.get("trackdash.locale")?.value
   const hasLocaleCookie = cookieLocale === "en" || cookieLocale === "it"
@@ -96,7 +101,7 @@ export default async function RootLayout({
   let initialMarketSignals: ReleaseMarketSignalMap = {}
 
   try {
-    initialMarketSignals = await getCachedPublicMarketSignalMap()
+    if (!preview) initialMarketSignals = await getCachedPublicMarketSignalMap()
   } catch (error) {
     console.error("Failed to bootstrap public R3 market signals:", error)
   }
@@ -114,22 +119,24 @@ export default async function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <StoreProvider>
+          <StoreProvider readOnlyPreview={preview}>
             <MarketSignalsProvider initialSignals={initialMarketSignals}>
-              <I18nProvider initialLocale={initialLocale}>
-                <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie}>
-                  <TooltipProvider>{children}</TooltipProvider>
-                  <PageViewTracker />
-                  <CatalogAnalytics />
+              <I18nProvider initialLocale={initialLocale} pinPublicLocale={racingStudio}>
+                <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie} pinPublicLocale={racingStudio}>
+                  <RacingStudioProvider value={{ enabled: racingStudio, preview }}>
+                    <TooltipProvider>{children}</TooltipProvider>
+                  </RacingStudioProvider>
+                  {!preview && <PageViewTracker />}
+                  {!preview && <CatalogAnalytics />}
                   <ScrollRevealController />
-                  <PwaInstallManager />
+                  {!preview && <PwaInstallManager />}
                   <Toaster position="top-center" />
                 </I18nBootstrap>
               </I18nProvider>
             </MarketSignalsProvider>
           </StoreProvider>
         </ThemeProvider>
-        {process.env.NODE_ENV === "production" && <Analytics />}
+        {!preview && process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>
   )

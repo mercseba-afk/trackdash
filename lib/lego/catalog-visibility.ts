@@ -1,2 +1,7 @@
-// Keep the catalogue private and out of search results until launch is approved.
-export const speedChampionsCatalogIsPublic = false
+import { isRacingStudioPreview, racingStudioIsLive } from "@/lib/racing-studio"
+
+export const speedChampionsCatalogIsPublic = racingStudioIsLive
+
+export function speedChampionsCatalogIsVisible() {
+  return speedChampionsCatalogIsPublic || isRacingStudioPreview()
+}

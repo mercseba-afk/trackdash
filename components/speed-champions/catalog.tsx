@@ -22,9 +22,9 @@ const years = [...new Set(speedChampionsSets.map((set) => set.year))].sort((a, b
 const selectClass =
   "mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-blue-600"
 
-export function SpeedChampionsCatalog({ marketSummaries, locale }: { marketSummaries: Record<string, LegoMarketSummary>; locale: PublicLocale }) {
+export function SpeedChampionsCatalog({ marketSummaries, locale, initialQuery }: { marketSummaries: Record<string, LegoMarketSummary>; locale: PublicLocale; initialQuery: string }) {
   const copy = (it: string, en: string) => locale === "it" ? it : en
-  const [filters, setFilters] = useState<LegoCatalogFilters>({})
+  const [filters, setFilters] = useState<LegoCatalogFilters>({ query: initialQuery })
   const [showFilters, setShowFilters] = useState(false)
   const results = filterSpeedChampions(speedChampionsSets, filters, locale)
   const update = (key: keyof LegoCatalogFilters, value: string) =>

@@ -1,3 +1,4 @@
+import { isRacingStudioPreview } from "@/lib/racing-studio"
 // Typed Drizzle client, built on the `postgres` (postgres.js) driver.
 //
 // This is the APPLICATION RUNTIME connection — every Server Action in
@@ -17,9 +18,10 @@ import { runtimePostgresOptions } from "./connection-options"
 import * as schema from "./schema"
 import { isCatalogOnlyPreview } from "@/lib/catalog-preview"
 
+const editorialPreview = isCatalogOnlyPreview() || isRacingStudioPreview()
 const connectionString = process.env.DATABASE_URL
 
-if (!connectionString && !isCatalogOnlyPreview()) {
+if (!connectionString && !editorialPreview) {
   throw new Error(
     "DATABASE_URL is not set. Copy .env.example to .env.local and fill in your Supabase connection string.",
   )
@@ -36,7 +38,7 @@ function createDatabase(url: string) {
 // Next evaluates all route modules during a build, including the shared data
 // layer. The editorial preview must build without secrets, and must never
 // connect to a database even if a credential is accidentally present.
-export const db = isCatalogOnlyPreview()
+export const db = editorialPreview
   ? new Proxy({} as ReturnType<typeof createDatabase>, {
       get() {
         throw new Error("Database access is disabled in the catalog-only preview")

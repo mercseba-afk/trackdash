@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
+import { racingWebsiteLocale } from "@/lib/seo/catalog-paths"
 import { useI18n, type AppLocale } from "@/lib/i18n"
 import { Spinner } from "@/components/ui/spinner"
 
@@ -25,23 +26,26 @@ export function I18nBootstrap({
   children,
   initialLocale,
   hasLocaleCookie,
+  pinPublicLocale = false,
 }: {
   children: React.ReactNode
   initialLocale: AppLocale
   hasLocaleCookie: boolean
+  pinPublicLocale?: boolean
 }) {
   const { locale, setLocale } = useI18n()
   const pathname = usePathname()
   const bootstrapped = React.useRef(false)
   const [ready, setReady] = React.useState(() => hasLocaleCookie && locale === initialLocale)
-  const publicSeoRoute = isPublicSeoRoute(pathname || "/")
+  const boundLocale = pinPublicLocale ? racingWebsiteLocale(pathname ?? "") : null
+  const publicSeoRoute = boundLocale !== null || isPublicSeoRoute(pathname || "/")
 
   React.useEffect(() => {
     if (bootstrapped.current) return
     bootstrapped.current = true
 
-    let target = initialLocale
-    if (!hasLocaleCookie) {
+    let target = boundLocale ?? initialLocale
+    if (!hasLocaleCookie && !boundLocale) {
       const stored = window.localStorage.getItem(STORAGE_KEY)
       if (isLocale(stored)) target = stored
     }
@@ -50,17 +54,17 @@ export function I18nBootstrap({
     document.documentElement.lang = target
     writeLocaleCookie(target)
     setReady(true)
-  }, [hasLocaleCookie, initialLocale, locale, setLocale])
+  }, [boundLocale, hasLocaleCookie, initialLocale, locale, setLocale])
 
   React.useEffect(() => {
     if (!ready) return
     const guideLocale = pathname === "/en/guide" || pathname?.startsWith("/en/guide/") ? "en"
       : pathname === "/guide" || pathname?.startsWith("/guide/") ? "it" : null
-    const target = guideLocale ?? locale
+    const target = boundLocale ?? guideLocale ?? locale
     if (locale !== target) setLocale(target)
     document.documentElement.lang = target
     writeLocaleCookie(target)
-  }, [locale, ready, pathname, setLocale])
+  }, [boundLocale, locale, ready, pathname, setLocale])
 
   if (!ready && !publicSeoRoute) {
     return (

@@ -1,3 +1,4 @@
+import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
 import { AuthScreen } from "@/components/screens/auth-screen"
 
 function safeInternalNext(value: string | string[] | undefined): string | undefined {
@@ -12,5 +13,5 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string | string[]; confirmation_error?: string }>
 }) {
   const params = await searchParams
-  return <AuthScreen mode="login" nextPath={safeInternalNext(params.next)} confirmationError={params.confirmation_error === "1"} />
+  return <AuthScreen racing={isRacingStudioEnabled()} preview={isRacingStudioPreview()} mode="login" nextPath={safeInternalNext(params.next)} confirmationError={params.confirmation_error === "1"} />
 }

@@ -28,7 +28,7 @@ function CopyImage({ copy, large = false }: { copy: ShopCopy; large?: boolean })
 
 const CONDITIONS: Record<string, string> = { Sealed: "Sigillato", "New / Opened": "Nuovo / Aperto", Built: "Montato", Used: "Usato", Incomplete: "Incompleto" }
 
-export function ShopScreen({ copies, detail = false }: { copies: ShopCopy[]; detail?: boolean }) {
+export function ShopScreen({ copies, detail = false, preview = false }: { copies: ShopCopy[]; detail?: boolean; preview?: boolean }) {
   const { locale } = useI18n()
   const { user, hydrated } = useStore()
   const [authPrompt, setAuthPrompt] = React.useState(false)
@@ -59,6 +59,7 @@ export function ShopScreen({ copies, detail = false }: { copies: ShopCopy[]; det
   }
 
   return <div className="space-y-6 pb-16">
+    {preview && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">{it ? "Annunci dimostrativi. L’invio delle offerte è disattivato in anteprima." : "Example listings. Offers are disabled in this preview."}</p>}
     {detail && copy ? <>
       <Link href={shopHref} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand"><ArrowLeft className="size-4" />{it ? "Torna al mercatino" : "Back to marketplace"}</Link>
       <div className="grid gap-7 lg:grid-cols-[1.15fr_1fr] lg:items-start">
@@ -67,8 +68,8 @@ export function ShopScreen({ copies, detail = false }: { copies: ShopCopy[]; det
           <p className="text-xs font-semibold uppercase tracking-widest text-brand">{it ? "Dai collezionisti" : "From collectors"}</p>
           <div><h1 className="text-3xl font-semibold tracking-tight text-navy">{copy.name}</h1><p className="mt-2 text-base text-muted-foreground">{copy.editionName}</p></div>
           <div className="flex flex-wrap gap-2 text-xs font-medium"><span className="rounded-full bg-brand-muted px-3 py-1.5 text-brand">{condition(copy)}</span>{copy.itemNumber ? <span className="rounded-full bg-muted px-3 py-1.5">#{copy.itemNumber}</span> : null}{copy.releaseYear ? <span className="rounded-full bg-muted px-3 py-1.5">{copy.releaseYear}</span> : null}{copy.chassis ? <span className="rounded-full bg-muted px-3 py-1.5">{copy.chassis}</span> : null}</div>
-          <div className="rounded-xl bg-[#f2f6ff] p-5"><p className="text-xs font-medium text-muted-foreground">{it ? "Prezzo richiesto" : "Asking price"}</p><p className={copy.askingPrice != null ? "mt-1 text-3xl font-semibold tracking-tight text-navy" : "mt-2 text-lg font-medium text-slate-600"}>{price(copy)}</p><p className="mt-3 text-sm text-muted-foreground">{it ? "Proposto da" : "Offered by"} <Link href={`/collectors/${encodeURIComponent(copy.username)}`} className="font-medium text-brand">{copy.username}</Link></p></div>
-          <Button className="h-12 w-full gap-2" disabled={copy.isMine || !hydrated} onClick={makeOffer}><HandCoins className="size-4" />{copy.isMine ? (it ? "La tua copia" : "Your copy") : (it ? "Fai un’offerta" : "Make an offer")}</Button>
+          <div className="rounded-xl bg-[#f2f6ff] p-5"><p className="text-xs font-medium text-muted-foreground">{it ? "Prezzo richiesto" : "Asking price"}</p><p className={copy.askingPrice != null ? "mt-1 text-3xl font-semibold tracking-tight text-navy" : "mt-2 text-lg font-medium text-slate-600"}>{price(copy)}</p><p className="mt-3 text-sm text-muted-foreground">{it ? "Proposto da" : "Offered by"} {preview ? <span className="font-medium">{copy.username}</span> : <Link href={`/collectors/${encodeURIComponent(copy.username)}`} className="font-medium text-brand">{copy.username}</Link>}</p></div>
+          <Button className="h-12 w-full gap-2" disabled={preview || copy.isMine || !hydrated} onClick={makeOffer}><HandCoins className="size-4" />{copy.isMine ? (it ? "La tua copia" : "Your copy") : (it ? "Fai un’offerta" : "Make an offer")}</Button>
           <p className="text-sm leading-6 text-muted-foreground">{it ? "Invia la tua proposta e continua la trattativa nei messaggi. Concordate insieme spedizione e pagamento." : "Send your offer and continue in messages. Agree shipping and payment with the collector."}</p>
           <Link href={localizePublicPath(copy.releaseHref, locale)} className="inline-flex items-center gap-1 text-sm font-semibold text-brand">{it ? "Scopri tutti i dettagli della release" : "Explore the release details"}<ArrowUpRight className="size-4" /></Link>
         </div>

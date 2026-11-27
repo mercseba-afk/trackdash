@@ -98,12 +98,12 @@ function toAppUser(
   }
 }
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
+export function StoreProvider({ children, readOnlyPreview = false }: { children: React.ReactNode; readOnlyPreview?: boolean }) {
   const [user, setUser] = React.useState<User | null>(null)
-  const [authChecked, setAuthChecked] = React.useState(false)
+  const [authChecked, setAuthChecked] = React.useState(readOnlyPreview)
   const [collection, setCollection] = React.useState<CollectionItem[]>([])
   const [wishlist, setWishlist] = React.useState<WishlistItem[]>([])
-  const [dataLoaded, setDataLoaded] = React.useState(false)
+  const [dataLoaded, setDataLoaded] = React.useState(readOnlyPreview)
 
   // Tracks the id of the currently-loaded (or currently-loading) user, for
   // use inside the onAuthStateChange callback below. A plain state
@@ -134,6 +134,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // everything else either updates quietly or does nothing at all. See
   // each case below for the reasoning specific to that event.
   React.useEffect(() => {
+    if (readOnlyPreview) return
     const supabase = createClient()
     let cancelled = false
 
@@ -273,7 +274,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cancelled = true
       subscription.unsubscribe()
     }
-  }, [])
+  }, [readOnlyPreview])
 
   const api = React.useMemo<Store>(() => {
     const logout: Store["logout"] = async () => {
