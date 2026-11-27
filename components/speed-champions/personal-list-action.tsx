@@ -8,15 +8,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { updateLegoListAction } from "@/lib/actions/lego-personal-lists"
 import { legoConditions, type LegoListItem, type LegoListKind } from "@/lib/lego/personal-list-types"
 
-export function LegoListAction({ kind, setNumber, item }: {
+export function LegoListAction({ kind, setNumber, item, compact = false }: {
   kind: LegoListKind
   setNumber: string
   item?: LegoListItem
+  compact?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const isCollection = kind === "collection"
   const title = item ? "Modifica copie" : "Aggiungi alla collezione"
+  const wishlistLabel = item ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"
 
   function submit(operation: "save" | "remove", form = new FormData()) {
     if (pending) return
@@ -38,18 +40,34 @@ export function LegoListAction({ kind, setNumber, item }: {
 
   if (!isCollection) {
     return (
-      <Button type="button" size="lg" variant="outline" disabled={pending} onClick={() => submit(item ? "remove" : "save")}>
+      <Button
+        type="button"
+        size={compact ? "icon-lg" : "lg"}
+        variant={compact ? "ghost" : "outline"}
+        disabled={pending}
+        aria-label={compact ? `${wishlistLabel} #${setNumber}` : undefined}
+        title={compact ? wishlistLabel : undefined}
+        onClick={() => submit(item ? "remove" : "save")}
+      >
         {pending ? <LoaderCircle className="animate-spin" /> : item ? <Trash2 /> : <Heart />}
-        {pending ? "Attendi…" : item ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"}
+        {!compact && (pending ? "Attendi…" : wishlistLabel)}
       </Button>
     )
   }
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next) }}>
-      <DialogTrigger render={<Button size="lg" variant={item ? "outline" : "default"} disabled={pending} />}>
+      <DialogTrigger render={
+        <Button
+          size={compact ? "icon-lg" : "lg"}
+          variant={compact ? "ghost" : item ? "outline" : "default"}
+          disabled={pending}
+          aria-label={compact ? `${title} #${setNumber}` : undefined}
+          title={compact ? title : undefined}
+        />
+      }>
         {item ? <Pencil /> : <Boxes />}
-        {title}
+        {!compact && title}
       </DialogTrigger>
       <DialogContent showCloseButton={!pending}>
         <DialogHeader>
