@@ -1,3 +1,4 @@
+import { getRacingPreviewSnapshot } from "@/lib/server/racing-preview-snapshot"
 import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
 import { RacingStudioProvider } from "@/components/racing-studio/context"
 import { Analytics } from "@vercel/analytics/next"
@@ -101,7 +102,7 @@ export default async function RootLayout({
   let initialMarketSignals: ReleaseMarketSignalMap = {}
 
   try {
-    if (!preview) initialMarketSignals = await getCachedPublicMarketSignalMap()
+    initialMarketSignals = preview ? getRacingPreviewSnapshot().marketSignals : await getCachedPublicMarketSignalMap()
   } catch (error) {
     console.error("Failed to bootstrap public R3 market signals:", error)
   }
@@ -120,7 +121,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <StoreProvider readOnlyPreview={preview}>
-            <MarketSignalsProvider initialSignals={initialMarketSignals}>
+            <MarketSignalsProvider initialSignals={initialMarketSignals} readOnly={preview}>
               <I18nProvider initialLocale={initialLocale} pinPublicLocale={racingStudio}>
                 <I18nBootstrap initialLocale={initialLocale} hasLocaleCookie={hasLocaleCookie} pinPublicLocale={racingStudio}>
                   <RacingStudioProvider value={{ enabled: racingStudio, preview }}>

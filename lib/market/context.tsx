@@ -10,9 +10,11 @@ const MarketSignalsContext = React.createContext<ReleaseMarketSignalMap>({})
 
 export function MarketSignalsProvider({
   initialSignals,
+  readOnly = false,
   children,
 }: {
   initialSignals: ReleaseMarketSignalMap
+  readOnly?: boolean
   children: React.ReactNode
 }) {
   const [signals, setSignals] = React.useState(() => expirePublicMarketSignals(initialSignals))
@@ -49,6 +51,7 @@ export function MarketSignalsProvider({
   }, [signals])
 
   React.useEffect(() => {
+    if (readOnly) return
     // The server-rendered initial map is already current. Avoid a duplicate
     // request immediately after hydration or on back-to-back focus/visibility.
     lastAttemptAt.current = Date.now()
@@ -71,7 +74,7 @@ export function MarketSignalsProvider({
       window.removeEventListener("focus", requestRefresh)
       document.removeEventListener("visibilitychange", requestRefresh)
     }
-  }, [refresh])
+  }, [refresh, readOnly])
 
   return <MarketSignalsContext.Provider value={signals}>{children}</MarketSignalsContext.Provider>
 }

@@ -1,4 +1,4 @@
-import { PRODUCTS } from "@/lib/data/corrected-products"
+import { getRacingPreviewSnapshot } from "@/lib/server/racing-preview-snapshot"
 import { releasePublicPath } from "@/lib/seo/catalog-paths"
 import type { ShopCopy } from "@/lib/server/shop"
 
@@ -8,8 +8,9 @@ const examples = [
 ]
 
 export function racingPreviewListings(shareId?: string): ShopCopy[] {
+  const { products } = getRacingPreviewSnapshot()
   return examples.filter((entry) => !shareId || entry.id === shareId).flatMap(({ id, code }) => {
-    const product = PRODUCTS.find((item) => item.releases.some((release) => release.itemNumber === code))
+    const product = products.find((item) => item.releases.some((release) => release.itemNumber === code))
     const release = product?.releases.find((item) => item.itemNumber === code)
     if (!product || !release) return []
 

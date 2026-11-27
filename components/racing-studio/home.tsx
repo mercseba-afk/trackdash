@@ -5,6 +5,7 @@ import { speedChampionsCollectingGuide } from "@/lib/lego/collecting-guide"
 import { guides } from "@/lib/guides"
 import { setImagePath, speedChampionsPath, speedChampionsSetName, speedChampionsSets } from "@/lib/lego/catalog"
 import { formatLegoPrice } from "@/lib/lego/price-format"
+import { getRacingPreviewSnapshot } from "@/lib/server/racing-preview-snapshot"
 import { loadLegoMarketSummaries } from "@/lib/server/lego-market"
 import { getCachedPublicMarketSignalMap } from "@/lib/market/public-cached"
 import type { ReleaseMarketSignalMap } from "@/lib/market/view-types"
@@ -21,7 +22,7 @@ export async function RacingHome({ products, locale }: { products: Product[]; lo
   const legoSets = ["77239", "76934", "76917", "77242"].map((code) => speedChampionsSets.find((item) => item.setNumber === code)!)
   const [legoMarket, miniMarket]: [Awaited<ReturnType<typeof loadLegoMarketSummaries>>, ReleaseMarketSignalMap] = await Promise.all([
     loadLegoMarketSummaries(legoSets.map((set) => set.setNumber), new Date().toISOString()),
-    isRacingStudioPreview() ? {} : getCachedPublicMarketSignalMap().catch(() => ({})),
+    isRacingStudioPreview() ? getRacingPreviewSnapshot().marketSignals : getCachedPublicMarketSignalMap().catch(() => ({})),
   ])
   const miniReleases = products.filter((product) => product.catalogLaunchStatus !== "coming_soon").flatMap((product) =>
     product.releases.map((release) => ({ product, release })))

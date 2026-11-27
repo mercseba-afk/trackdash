@@ -65,7 +65,7 @@ const readCachedPublicCatalogProducts = unstable_cache(
 )
 
 export async function fetchCatalogProductsForVertical(vertical: CollectibleVertical) {
-  if (isRacingStudioPreview()) return vertical === "mini4wd" ? (await import("@/lib/data/corrected-products")).PRODUCTS : []
+  if (isRacingStudioPreview()) return vertical === "mini4wd" ? (await import("@/lib/server/racing-preview-snapshot")).getRacingPreviewSnapshot().products : []
   return readCachedPublicCatalogProducts(vertical)
 }
 
