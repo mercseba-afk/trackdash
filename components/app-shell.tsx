@@ -226,9 +226,12 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
   }, [isSpeedChampions, user?.id])
   const shopItem: NavItem = { href: locale === "en" ? "/en/shop" : "/shop", labelKey: "", label: locale === "it" ? "In vendita" : "For sale", icon: Store }
   const showNavItem = (item: NavItem) => showSpeedChampionsPersonalLists || (item.labelKey !== "nav.collection" && item.labelKey !== "nav.wishlist")
-  const desktopNav = isSpeedChampions ? SPEED_CHAMPIONS_DESKTOP_NAV.filter(showNavItem)
+  const speedChampionsNav = (items: NavItem[]) => items.filter(showNavItem).map((item) =>
+    item === SPEED_CHAMPIONS_CATALOG && locale === "en" ? { ...item, href: `/en${item.href}` } : item,
+  )
+  const desktopNav = isSpeedChampions ? speedChampionsNav(SPEED_CHAMPIONS_DESKTOP_NAV)
     : vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : shopAccess ? [...MINI4WD_DESKTOP_NAV.slice(0, -1), shopItem, MINI4WD_DESKTOP_NAV.at(-1)!] : MINI4WD_DESKTOP_NAV
-  const mobileNav = isSpeedChampions ? SPEED_CHAMPIONS_MOBILE_NAV.filter(showNavItem)
+  const mobileNav = isSpeedChampions ? speedChampionsNav(SPEED_CHAMPIONS_MOBILE_NAV)
     : vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : shopAccess ? [...MINI4WD_MOBILE_NAV.slice(0, 3), shopItem, MINI4WD_MOBILE_NAV[3]] : MINI4WD_MOBILE_NAV
 
   const refreshUnread = React.useCallback(async () => {

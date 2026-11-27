@@ -81,9 +81,9 @@ export default async function RootLayout({
   if (isCatalogOnlyPreview()) {
     // Keep route rendering request-bound, as in the ordinary layout. Other
     // app pages require providers and are deliberately blocked by Proxy here.
-    await cookies()
+    const locale = (await cookies()).get("trackdash.locale")?.value === "en" ? "en" : "it"
     return (
-      <html lang="it" className="light bg-background">
+      <html lang={locale} className="light bg-background">
         <body className={`${trackDashSans.variable} ${trackDashMono.variable} font-sans antialiased`}>{children}</body>
       </html>
     )

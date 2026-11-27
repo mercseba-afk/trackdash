@@ -42,4 +42,5 @@ export async function updateLegoListAction(kind: LegoListKind, setNumber: string
 
   revalidatePath(`/speed-champions/${kind}`)
   revalidatePath(speedChampionsPath(setNumber))
+  revalidatePath(speedChampionsPath(setNumber, "en"))
 }

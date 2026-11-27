@@ -44,6 +44,12 @@ export function publicLanguageAlternates(path: string): Record<string, string> {
   }
 }
 
+export function speedChampionsCatalogLocale(pathname: string): PublicLocale | null {
+  if (/^\/en\/speed-champions\/catalog(?:\/|$)/.test(pathname)) return "en"
+  if (/^\/speed-champions\/catalog(?:\/|$)/.test(pathname)) return "it"
+  return null
+}
+
 export function productPublicSlug(product: Pick<Product, "name">): string {
   return slugifyPublicSegment(product.name)
 }

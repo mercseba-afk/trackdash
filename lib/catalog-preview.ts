@@ -8,7 +8,6 @@ export function isCatalogPreviewRequest(pathname: string, method: string): boole
   if (method !== "GET" && method !== "HEAD") return false
   return (
     pathname === "/speed-champions" ||
-    pathname === "/speed-champions/catalog" ||
-    /^\/speed-champions\/catalog\/\d{5}$/.test(pathname)
+    /^\/(?:en\/)?speed-champions\/catalog(?:\/\d{5})?$/.test(pathname)
   )
 }

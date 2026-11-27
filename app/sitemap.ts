@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+import { speedChampionsSitemap } from "@/lib/lego/seo"
 import { guides } from "@/lib/guides"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { listMarketSignals } from "@/lib/db/queries/market"
@@ -108,5 +109,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}${locale === "en" ? "/en" : ""}/guide`, lastModified: guides.map(g => g.published).sort().at(-1), changeFrequency: "weekly" as const, priority: 0.8 },
     ...guides.map(guide => ({ url: `${SITE_URL}${locale === "en" ? "/en" : ""}/guide/${guide.slug}`, lastModified: guide.published, changeFrequency: "monthly" as const, priority: 0.7, alternates: { languages: { it: `${SITE_URL}/guide/${guide.slug}`, en: `${SITE_URL}/en/guide/${guide.slug}` } } })),
   ])
-  return [...staticRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes, ...guideRoutes]
+  return [...staticRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes, ...guideRoutes, ...speedChampionsSitemap()]
 }

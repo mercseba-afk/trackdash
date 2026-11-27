@@ -1,6 +1,7 @@
 // Editorial pilot. These stable Product/Release IDs are reserved for the
 // database import; the preview never writes to shared collection/market tables.
 import data from "./pilot-data.json"
+import { localizePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
 
 export type LegoStatus = "available" | "retiring_soon" | "retired" | "unknown"
 export interface SpeedChampionsSet {
@@ -45,8 +46,24 @@ export const legoStatusDescriptions: Record<LegoStatus, string> = {
   unknown: "Lo stato nel catalogo ufficiale deve ancora essere verificato.",
 }
 
-export function speedChampionsPath(setNumber: string): string {
-  return `/speed-champions/catalog/${encodeURIComponent(setNumber)}`
+const englishSetNames: Partial<Record<string, string>> = {
+  "76920": "Ford Mustang Dark Horse Sports Car",
+  "76922": "BMW M4 GT3 & BMW M Hybrid V8 Race Cars",
+  "76934": "Ferrari F40 Supercar",
+  "76924": "Mercedes-AMG G 63 & Mercedes-AMG SL 63",
+  "77242": "Ferrari SF-24 F1® Race Car",
+  "77247": "KICK Sauber F1® Team C44 Race Car",
+  "77239": "Porsche 911 GT3 RS Super Car",
+}
+
+export function speedChampionsSetName(set: SpeedChampionsSet, locale: PublicLocale) {
+  return locale === "en" ? englishSetNames[set.setNumber] ?? set.name : set.name
+}
+
+export const speedChampionsCatalogPath = "/speed-champions/catalog"
+
+export function speedChampionsPath(setNumber: string, locale: PublicLocale = "it"): string {
+  return localizePublicPath(`${speedChampionsCatalogPath}/${encodeURIComponent(setNumber)}`, locale)
 }
 
 export function setImagePath(setNumber: string, view: "box" | "model"): string {
@@ -65,11 +82,12 @@ export interface LegoCatalogFilters {
 export function filterSpeedChampions(
   sets: readonly SpeedChampionsSet[],
   filters: LegoCatalogFilters,
+  locale: PublicLocale = "it",
 ): SpeedChampionsSet[] {
   const tokens = (filters.query ?? "").trim().toLocaleLowerCase("it").split(/\s+/).filter(Boolean)
   return sets
     .filter((set) => {
-      const haystack = `${set.setNumber} ${set.name} ${set.carBrand} ${set.series}`.toLocaleLowerCase("it")
+      const haystack = `${set.setNumber} ${speedChampionsSetName(set, locale)} ${set.name} ${set.carBrand} ${set.series}`.toLocaleLowerCase("it")
       return (
         tokens.every((token) => haystack.includes(token)) &&
         (!filters.brand || set.carBrand === filters.brand) &&
@@ -80,7 +98,7 @@ export function filterSpeedChampions(
     })
     .sort((a, b) =>
       filters.sort === "name"
-        ? a.name.localeCompare(b.name, "it")
+        ? speedChampionsSetName(a, locale).localeCompare(speedChampionsSetName(b, locale), locale)
         : filters.sort === "oldest"
           ? a.year - b.year || a.setNumber.localeCompare(b.setNumber)
           : b.year - a.year || b.setNumber.localeCompare(a.setNumber),

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import { useI18n, type AppLocale } from "@/lib/i18n"
-import { localizePublicPath } from "@/lib/seo/catalog-paths"
+import { localizePublicPath, speedChampionsCatalogLocale } from "@/lib/seo/catalog-paths"
 import { cn } from "@/lib/utils"
 
 export function LanguageSwitch({
@@ -21,6 +21,7 @@ export function LanguageSwitch({
 
     const currentPath = pathname || "/"
     const isPublicSeoRoute =
+      speedChampionsCatalogLocale(currentPath) !== null ||
       currentPath === "/guide" || currentPath.startsWith("/guide/") ||
       currentPath === "/en/guide" || currentPath.startsWith("/en/guide/") ||
       currentPath === "/" ||

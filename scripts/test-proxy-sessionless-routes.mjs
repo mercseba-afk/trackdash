@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { test } from "node:test"
 import vm from "node:vm"
 import ts from "typescript"
+import { speedChampionsCatalogLocale } from "../lib/seo/catalog-paths.ts"
 import { isCatalogPreviewRequest } from "../lib/catalog-preview.ts"
 
 const read = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8")
@@ -59,6 +60,7 @@ function createProxy({ user = null, aal = null, catalogPreview = false } = {}) {
         if (name === "@/lib/catalog-preview") {
           return { isCatalogOnlyPreview: () => catalogPreview, isCatalogPreviewRequest }
         }
+        if (name === "@/lib/seo/catalog-paths") return { speedChampionsCatalogLocale }
         if (name === "@/lib/supabase/proxy") {
           return {
             updateSession: async (request) => {
@@ -92,7 +94,7 @@ function request(pathname) {
 
 test("catalog-only preview serves only editorial GET/HEAD routes and never refreshes auth", async () => {
   const app = createProxy({ catalogPreview: true })
-  for (const path of ["/speed-champions", "/speed-champions/catalog", "/speed-champions/catalog/76934"]) {
+  for (const path of ["/speed-champions", "/speed-champions/catalog", "/speed-champions/catalog/76934", "/en/speed-champions/catalog/76934"]) {
     assert.equal((await app.proxy(request(path))).kind, "next")
     assert.equal((await app.proxy({ ...request(path), method: "HEAD" })).kind, "next")
     assert.equal((await app.proxy({ ...request(path), method: "POST" })).status, 404)
@@ -208,4 +210,13 @@ test("English mercatino public routes pin English locale without admitting looka
   assert.ok(req.cookieWrites.some(([key,value])=>key==='trackdash.locale'&&value==='en'))
  }
  assert.equal((await app.proxy(request('/en/shop-lookalike'))).kind,'redirect')
+})
+
+test("the English LEGO catalogue pins its route locale without enabling other English LEGO routes", async () => {
+  const app = createProxy()
+  const req = request("/en/speed-champions/catalog/76934")
+  const response = await app.proxy(req)
+  assert.equal(response.kind, "next")
+  assert.ok(req.cookieWrites.some(([key, value]) => key === "trackdash.locale" && value === "en"))
+  assert.equal((await app.proxy(request("/en/speed-champions/messages"))).kind, "redirect")
 })

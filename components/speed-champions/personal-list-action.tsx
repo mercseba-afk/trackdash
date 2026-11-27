@@ -6,19 +6,23 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { updateLegoListAction } from "@/lib/actions/lego-personal-lists"
-import { legoConditions, type LegoListItem, type LegoListKind } from "@/lib/lego/personal-list-types"
+import type { PublicLocale } from "@/lib/seo/catalog-paths"
+import { localizedLegoListConditions } from "@/lib/lego/locale"
+import type { LegoListItem, LegoListKind } from "@/lib/lego/personal-list-types"
 
-export function LegoListAction({ kind, setNumber, item, compact = false }: {
+export function LegoListAction({ kind, setNumber, item, compact = false, locale = "it" }: {
   kind: LegoListKind
   setNumber: string
   item?: LegoListItem
   compact?: boolean
+  locale?: PublicLocale
 }) {
+  const copy = (it: string, en: string) => locale === "it" ? it : en
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const isCollection = kind === "collection"
-  const title = item ? "Modifica copie" : "Aggiungi alla collezione"
-  const wishlistLabel = item ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"
+  const title = item ? copy("Modifica copie", "Edit copies") : copy("Aggiungi alla collezione", "Add to collection")
+  const wishlistLabel = item ? copy("Rimuovi dalla wishlist", "Remove from wishlist") : copy("Aggiungi alla wishlist", "Add to wishlist")
 
   function submit(operation: "save" | "remove", form = new FormData()) {
     if (pending) return
@@ -28,12 +32,12 @@ export function LegoListAction({ kind, setNumber, item, compact = false }: {
         await updateLegoListAction(kind, setNumber, form)
         setOpen(false)
         if (operation === "remove") {
-          toast.success(isCollection ? "Set rimosso dalla collezione" : "Set rimosso dalla wishlist")
+          toast.success(isCollection ? copy("Set rimosso dalla collezione", "Set removed from collection") : copy("Set rimosso dalla wishlist", "Set removed from wishlist"))
         } else {
-          toast.success(isCollection ? (item ? "Modifiche salvate" : "Set aggiunto alla collezione") : "Set aggiunto alla wishlist")
+          toast.success(isCollection ? (item ? copy("Modifiche salvate", "Changes saved") : copy("Set aggiunto alla collezione", "Set added to collection")) : copy("Set aggiunto alla wishlist", "Set added to wishlist"))
         }
       } catch {
-        toast.error("Operazione non riuscita. Riprova.")
+        toast.error(copy("Operazione non riuscita. Riprova.", "Could not save your changes. Try again."))
       }
     })
   }
@@ -50,7 +54,7 @@ export function LegoListAction({ kind, setNumber, item, compact = false }: {
         onClick={() => submit(item ? "remove" : "save")}
       >
         {pending ? <LoaderCircle className="animate-spin" /> : item ? <Trash2 /> : <Heart />}
-        {!compact && (pending ? "Attendi…" : wishlistLabel)}
+        {!compact && (pending ? copy("Attendi…", "Please wait…") : wishlistLabel)}
       </Button>
     )
   }
@@ -79,24 +83,24 @@ export function LegoListAction({ kind, setNumber, item, compact = false }: {
         }} className="space-y-4">
           <fieldset disabled={pending} className="grid grid-cols-[1fr_5rem] gap-3">
             <label className="grid gap-1 font-medium">
-              Condizione
+              {copy("Condizione", "Condition")}
               <select name="condition" defaultValue={item?.condition ?? "sealed"} className="h-10 rounded-md border bg-background px-2">
-                {Object.entries(legoConditions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                {Object.entries(localizedLegoListConditions(locale)).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
               </select>
             </label>
             <label className="grid gap-1 font-medium">
-              Copie
+              {copy("Copie", "Copies")}
               <input name="quantity" type="number" min={1} max={99} required defaultValue={item?.quantity ?? 1} className="h-10 w-full rounded-md border bg-background px-2" />
             </label>
           </fieldset>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" size="lg" disabled={pending}>
               {pending ? <LoaderCircle className="animate-spin" /> : <Check />}
-              {pending ? "Attendi…" : item ? "Salva modifiche" : "Aggiungi alla collezione"}
+              {pending ? copy("Attendi…", "Please wait…") : item ? copy("Salva modifiche", "Save changes") : copy("Aggiungi alla collezione", "Add to collection")}
             </Button>
             {item && (
               <Button type="button" size="lg" variant="ghost" disabled={pending} onClick={() => submit("remove")}>
-                <Trash2 /> Rimuovi
+                <Trash2 /> {copy("Rimuovi", "Remove")}
               </Button>
             )}
           </div>

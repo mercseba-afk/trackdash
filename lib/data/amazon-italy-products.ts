@@ -22,6 +22,24 @@ export const amazonItalyAsinByRelease: Partial<Record<string, string>> = {
   "0bdb9bcd-e4aa-53ab-b004-984cae96fdca": "B07YV3Y9WZ", // 19434 Victory Magnum Premium
   "b3639c7d-581e-5da8-9ec4-ea1eb9d61193": "B085RZDQ7B", // 19435 Vanguard Sonic (Super II)
   "0fdbfd56-f257-5b84-b541-e08a7450cc34": "B0044BCLDK", // 19431 Magnum Saber Premium
+  "fa1b971e-e49e-5b98-84b0-25f79c45ec38": "B07FP2KPXC", // LEGO 75890
+  "fbd0bf92-2a92-55a1-9ece-c6b8b3f62eea": "B07W5PWLN3", // LEGO 76895
+  "4183e7ae-2ca8-5d93-90c1-d966ceee5400": "B08WX2FV29", // LEGO 76899
+  "b36ae9d5-0393-5539-8f94-bd440ab25b91": "B08W8W71HC", // LEGO 76900
+  "0ec406c7-16f9-53cb-8ed6-51777b8adfbe": "B08W8T8LS4", // LEGO 76901
+  "31557fbe-8986-5834-b01c-f02072ea21ed": "B08W8H6KCC", // LEGO 76902
+  "df9d802a-111e-55a7-9629-43af13cbf74b": "B09BNWR3VR", // LEGO 76906
+  "306202ae-35ec-53ce-aaab-934d921a1ef0": "B09BNTTYDL", // LEGO 76908
+  "9b34872a-1aef-5f4c-9dc0-b9523641e862": "B09QFXX1DW", // LEGO 76912
+  "dc416987-1f54-50c3-b31e-4e5ce3b6c4ed": "B0BBRXC9HN", // LEGO 76917
+  "edac6eb1-03b9-58e7-bf7b-712bf6816e67": "B0BLJ3HSLH", // LEGO 76918
+  "ebfe7d97-fe3e-5ab3-ac86-cf8700892475": "B0CFVZRN8W", // LEGO 76920
+  "13084cd2-9315-5994-9477-6dc4e430679c": "B0CFVXTCWC", // LEGO 76922
+  "eb559ff8-784e-56a8-b5b0-5e822d3bfea7": "B0CWH3J5D6", // LEGO 76924
+  "f4b42582-9f01-5149-9d55-ba09dcaf7e8d": "B0CWH1Q8B4", // LEGO 76934
+  "6fd1f663-94fd-5449-8646-3ed37481b462": "B0DWF1S7NT", // LEGO 77239
+  "6ecbcd83-cba6-54f4-8940-b2dc46b567c0": "B0DHSBBV6R", // LEGO 77242
+  "e667c02e-66d9-5b11-b75d-ce4a2f7ccd98": "B0DHSBYSRB", // LEGO 77247
 }
 
 // Public tracking identifier supplied by the TrackDash account owner.

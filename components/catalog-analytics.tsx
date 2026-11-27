@@ -19,7 +19,8 @@ export function CatalogAnalytics() {
   const { locale } = useI18n()
   const it = locale === "it"
   const route = pathname.replace(/^\/en(?=\/|$)/, "")
-  const catalog = route === "/catalog" || route.startsWith("/catalog/")
+  const legoCatalog = route === "/speed-champions/catalog" || route.startsWith("/speed-champions/catalog/")
+  const catalog = route === "/catalog" || route.startsWith("/catalog/") || legoCatalog
   const privacy = route === "/privacy"
   const production = process.env.NODE_ENV === "production"
   const [choice, setChoice] = useState<string | null | undefined>(undefined)
@@ -73,6 +74,7 @@ export function CatalogAnalytics() {
       tag("event", "page_view", {
         page_location: location.origin + pathname, page_referrer: "",
         page_title: document.title,
+        ...(legoCatalog ? { catalog_vertical: "speedchampions" } : {}),
       })
     }
 
@@ -83,6 +85,7 @@ export function CatalogAnalytics() {
       if (!link?.dataset.amazonItem) return
       tag("event", "amazon_product_click", {
         item_id: link.dataset.amazonItem,
+        ...(legoCatalog ? { catalog_vertical: "speedchampions" } : {}),
         link_domain: "amazon.it",
         page_location: location.origin + pathname,
       })
@@ -93,7 +96,7 @@ export function CatalogAnalytics() {
       document.removeEventListener("click", recordAmazonClick)
       document.removeEventListener("auxclick", recordAmazonClick)
     }
-  }, [catalog, choice, pathname, production])
+  }, [catalog, choice, legoCatalog, pathname, production])
 
   function savePreference(value: "granted" | "denied") {
     try {

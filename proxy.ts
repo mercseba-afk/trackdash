@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { speedChampionsCatalogLocale } from "@/lib/seo/catalog-paths"
 import { updateSession } from "@/lib/supabase/proxy"
 import { isCatalogOnlyPreview, isCatalogPreviewRequest } from "@/lib/catalog-preview"
 
@@ -50,6 +51,9 @@ function matchesPrefix(pathname: string, prefix: string) {
 }
 
 function publicSeoLocale(pathname: string): "it" | "en" | null {
+  const legoLocale = speedChampionsCatalogLocale(pathname)
+  if (legoLocale) return legoLocale
+
   if (pathname === "/en" || matchesPrefix(pathname, "/en/catalog") || matchesPrefix(pathname, "/en/market") || matchesPrefix(pathname, "/en/shop") || matchesPrefix(pathname, "/en/guide")) return "en"
 
   if (
@@ -81,6 +85,8 @@ export async function proxy(request: NextRequest) {
     if (!isCatalogPreviewRequest(pathname, request.method)) {
       return new NextResponse("Catalog preview only", { status: 404 })
     }
+    const routeLocale = publicSeoLocale(pathname)
+    if (routeLocale) request.cookies.set(PUBLIC_LOCALE_COOKIE, routeLocale)
     return NextResponse.next({ request })
   }
 

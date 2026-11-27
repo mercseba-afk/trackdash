@@ -8,7 +8,7 @@ import ts from 'typescript'
 import * as React from 'react'
 import {renderToStaticMarkup} from 'react-dom/server'
 import {fixture} from './fixtures/market-ui-render.mjs'
-import {localizePublicPath,publicAbsoluteUrl,publicLanguageAlternates} from '../lib/seo/catalog-paths.ts'
+import {localizePublicPath,publicAbsoluteUrl,publicLanguageAlternates,speedChampionsCatalogLocale} from '../lib/seo/catalog-paths.ts'
 const jsx=(type,props)=>({type,props})
 const components=new Proxy({}, {get:(_,key)=>String(key)})
 function load(path,mocks,globals={}) {
@@ -70,17 +70,17 @@ for(const locale of ['it','en']) {
   assert.equal(metadata.robots.index,true)
   assert.match(metadata.title,locale==='en'?/Marketplace/:/Mercatino/)
  })
- test(`${locale} language switch preserves copy, search and hash`,()=>{
-  const redirects=[],target=locale==='it'?'en':'it',current=locale==='en'?'/en/shop/copy':'/shop/copy'
+ for (const page of ["/shop/copy", "/speed-champions/catalog/76934"]) test(`${locale} language switch preserves ${page}, search and hash`,()=>{
+  const redirects=[],target=locale==='it'?'en':'it',current=localizePublicPath(page,locale)
   const api=load('components/language-switch.tsx',{
    'next/navigation':{usePathname:()=>current,useRouter:()=>({push:path=>redirects.push(path)})},
    '@/lib/i18n':{useI18n:()=>({locale,setLocale(){}})},
-   '@/lib/seo/catalog-paths':{localizePublicPath},
+   '@/lib/seo/catalog-paths':{localizePublicPath,speedChampionsCatalogLocale},
    '@/lib/utils':{cn:(...v)=>v.join(' ')},
   },{window:{location:{search:'?offer=1',hash:'#details'}}})
   const tree=api.LanguageSwitch({})
   nodes(tree).find(n=>n.type==='button'&&n.props.children===target).props.onClick()
-  assert.deepEqual(redirects,[`${target==='en'?'/en':''}/shop/copy?offer=1#details`])
+  assert.deepEqual(redirects,[`${localizePublicPath(page,target)}?offer=1#details`])
  })
  test(`${locale} home teaser links directly to public marketplace without mock negotiation`,()=>{
   const {load}=fixture(locale,{user:null,hydrated:true})

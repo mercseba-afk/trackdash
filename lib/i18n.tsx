@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
+import { speedChampionsCatalogLocale } from "@/lib/seo/catalog-paths"
 import { getMyProfileAction } from "@/lib/actions/profile"
 import { useStore } from "@/lib/store"
 
@@ -472,12 +474,13 @@ export function I18nProvider({
   initialLocale?: AppLocale
 }) {
   const { user } = useStore()
-  const [locale, setLocaleState] = React.useState<AppLocale>(initialLocale)
+  const pathname = usePathname()
+  const [preferredLocale, setLocaleState] = React.useState<AppLocale>(initialLocale)
+  const locale = speedChampionsCatalogLocale(pathname ?? "") ?? preferredLocale
 
   const setLocale = React.useCallback((next: AppLocale) => {
     setLocaleState(next)
     if (typeof window !== "undefined") window.localStorage.setItem(STORAGE_KEY, next)
-    if (typeof document !== "undefined") document.documentElement.lang = next
   }, [])
 
   React.useEffect(() => {
@@ -501,6 +504,10 @@ export function I18nProvider({
       cancelled = true
     }
   }, [setLocale, user?.id])
+
+  React.useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
 
   const value = React.useMemo<I18nContextValue>(
     () => ({ locale, setLocale, t: (key, vars) => translate(locale, key, vars) }),

@@ -8,11 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useI18n } from "@/lib/i18n"
+import { localizePublicPath } from "@/lib/seo/catalog-paths"
 import { cn } from "@/lib/utils"
 
 export type CollectibleUiVertical = "mini4wd" | "hotwheels" | "speedchampions"
 
 export function CollectibleVerticalSwitch({ active }: { active: CollectibleUiVertical }) {
+  const { locale } = useI18n()
   const options = [
     { id: "mini4wd", href: "/catalog", label: "Mini 4WD" },
     { id: "speedchampions", href: "/speed-champions/catalog", label: "LEGO Speed Champions", beta: true },
@@ -26,7 +29,7 @@ export function CollectibleVerticalSwitch({ active }: { active: CollectibleUiVer
           <button
             type="button"
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-white px-2.5 text-xs font-semibold text-foreground shadow-[0_1px_2px_rgba(11,26,58,0.04)] outline-none transition-colors hover:bg-brand-muted hover:text-brand focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Cambia universo da collezione"
+            aria-label={locale === "it" ? "Cambia universo da collezione" : "Switch collection universe"}
           >
             <span className="max-w-[92px] truncate sm:max-w-none">{current.label}</span>
             <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -41,7 +44,7 @@ export function CollectibleVerticalSwitch({ active }: { active: CollectibleUiVer
               key={option.id}
               render={
                 <Link
-                  href={option.href}
+                  href={localizePublicPath(option.href, locale)}
                   className="flex w-full items-center gap-2"
                 >
                   <span className={cn("flex-1", selected && "font-semibold")}>{option.label}</span>

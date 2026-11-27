@@ -1,3 +1,5 @@
+import type { PublicLocale } from "@/lib/seo/catalog-paths"
+import { localizedLegoListConditions } from "@/lib/lego/locale"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { LegoListAction } from "@/components/speed-champions/personal-list-action"
@@ -7,7 +9,8 @@ import { legoConditions, type LegoListKind } from "@/lib/lego/personal-list-type
 import { readLegoList } from "@/lib/server/lego-personal-lists"
 import { canAccessSpeedChampions, getSpeedChampionsOwner } from "@/lib/server/speed-champions-gate"
 
-export async function LegoListControls({ setNumber }: { setNumber: string }) {
+export async function LegoListControls({ setNumber, locale }: { setNumber: string; locale: PublicLocale }) {
+  const copy = (it: string, en: string) => locale === "it" ? it : en
   const owner = await getSpeedChampionsOwner()
   if (!owner) return null
 
@@ -16,19 +19,19 @@ export async function LegoListControls({ setNumber }: { setNumber: string }) {
   const wishlist = items.find((item) => item.kind === "wishlist")
 
   return (
-    <section aria-label="Collezione e wishlist LEGO" className="mt-6 divide-y divide-brand/15 rounded-2xl border border-brand/20 bg-brand-muted px-4 sm:px-5">
+    <section aria-label={copy("Collezione e wishlist LEGO", "LEGO collection and wishlist")} className="mt-6 divide-y divide-brand/15 rounded-2xl border border-brand/20 bg-brand-muted px-4 sm:px-5">
       <div className="flex flex-wrap items-center justify-between gap-3 py-4">
         <div>
-          <h2 className="font-semibold">{collection ? "Nella tua collezione" : "Ce l’hai?"}</h2>
+          <h2 className="font-semibold">{collection ? copy("Nella tua collezione", "In your collection") : copy("Ce l’hai?", "Own this set?")}</h2>
           {collection?.condition && (
-            <p className="mt-1 text-sm text-muted-foreground">{collection.quantity} {collection.quantity === 1 ? "copia" : "copie"} · {legoConditions[collection.condition]}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{collection.quantity} {collection.quantity === 1 ? copy("copia", "copy") : copy("copie", "copies")} · {localizedLegoListConditions(locale)[collection.condition]}</p>
           )}
         </div>
-        <LegoListAction kind="collection" setNumber={setNumber} item={collection} />
+        <LegoListAction kind="collection" setNumber={setNumber} locale={locale} item={collection} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 py-4">
-        <h2 className="font-semibold">{wishlist ? "Nella tua wishlist" : "Lo desideri?"}</h2>
-        <LegoListAction kind="wishlist" setNumber={setNumber} item={wishlist} />
+        <h2 className="font-semibold">{wishlist ? copy("Nella tua wishlist", "On your wishlist") : copy("Lo desideri?", "Want this set?")}</h2>
+        <LegoListAction kind="wishlist" setNumber={setNumber} locale={locale} item={wishlist} />
       </div>
     </section>
   )

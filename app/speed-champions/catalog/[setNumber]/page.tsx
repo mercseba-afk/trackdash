@@ -1,94 +1,14 @@
-import { LegoPilotOffer } from "@/components/speed-champions/pilot-offer"
-import { getLegoPilotShare } from "@/lib/server/lego-pilot-share"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { ArrowLeft, ExternalLink } from "lucide-react"
-import { LegoMarketPrices } from "@/components/speed-champions/market-prices"
-import { LegoListControls } from "@/components/speed-champions/personal-lists"
-import { SetGallery } from "@/components/speed-champions/gallery"
-import { speedChampionsSets, legoStatusDescriptions } from "@/lib/lego/catalog"
-import { LegoStatusBadge } from "@/components/speed-champions/status-badge"
-import { loadLegoMarketSummaries } from "@/lib/server/lego-market"
-import { canBrowseSpeedChampions } from "@/lib/server/speed-champions-messaging-access"
+import { SpeedChampionsSetPage } from "@/components/speed-champions/set-page"
+import { speedChampionsMetadata } from "@/lib/lego/seo"
+
 export const dynamic = "force-dynamic"
 
-export default async function Page({ params }: { params: Promise<{ setNumber: string }> }) {
-  if (!(await canBrowseSpeedChampions())) notFound()
-  const { setNumber } = await params
-  const set = speedChampionsSets.find((entry) => entry.setNumber === setNumber)
-  if (!set) notFound()
-  const pilotShare = setNumber === "75890" ? await getLegoPilotShare(set.releaseId) : null
-  const asOf = new Date().toISOString()
-  const market = (await loadLegoMarketSummaries([setNumber], asOf))[setNumber]
-  const facts = [
-    ["Codice set", set.setNumber],
-    ["Anno di uscita", set.year],
-    ["Pezzi", set.pieces],
-    ["Marchio auto", set.carBrand],
-    ["Auto nella confezione", set.carCount],
-    ["Serie", set.series],
-  ]
-  return (
-    <div className="space-y-6">
-      <Link
-        href="/speed-champions/catalog"
-        className="inline-flex items-center gap-2 text-sm font-medium text-blue-700"
-      >
-        <ArrowLeft className="size-4" />
-        Torna al catalogo
-      </Link>
-      <div className="grid items-start gap-8 md:grid-cols-2">
-        <SetGallery set={set} />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-700">
-            LEGO Speed Champions · {set.setNumber}
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{set.name}</h1>
-          <div className="mt-4"><LegoStatusBadge status={set.status} />
-            <p className="mt-3 text-sm leading-6 text-slate-600">{legoStatusDescriptions[set.status]}</p>
-          </div>
-          <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-5 rounded-2xl border border-slate-200 bg-white p-5">
-            {facts.map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-xs text-slate-500">{label}</dt>
-                <dd className="mt-1 font-semibold">{value}</dd>
-              </div>
-            ))}
-          </dl>
-          {set.carCount === 2 && (
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              Questo codice identifica una confezione con due auto. La singola auto separata non equivale al set
-              completo.
-            </p>
-          )}
-          {pilotShare && <LegoPilotOffer shareId={pilotShare} />}
-          <LegoListControls setNumber={set.setNumber} />
-          <LegoMarketPrices setNumber={set.setNumber} asOf={asOf} market={market} />
-        </div>
-      </div>
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 className="font-semibold">Fonti e verifica</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Identità, numero di pezzi, immagini e stato del prodotto verificati sulla scheda LEGO il{" "}
-          {set.statusCheckedAt.split("-").reverse().join("/")}. Lo stato descrive il catalogo ufficiale, non la
-          disponibilità del mercato secondario. La data esatta di ritiro non è stata verificata.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-5 text-sm font-medium text-blue-700">
-          <a href={set.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1">
-            Scheda ufficiale LEGO
-            <ExternalLink className="size-3" />
-          </a>
-          <a
-            href={set.yearSourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1"
-          >
-            Anno nel catalogo BrickLink
-            <ExternalLink className="size-3" />
-          </a>
-        </div>
-      </section>
-    </div>
-  )
+type Props = { params: Promise<{ setNumber: string }> }
+
+export async function generateMetadata({ params }: Props) {
+  return speedChampionsMetadata("it", (await params).setNumber)
+}
+
+export default async function Page({ params }: Props) {
+  return <SpeedChampionsSetPage locale="it" setNumber={(await params).setNumber} />
 }

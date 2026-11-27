@@ -50,6 +50,22 @@ try {
   assert.equal(filter(sets, {})[0].year, 2025)
   assert.equal(speedChampionsPath("76934"), "/speed-champions/catalog/76934")
 
+  assert.equal(speedChampionsPath("76934", "en"), "/en/speed-champions/catalog/76934")
+
+  const seoFile = path.join(directory, "seo.mjs")
+  await build({ entryPoints: ["lib/lego/seo.ts"], bundle: true, platform: "node", format: "esm", outfile: seoFile })
+  const { speedChampionsMetadata, speedChampionsSitemap } = await import(pathToFileURL(seoFile))
+  for (const setNumber of [undefined, ...sets.map(set => set.setNumber)]) {
+    const it = speedChampionsMetadata("it", setNumber)
+    const en = speedChampionsMetadata("en", setNumber)
+    assert.notEqual(it.description, en.description)
+    assert.equal(it.alternates.canonical, en.alternates.languages.it)
+    assert.equal(en.alternates.canonical, it.alternates.languages.en)
+    assert.equal(it.robots.index, false)
+    assert.equal(en.robots.index, false)
+  }
+  assert.deepEqual(speedChampionsSitemap(), [], "Private LEGO catalogue must stay out of the sitemap")
+
   const marketFile = path.join(directory, "market.mjs")
   await build({ entryPoints: ["lib/lego/market.ts"], bundle: true, platform: "node", format: "esm", outfile: marketFile })
   const { getLegoAskingPrices, getLegoObservedSales, getPublicLegoMarketSummary } = await import(pathToFileURL(marketFile))
