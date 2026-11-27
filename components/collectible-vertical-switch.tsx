@@ -12,19 +12,11 @@ import { cn } from "@/lib/utils"
 
 export type CollectibleUiVertical = "mini4wd" | "hotwheels" | "speedchampions"
 
-const STORAGE_KEY = "trackdash.collectible.vertical"
-
-export function CollectibleVerticalSwitch({ active, showSpeedChampions = false }: {
-  active: CollectibleUiVertical
-  showSpeedChampions?: boolean
-}) {
-  const options: Array<{ id: CollectibleUiVertical; href: string; label: string; beta?: boolean }> = [
+export function CollectibleVerticalSwitch({ active }: { active: CollectibleUiVertical }) {
+  const options = [
     { id: "mini4wd", href: "/catalog", label: "Mini 4WD" },
-    { id: "hotwheels", href: "/hotwheels/catalog", label: "Hot Wheels", beta: true },
+    { id: "speedchampions", href: "/speed-champions/catalog", label: "LEGO Speed Champions", beta: true },
   ]
-  if (showSpeedChampions) {
-    options.push({ id: "speedchampions", href: "/speed-champions/catalog", label: "LEGO Speed Champions", beta: true })
-  }
   const current = options.find((option) => option.id === active) ?? options[0]
 
   return (
@@ -50,9 +42,6 @@ export function CollectibleVerticalSwitch({ active, showSpeedChampions = false }
               render={
                 <Link
                   href={option.href}
-                  onClick={() => {
-                    if (option.id !== "speedchampions") window.localStorage.setItem(STORAGE_KEY, option.id)
-                  }}
                   className="flex w-full items-center gap-2"
                 >
                   <span className={cn("flex-1", selected && "font-semibold")}>{option.label}</span>

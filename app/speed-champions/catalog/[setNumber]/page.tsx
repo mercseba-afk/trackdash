@@ -7,11 +7,11 @@ import { SetGallery } from "@/components/speed-champions/gallery"
 import { speedChampionsSets, legoStatusDescriptions } from "@/lib/lego/catalog"
 import { LegoStatusBadge } from "@/components/speed-champions/status-badge"
 import { loadLegoMarketSummaries } from "@/lib/server/lego-market"
-import { canAccessSpeedChampions } from "@/lib/server/speed-champions-gate"
+import { canBrowseSpeedChampions } from "@/lib/server/speed-champions-messaging-access"
 export const dynamic = "force-dynamic"
 
 export default async function Page({ params }: { params: Promise<{ setNumber: string }> }) {
-  if (!(await canAccessSpeedChampions())) notFound()
+  if (!(await canBrowseSpeedChampions())) notFound()
   const { setNumber } = await params
   const set = speedChampionsSets.find((entry) => entry.setNumber === setNumber)
   if (!set) notFound()

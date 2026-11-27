@@ -5,7 +5,7 @@ import { sql } from "drizzle-orm"
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { withUserContext } from "@/lib/db/rls"
 import { speedChampionsSets } from "@/lib/lego/catalog"
-import { getSpeedChampionsOwner } from "@/lib/server/speed-champions-gate"
+import { canAccessSpeedChampions, getSpeedChampionsOwner } from "@/lib/server/speed-champions-gate"
 
 export const getSpeedChampionsMessagingUser = cache(async () => {
   const owner = await getSpeedChampionsOwner()
@@ -30,3 +30,7 @@ export const getSpeedChampionsMessagingUser = cache(async () => {
   })
   return isPilotParticipant ? user : null
 })
+
+export async function canBrowseSpeedChampions(): Promise<boolean> {
+  return await canAccessSpeedChampions() || Boolean(await getSpeedChampionsMessagingUser())
+}

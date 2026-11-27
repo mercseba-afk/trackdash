@@ -201,9 +201,10 @@ type AppShellProps = {
   children: React.ReactNode
   contentMode?: "app" | "public"
   vertical?: CollectibleUiVertical
+  showSpeedChampionsPersonalLists?: boolean
 }
 
-export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }: AppShellProps) {
+export function AppShell({ children, contentMode = "app", vertical = "mini4wd", showSpeedChampionsPersonalLists = true }: AppShellProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useStore()
@@ -222,35 +223,12 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
     }
     return () => { current = false }
   }, [isSpeedChampions, user?.id])
-  const hotWheelsPilotUser = user?.email.toLowerCase() === "merc.seba@gmail.com"
   const shopItem: NavItem = { href: locale === "en" ? "/en/shop" : "/shop", labelKey: "", label: locale === "it" ? "In vendita" : "For sale", icon: Store }
-  const desktopNav = isSpeedChampions ? SPEED_CHAMPIONS_DESKTOP_NAV
+  const showNavItem = (item: NavItem) => showSpeedChampionsPersonalLists || (item.labelKey !== "nav.collection" && item.labelKey !== "nav.wishlist")
+  const desktopNav = isSpeedChampions ? SPEED_CHAMPIONS_DESKTOP_NAV.filter(showNavItem)
     : vertical === "hotwheels" ? HOTWHEELS_DESKTOP_NAV : shopAccess ? [...MINI4WD_DESKTOP_NAV.slice(0, -1), shopItem, MINI4WD_DESKTOP_NAV.at(-1)!] : MINI4WD_DESKTOP_NAV
-  const mobileNav = isSpeedChampions ? SPEED_CHAMPIONS_MOBILE_NAV
+  const mobileNav = isSpeedChampions ? SPEED_CHAMPIONS_MOBILE_NAV.filter(showNavItem)
     : vertical === "hotwheels" ? HOTWHEELS_MOBILE_NAV : shopAccess ? [...MINI4WD_MOBILE_NAV.slice(0, 3), shopItem, MINI4WD_MOBILE_NAV[3]] : MINI4WD_MOBILE_NAV
-
-  React.useEffect(() => {
-    if (!hotWheelsPilotUser) return
-
-    const isHotWheelsRoute = pathname === "/hotwheels" || pathname.startsWith("/hotwheels/")
-    const isMini4wdRoute =
-      pathname === "/catalog" || pathname.startsWith("/catalog/") ||
-      pathname === "/collection" || pathname.startsWith("/collection/") ||
-      pathname === "/scanner" || pathname.startsWith("/scanner/")
-
-    if (isHotWheelsRoute) {
-      window.localStorage.setItem("trackdash.collectible.vertical", "hotwheels")
-    } else if (isMini4wdRoute) {
-      window.localStorage.setItem("trackdash.collectible.vertical", "mini4wd")
-    }
-  }, [hotWheelsPilotUser, pathname])
-
-  React.useEffect(() => {
-    if (!hotWheelsPilotUser || pathname !== "/dashboard") return
-    if (window.localStorage.getItem("trackdash.collectible.vertical") === "hotwheels") {
-      router.replace("/hotwheels/catalog")
-    }
-  }, [hotWheelsPilotUser, pathname, router])
 
   const refreshUnread = React.useCallback(async () => {
     if (!user) {
@@ -340,8 +318,8 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           </nav>
 
           <div className="flex items-center gap-1.5">
-            {(hotWheelsPilotUser || isSpeedChampions || speedChampionsAccess) && (
-              <CollectibleVerticalSwitch active={vertical} showSpeedChampions={isSpeedChampions || speedChampionsAccess} />
+            {(isSpeedChampions || speedChampionsAccess) && (
+              <CollectibleVerticalSwitch active={vertical} />
             )}
             {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
