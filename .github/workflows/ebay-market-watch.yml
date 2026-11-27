@@ -2,7 +2,7 @@ name: eBay Market Watch
 
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '43 * * * *'
   # Dispatch up to FOUR due Releases per invocation, capped at 24/day in SQL.
   # Follow-ups run eBay only; individual Mini 4WD Releases
   # retain a 7–45-day adaptive scan interval. More frequent dispatch does NOT
