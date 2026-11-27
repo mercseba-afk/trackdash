@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowUpRight, Search, X } from "lucide-react"
+import { ArrowRight, Search, X } from "lucide-react"
 import {
   filterSpeedChampions,
   legoStatusLabels,
@@ -177,44 +177,47 @@ export function SpeedChampionsCatalog({ marketSummaries }: { marketSummaries: Re
           {results.map((set, index) => {
             const market = marketSummaries[set.setNumber]
             return (
-            <Link
-              key={set.setNumber}
-              href={speedChampionsPath(set.setNumber)}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-blue-600"
-            >
-              <div className="relative aspect-[4/3]">
-                <SetImage
-                  eager={index === 0}
-                  src={setImagePath(set.setNumber, "box")}
-                  alt={`Scatola LEGO Speed Champions ${set.setNumber} — ${set.name}`}
-                />
-                <span className="absolute left-4 top-3 rounded-md bg-white/95 px-2 py-1 font-mono text-xs font-semibold text-slate-700">
-                  #{set.setNumber}
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col border-t border-slate-100 p-5">
-                <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
-                  <span className="font-semibold uppercase tracking-wider text-blue-700">{set.carBrand}</span>
-                  <span>
-                    {set.year} · {set.pieces} pezzi
-                  </span>
+              <Link
+                key={set.setNumber}
+                href={speedChampionsPath(set.setNumber)}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-blue-600"
+              >
+                <div className="relative aspect-[4/3]">
+                  <SetImage
+                    eager={index === 0}
+                    src={setImagePath(set.setNumber, "box")}
+                    alt=""
+                  />
                 </div>
-                <h2 className="mt-2 text-lg font-semibold leading-snug">{set.name}</h2>
-                <p className="mt-2 text-xs text-slate-500">
-                  {set.series} · {set.carCount === 2 ? "2 auto, 1 confezione" : "1 auto"}
-                </p>
-                <div className="mt-4 rounded-xl border border-border/70 bg-muted/30 p-3">
-                  <p className="text-xs font-medium text-slate-600">Prezzi negli annunci</p>
-                  <p className="mt-1 font-semibold tabular-nums text-foreground">{market?.askingLowCents != null ? `Da ${formatLegoPrice(market.askingLowCents)}` : "Non abbiamo un prezzo richiesto"}</p>
-                  {market?.askingCount > 0 && <p className="mt-1 text-xs text-slate-500">{market.condition} · spedizione esclusa</p>}
+                <div className="flex flex-1 flex-col border-t border-slate-100 p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600">
+                    <span className="font-mono">#{set.setNumber}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{set.year} · {set.pieces} pezzi</span>
+                    {set.carCount === 2 && <span>· 2 auto</span>}
+                  </div>
+                  <h2 className="mt-1.5 text-lg font-semibold leading-snug tracking-tight">{set.name}</h2>
+                  <div className="mt-2.5 flex">
+                    <LegoStatusBadge status={set.status} />
+                  </div>
+                  <div className="mt-auto pt-4">
+                    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-t border-slate-200 pt-3">
+                      <div>
+                        <p className="text-xs text-slate-600">Prezzi negli annunci</p>
+                        <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">
+                          {market?.askingLowCents != null ? `Da ${formatLegoPrice(market.askingLowCents)}` : "Non abbiamo un prezzo richiesto"}
+                        </p>
+                        {market?.askingCount > 0 && <p className="mt-0.5 text-xs text-slate-600">{market.condition} · spedizione esclusa</p>}
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 group-hover:underline">
+                        Vedi scheda <ArrowRight className="size-4" aria-hidden="true" />
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-auto flex items-center justify-between gap-2 pt-5">
-                  <LegoStatusBadge status={set.status} />
-                  <ArrowUpRight className="size-5 text-blue-600" aria-hidden="true" />
-                </div>
-              </div>
-            </Link>
-          )})}
+              </Link>
+            )
+          })}
         </div>
       )}
       <p className="text-xs leading-5 text-slate-500">

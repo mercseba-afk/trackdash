@@ -2,17 +2,17 @@ import { Archive, Clock3, CircleHelp, PackageCheck } from "lucide-react"
 import { legoStatusLabels, legoStatusDescriptions, type LegoStatus } from "@/lib/lego/catalog"
 
 const styles = {
-  available: "bg-emerald-700 text-white ring-emerald-900/15 shadow-emerald-900/10",
-  retiring_soon: "bg-amber-700 text-white ring-amber-900/15 shadow-amber-900/10",
-  retired: "bg-violet-700 text-white ring-violet-900/15 shadow-violet-900/10",
-  unknown: "bg-slate-600 text-white ring-slate-900/15 shadow-slate-900/10",
+  available: "text-emerald-800",
+  retiring_soon: "text-amber-800",
+  retired: "text-violet-800",
+  unknown: "text-slate-800",
 } satisfies Record<LegoStatus, string>
 const icons = { available: PackageCheck, retiring_soon: Clock3, retired: Archive, unknown: CircleHelp }
 
 export function LegoStatusBadge({ status }: { status: LegoStatus }) {
   const Icon = icons[status]
-  return <span title={legoStatusDescriptions[status]} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold shadow-sm ring-1 ring-inset ${styles[status]}`}>
-    <Icon className="size-4 shrink-0" aria-hidden="true" />{legoStatusLabels[status]}
+  return <span title={legoStatusDescriptions[status]} className={`inline-flex items-center gap-1.5 text-xs font-medium ${styles[status]}`}>
+    <Icon className="size-3.5 shrink-0" aria-hidden="true" />{legoStatusLabels[status]}
   </span>
 }
 
