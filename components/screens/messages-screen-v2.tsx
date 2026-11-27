@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { ArrowLeft, Ban, Check, ChevronRight, Loader2, MessageCircle, Send, Unlock, X } from "lucide-react"
 import {
   blockCollectorAction,
@@ -63,44 +63,43 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
   const { user } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
-  const router = useRouter()
   const searchParams = useSearchParams()
   const requestedConversationId = searchParams.get("conversation")
   const [conversations, setConversations] = React.useState<Conversation[]>([])
-  const [selectedId, setSelectedId] = React.useState<string | null>(null)
-  const [messages, setMessages] = React.useState<ChatMessage[]>([])
+  const [messageSnapshot, setMessageSnapshot] = React.useState<{ id: string; rows: ChatMessage[] } | null>(null)
+  const [failedChatId, setFailedChatId] = React.useState<string | null>(null)
+  const activeRequest = React.useRef<{ id: string; sequence: number } | null>(null)
+  const lastReturn = React.useRef(0)
   const [loading, setLoading] = React.useState(true)
-  const [loadingMessages, setLoadingMessages] = React.useState(false)
   const [draft, setDraft] = React.useState("")
   const [busy, setBusy] = React.useState(false)
   const messageViewportRef = React.useRef<HTMLDivElement | null>(null)
-  const selected = conversations.find((conversation) => conversation.id === selectedId) ?? null
+  const userId = user?.id
+  const selected = conversations.find((conversation) => conversation.id === requestedConversationId) ?? null
+  const selectedId = selected?.id
+  const messages = messageSnapshot?.id === selectedId ? messageSnapshot?.rows ?? [] : []
+  const loadingMessages = selectedId !== messageSnapshot?.id && selectedId !== failedChatId
   const directOfferConversation = selected?.requestMessage.startsWith("Offerta iniziale ·") ?? false
 
   const refreshConversations = React.useCallback(async () => {
     const rows = await getMyConversationsAction(universe)
     setConversations(rows)
-    setSelectedId((current) => {
-      if (requestedConversationId && rows.some((row) => row.id === requestedConversationId)) return requestedConversationId
-      if (current && rows.some((row) => row.id === current)) return current
-      return null
-    })
-  }, [requestedConversationId, universe])
+  }, [universe])
 
   React.useEffect(() => {
-    if (!user) return
+    if (!userId) return
     const supabase = createClient()
     // RLS limits these events to the two participants. Refresh the list even
     // when no chat is open, including when the owner accepts a request.
     const refresh = () => void refreshConversations().catch(() => {})
     const channel = supabase
-      .channel(`conversation-list:${user.id}`)
+      .channel(`conversation-list:${userId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, refresh)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") refresh()
       })
     return () => { void supabase.removeChannel(channel) }
-  }, [user, refreshConversations])
+  }, [userId, refreshConversations])
 
   React.useEffect(() => {
     let cancelled = false
@@ -109,22 +108,29 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
       .then((rows) => {
         if (cancelled) return
         setConversations(rows)
-        setSelectedId(requestedConversationId && rows.some((row) => row.id === requestedConversationId) ? requestedConversationId : null)
       })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
     }
-  }, [requestedConversationId, universe])
+  }, [universe, userId])
 
   const refreshMessages = React.useCallback(async (conversationId: string) => {
-    setLoadingMessages(true)
+    const request = activeRequest.current
+    if (!request || request.id !== conversationId) return false
+    const sequence = ++request.sequence
     try {
-      setMessages(await getConversationMessagesAction(conversationId))
-    } finally {
-      setLoadingMessages(false)
+      const rows = await getConversationMessagesAction(conversationId)
+      if (activeRequest.current !== request || sequence !== request.sequence) return false
+      setMessageSnapshot({ id: conversationId, rows })
+      setFailedChatId(null)
+      return true
+    } catch {
+      if (activeRequest.current === request && sequence === request.sequence) setFailedChatId(conversationId)
+      return false
     }
   }, [])
 
@@ -136,16 +142,21 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
   }, [])
 
   React.useEffect(() => {
-    if (!selectedId || document.visibilityState !== "visible") return
+    if (!selectedId || selected?.status === "accepted" || document.visibilityState !== "visible") return
     void markRead(selectedId)
-  }, [markRead, selectedId])
+  }, [markRead, selectedId, selected?.status])
 
   React.useEffect(() => {
     const refreshOnReturn = () => {
-      if (document.visibilityState !== "visible") return
+      if (document.visibilityState !== "visible" || Date.now() - lastReturn.current < 400) return
+      lastReturn.current = Date.now()
       void refreshConversations().catch(() => {})
-      if (selectedId) void markRead(selectedId)
-      if (selectedId && selected?.status === "accepted") void refreshMessages(selectedId).catch(() => {})
+      if (!selectedId) return
+      if (selected?.status === "accepted") {
+        void refreshMessages(selectedId).then((loaded) => { if (loaded) void markRead(selectedId) })
+      } else {
+        void markRead(selectedId)
+      }
     }
     window.addEventListener("focus", refreshOnReturn)
     document.addEventListener("visibilitychange", refreshOnReturn)
@@ -156,17 +167,16 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
   }, [markRead, refreshConversations, refreshMessages, selectedId, selected?.status])
 
   React.useEffect(() => {
-    if (!selectedId || selected?.status !== "accepted") {
-      setMessages([])
-      return
-    }
+    if (!selectedId || selected?.status !== "accepted") return
 
-    void refreshMessages(selectedId)
+    const request = { id: selectedId, sequence: 0 }
+    activeRequest.current = request
     const supabase = createClient()
     const refreshVisibleConversation = async () => {
-      await refreshMessages(selectedId)
-      if (document.visibilityState === "visible") await markRead(selectedId)
+      const loaded = await refreshMessages(selectedId)
+      if (loaded && document.visibilityState === "visible") await markRead(selectedId)
     }
+    void refreshVisibleConversation()
     const channel = supabase
       .channel(`conversation:${selectedId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedId}` }, () => void refreshVisibleConversation())
@@ -175,9 +185,10 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
       })
 
     return () => {
+      if (activeRequest.current === request) activeRequest.current = null
       void supabase.removeChannel(channel)
     }
-  }, [selectedId, selected?.status, selected?.blockedByMe, selected?.blockedByThem, refreshMessages, markRead])
+  }, [selectedId, selected?.status, refreshMessages, markRead])
 
   React.useEffect(() => {
     if (loadingMessages) return
@@ -186,16 +197,13 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
   }, [loadingMessages, messages.length, selectedId])
 
   function selectConversation(id: string) {
-    setSelectedId(id)
     setDraft("")
-    router.replace(conversationLink(universe, id))
+    window.history.replaceState(null, "", conversationLink(universe, id))
   }
 
   function closeConversation() {
-    setSelectedId(null)
-    setMessages([])
     setDraft("")
-    router.replace(inboxPath)
+    window.history.replaceState(null, "", inboxPath)
   }
 
   const submitMessage = React.useCallback(async () => {
@@ -424,6 +432,13 @@ export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: Messagin
               <div ref={messageViewportRef} className="flex min-h-[320px] max-h-[55vh] flex-col gap-3 overflow-y-auto rounded-2xl border bg-muted/15 p-3 sm:p-4">
                 {loadingMessages ? (
                   <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> {it ? "Caricamento conversazione…" : "Loading conversation…"}</div>
+                ) : failedChatId === selectedId && messageSnapshot?.id !== selectedId ? (
+                  <div className="m-auto space-y-2 text-center text-sm text-muted-foreground">
+                    <p role="alert">{it ? "Impossibile caricare la conversazione." : "Couldn't load the conversation."}</p>
+                    <Button variant="outline" size="sm" onClick={() => void refreshMessages(selected.id).then((loaded) => { if (loaded) void markRead(selected.id) })}>
+                      {it ? "Riprova" : "Try again"}
+                    </Button>
+                  </div>
                 ) : messages.length === 0 ? (
                   <div className="m-auto flex max-w-sm flex-col items-center gap-2 text-center text-muted-foreground">
                     <span className="grid size-11 place-items-center rounded-full bg-background shadow-sm"><MessageCircle className="size-5" /></span>
