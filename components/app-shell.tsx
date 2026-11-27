@@ -83,9 +83,13 @@ const HOTWHEELS_MOBILE_NAV: NavItem[] = [
 const SPEED_CHAMPIONS_CATALOG: NavItem = {
   href: "/speed-champions/catalog", labelKey: "nav.catalog", icon: LibraryBig,
 }
-const SPEED_CHAMPIONS_DESKTOP_NAV = [SPEED_CHAMPIONS_CATALOG]
-const SPEED_CHAMPIONS_MOBILE_NAV: NavItem[] = [
+const SPEED_CHAMPIONS_DESKTOP_NAV: NavItem[] = [
   SPEED_CHAMPIONS_CATALOG,
+  { href: "/speed-champions/collection", labelKey: "nav.collection", icon: Boxes },
+  { href: "/speed-champions/wishlist", labelKey: "nav.wishlist", icon: Heart },
+]
+const SPEED_CHAMPIONS_MOBILE_NAV: NavItem[] = [
+  ...SPEED_CHAMPIONS_DESKTOP_NAV,
   { href: "/profile", labelKey: "menu.profile", icon: UserIcon },
 ]
 

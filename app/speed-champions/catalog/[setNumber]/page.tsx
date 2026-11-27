@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink } from "lucide-react"
 import { LegoMarketPrices } from "@/components/speed-champions/market-prices"
+import { LegoListControls } from "@/components/speed-champions/personal-lists"
 import { SetGallery } from "@/components/speed-champions/gallery"
 import { speedChampionsSets, legoStatusDescriptions } from "@/lib/lego/catalog"
 import { LegoStatusBadge } from "@/components/speed-champions/status-badge"
@@ -57,6 +58,7 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
               completo.
             </p>
           )}
+          <LegoListControls setNumber={set.setNumber} />
           <LegoMarketPrices setNumber={set.setNumber} asOf={asOf} market={market} />
         </div>
       </div>
