@@ -23,10 +23,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { conversationLink, messagingInboxes, type MessagingUniverse } from "@/lib/messaging-inbox"
 
 type Conversation = Awaited<ReturnType<typeof getMyConversationsAction>>[number]
 type ChatMessage = Awaited<ReturnType<typeof getConversationMessagesAction>>[number]
-type UniverseFilter = "all" | "mini4wd" | "hotwheels"
+
 
 function universeBadge(vertical: Conversation["vertical"]) {
   return (
@@ -57,9 +58,8 @@ function messageTime(value: string, locale: "it" | "en") {
   })
 }
 
-export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
-  const scope = lego ? "speedchampions" : "existing"
-  const inboxPath = lego ? "/speed-champions/messages" : "/messages"
+export function MessagesScreenV2({ universe = "mini4wd" }: { universe?: MessagingUniverse } = {}) {
+  const inboxPath = messagingInboxes[universe]
   const { user } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
@@ -67,7 +67,6 @@ export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
   const searchParams = useSearchParams()
   const requestedConversationId = searchParams.get("conversation")
   const [conversations, setConversations] = React.useState<Conversation[]>([])
-  const [universeFilter, setUniverseFilter] = React.useState<UniverseFilter>("all")
   const [selectedId, setSelectedId] = React.useState<string | null>(null)
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -76,21 +75,17 @@ export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
   const [busy, setBusy] = React.useState(false)
   const messageViewportRef = React.useRef<HTMLDivElement | null>(null)
   const selected = conversations.find((conversation) => conversation.id === selectedId) ?? null
-  const filteredConversations = React.useMemo(
-    () => universeFilter === "all" ? conversations : conversations.filter((conversation) => conversation.vertical === universeFilter),
-    [conversations, universeFilter],
-  )
   const directOfferConversation = selected?.requestMessage.startsWith("Offerta iniziale ·") ?? false
 
   const refreshConversations = React.useCallback(async () => {
-    const rows = await getMyConversationsAction(scope)
+    const rows = await getMyConversationsAction(universe)
     setConversations(rows)
     setSelectedId((current) => {
       if (requestedConversationId && rows.some((row) => row.id === requestedConversationId)) return requestedConversationId
       if (current && rows.some((row) => row.id === current)) return current
       return null
     })
-  }, [requestedConversationId, scope])
+  }, [requestedConversationId, universe])
 
   React.useEffect(() => {
     if (!user) return
@@ -110,7 +105,7 @@ export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
   React.useEffect(() => {
     let cancelled = false
     setLoading(true)
-    getMyConversationsAction(scope)
+    getMyConversationsAction(universe)
       .then((rows) => {
         if (cancelled) return
         setConversations(rows)
@@ -122,7 +117,7 @@ export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
     return () => {
       cancelled = true
     }
-  }, [requestedConversationId, scope])
+  }, [requestedConversationId, universe])
 
   const refreshMessages = React.useCallback(async (conversationId: string) => {
     setLoadingMessages(true)
@@ -193,7 +188,7 @@ export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
   function selectConversation(id: string) {
     setSelectedId(id)
     setDraft("")
-    router.replace(`${inboxPath}?conversation=${id}`)
+    router.replace(conversationLink(universe, id))
   }
 
   function closeConversation() {
@@ -268,33 +263,19 @@ export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
 
         <Card className="overflow-hidden py-0">
           <CardHeader className="border-b bg-muted/20 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="text-base">{it ? "Conversazioni" : "Conversations"}</CardTitle>
-              {!lego && <div className="inline-flex rounded-lg border border-border bg-background p-0.5" aria-label={it ? "Filtra conversazioni per universo" : "Filter conversations by universe"}>
-                {(["all", "mini4wd", "hotwheels"] as const).map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setUniverseFilter(filter)}
-                    className={`rounded-md px-2.5 py-1.5 text-[10px] font-semibold transition-colors ${universeFilter === filter ? "bg-brand text-white" : "text-muted-foreground hover:bg-brand-muted hover:text-brand"}`}
-                  >
-                    {filter === "all" ? (it ? "Tutti" : "All") : filter === "hotwheels" ? "Hot Wheels" : "Mini 4WD"}
-                  </button>
-                ))}
-              </div>}
-            </div>
+            <CardTitle className="text-base">{it ? "Conversazioni" : "Conversations"}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {filteredConversations.length === 0 ? (
+            {conversations.length === 0 ? (
               <div className="px-4 py-10 text-center text-sm text-muted-foreground">
                 {it ? "Nessuna conversazione per questo universo." : "No conversations for this universe."}
               </div>
-            ) : filteredConversations.map((conversation, index) => (
+            ) : conversations.map((conversation, index) => (
               <button
                 type="button"
                 key={conversation.id}
                 onClick={() => selectConversation(conversation.id)}
-                className={`flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/45 ${index !== filteredConversations.length - 1 ? "border-b" : ""}`}
+                className={`flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/45 ${index !== conversations.length - 1 ? "border-b" : ""}`}
               >
                 <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand/10 font-semibold uppercase text-brand">
                   {conversation.otherUsername.slice(0, 1)}

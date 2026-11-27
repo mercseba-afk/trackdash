@@ -13,6 +13,7 @@ function load(file, mocks, globals = {}) {
   }).outputText
   vm.runInNewContext(source, { exports, console, ...globals, require(name) {
     if (name in mocks) return mocks[name]
+    if (name === '@/lib/messaging-inbox') return load('lib/messaging-inbox.ts', {})
     if (name === 'react/jsx-runtime') return { jsx: (type, props, key) => ({ type, props, key }), jsxs: (type, props, key) => ({ type, props, key }) }
     if (name === 'lucide-react' || name.startsWith('@/components/') || name === 'next/link') return new Proxy({}, { get: (_, key) => String(key) })
     throw Error('Unexpected import ' + name)
@@ -90,4 +91,33 @@ test('returning to a deal or reconnecting retrieves the latest offer, with no ba
   cleanups.forEach(fn => fn?.())
   assert.equal(f.events.size, 0)
   assert.ok(f.removed.includes(channel))
+})
+
+test('legacy notification links keep the exact conversation through login and universe routing', async () => {
+  const id = '129fcf3e-25a2-4bcd-8ff9-5ceebbcc3822'
+  let user = null
+  let row
+  const tx = {
+    select: () => tx,
+    from: () => tx,
+    innerJoin: () => tx,
+    where: async () => row ? [row] : [],
+  }
+  const { default: Page } = load('app/messages/page.tsx', {
+    'next/navigation': { redirect: (href) => { throw new Error(href) } },
+    '@/lib/auth/current-user': { getCurrentUser: async () => user },
+    '@/lib/db/rls': { withUserContext: async (_, run) => run(tx) },
+    '@/lib/db/schema': { categories: {}, conversations: {}, products: {} },
+    'drizzle-orm': { and: () => {}, eq: () => {}, or: () => {} },
+  })
+  const open = () => Page({ searchParams: Promise.resolve({ conversation: id }) })
+  await assert.rejects(open, { message: '/login?next=' + encodeURIComponent('/messages?conversation=' + id) })
+  user = { id: 'participant' }
+  await assert.rejects(open, { message: '/messages' })
+  row = { slug: 'speed-champions' }
+  await assert.rejects(open, { message: '/speed-champions/messages?conversation=' + id })
+  row = { slug: 'hotwheels' }
+  await assert.rejects(open, { message: '/hotwheels/messages?conversation=' + id })
+  row = { slug: 'mini4wd' }
+  assert.ok(await open())
 })

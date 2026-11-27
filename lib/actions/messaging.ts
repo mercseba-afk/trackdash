@@ -40,7 +40,7 @@ import type { MessagingScope } from "@/lib/db/queries/messaging-scope"
 
 async function getMessagingUser(scope: MessagingScope) {
   if (scope === "speedchampions") return getSpeedChampionsMessagingUser()
-  if (scope === "existing") return getCurrentUser()
+  if (scope === "existing" || scope === "hotwheels" || scope === "mini4wd") return getCurrentUser()
   return null
 }
 

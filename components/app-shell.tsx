@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getSpeedChampionsAccessAction } from "@/lib/actions/speed-champions-access"
+import { messagingInboxes } from "@/lib/messaging-inbox"
 import { getUnreadMessagingCountAction } from "@/lib/actions/messaging"
 import { createClient } from "@/lib/supabase/client"
 import { useStore } from "@/lib/store"
@@ -69,14 +70,14 @@ const HOTWHEELS_DESKTOP_NAV: NavItem[] = [
   { href: "/hotwheels/catalog", labelKey: "nav.catalog", icon: LibraryBig },
   { labelKey: "nav.collection", icon: Boxes, disabled: true },
   { labelKey: "nav.scanner", icon: ScanLine, disabled: true },
-  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
+  { href: "/hotwheels/messages", labelKey: "nav.messages", icon: MessageCircle },
 ]
 
 const HOTWHEELS_MOBILE_NAV: NavItem[] = [
   { href: "/hotwheels/catalog", labelKey: "nav.catalog", icon: LibraryBig },
   { labelKey: "nav.collection", icon: Boxes, disabled: true },
   { labelKey: "nav.scanner", icon: ScanLine, disabled: true },
-  { href: "/messages", labelKey: "nav.messages", icon: MessageCircle },
+  { href: "/hotwheels/messages", labelKey: "nav.messages", icon: MessageCircle },
   { href: "/profile", labelKey: "menu.profile", icon: UserIcon },
 ]
 
@@ -236,11 +237,11 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
       return
     }
     try {
-      setUnreadMessages(await getUnreadMessagingCountAction(isSpeedChampions ? "speedchampions" : "existing"))
+      setUnreadMessages(await getUnreadMessagingCountAction(vertical))
     } catch {
       // A notification badge should never make the app shell fail.
     }
-  }, [user, isSpeedChampions])
+  }, [user, vertical])
 
   React.useEffect(() => {
     if (!user) {
@@ -283,7 +284,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
           <nav className="hidden items-center gap-1 lg:flex">
             {desktopNav.map((item, index) => {
               const active = item.href ? isActive(pathname, item.href) : false
-              const isMessages = item.href === (isSpeedChampions ? "/speed-champions/messages" : "/messages")
+              const isMessages = item.href === messagingInboxes[vertical]
               if (item.disabled || !item.href) {
                 return (
                   <span
@@ -347,7 +348,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/96 pb-[max(env(safe-area-inset-bottom),0px)] backdrop-blur-md lg:hidden">
         {mobileNav.map((item, index) => {
           const active = item.href ? isActive(pathname, item.href) : false
-          const isMessages = item.href === (isSpeedChampions ? "/speed-champions/messages" : "/messages")
+          const isMessages = item.href === messagingInboxes[vertical]
           if (item.disabled || !item.href) {
             return (
               <span

@@ -4,5 +4,5 @@ import { getSpeedChampionsMessagingUser } from "@/lib/server/speed-champions-mes
 
 export default async function SpeedChampionsMessagesPage() {
   if (!(await getSpeedChampionsMessagingUser())) notFound()
-  return <MessagesScreenV2 lego />
+  return <MessagesScreenV2 universe="speedchampions" />
 }
