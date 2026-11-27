@@ -1,5 +1,6 @@
 "use client"
 
+import { RacingSectionNav } from "./section-nav"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LibraryBig, TrendingUp } from "lucide-react"
@@ -15,7 +16,14 @@ export function RacingCatalogNav({ lego = false }: { lego?: boolean }) {
     { path: `${prefix}/catalog`, icon: LibraryBig, label: it ? "Catalogo" : "Catalog" },
     { path: `${prefix}/market`, icon: TrendingUp, label: it ? "Valori di mercato" : "Market values" },
   ]
-  const otherCatalog = localizePublicPath(lego ? "/catalog" : "/speed-champions/catalog", locale)
+  const isMarket = pathname === localizePublicPath(`${prefix}/market`, locale)
+  const otherPrefix = lego ? "" : "/speed-champions"
+  const otherCatalog = localizePublicPath(`${otherPrefix}/${isMarket ? "market" : "catalog"}`, locale)
+  if (isMarket) return (
+    <div className="racing-market-nav">
+      <RacingSectionNav path="/market" legoPath="/speed-champions/market" selected={lego ? "lego" : "mini4wd"} locale={locale} label={it ? "Catalogo dei valori di mercato" : "Market value catalog"} />
+    </div>
+  )
   return (
     <nav className="racing-area-nav" aria-label={lego ? "LEGO Speed Champions" : "Tamiya Mini 4WD"}>
       <strong><span data-lego={lego} />{lego ? "LEGO Speed Champions" : "Tamiya Mini 4WD"}</strong>
@@ -24,7 +32,7 @@ export function RacingCatalogNav({ lego = false }: { lego?: boolean }) {
         const active = pathname === href || pathname.startsWith(`${href}/`)
         return <Link key={path} href={href} aria-current={active ? "page" : undefined}><Icon size={16} aria-hidden="true" />{label}</Link>
       })}</div>
-      <Link className="racing-area-other" href={otherCatalog}>{it ? "Passa a" : "Switch to"} {lego ? "Mini 4WD" : "LEGO"} →</Link>
+      <Link className="racing-area-other" href={otherCatalog}>{it ? "Passa a" : "Switch to"} {lego ? "Mini 4WD" : "LEGO Speed Champions"} →</Link>
     </nav>
   )
 }

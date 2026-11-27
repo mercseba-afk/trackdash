@@ -46,8 +46,8 @@ export default async function GuidePage({ params }: Props) {
   ] }
   return <PublicShell websiteOnly>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />
-    <article className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
-      <Link href={localizePublicPath("/guide", locale)} className="text-sm font-semibold text-brand">← {it ? "Tutte le guide" : "All guides"}</Link>
+    <article className="racing-article mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
+      <Link href={localizePublicPath(lego ? "/guide?catalog=lego" : "/guide", locale)} className="text-sm font-semibold text-brand">← {it ? "Tutte le guide" : "All guides"}</Link>
       <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-brand">{content.category}</p>
       <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-navy sm:text-5xl">{content.title}</h1>
       <p className="mt-5 text-sm text-muted-foreground">{it ? "Redazione TrackDash" : "TrackDash editorial team"} · <time dateTime={guide.published}>{new Intl.DateTimeFormat(it ? "it-IT" : "en-GB", { dateStyle: "long", timeZone: "UTC" }).format(new Date(guide.published))}</time></p>
@@ -58,7 +58,7 @@ export default async function GuidePage({ params }: Props) {
       <div className="mt-8 rounded-xl bg-brand-muted p-5"><Link href={localizePublicPath(guide.relatedPath, locale)} className="font-semibold text-brand">{lego ? (it ? "Vedi il set" : "View the set") : it ? "Esplora le release di" : "Explore releases of"} {guide.relatedLabel} →</Link></div>
       <details className="mt-8 border-t border-border pt-5 text-sm"><summary className="cursor-pointer font-semibold text-navy">{it ? "Fonti e riferimenti" : "Sources and references"}</summary><ul className="mt-3 space-y-3">{guide.sourceLinks.map(source => <li key={source.url}><a className="text-brand underline underline-offset-4" href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a></li>)}</ul></details>
       <div className="mt-8"><p className="text-sm font-semibold text-muted-foreground">{it ? "Leggi anche" : "Read next"}</p>{guides.filter(item => item.slug !== slug).map(item => <Link key={item.slug} href={localizePublicPath(`/guide/${item.slug}`, locale)} className="mt-2 block font-semibold text-brand">{item[locale].title} →</Link>)}</div>
-      <GuideCta locale={locale} />
+      <GuideCta locale={locale} lego={lego} />
     </article>
   </PublicShell>
 }

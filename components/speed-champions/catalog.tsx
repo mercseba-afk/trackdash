@@ -32,7 +32,7 @@ export function SpeedChampionsCatalog({ marketSummaries, locale, initialQuery }:
   const filtered = Boolean(filters.query || filters.brand || filters.year || filters.status || filters.format)
   return (
     <div className="space-y-7">
-      <section className="relative overflow-hidden rounded-3xl bg-[#102843] px-6 py-6 text-white sm:px-9 sm:py-9">
+      <section className="racing-lego-catalog-hero relative overflow-hidden rounded-3xl bg-[#102843] px-6 py-6 text-white sm:px-9 sm:py-9">
         <div
           className="absolute -right-16 -top-24 size-80 rounded-full border-[45px] border-white/5"
           aria-hidden="true"

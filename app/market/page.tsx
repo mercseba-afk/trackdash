@@ -47,7 +47,7 @@ export default async function MarketPage() {
 
   return (
     <PublicShell>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-8 md:px-6 lg:px-8">
+      <div className="racing-market-page mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-8 md:px-6 lg:px-8">
         <CatalogAreaNav />
         <MarketScreen products={products} />
       </div>

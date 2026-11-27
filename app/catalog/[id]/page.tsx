@@ -117,7 +117,7 @@ export default async function ProductPage({ params }: { params: ProductPageParam
   if (product.catalogLaunchStatus === "coming_soon") {
     return (
       <PublicShell>
-        <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+        <div className="racing-catalog-detail mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
           <CatalogComingSoonScreen product={product} />
         </div>
       </PublicShell>
@@ -185,7 +185,7 @@ export default async function ProductPage({ params }: { params: ProductPageParam
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
       />
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+      <div className="racing-catalog-detail mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <ProductDetailScreen
           product={product}
           related={related}

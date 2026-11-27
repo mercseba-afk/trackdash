@@ -169,7 +169,7 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
 
     return (
       <PublicShell>
-        <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+        <div className="racing-catalog-detail mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
           <CatalogComingSoonScreen product={product} />
         </div>
       </PublicShell>
@@ -244,7 +244,7 @@ export default async function ReleasePage({ params }: { params: ReleasePageParam
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
       />
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+      <div className="racing-catalog-detail mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <ReleaseDetailScreen
           product={product}
           release={release}

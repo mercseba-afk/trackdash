@@ -1,4 +1,6 @@
-import { isRacingStudioPreview } from "@/lib/racing-studio"
+import { RacingSectionNav, selectedRacingCatalog } from "@/components/racing-studio/section-nav"
+import { RacingPageHero } from "@/components/racing-studio/page-hero"
+import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { publicAbsoluteUrl, publicLanguageAlternates } from "@/lib/seo/catalog-paths"
@@ -22,7 +24,20 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 export const dynamic = "force-dynamic"
-export default async function ShopPage() {
-  const copies = await getShopCopies()
-  return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8"><ShopScreen preview={isRacingStudioPreview()} copies={copies} /></div></PublicShell>
+export default async function ShopPage({ searchParams }: { searchParams?: Promise<{ catalog?: string | string[] }> }) {
+  const preview = isRacingStudioPreview()
+  const studio = isRacingStudioEnabled()
+  const catalog = studio ? selectedRacingCatalog((await searchParams)?.catalog) : "mini4wd"
+  const copies = catalog === "mini4wd" ? await getShopCopies() : preview
+    ? (await import("@/lib/data/racing-preview-listings")).racingPreviewListings(undefined, "lego")
+    : []
+  const locale = (await cookies()).get("trackdash.locale")?.value === "en" ? "en" : "it"
+  const it = locale === "it"
+  return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+    {studio && <>
+      <RacingPageHero kicker="TrackDash" title={it ? "Mercatino tra collezionisti" : "Collector marketplace"} description={it ? "Scegli un catalogo. Consulta le copie disponibili e confronta foto, condizioni e prezzi richiesti." : "Choose a catalog. Browse available copies and compare photos, condition and asking prices."} />
+      <RacingSectionNav path="/shop" selected={catalog} locale={locale} label={it ? "Catalogo del mercatino" : "Marketplace catalog"} />
+    </>}
+    <ShopScreen preview={preview} copies={copies} lego={catalog === "lego"} studio={studio} />
+  </div></PublicShell>
 }

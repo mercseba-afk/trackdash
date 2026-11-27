@@ -35,7 +35,7 @@ export async function SpeedChampionsSetPage({ setNumber, locale }: { setNumber: 
     [copy("Serie", "Series"), set.series],
   ]
   return (
-    <div className="space-y-6">
+    <div className="racing-catalog-detail space-y-6">
       <Link
         href={localizePublicPath(speedChampionsCatalogPath, locale)}
         className="inline-flex items-center gap-2 text-sm font-medium text-blue-700"

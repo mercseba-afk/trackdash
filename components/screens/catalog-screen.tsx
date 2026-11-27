@@ -106,7 +106,7 @@ export function CatalogScreen({ products, initialQuery = "" }: { products: Produ
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
-      <section className="overflow-hidden rounded-3xl border border-brand/10 bg-gradient-to-br from-white via-white to-brand/5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+      <section className="racing-catalog-hero overflow-hidden rounded-3xl border border-brand/10 bg-gradient-to-br from-white via-white to-brand/5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
         <div className="flex flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-7">
           <div className="max-w-2xl">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">TRACKDASH · MINI 4WD</p>

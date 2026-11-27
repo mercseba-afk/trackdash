@@ -28,7 +28,7 @@ function CopyImage({ copy, large = false }: { copy: ShopCopy; large?: boolean })
 
 const CONDITIONS: Record<string, string> = { Sealed: "Sigillato", "New / Opened": "Nuovo / Aperto", Built: "Montato", Used: "Usato", Incomplete: "Incompleto" }
 
-export function ShopScreen({ copies, detail = false, preview = false }: { copies: ShopCopy[]; detail?: boolean; preview?: boolean }) {
+export function ShopScreen({ copies, detail = false, preview = false, lego = false, studio = false }: { copies: ShopCopy[]; detail?: boolean; preview?: boolean; lego?: boolean; studio?: boolean }) {
   const { locale } = useI18n()
   const { user, hydrated } = useStore()
   const [authPrompt, setAuthPrompt] = React.useState(false)
@@ -42,6 +42,7 @@ export function ShopScreen({ copies, detail = false, preview = false }: { copies
   const condition = (copy: ShopCopy) => it ? CONDITIONS[copy.condition] ?? copy.condition : copy.condition
   const copy = copies[0]
   const shopHref = localizePublicPath("/shop", locale)
+  const catalogSuffix = lego ? "?catalog=lego" : ""
   const returnTo = copy ? `${shopHref}/${copy.id}?offer=1` : shopHref
   const signupHref = `/signup?next=${encodeURIComponent(returnTo)}`
   const loginHref = `/login?next=${encodeURIComponent(returnTo)}`
@@ -61,7 +62,7 @@ export function ShopScreen({ copies, detail = false, preview = false }: { copies
   return <div className="space-y-6 pb-16">
     {preview && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">{it ? "Annunci dimostrativi. L’invio delle offerte è disattivato in anteprima." : "Example listings. Offers are disabled in this preview."}</p>}
     {detail && copy ? <>
-      <Link href={shopHref} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand"><ArrowLeft className="size-4" />{it ? "Torna al mercatino" : "Back to marketplace"}</Link>
+      <Link href={`${shopHref}${catalogSuffix}`} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand"><ArrowLeft className="size-4" />{it ? "Torna al mercatino" : "Back to marketplace"}</Link>
       <div className="grid gap-7 lg:grid-cols-[1.15fr_1fr] lg:items-start">
         <CopyImage key={copy.imageUrl} copy={copy} large />
         <div className="space-y-5 rounded-2xl border bg-white p-5 md:p-7">
@@ -77,7 +78,9 @@ export function ShopScreen({ copies, detail = false, preview = false }: { copies
     </> : <>
       <section className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-[#edf4ff] via-white to-[#f3f7ff] p-6 md:p-8">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-brand"><Store className="size-4" />{it ? "Tra collezionisti" : "Collector to collector"}</div>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy md:text-4xl">{it ? "Mini 4WD in vendita tra collezionisti" : "Mini 4WD for sale by collectors"}</h1>
+        {studio
+          ? <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy md:text-4xl">{lego ? (it ? "LEGO Speed Champions in vendita" : "LEGO Speed Champions for sale") : (it ? "Mini 4WD in vendita tra collezionisti" : "Mini 4WD for sale by collectors")}</h2>
+          : <h1 className="mt-4 text-3xl font-semibold tracking-tight text-navy md:text-4xl">{it ? "Mini 4WD in vendita tra collezionisti" : "Mini 4WD for sale by collectors"}</h1>}
         <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{it ? "Scopri le release disponibili, confronta i prezzi richiesti e contatta i collezionisti. Crea un account gratuito per fare la tua offerta." : "Explore available releases, compare asking prices and connect with collectors. Create a free account to make your offer."}</p>
       </section>
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm font-medium text-muted-foreground">{visible.length} {it ? (visible.length === 1 ? "copia disponibile" : "copie disponibili") : (visible.length === 1 ? "available copy" : "available copies")}</p><div className="relative w-full sm:w-80"><Search className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label={it ? "Cerca tra le copie in vendita" : "Search copies for sale"} placeholder={it ? "Cerca modello, release o codice…" : "Search model, release or code…"} className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>
@@ -86,7 +89,7 @@ export function ShopScreen({ copies, detail = false, preview = false }: { copies
           {visible.map((item) => (
             <Link
               key={item.id}
-              href={`${shopHref}/${item.id}`}
+              href={`${shopHref}/${item.id}${catalogSuffix}`}
               className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand"
             >
               <CopyImage key={item.imageUrl} copy={item} />
@@ -119,7 +122,7 @@ export function ShopScreen({ copies, detail = false, preview = false }: { copies
             </Link>
           ))}
         </div>
-      ) : <div className="rounded-2xl border border-dashed p-10 text-center"><Store className="mx-auto size-9 text-brand/50" /><h2 className="mt-3 font-semibold">{it ? (needle ? "Prova un’altra ricerca" : "La vetrina aspetta le prime copie") : (needle ? "Try another search" : "The marketplace is ready for the first copies")}</h2><p className="mt-2 text-sm text-muted-foreground">{it ? "Ne hai una da proporre? Aprila alle offerte dalla tua collezione." : "Have a copy to offer? Make it available from your collection."}</p><Button className="mt-4" render={<Link href="/collection" />}>{it ? "Vai alla collezione" : "Go to collection"}</Button></div>}
+      ) : <div className="rounded-2xl border border-dashed p-10 text-center"><Store className="mx-auto size-9 text-brand/50" /><h2 className="mt-3 font-semibold">{it ? (needle ? "Prova un’altra ricerca" : "La vetrina aspetta le prime copie") : (needle ? "Try another search" : "The marketplace is ready for the first copies")}</h2><p className="mt-2 text-sm text-muted-foreground">{lego ? (it ? "Scopri i set Speed Champions nel catalogo." : "Explore the Speed Champions catalog.") : (it ? "Ne hai una da proporre? Aprila alle offerte dalla tua collezione." : "Have a copy to offer? Make it available from your collection.")}</p><Button className="mt-4" render={<Link href={lego ? localizePublicPath("/speed-champions/catalog", locale) : preview ? "/login" : "/collection"} />}>{lego ? (it ? "Vai al catalogo LEGO" : "Open the LEGO catalog") : (it ? "Vai alla collezione" : "Go to collection")}</Button></div>}
     </>}
     {!detail ? <section aria-labelledby="marketplace-how" className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
       <h2 id="marketplace-how" className="text-xl font-semibold tracking-tight text-navy">{it ? "Come funziona il mercatino" : "How the marketplace works"}</h2>
