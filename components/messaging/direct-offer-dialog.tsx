@@ -34,10 +34,12 @@ export function DirectOfferDialog({
   target,
   onOpenChange,
   locale,
+  messagesPath = "/messages",
 }: {
   target: OfferTarget | null
   onOpenChange: (open: boolean) => void
   locale: "it" | "en"
+  messagesPath?: "/messages" | "/speed-champions/messages"
 }) {
   const router = useRouter()
   const it = locale === "it"
@@ -68,7 +70,7 @@ export function DirectOfferDialog({
       const result = await startMarketplaceOfferAction(target.shareId, numericAmount, currency)
       toast.success(it ? `Offerta inviata: ${displayAmount}` : `Offer sent: ${displayAmount}`)
       onOpenChange(false)
-      router.push(`/messages?conversation=${result.conversationId}`)
+      router.push(`${messagesPath}?conversation=${result.conversationId}`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : it ? "Impossibile inviare l'offerta" : "Couldn't send offer")
     } finally {

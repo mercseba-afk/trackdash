@@ -1,3 +1,5 @@
+import { LegoPilotOffer } from "@/components/speed-champions/pilot-offer"
+import { getLegoPilotShare } from "@/lib/server/lego-pilot-share"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink } from "lucide-react"
@@ -15,6 +17,7 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
   const { setNumber } = await params
   const set = speedChampionsSets.find((entry) => entry.setNumber === setNumber)
   if (!set) notFound()
+  const pilotShare = setNumber === "75890" ? await getLegoPilotShare(set.releaseId) : null
   const asOf = new Date().toISOString()
   const market = (await loadLegoMarketSummaries([setNumber], asOf))[setNumber]
   const facts = [
@@ -58,6 +61,7 @@ export default async function Page({ params }: { params: Promise<{ setNumber: st
               completo.
             </p>
           )}
+          {pilotShare && <LegoPilotOffer shareId={pilotShare} />}
           <LegoListControls setNumber={set.setNumber} />
           <LegoMarketPrices setNumber={set.setNumber} asOf={asOf} market={market} />
         </div>

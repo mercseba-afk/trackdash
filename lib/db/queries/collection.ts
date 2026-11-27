@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, eq } from "drizzle-orm"
+import { and, eq, ne } from "drizzle-orm"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { db as defaultDb } from "../index"
 import { collectionItems } from "../schema"
@@ -22,7 +22,7 @@ export type NewCollectionItem = InferInsertModel<typeof collectionItems>
 
 export async function getCollectionForUser(userId: string, dbClient: Database = defaultDb) {
   return dbClient.query.collectionItems.findMany({
-    where: eq(collectionItems.userId, userId),
+    where: and(eq(collectionItems.userId, userId), ne(collectionItems.id, "786c024c-ad92-4c0b-9743-0a6237346248")),
     with: { product: true, release: true, photos: true },
     orderBy: (fields, { desc }) => [desc(fields.createdAt)],
   })
