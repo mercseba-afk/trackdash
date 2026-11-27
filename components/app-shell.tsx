@@ -87,6 +87,7 @@ const SPEED_CHAMPIONS_DESKTOP_NAV: NavItem[] = [
   SPEED_CHAMPIONS_CATALOG,
   { href: "/speed-champions/collection", labelKey: "nav.collection", icon: Boxes },
   { href: "/speed-champions/wishlist", labelKey: "nav.wishlist", icon: Heart },
+  { href: "/speed-champions/messages", labelKey: "nav.messages", icon: MessageCircle },
 ]
 const SPEED_CHAMPIONS_MOBILE_NAV: NavItem[] = [
   ...SPEED_CHAMPIONS_DESKTOP_NAV,
@@ -257,11 +258,11 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
       return
     }
     try {
-      setUnreadMessages(await getUnreadMessagingCountAction())
+      setUnreadMessages(await getUnreadMessagingCountAction(isSpeedChampions ? "speedchampions" : "existing"))
     } catch {
       // A notification badge should never make the app shell fail.
     }
-  }, [user])
+  }, [user, isSpeedChampions])
 
   React.useEffect(() => {
     if (!user) {
@@ -304,7 +305,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
           <nav className="hidden items-center gap-1 lg:flex">
             {desktopNav.map((item, index) => {
               const active = item.href ? isActive(pathname, item.href) : false
-              const isMessages = item.href === "/messages"
+              const isMessages = item.href === (isSpeedChampions ? "/speed-champions/messages" : "/messages")
               if (item.disabled || !item.href) {
                 return (
                   <span
@@ -368,7 +369,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd" }
       <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/96 pb-[max(env(safe-area-inset-bottom),0px)] backdrop-blur-md lg:hidden">
         {mobileNav.map((item, index) => {
           const active = item.href ? isActive(pathname, item.href) : false
-          const isMessages = item.href === "/messages"
+          const isMessages = item.href === (isSpeedChampions ? "/speed-champions/messages" : "/messages")
           if (item.disabled || !item.href) {
             return (
               <span

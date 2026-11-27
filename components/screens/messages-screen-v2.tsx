@@ -57,7 +57,9 @@ function messageTime(value: string, locale: "it" | "en") {
   })
 }
 
-export function MessagesScreenV2() {
+export function MessagesScreenV2({ lego = false }: { lego?: boolean } = {}) {
+  const scope = lego ? "speedchampions" : "existing"
+  const inboxPath = lego ? "/speed-champions/messages" : "/messages"
   const { user } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
@@ -66,7 +68,7 @@ export function MessagesScreenV2() {
   const requestedConversationId = searchParams.get("conversation")
   const [conversations, setConversations] = React.useState<Conversation[]>([])
   const [universeFilter, setUniverseFilter] = React.useState<UniverseFilter>("all")
-  const [selectedId, setSelectedId] = React.useState<string | null>(requestedConversationId)
+  const [selectedId, setSelectedId] = React.useState<string | null>(null)
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [loading, setLoading] = React.useState(true)
   const [loadingMessages, setLoadingMessages] = React.useState(false)
@@ -81,14 +83,14 @@ export function MessagesScreenV2() {
   const directOfferConversation = selected?.requestMessage.startsWith("Offerta iniziale ·") ?? false
 
   const refreshConversations = React.useCallback(async () => {
-    const rows = await getMyConversationsAction()
+    const rows = await getMyConversationsAction(scope)
     setConversations(rows)
     setSelectedId((current) => {
       if (requestedConversationId && rows.some((row) => row.id === requestedConversationId)) return requestedConversationId
       if (current && rows.some((row) => row.id === current)) return current
       return null
     })
-  }, [requestedConversationId])
+  }, [requestedConversationId, scope])
 
   React.useEffect(() => {
     if (!user) return
@@ -108,7 +110,7 @@ export function MessagesScreenV2() {
   React.useEffect(() => {
     let cancelled = false
     setLoading(true)
-    getMyConversationsAction()
+    getMyConversationsAction(scope)
       .then((rows) => {
         if (cancelled) return
         setConversations(rows)
@@ -120,7 +122,7 @@ export function MessagesScreenV2() {
     return () => {
       cancelled = true
     }
-  }, [requestedConversationId])
+  }, [requestedConversationId, scope])
 
   const refreshMessages = React.useCallback(async (conversationId: string) => {
     setLoadingMessages(true)
@@ -191,14 +193,14 @@ export function MessagesScreenV2() {
   function selectConversation(id: string) {
     setSelectedId(id)
     setDraft("")
-    router.replace(`/messages?conversation=${id}`)
+    router.replace(`${inboxPath}?conversation=${id}`)
   }
 
   function closeConversation() {
     setSelectedId(null)
     setMessages([])
     setDraft("")
-    router.replace("/messages")
+    router.replace(inboxPath)
   }
 
   const submitMessage = React.useCallback(async () => {
@@ -268,7 +270,7 @@ export function MessagesScreenV2() {
           <CardHeader className="border-b bg-muted/20 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-base">{it ? "Conversazioni" : "Conversations"}</CardTitle>
-              <div className="inline-flex rounded-lg border border-border bg-background p-0.5" aria-label={it ? "Filtra conversazioni per universo" : "Filter conversations by universe"}>
+              {!lego && <div className="inline-flex rounded-lg border border-border bg-background p-0.5" aria-label={it ? "Filtra conversazioni per universo" : "Filter conversations by universe"}>
                 {(["all", "mini4wd", "hotwheels"] as const).map((filter) => (
                   <button
                     key={filter}
@@ -279,7 +281,7 @@ export function MessagesScreenV2() {
                     {filter === "all" ? (it ? "Tutti" : "All") : filter === "hotwheels" ? "Hot Wheels" : "Mini 4WD"}
                   </button>
                 ))}
-              </div>
+              </div>}
             </div>
           </CardHeader>
           <CardContent className="p-0">

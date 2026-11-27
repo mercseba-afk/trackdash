@@ -12,6 +12,8 @@ import {
 } from "../schema"
 import type { Database } from "../types"
 
+import { messagingProductScope, type MessagingScope } from "./messaging-scope"
+
 export type ConversationDecision = "accepted" | "declined"
 
 export async function createConversationRequest(
@@ -81,9 +83,9 @@ export async function createConversationRequest(
   throw new Error("Couldn't create this message request")
 }
 
-export async function getConversationsForUser(userId: string, dbClient: Database = defaultDb) {
+export async function getConversationsForUser(userId: string, dbClient: Database = defaultDb, scope: MessagingScope = "existing") {
   return dbClient.query.conversations.findMany({
-    where: or(eq(conversations.ownerId, userId), eq(conversations.requesterId, userId)),
+    where: and(or(eq(conversations.ownerId, userId), eq(conversations.requesterId, userId)), messagingProductScope(conversations.productId, scope)),
     with: { product: true, release: true, collectionShare: true },
     orderBy: (fields) => [desc(fields.updatedAt)],
   })
@@ -150,7 +152,7 @@ export async function insertMessage(
 // Badge count = unread incoming chat messages + unseen pending requests owned
 // by this collector. Counting events (rather than conversations) gives the
 // familiar 1, 2, 3… badge while keeping a pending request worth exactly one.
-export async function getUnreadMessagingCount(userId: string, dbClient: Database = defaultDb) {
+export async function getUnreadMessagingCount(userId: string, dbClient: Database = defaultDb, scope: MessagingScope = "existing") {
   const rows = await dbClient.execute(sql<{ unread_count: number }>`
     with incoming_messages as (
       select m.id
@@ -159,6 +161,7 @@ export async function getUnreadMessagingCount(userId: string, dbClient: Database
       left join public.conversation_reads cr
         on cr.conversation_id = c.id and cr.user_id = ${userId}::uuid
       where (c.owner_id = ${userId}::uuid or c.requester_id = ${userId}::uuid)
+        and ${messagingProductScope(sql`c.product_id`, scope)}
         and m.sender_id <> ${userId}::uuid
         and m.created_at > coalesce(cr.last_read_at, '-infinity'::timestamptz)
     ),
@@ -168,6 +171,7 @@ export async function getUnreadMessagingCount(userId: string, dbClient: Database
       left join public.conversation_reads cr
         on cr.conversation_id = c.id and cr.user_id = ${userId}::uuid
       where c.owner_id = ${userId}::uuid
+        and ${messagingProductScope(sql`c.product_id`, scope)}
         and c.status = 'pending'
         and c.created_at > coalesce(cr.last_read_at, '-infinity'::timestamptz)
     )
