@@ -3,10 +3,12 @@ import "server-only"
 import { sql } from "drizzle-orm"
 import { db as defaultDb } from "../index"
 import type { Database } from "../types"
+import { messagingProductScope, type MessagingScope } from "./messaging-scope"
 
 export async function getUnreadDealNotificationCount(
   userId: string,
   dbClient: Database = defaultDb,
+  scope: MessagingScope = "existing",
 ) {
   const rows = await dbClient.execute(sql<{ unread_count: number }>`
     with pending_incoming_offers as (
@@ -16,6 +18,7 @@ export async function getUnreadDealNotificationCount(
       left join public.conversation_reads cr
         on cr.conversation_id = c.id and cr.user_id = ${userId}::uuid
       where (c.owner_id = ${userId}::uuid or c.requester_id = ${userId}::uuid)
+        and ${messagingProductScope(sql`c.product_id`, scope)}
         and c.status = 'accepted'
         and o.creator_id <> ${userId}::uuid
         and o.status = 'pending'
@@ -26,6 +29,7 @@ export async function getUnreadDealNotificationCount(
       from public.marketplace_offers o
       join public.conversations c on c.id = o.conversation_id
       where c.owner_id = ${userId}::uuid
+        and ${messagingProductScope(sql`c.product_id`, scope)}
         and o.status = 'accepted'
         and o.deal_status = 'open'
         and o.followup_due_at is not null
@@ -34,7 +38,9 @@ export async function getUnreadDealNotificationCount(
     pending_buyer_confirmations as (
       select s.id
       from public.marketplace_sales s
+      join public.conversations c on c.id = s.conversation_id
       where s.buyer_id = ${userId}::uuid
+        and ${messagingProductScope(sql`c.product_id`, scope)}
         and s.status = 'pending_confirmation'
     )
     select (

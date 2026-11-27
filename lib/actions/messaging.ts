@@ -35,6 +35,15 @@ import { recomputeReleaseMarketSignal } from "@/lib/market/pipeline/market-r3-se
 import type { MarketCondition } from "@/lib/market/pipeline/types"
 import { COLLECTIBLE_VERTICALS, type CollectibleVertical } from "@/lib/verticals"
 
+import { getSpeedChampionsMessagingUser } from "@/lib/server/speed-champions-messaging-access"
+import type { MessagingScope } from "@/lib/db/queries/messaging-scope"
+
+async function getMessagingUser(scope: MessagingScope) {
+  if (scope === "speedchampions") return getSpeedChampionsMessagingUser()
+  if (scope === "existing") return getCurrentUser()
+  return null
+}
+
 const DEAL_CURRENCIES = new Set<DealCurrency>(["EUR", "USD", "JPY", "GBP"])
 
 function cleanMessage(value: string, max: number) {
@@ -99,13 +108,13 @@ export async function createConversationRequestAction(collectionShareId: string,
   return { id: row.id, status: row.status }
 }
 
-export async function getMyConversationsAction() {
-  const user = await getCurrentUser()
+export async function getMyConversationsAction(scope: MessagingScope = "existing") {
+  const user = await getMessagingUser(scope)
   if (!user) return []
 
   return withUserContext(user.id, async (tx) => {
     const [rows, blocks] = await Promise.all([
-      getConversationsForUser(user.id, tx),
+      getConversationsForUser(user.id, tx, scope),
       getBlocksForUser(user.id, tx),
     ])
 
@@ -117,8 +126,8 @@ export async function getMyConversationsAction() {
       const offerStillOpen = row.collectionShare?.shareMode === "open_to_offers"
       const rawAskingPrice = row.collectionShare?.askingPrice
 
-      const vertical: CollectibleVertical =
-        row.product.categoryId === COLLECTIBLE_VERTICALS.hotwheels.categoryId ? "hotwheels" : "mini4wd"
+      const vertical: CollectibleVertical | "speedchampions" =
+        scope === "speedchampions" ? scope : row.product.categoryId === COLLECTIBLE_VERTICALS.hotwheels.categoryId ? "hotwheels" : "mini4wd"
 
       return {
         id: row.id,
@@ -149,13 +158,13 @@ export async function getMyConversationsAction() {
   })
 }
 
-export async function getUnreadMessagingCountAction() {
-  const user = await getCurrentUser()
+export async function getUnreadMessagingCountAction(scope: MessagingScope = "existing") {
+  const user = await getMessagingUser(scope)
   if (!user) return 0
   return withUserContext(user.id, async (tx) => {
     const [messages, deals] = await Promise.all([
-      getUnreadMessagingCount(user.id, tx),
-      getUnreadDealNotificationCount(user.id, tx),
+      getUnreadMessagingCount(user.id, tx, scope),
+      getUnreadDealNotificationCount(user.id, tx, scope),
     ])
     return messages + deals
   })
