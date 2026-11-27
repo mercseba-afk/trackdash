@@ -470,3 +470,38 @@ test("optional reserve source failure preserves public map and release detail", 
   assert.equal(map.r.representativeAskItemEUR, 30)
   assert.deepEqual(map.r, detail)
 })
+
+test("public catalog shares a cache per vertical and excludes hidden releases before storing", async () => {
+  const entries = new Map()
+  const incrementalCache = {
+    generateSimpleCacheKey: async (key) => key,
+    get: async (key) => entries.has(key) ? { value: entries.get(key), isStale: false } : null,
+    set: async (key, value) => { entries.set(key, value) },
+  }
+  const reads = []
+  const load = loader({ now: BASE }, {
+    "next/cache": { unstable_cache },
+    "@/lib/db/queries/catalog": {
+      listProductsForVertical: async (vertical) => {
+        reads.push(vertical)
+        const releases = [{ catalogVisibility: "public" }, { catalogVisibility: "research_only" }]
+        return [{ id: vertical, releases }, { id: "archived", metadata: { catalog_visibility: "archived" }, releases }]
+      },
+    },
+    "./mappers": { mapProductRow: (row) => row },
+    "@/lib/seo/catalog-paths": {},
+  })
+  const { fetchCatalogProductsForVertical } = load("lib/actions/catalog.ts")
+  async function request(vertical) {
+    const store = { incrementalCache, nextFetchId: 1, isStaticGeneration: false }
+    const result = await workAsyncStorage.run(store, () => fetchCatalogProductsForVertical(vertical))
+    await Promise.all(Object.values(store.pendingRevalidates ?? {}))
+    return JSON.parse(JSON.stringify(result))
+  }
+
+  const mini = await request("mini4wd")
+  assert.deepEqual(mini, [{ id: "mini4wd", releases: [{ catalogVisibility: "public" }] }])
+  assert.deepEqual(await request("mini4wd"), mini)
+  assert.equal((await request("hotwheels"))[0].id, "hotwheels")
+  assert.deepEqual(reads, ["mini4wd", "hotwheels"])
+})

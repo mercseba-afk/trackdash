@@ -1,5 +1,7 @@
 import "server-only"
 
+import { unstable_cache } from "next/cache"
+
 import { getProductById as getProductByIdQuery, getProductBySlug as getProductBySlugQuery, listProductsForVertical as listProductsForVerticalQuery, listProductsByIds as listProductsByIdsQuery } from "@/lib/db/queries/catalog"
 import type { CollectibleVertical } from "@/lib/verticals"
 import { mapProductRow } from "./mappers"
@@ -44,7 +46,7 @@ function withProgressivePublicProjection(product: ReturnType<typeof mapProductRo
   }
 }
 
-export async function fetchCatalogProductsForVertical(vertical: CollectibleVertical) {
+async function readPublicCatalogProducts(vertical: CollectibleVertical) {
   const rows = await listProductsForVerticalQuery(vertical, 500)
   return rows
     .filter(isCatalogVisible)
@@ -52,6 +54,17 @@ export async function fetchCatalogProductsForVertical(vertical: CollectibleVerti
     .filter((row) => row.releases.length > 0)
     .map(mapProductRow)
     .map(withProgressivePublicProjection)
+}
+
+// The mapped catalog contains only public data and serializable values.
+const readCachedPublicCatalogProducts = unstable_cache(
+  readPublicCatalogProducts,
+  ["trackdash-public-catalog-v1"],
+  { revalidate: 60 },
+)
+
+export async function fetchCatalogProductsForVertical(vertical: CollectibleVertical) {
+  return readCachedPublicCatalogProducts(vertical)
 }
 
 export async function fetchCatalogProducts() {
