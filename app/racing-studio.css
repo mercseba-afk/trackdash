@@ -27,9 +27,9 @@
 .racing-header { position: sticky; top: 0; z-index: 45; background: #fff; border-bottom: 1px solid var(--racing-line); box-shadow: 0 2px 16px #090f1910; }
 .racing-header-row { min-height: 74px; display: flex; align-items: center; gap: clamp(10px, 1.8vw, 25px); }
 .racing-logo { width: clamp(103px, 12vw, 157px); height: auto; object-fit: contain; }
-.racing-chip, .racing-segmented button { display: inline-flex; justify-content: center; align-items: center; gap: .5rem; border-radius: 999px; border: 1px solid var(--racing-line); background: #f1f4fb; color: var(--racing-ink); min-height: 40px; padding: .5rem .8rem; font-size: .82rem; font-weight: 650; cursor: pointer; }
+.racing-chip, .racing-segmented button { display: inline-flex; justify-content: center; align-items: center; gap: .5rem; border-radius: 999px; border: 1px solid #b8c8df; background: #eaf0fb; color: #10264a; min-height: 42px; padding: .55rem .95rem; font-size: .84rem; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px #10264a12; }
 .racing-chip:hover { background: #e5edff; }
-.racing-dots { width: 20px; height: 10px; background: radial-gradient(circle at 4px 50%, var(--racing-blue) 3px, transparent 4px), radial-gradient(circle at 15px 50%, #e69418 3px, transparent 4px); }
+.racing-dots { width: 22px; height: 12px; border-radius: 8px; background: radial-gradient(circle at 5px 50%, #174bd1 4px, transparent 4.5px), radial-gradient(circle at 17px 50%, #c36c00 4px, transparent 4.5px); }
 .racing-catalog-menu { position: relative; }
 .racing-dropdown { position: absolute; top: calc(100% + 12px); left: 0; display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(510px, 87vw); background: #fff; padding: 14px; border: 1px solid var(--racing-line); border-radius: 13px; box-shadow: 0 18px 48px #10182430; }
 .racing-dropdown a { display: grid; gap: 7px; border: 1px solid var(--racing-line); border-radius: 9px; padding: 8px; background: var(--racing-paper); }
@@ -149,7 +149,8 @@
   .racing-mobile-account { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: .6rem; border-top: 1px solid var(--racing-line); }
   .racing-catalog-menu { position: static; }
   .racing-dropdown { width: auto; inset-inline: var(--racing-gutter); top: calc(100% + 2px); }
-  .racing-dots { display: none; }
+  .racing-chip { min-height: 44px; padding-inline: .85rem; }
+  .racing-dots { display: inline-block; }
 }
 @media(max-width: 480px) {
   .racing-feature, .racing-feature.racing-wide, .racing-feature.racing-value-feature { grid-column: span 12; min-height: auto; }
@@ -177,7 +178,10 @@
 .racing-info-card h2 { font-size: clamp(1.25rem,2vw,1.7rem); line-height: 1.15; font-weight: 730; }
 .racing-info-card p { color: #506176; }
 .racing-info-card label { width: 100%; }
+.racing-auth-screen .auth-racing-logo-mobile { width: min(270px, 82vw); height: 86px; }
 .racing-auth-screen { --primary: #245ce7; --brand: #245ce7; --background: #fbfcfe; --border: #dce2ed; }
+.racing-auth-screen .auth-racing-logo { width: clamp(230px, 28vw, 330px); height: 92px; }
+.racing-auth-screen .auth-racing-logo img { object-position: left center; }
 .racing-auth-screen .racing-auth-cover { background: linear-gradient(135deg,#090f19fa 20%,#090f19ba 85%),url("/racing-studio/track.webp") center/cover; }
 
 .racing-page-hero {

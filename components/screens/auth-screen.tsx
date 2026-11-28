@@ -47,12 +47,12 @@ export function AuthScreen({ mode, nextPath, confirmationError = false, racing =
   return (
     <div className={`relative min-h-svh bg-background lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,.95fr)] ${racing ? "racing-auth-screen" : ""}`}>
       <div className="absolute right-4 top-4 z-30 flex items-center rounded-full border border-border/70 bg-white/90 p-1 shadow-sm backdrop-blur">
-        <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "en" ? "secondary" : "ghost"} onClick={() => setLocale("en")}>EN</Button>
         <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "it" ? "secondary" : "ghost"} onClick={() => setLocale("it")}>IT</Button>
+        <Button size="sm" className="h-7 rounded-full px-3 text-xs" variant={locale === "en" ? "secondary" : "ghost"} onClick={() => setLocale("en")}>EN</Button>
       </div>
 
       <aside className="racing-auth-cover relative hidden min-h-svh overflow-hidden border-r border-border/10 bg-[#0b3275] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-12">
-        <div className="relative z-10"><BrandMark tone="invert" /></div>
+        <div className="relative z-10">{racing ? <Link href="/" aria-label="TrackDash"><BrandMark tone="invert" className="auth-racing-logo" /></Link> : <BrandMark tone="invert" />}</div>
         <div className="relative z-10 max-w-xl py-10">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
             {mode === "signup"
@@ -100,7 +100,7 @@ export function AuthScreen({ mode, nextPath, confirmationError = false, racing =
       <main className="flex min-h-svh items-center justify-center px-5 py-16 sm:px-8 lg:min-h-0 lg:px-12">
         <div className="w-full max-w-md">
           <div className="mb-5 overflow-hidden rounded-3xl bg-[#0b3275] p-5 text-white shadow-[0_16px_40px_rgba(11,50,117,0.18)] lg:hidden">
-            <div className="relative z-10"><BrandMark tone="invert" /></div>
+            <div className="relative z-10">{racing ? <Link href="/" aria-label="TrackDash"><BrandMark tone="invert" className="auth-racing-logo-mobile" /></Link> : <BrandMark tone="invert" />}</div>
             <div className="relative z-10 mt-5">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
                 {mode === "signup"
