@@ -28,9 +28,7 @@ export default async function ShopPage({ searchParams }: { searchParams?: Promis
   const preview = isRacingStudioPreview()
   const studio = isRacingStudioEnabled()
   const catalog = studio ? selectedRacingCatalog((await searchParams)?.catalog) : "mini4wd"
-  const copies = catalog === "mini4wd" ? await getShopCopies() : preview
-    ? (await import("@/lib/data/racing-preview-listings")).racingPreviewListings(undefined, "lego")
-    : []
+  const copies = catalog === "mini4wd" ? await getShopCopies() : []
   const locale = (await cookies()).get("trackdash.locale")?.value === "en" ? "en" : "it"
   const it = locale === "it"
   return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">

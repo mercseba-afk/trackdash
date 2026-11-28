@@ -29,7 +29,7 @@ export type ShopCopy = {
 }
 
 export async function getShopCopies(shareId?: string): Promise<ShopCopy[]> {
-  if (isRacingStudioPreview()) return (await import("@/lib/data/racing-preview-listings")).racingPreviewListings(shareId)
+  if (isRacingStudioPreview()) return []
   // Public, opt-in sale projection only. Never return private collection rows.
   if (shareId && !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(shareId)) notFound()
   const user = await getCurrentUser()

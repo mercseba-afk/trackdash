@@ -6,7 +6,7 @@ import { speedChampionsSitemap } from "@/lib/lego/seo"
 import { guides as miniGuides } from "@/lib/guides"
 import { fetchCatalogProducts } from "@/lib/actions/catalog"
 import { listMarketSignals } from "@/lib/db/queries/market"
-import { productPublicPath, releasePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
+import { publicAbsoluteUrl, publicLanguageAlternates, productPublicPath, releasePublicPath, type PublicLocale } from "@/lib/seo/catalog-paths"
 
 // Next.js metadata-route sitemaps are otherwise cacheable at build time.
 // Catalog visibility is DB-controlled: publishing a family after Production READY
@@ -80,6 +80,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ])
 
+  const infoRoutes: MetadataRoute.Sitemap = racingStudioIsLive
+    ? ["/find", "/how-it-works"].flatMap((path) => PUBLIC_LOCALES.map((locale) => ({
+      url: publicAbsoluteUrl(path, locale),
+      alternates: { languages: publicLanguageAlternates(path) },
+    })))
+    : []
+
   const shopRoutes: MetadataRoute.Sitemap = PUBLIC_LOCALES.map((locale) => ({
     url: `${SITE_URL}${locale === "en" ? "/en/shop" : "/shop"}`,
     alternates: { languages: { it: `${SITE_URL}/shop`, en: `${SITE_URL}/en/shop` } },
@@ -114,5 +121,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}${locale === "en" ? "/en" : ""}/guide`, lastModified: guides.map(g => g.published).sort().at(-1), changeFrequency: "weekly" as const, priority: 0.8 },
     ...guides.map(guide => ({ url: `${SITE_URL}${locale === "en" ? "/en" : ""}/guide/${guide.slug}`, lastModified: guide.published, changeFrequency: "monthly" as const, priority: 0.7, alternates: { languages: { it: `${SITE_URL}/guide/${guide.slug}`, en: `${SITE_URL}/en/guide/${guide.slug}` } } })),
   ])
-  return [...staticRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes, ...guideRoutes, ...speedChampionsSitemap()]
+  return [...staticRoutes, ...infoRoutes, ...shopRoutes, ...productRoutes, ...releaseRoutes, ...guideRoutes, ...speedChampionsSitemap()]
 }

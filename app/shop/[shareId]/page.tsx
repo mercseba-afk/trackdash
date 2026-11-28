@@ -16,10 +16,7 @@ export default async function ShopCopyPage({ params, searchParams }: { params: P
   const { shareId } = await params
   const preview = isRacingStudioPreview()
   const lego = selectedRacingCatalog((await searchParams)?.catalog) === "lego"
-  const copies = lego ? preview
-    ? (await import("@/lib/data/racing-preview-listings")).racingPreviewListings(shareId, "lego")
-    : []
-    : await getShopCopies(shareId)
+  const copies = lego ? [] : await getShopCopies(shareId)
   if (!copies.length) notFound()
   return <PublicShell><div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8"><ShopScreen preview={preview} copies={copies} detail lego={lego} /></div></PublicShell>
 }

@@ -60,7 +60,7 @@ export function ShopScreen({ copies, detail = false, preview = false, lego = fal
   }
 
   return <div className="space-y-6 pb-16">
-    {preview && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">{it ? "Annunci dimostrativi. L’invio delle offerte è disattivato in anteprima." : "Example listings. Offers are disabled in this preview."}</p>}
+    {preview && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">{it ? "Gli annunci dei collezionisti saranno visibili sul sito pubblico." : "Collector listings will be visible on the public site."}</p>}
     {detail && copy ? <>
       <Link href={`${shopHref}${catalogSuffix}`} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-brand"><ArrowLeft className="size-4" />{it ? "Torna al mercatino" : "Back to marketplace"}</Link>
       <div className="grid gap-7 lg:grid-cols-[1.15fr_1fr] lg:items-start">

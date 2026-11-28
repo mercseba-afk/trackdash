@@ -12,5 +12,5 @@ export function isRacingStudioEnabled() {
 
 export function isRacingPreviewPage(pathname: string) {
   const path = pathname.replace(/^\/en(?=\/|$)/, "") || "/"
-  return /^\/(?:$|catalog(?:\/[^/]+(?:\/releases\/[^/]+)?)?$|speed-champions(?:\/(?:catalog(?:\/\d{5})?|market))?$|market$|guide(?:\/[^/]+)?$|shop(?:\/[^/]+)?$|privacy$|terms$|how-it-works$|find$|login$|signup$|forgot-password$|robots\.txt$|sitemap\.xml$|api\/version$|racing-studio\/[a-z-]+\.webp$|speed-champions\/images\/[\w-]+\.jpg$)/.test(path)
+  return /^\/(?:$|catalog(?:\/[^/]+(?:\/releases\/[^/]+)?)?$|speed-champions(?:\/(?:catalog(?:\/\d{5})?|market))?$|market$|guide(?:\/[^/]+)?$|shop(?:\/[^/]+)?$|privacy$|terms$|how-it-works$|find$|login$|signup$|forgot-password$|robots\.txt$|sitemap\.xml$|api\/version$|catalog\/dash-1-emperor-\d{5}-\d{4}-original-confezione\.jpeg$|racing-studio\/[a-z-]+\.webp$|speed-champions\/images\/[\w-]+\.jpg$)/.test(path)
 }

@@ -49,7 +49,7 @@ function hasMarketEvidence(signal: ReleaseMarketSignalView): boolean {
   )
 }
 
-export function MarketScreen({ products }: { products: Product[] }) {
+export function MarketScreen({ products, studio = false }: { products: Product[]; studio?: boolean }) {
   const { locale } = useI18n()
   const { user, hydrated } = useStore()
   const it = locale === "it"
@@ -178,8 +178,8 @@ export function MarketScreen({ products }: { products: Product[] }) {
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <MiniStat label={it ? "Release monitorate" : "Monitored Releases"} value={String(rows.length)} />
-              <MiniStat label={it ? "Annunci osservati" : "Observed listings"} value={String(currentOffers)} />
+              <MiniStat label={it ? "Release monitorate" : "Monitored Releases"} value={studio && !rows.length ? (it ? "Mercato sotto osservazione" : "Market under review") : String(rows.length)} />
+              <MiniStat label={studio ? (it ? "Annunci attivi rilevati" : "Active listings found") : (it ? "Annunci osservati" : "Observed listings")} value={studio && !currentOffers ? (it ? "In continua osservazione" : "Ongoing monitoring") : String(currentOffers)} />
               <MiniStat label={it ? "Prezzi aggiornati" : "Updated prices"} value={it ? "Mercato reale" : "Real market"} />
               <MiniStat label={it ? "La tua collezione" : "Your collection"} value={it ? "Sempre allineata" : "Always aligned"} />
             </div>

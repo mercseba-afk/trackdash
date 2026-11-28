@@ -13,8 +13,8 @@ import { useStore } from "@/lib/store"
 import { useRacingStudio } from "./context"
 
 const galleries = [
-  { title: "Tamiya Mini 4WD", catalog: "/catalog", market: "/market", image: "emperor" },
-  { title: "LEGO Speed Champions", catalog: "/speed-champions/catalog", market: "/speed-champions/market", image: "f40" },
+  { title: "Tamiya Mini 4WD", catalog: "/catalog", market: "/market", image: "/catalog/dash-1-emperor-18012-1988-original-confezione.jpeg" },
+  { title: "LEGO Speed Champions", catalog: "/speed-champions/catalog", market: "/speed-champions/market", image: "/speed-champions/images/76934-model.jpg" },
 ] as const
 
 export function RacingShell({ children }: { children: React.ReactNode }) {
@@ -82,7 +82,7 @@ export function RacingShell({ children }: { children: React.ReactNode }) {
               <div id="racing-catalog-options" className="racing-dropdown">
                 {galleries.map((gallery) => (
                   <Link key={gallery.catalog} href={href(gallery.catalog)} onClick={() => setCatalogOpen(false)}>
-                    <Image src={`/racing-studio/${gallery.image}.webp`} alt="" width={250} height={142} sizes="240px" />
+                    <Image src={gallery.image} alt="" width={250} height={142} sizes="240px" />
                     <strong>{gallery.title}</strong>
                     <span>{it ? "Apri il catalogo" : "Open catalog"} →</span>
                   </Link>

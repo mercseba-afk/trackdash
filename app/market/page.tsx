@@ -1,3 +1,4 @@
+import { isRacingStudioEnabled } from "@/lib/racing-studio"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { PublicShell } from "@/components/public-shell"
@@ -49,7 +50,7 @@ export default async function MarketPage() {
     <PublicShell>
       <div className="racing-market-page mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-8 md:px-6 lg:px-8">
         <CatalogAreaNav />
-        <MarketScreen products={products} />
+        <MarketScreen products={products} studio={isRacingStudioEnabled()} />
       </div>
     </PublicShell>
   )
