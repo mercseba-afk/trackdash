@@ -21,10 +21,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await requestLocale()
   const it = locale === "it"
   if (isRacingStudioEnabled()) {
-    const title = "TrackDash — Tamiya Mini 4WD & LEGO Speed Champions"
-    const description = it ? "Scopri i cataloghi Mini 4WD e LEGO Speed Champions, segui i prezzi e organizza le tue collezioni." : "Explore the Mini 4WD and LEGO Speed Champions catalogs, track prices and organize your collections."
+    const title = it
+      ? "TrackDash | Collezionismo Mini 4WD e LEGO Speed Champions"
+      : "TrackDash | Mini 4WD & LEGO Speed Champions Collecting"
+    const description = it
+      ? "Esplora i cataloghi Tamiya Mini 4WD e LEGO Speed Champions. Scopri release e set, confronta i dati di mercato e organizza la tua collezione."
+      : "Explore Tamiya Mini 4WD and LEGO Speed Champions catalogs. Discover models and sets, compare market data and organize your collection."
     const canonical = publicAbsoluteUrl("/", locale)
-    return { title, description, alternates: { canonical, languages: publicLanguageAlternates("/") }, openGraph: { type: "website", url: canonical, siteName: "TrackDash", title, description } }
+    return {
+      title,
+      description,
+      alternates: { canonical, languages: publicLanguageAlternates("/") },
+      openGraph: { type: "website", url: canonical, siteName: "TrackDash", title, description },
+      twitter: { card: "summary_large_image", title, description },
+    }
   }
   const title = it
     ? "TrackDash — Collezione Mini 4WD e valori di mercato"
