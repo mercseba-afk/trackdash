@@ -6,6 +6,7 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { ChevronDown, Menu } from "lucide-react"
 import { LanguageSwitch } from "@/components/language-switch"
+import { SpeedChampionsDisclaimer } from "@/components/speed-champions/disclaimer"
 import { SocialFollow } from "@/components/facebook-link"
 import { useI18n } from "@/lib/i18n"
 import { localizePublicPath } from "@/lib/seo/catalog-paths"
@@ -14,7 +15,7 @@ import { useRacingStudio } from "./context"
 
 const galleries = [
   { title: "Tamiya Mini 4WD", catalog: "/catalog", market: "/market", image: "/catalog/dash-1-emperor-18012-1988-original-confezione.jpeg" },
-  { title: "LEGO Speed Champions", catalog: "/speed-champions/catalog", market: "/speed-champions/market", image: "/speed-champions/images/76934-model.jpg" },
+  { title: "LEGO Speed Champions", catalog: "/speed-champions/catalog", market: "/speed-champions/market", image: "/speed-champions/images/76934-box.jpg" },
 ] as const
 
 export function RacingShell({ children }: { children: React.ReactNode }) {
@@ -118,6 +119,7 @@ export function RacingShell({ children }: { children: React.ReactNode }) {
           <div><strong>{it ? "Account e informazioni" : "Account and information"}</strong><Link href={user ? "/dashboard" : "/login"}>{user ? (it ? "Il tuo account" : "Your account") : (it ? "Accedi" : "Sign in")}</Link><Link href={href("/privacy")}>Privacy</Link><Link href={href("/terms")}>{it ? "Condizioni d’uso" : "Terms of use"}</Link></div>
         </div>
         <p className="racing-wrap racing-footer-note">{it ? "In qualità di Affiliato Amazon io ricevo un guadagno dagli acquisti idonei." : "As an Amazon Associate I earn from qualifying purchases."}</p>
+        <p className="racing-wrap racing-footer-note"><SpeedChampionsDisclaimer locale={locale} /></p>
       </footer>
     </div>
   )

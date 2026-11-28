@@ -1,3 +1,4 @@
+import { SpeedChampionsDisclaimer } from "@/components/speed-champions/disclaimer"
 import { RacingCatalogNav } from "@/components/racing-studio/catalog-nav"
 import { isRacingStudioEnabled, isRacingStudioPreview } from "@/lib/racing-studio"
 import { speedChampionsCatalogIsVisible } from "@/lib/lego/catalog-visibility"
@@ -18,9 +19,7 @@ export default async function SpeedChampionsLayout({ children, locale }: { child
     <AppShell vertical="speedchampions" showSpeedChampionsPersonalLists={hasPersonalLists}>
       {children}
       <p className="mt-8 text-xs leading-relaxed text-muted-foreground">
-        {locale === "it"
-          ? "TrackDash è un progetto indipendente. LEGO e Speed Champions sono marchi dei rispettivi titolari."
-          : "TrackDash is an independent project. LEGO and Speed Champions are trademarks of their respective owners."}
+        <SpeedChampionsDisclaimer locale={locale} />
       </p>
     </AppShell>
   )
