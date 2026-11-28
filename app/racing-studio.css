@@ -109,7 +109,7 @@
 .racing-story-mercatino .racing-story-photo, .racing-story-scanner .racing-story-photo { order: -1; }
 .racing-story-scanner .racing-story-grid { margin-inline: auto; width: calc(100% - 2 * var(--racing-gutter)); max-width: 1310px; color: #fff; background: var(--racing-night); border-radius: 17px; padding: clamp(18px,3.5vw,49px); }
 .racing-story-scanner .racing-story-copy > p:not(.racing-kicker) { color: #d3dfee; }
-.racing-guide-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin-top: 22px; }
+.racing-guide-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 22px; }
 .racing-guide-card > div { position: relative; aspect-ratio: 16/7; background: #eef2fa; }
 .racing-guide-card h3 { padding-inline: 16px; padding-top: 12px; }
 .racing-guide-card p { padding: 4px 16px 17px; }
