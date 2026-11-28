@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { productPublicPath, releasePublicPath } from "@/lib/seo/catalog-paths"
 import { Boxes, Coins, Layers, TrendingUp, ArrowRight, Heart, Sparkles } from "lucide-react"
 import { useStore } from "@/lib/store"
@@ -26,12 +27,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { racingCatalogs } from "@/components/racing-studio/catalog-selector"
+import { LegoDashboardPanel, type LegoDashboardEntry } from "@/components/screens/lego-dashboard-panel"
+import { setMyDashboardCatalogAction, type DashboardCatalog } from "@/lib/actions/profile"
+import { toast } from "sonner"
 
-export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[] }) {
+export function DashboardScreen({ catalogProducts, initialCatalog = "mini4wd", legoCollection, legoWishlist }: {
+  catalogProducts: Product[]
+  initialCatalog?: DashboardCatalog
+  legoCollection: LegoDashboardEntry[]
+  legoWishlist: LegoDashboardEntry[]
+}) {
   const { collection, wishlist, user } = useStore()
   const { locale, t } = useI18n()
   const it = locale === "it"
+  const [activeCatalog, setActiveCatalog] = React.useState<DashboardCatalog>(initialCatalog)
+  const [isSavingCatalog, startSavingCatalog] = React.useTransition()
   const marketSignals = useMarketSignals()
+
+  React.useEffect(() => setActiveCatalog(initialCatalog), [initialCatalog])
+
+  function selectCatalog(next: DashboardCatalog) {
+    if (next === activeCatalog || isSavingCatalog) return
+    const previous = activeCatalog
+    setActiveCatalog(next)
+    startSavingCatalog(async () => {
+      try {
+        await setMyDashboardCatalogAction(next)
+      } catch {
+        setActiveCatalog(previous)
+        toast.error(it ? "Non siamo riusciti a salvare il catalogo preferito." : "We couldn't save your preferred catalog.")
+      }
+    })
+  }
 
   const enriched = React.useMemo(
     () => enrichCollection(collection, marketSignals, catalogProducts),
@@ -45,10 +73,19 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
   const recent = React.useMemo(() => recentAdditions(enriched, 4), [enriched])
   const top = React.useMemo(() => topValued(enriched, 5), [enriched])
 
+  if (activeCatalog === "lego") {
+    return <div className="flex flex-col gap-6">
+      <Header username={user?.username} vertical="lego" />
+      <DashboardUniversePicker value={activeCatalog} pending={isSavingCatalog} onChange={selectCatalog} />
+      <LegoDashboardPanel collection={legoCollection} wishlist={legoWishlist} />
+    </div>
+  }
+
   if (collection.length === 0) {
     return (
       <div className="flex flex-col gap-6">
         <Header username={user?.username} />
+        <DashboardUniversePicker value={activeCatalog} pending={isSavingCatalog} onChange={selectCatalog} />
         <DashboardMarketOverview products={catalogProducts} />
         <Empty className="rounded-lg border border-dashed border-border py-16">
           <EmptyHeader>
@@ -68,6 +105,7 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
   return (
     <div className="flex flex-col gap-6">
       <Header username={user?.username} />
+      <DashboardUniversePicker value={activeCatalog} pending={isSavingCatalog} onChange={selectCatalog} />
       <DashboardMarketOverview products={catalogProducts} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -149,12 +187,32 @@ export function DashboardScreen({ catalogProducts }: { catalogProducts: Product[
   )
 }
 
-function Header({ username }: { username?: string }) {
+function DashboardUniversePicker({ value, pending, onChange }: { value: DashboardCatalog; pending: boolean; onChange: (value: DashboardCatalog) => void }) {
+  const { locale } = useI18n()
+  const it = locale === "it"
+  return <section aria-label={it ? "Scegli il catalogo della dashboard" : "Choose dashboard catalog"} className="grid gap-2 sm:grid-cols-2">
+    {racingCatalogs.map((catalog, index) => {
+      const id: DashboardCatalog = index === 1 ? "lego" : "mini4wd"
+      const selected = value === id
+      return <button key={catalog.catalog} type="button" aria-pressed={selected} disabled={pending} onClick={() => onChange(id)} className={`flex min-h-[76px] items-center gap-3 rounded-xl border p-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-70 ${selected ? "border-brand bg-brand-muted ring-1 ring-brand/20" : "border-border bg-card hover:bg-accent"}`}>
+        <span className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border bg-white"><Image src={catalog.image} alt="" fill sizes="80px" className="object-contain p-1" /></span>
+        <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{catalog.title}</span><span className="mt-0.5 block text-xs text-muted-foreground">{selected ? (it ? "Dashboard selezionata" : "Selected dashboard") : (it ? "Apri questa dashboard" : "Open this dashboard")}</span></span>
+        {selected ? <span className="rounded-full bg-brand px-2 py-1 text-[10px] font-semibold text-white">{it ? "Attiva" : "Active"}</span> : null}
+      </button>
+    })}
+  </section>
+}
+
+function Header({ username, vertical = "mini4wd" }: { username?: string; vertical?: DashboardCatalog | "mini4wd" }) {
   const { t } = useI18n()
+  const { locale } = useI18n()
+  const subtitle = vertical === "lego"
+    ? locale === "it" ? "La tua collezione, i tuoi desideri e il mercato Speed Champions." : "Your collection, wishlist and Speed Champions market."
+    : t("dashboard.subtitle")
   return (
     <div className="flex flex-col gap-1">
       <h1 className="text-2xl font-semibold tracking-tight text-balance">{t("dashboard.welcome", { user: username ? `, ${username}` : "" })}</h1>
-      <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
+      <p className="text-sm text-muted-foreground">{subtitle}</p>
     </div>
   )
 }

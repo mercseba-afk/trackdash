@@ -4,11 +4,25 @@ import { getCurrentUser } from "@/lib/auth/current-user"
 import { withUserContext } from "@/lib/db/rls"
 import { getProfileById, updateProfile } from "@/lib/db/queries/profiles"
 import { syncCollectorProfileIfPresent } from "@/lib/db/queries/sharing"
+import { createClient } from "@/lib/supabase/server"
 import type { Currency } from "@/lib/types"
 
 const ALLOWED_CURRENCIES = new Set<Currency>(["EUR", "USD", "JPY", "GBP"])
 const ALLOWED_LOCALES = new Set(["en", "it"] as const)
 const USERNAME_RE = /^[A-Za-z0-9._-]+$/
+
+export type DashboardCatalog = "mini4wd" | "lego"
+
+export async function setMyDashboardCatalogAction(catalog: DashboardCatalog) {
+  if (catalog !== "mini4wd" && catalog !== "lego") throw new Error("Invalid dashboard catalog")
+  const supabase = await createClient()
+  const { data, error: userError } = await supabase.auth.getUser()
+  if (userError || !data.user) throw new Error("Not authenticated")
+  const { error } = await supabase.auth.updateUser({
+    data: { ...data.user.user_metadata, trackdash_dashboard_catalog: catalog },
+  })
+  if (error) throw error
+}
 
 export async function getMyProfileAction() {
   const user = await getCurrentUser()

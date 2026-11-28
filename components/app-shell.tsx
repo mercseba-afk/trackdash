@@ -20,6 +20,7 @@ import {
 import { BrandMark } from "@/components/brand-mark"
 import { SocialFollow } from "@/components/facebook-link"
 import { CollectibleVerticalSwitch, type CollectibleUiVertical } from "@/components/collectible-vertical-switch"
+import { RacingCatalogNav } from "@/components/racing-studio/catalog-nav"
 import { LanguageSwitch } from "@/components/language-switch"
 import { NotificationCenter } from "@/components/notification-center"
 import { PwaInstallButton, PwaInstallMenuItem } from "@/components/pwa-install-menu-item"
@@ -85,6 +86,7 @@ const SPEED_CHAMPIONS_CATALOG: NavItem = {
   href: "/speed-champions/catalog", labelKey: "nav.catalog", icon: LibraryBig,
 }
 const SPEED_CHAMPIONS_DESKTOP_NAV: NavItem[] = [
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   SPEED_CHAMPIONS_CATALOG,
   { href: "/speed-champions/collection", labelKey: "nav.collection", icon: Boxes },
   { href: "/speed-champions/wishlist", labelKey: "nav.wishlist", icon: Heart },
@@ -212,6 +214,16 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
   const { t, locale } = useI18n()
   const [unreadMessages, setUnreadMessages] = React.useState(0)
   const isSpeedChampions = vertical === "speedchampions"
+  const showSpeedCatalogNav = isSpeedChampions && (
+    pathname === "/speed-champions/catalog" ||
+    pathname.startsWith("/speed-champions/catalog/") ||
+    pathname === "/speed-champions/market" ||
+    pathname.startsWith("/speed-champions/market/") ||
+    pathname === "/en/speed-champions/catalog" ||
+    pathname.startsWith("/en/speed-champions/catalog/") ||
+    pathname === "/en/speed-champions/market" ||
+    pathname.startsWith("/en/speed-champions/market/")
+  )
   const shopAccess = Boolean(user)
   const [speedChampionsAccess, setSpeedChampionsAccess] = React.useState(false)
   React.useEffect(() => {
@@ -341,6 +353,7 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
             : "w-full pb-6",
         )}
       >
+        {showSpeedCatalogNav ? <RacingCatalogNav lego /> : null}
         {children}
       </main>
 
