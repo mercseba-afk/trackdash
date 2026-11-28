@@ -97,7 +97,7 @@ export async function RacingHome({ products, locale }: { products: Product[]; lo
         <h2>{copy("Un consiglio alla volta.", "One tip at a time.")}</h2>
         <div className="racing-guide-grid">
           <Link href={path(`/guide/${miniGuide.slug}`)} className="racing-guide-card"><div><Image src="/racing-studio/guide-mini.webp" alt="" fill sizes="(max-width: 760px) 96vw, 52vw" /></div><h3>{miniGuide[locale].title}</h3><p>{miniGuide[locale].description}</p></Link>
-          <Link href={path(`/guide/${legoGuide.slug}`)} className="racing-guide-card"><div><Image src="/racing-studio/guide-lego.webp" alt="" fill sizes="(max-width: 760px) 96vw, 38vw" /></div><h3>{legoGuide[locale].title}</h3><p>{legoGuide[locale].description}</p></Link>
+          <Link href={path(`/guide/${legoGuide.slug}`)} className="racing-guide-card"><div><Image src="/speed-champions/images/76934-model.jpg" alt="" fill sizes="(max-width: 760px) 96vw, 38vw" /></div><h3>{legoGuide[locale].title}</h3><p>{legoGuide[locale].description}</p></Link>
         </div>
         <Link className="racing-text-link" href={path("/guide")}>{copy("Tutte le guide", "All guides")} →</Link>
       </section>
