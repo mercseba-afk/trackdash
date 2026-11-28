@@ -117,11 +117,11 @@ try {
         name: "auth-fixture",
         setup(b) {
           b.onResolve({ filter: /^server-only$/ }, () => ({ path: "server-only", namespace: "test" }))
-          b.onResolve({ filter: /^@\/lib\/admin\/access$/ }, () => ({ path: "auth", namespace: "test" }))
+          b.onResolve({ filter: /^@\/lib\/auth\/current-user$/ }, () => ({ path: "auth", namespace: "test" }))
           b.onLoad({ filter: /.*/, namespace: "test" }, (args) => ({
             contents:
               args.path === "auth"
-                ? "export async function getCurrentAdmin() { return globalThis.testAdmin ?? null }"
+                ? "export async function getCurrentUser() { return globalThis.testUser ?? null }"
                 : "",
           }))
         },
@@ -131,25 +131,14 @@ try {
   const { canAccessSpeedChampions } = await import(pathToFileURL(gateFile))
   process.env.NODE_ENV = "production"
   process.env.VERCEL_ENV = "production"
-  assert.equal(await canAccessSpeedChampions(), false, "Production visitor must not see the pilot")
-  process.env.SPEED_CHAMPIONS_OWNER_ID = "owner-fixture"
-  globalThis.testAdmin = { id: "other-admin-fixture" }
-  assert.equal(await canAccessSpeedChampions(), false, "Other admins cannot access the owner-only pilot")
-  globalThis.testAdmin = { id: "owner-fixture" }
-  assert.equal(await canAccessSpeedChampions(), true)
-  delete process.env.SPEED_CHAMPIONS_OWNER_ID
-  assert.equal(await canAccessSpeedChampions(), false, "Missing owner config must fail closed")
-  globalThis.testAdmin = null
+  assert.equal(await canAccessSpeedChampions(), false, "Signed-out visitors cannot use personal features")
+  globalThis.testUser = { id: "collector-fixture" }
+  assert.equal(await canAccessSpeedChampions(), true, "Any authenticated collector can use personal features")
   process.env.VERCEL_ENV = "preview"
-  assert.equal(await canAccessSpeedChampions(), false, "Hosted previews fail closed without owner configuration")
-  process.env.SPEED_CHAMPIONS_OWNER_ID = "owner-fixture"
-  assert.equal(await canAccessSpeedChampions(), false, "Hosted preview requires a signed-in owner")
-  globalThis.testAdmin = { id: "owner-fixture" }
-  assert.equal(await canAccessSpeedChampions(), true, "Configured owner can use hosted preview")
-  delete process.env.SPEED_CHAMPIONS_OWNER_ID
+  assert.equal(await canAccessSpeedChampions(), true, "Authenticated preview users can use personal features")
+  globalThis.testUser = null
+  assert.equal(await canAccessSpeedChampions(), false, "Signed-out preview visitors remain blocked")
   delete process.env.VERCEL_ENV
-  process.env.NODE_ENV = "development"
-  assert.equal(await canAccessSpeedChampions(), true)
   const databaseFile = path.join(directory, "database.mjs")
   await build({
     entryPoints: ["lib/db/index.ts"],
