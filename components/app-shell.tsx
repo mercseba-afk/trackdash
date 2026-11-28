@@ -280,9 +280,14 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
     <div className="min-h-svh bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 md:h-[72px] md:px-6 lg:px-8">
-          <Link href="/dashboard" aria-label="TrackDash dashboard" className="shrink-0">
-            <BrandMark />
-          </Link>
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href="/dashboard" aria-label="TrackDash dashboard" className="shrink-0">
+              <BrandMark className="h-10 w-[118px] sm:h-[62px] sm:w-[186px]" />
+            </Link>
+            {(isSpeedChampions || speedChampionsAccess) && (
+              <CollectibleVerticalSwitch active={vertical} />
+            )}
+          </div>
 
           <nav className="hidden items-center gap-1 lg:flex">
             {desktopNav.map((item, index) => {
@@ -322,9 +327,6 @@ export function AppShell({ children, contentMode = "app", vertical = "mini4wd", 
           </nav>
 
           <div className="flex items-center gap-1.5">
-            {(isSpeedChampions || speedChampionsAccess) && (
-              <CollectibleVerticalSwitch active={vertical} />
-            )}
             {pathname !== "/market" && pathname !== "/en/market" ? <PwaInstallButton /> : null}
             <NotificationCenter />
             <UserMenu showWishlist={!isSpeedChampions} />
