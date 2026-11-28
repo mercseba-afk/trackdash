@@ -1,5 +1,5 @@
-// The redesign can be switched on for production after release approval.
-export const racingStudioIsLive = false
+// Public Racing Studio and Speed Champions catalog.
+export const racingStudioIsLive = true
 
 export function isRacingStudioPreview() {
   return (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "feat/racing-studio-test")
