@@ -4,6 +4,10 @@ import * as React from "react"
 import Link from "next/link"
 import {
   Activity,
+  Boxes,
+  CircleDollarSign,
+  ScanSearch,
+  UserRound,
   ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
@@ -178,10 +182,10 @@ export function MarketScreen({ products, studio = false }: { products: Product[]
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <MiniStat label={it ? "Release monitorate" : "Monitored Releases"} value={studio && !rows.length ? (it ? "Mercato sotto osservazione" : "Market under review") : String(rows.length)} />
-              <MiniStat label={studio ? (it ? "Annunci attivi rilevati" : "Active listings found") : (it ? "Annunci osservati" : "Observed listings")} value={studio && !currentOffers ? (it ? "In continua osservazione" : "Ongoing monitoring") : String(currentOffers)} />
-              <MiniStat label={it ? "Prezzi aggiornati" : "Updated prices"} value={it ? "Mercato reale" : "Real market"} />
-              <MiniStat label={it ? "La tua collezione" : "Your collection"} value={it ? "Sempre allineata" : "Always aligned"} />
+              <MiniStat icon={Boxes} label={it ? "Release monitorate" : "Releases monitored"} value={studio && !rows.length ? (it ? "In osservazione" : "Under observation") : String(rows.length)} />
+              <MiniStat icon={ScanSearch} label={it ? "Annunci osservati" : "Listings observed"} value={studio && !currentOffers ? (it ? "In aggiornamento" : "Being updated") : String(currentOffers)} />
+              <MiniStat icon={CircleDollarSign} label={it ? "Prezzi" : "Prices"} value={it ? "Dati disponibili" : "Available data"} />
+              <MiniStat icon={UserRound} label={it ? "La tua collezione" : "Your collection"} value={it ? "Collegata al profilo" : "Linked to your account"} />
             </div>
             <div className="rounded-2xl border border-[#d6e3f2] bg-white/75 p-4 shadow-sm backdrop-blur">
               <p className="text-sm font-semibold text-navy">{it ? "TrackDash sempre con te" : "TrackDash always with you"}</p>
@@ -341,8 +345,8 @@ function ValueExample({ row }: { row: Row }) {
   )
 }
 
-function MiniStat({ label, value }: { label: string; value: React.ReactNode }) {
-  return <Card className="border-[#dce7f4] bg-white/85 py-0 shadow-sm backdrop-blur"><CardContent className="flex min-h-[84px] flex-col justify-center gap-1 px-4 py-3"><span className="text-[11px] font-medium text-muted-foreground">{label}</span><span className="text-xl font-semibold tabular-nums text-navy">{value}</span></CardContent></Card>
+function MiniStat({ icon: Icon, label, value }: { icon: typeof Boxes; label: string; value: React.ReactNode }) {
+  return <Card className="border-[#dce7f4] bg-white/85 py-0 shadow-sm backdrop-blur"><CardContent className="flex min-h-[70px] items-center gap-3 px-3 py-2.5"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#edf3ff] text-brand"><Icon className="size-[18px]" aria-hidden="true" /></span><span className="min-w-0"><span className="block text-[10px] font-medium leading-4 text-muted-foreground">{label}</span><span className="block text-[13px] font-semibold leading-[1.2] text-navy">{value}</span></span></CardContent></Card>
 }
 
 function MarketListCard({ title, rows, forming = false }: { title: string; rows: Row[]; forming?: boolean }) {

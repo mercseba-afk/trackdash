@@ -42,7 +42,7 @@ function ScannerGuide({ locale, catalog }: { locale: PublicLocale; catalog: Raci
     <RacingSectionNav path="/find" selected={catalog} locale={locale} label={copy("Catalogo dello scanner", "Scanner catalog")} />
     <div className="racing-scanner-grid">
       <section className="racing-scanner-frame">
-        <Image src={lego ? "/speed-champions/images/76934-box.jpg" : "/catalog/dash-1-emperor-18012-1988-original-confezione.jpeg"} alt="" fill sizes="(max-width: 760px) 96vw, 55vw" />
+        <Image src={lego ? "/racing-studio/guide-lego.webp" : "/racing-studio/scanner.webp"} alt="" fill sizes="(max-width: 760px) 96vw, 55vw" />
         <div>
           <ScanLine size={38} aria-hidden="true" />
           <h2>{lego ? copy("Leggi il numero set sulla scatola", "Read the set number on the box") : copy("Inquadra il codice a barre", "Frame the barcode")}</h2>
