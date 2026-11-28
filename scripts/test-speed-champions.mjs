@@ -55,16 +55,19 @@ try {
   const seoFile = path.join(directory, "seo.mjs")
   await build({ entryPoints: ["lib/lego/seo.ts"], bundle: true, platform: "node", format: "esm", outfile: seoFile })
   const { speedChampionsMetadata, speedChampionsSitemap } = await import(pathToFileURL(seoFile))
+  const sitemapUrls = new Set(speedChampionsSitemap().map(({ url }) => url))
   for (const setNumber of [undefined, ...sets.map(set => set.setNumber)]) {
     const it = speedChampionsMetadata("it", setNumber)
     const en = speedChampionsMetadata("en", setNumber)
     assert.notEqual(it.description, en.description)
     assert.equal(it.alternates.canonical, en.alternates.languages.it)
     assert.equal(en.alternates.canonical, it.alternates.languages.en)
-    assert.equal(it.robots.index, false)
-    assert.equal(en.robots.index, false)
+    for (const metadata of [it, en]) {
+      assert.equal(metadata.robots.index, true)
+      assert.ok(sitemapUrls.has(metadata.alternates.canonical))
+    }
   }
-  assert.deepEqual(speedChampionsSitemap(), [], "Private LEGO catalogue must stay out of the sitemap")
+  assert.equal(sitemapUrls.size, (sets.length + 2) * 2, "Catalogue, market and set pages must appear in both languages")
 
   const marketFile = path.join(directory, "market.mjs")
   await build({ entryPoints: ["lib/lego/market.ts"], bundle: true, platform: "node", format: "esm", outfile: marketFile })
